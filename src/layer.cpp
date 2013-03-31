@@ -75,73 +75,22 @@ void Layer::restack(ShellSurface *surf)
     restack(surf->m_surface);
 }
 
-Layer::Iterator Layer::begin()
+Layer::iterator Layer::begin()
 {
-    return Iterator(&m_layer.surface_list, m_layer.surface_list.next);
+    return iterator(&m_layer.surface_list, m_layer.surface_list.next);
 }
 
-Layer::Iterator Layer::end()
+Layer::const_iterator Layer::begin() const
 {
-    return Iterator(&m_layer.surface_list, &m_layer.surface_list);
+    return const_iterator(&m_layer.surface_list, m_layer.surface_list.next);
 }
 
-Layer::Iterator::Iterator(const Iterator &it)
-               : m_list(it.m_list)
-               , m_elm(it.m_elm)
-               , m_next(it.m_next)
+Layer::iterator Layer::end()
 {
-
+    return iterator(&m_layer.surface_list, &m_layer.surface_list);
 }
 
-Layer::Iterator::Iterator(struct wl_list *list, struct wl_list *elm)
-               : m_list(list)
-               , m_elm(elm)
+Layer::const_iterator Layer::end() const
 {
-    m_next = m_elm->next;
-}
-
-Layer::Iterator &Layer::Iterator::operator=(const Iterator &it)
-{
-    m_list = it.m_list;
-    m_elm = it.m_elm;
-    m_next = it.m_next;
-    return *this;
-}
-
-bool Layer::Iterator::operator==(const Iterator &it)
-{
-    return m_elm == it.m_elm;
-}
-
-bool Layer::Iterator::operator!=(const Iterator &it)
-{
-    return m_elm != it.m_elm;
-}
-
-struct weston_surface *Layer::Iterator::operator*() const
-{
-    return deref();
-}
-
-struct weston_surface *Layer::Iterator::operator->() const
-{
-    return deref();
-}
-
-Layer::Iterator &Layer::Iterator::operator++()
-{
-    if (m_list != m_elm) {
-        m_elm = m_next;
-        m_next = m_elm->next;
-    }
-    return *this;
-}
-
-struct weston_surface *Layer::Iterator::deref() const
-{
-    if (m_elm) {
-        return container_of(m_elm, struct weston_surface, layer_link);
-    } else {
-        return nullptr;
-    }
+    return const_iterator(&m_layer.surface_list, &m_layer.surface_list);
 }

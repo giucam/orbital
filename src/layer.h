@@ -24,33 +24,37 @@ class ShellSurface;
 
 class Layer {
 public:
+    template<class L, class S>
     class Iterator {
     public:
-        Iterator(const Iterator &it);
+        Iterator(const Iterator &it) { *this = it; }
 
         Iterator &operator=(const Iterator &it);
 
-        bool operator==(const Iterator &it);
-        bool operator!=(const Iterator &it);
+        bool operator==(const Iterator &it) const { return m_elm == it.m_elm; }
+        bool operator!=(const Iterator &it) const { return m_elm != it.m_elm; }
 
-        struct weston_surface *operator*() const;
-        struct weston_surface *operator->() const;
+        S *operator*() const { return deref(); }
+        S *operator->() const { return deref(); }
 
         Iterator &operator++();
 
     private:
-        Iterator(struct wl_list *list, struct wl_list *elm);
-        struct weston_surface *deref() const;
+        Iterator(const struct wl_list *list, L *elm);
+        S *deref() const;
 
-        struct wl_list *m_list;
-        struct wl_list *m_elm;
+        const struct wl_list *m_list;
+        L *m_elm;
         // this m_next is needed to do what wl_list_for_each_safe does, that is
         // it allows for the current element to be removed from the list
         // without having the iterator go berserk.
-        struct wl_list *m_next;
+        L *m_next;
 
         friend class Layer;
     };
+
+    typedef Iterator<struct wl_list, struct weston_surface> iterator;
+    typedef Iterator<const struct wl_list, const struct weston_surface> const_iterator;
 
     Layer();
 
@@ -65,12 +69,51 @@ public:
     void restack(struct weston_surface *surf);
     void restack(ShellSurface *surf);
 
-    Iterator begin();
-    Iterator end();
+    iterator begin();
+    const_iterator begin() const;
+    iterator end();
+    const_iterator end() const;
 
 private:
     struct weston_layer m_layer;
     struct wl_list *m_below;
 };
+
+template<class L, class S>
+Layer::Iterator<L, S>::Iterator(const struct wl_list *list, L *elm)
+                     : m_list(list)
+                     , m_elm(elm)
+{
+    m_next = m_elm->next;
+}
+
+template<class L, class S>
+Layer::Iterator<L, S> &Layer::Iterator<L, S>::operator=(const Iterator &it)
+{
+    m_list = it.m_list;
+    m_elm = it.m_elm;
+    m_next = it.m_next;
+    return *this;
+}
+
+template<class L, class S>
+Layer::Iterator<L, S> &Layer::Iterator<L, S>::operator++()
+{
+    if (m_list != m_elm) {
+        m_elm = m_next;
+        m_next = m_elm->next;
+    }
+    return *this;
+}
+
+template<class L, class S>
+S *Layer::Iterator<L, S>::deref() const
+{
+    if (m_elm) {
+        return container_of(m_elm, struct weston_surface, layer_link);
+    } else {
+        return nullptr;
+    }
+}
 
 #endif
