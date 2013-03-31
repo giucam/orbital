@@ -19,10 +19,11 @@
 
 Animation::Animation()
 {
-    wl_list_init(&m_animation.link);
-    m_animation.frame = [](struct weston_animation *base, struct weston_output *output, uint32_t msecs) {
-        Animation *animation = container_of(base, Animation, m_animation);
-        animation->update(output, msecs);
+    m_animation.parent = this;
+    wl_list_init(&m_animation.ani.link);
+    m_animation.ani.frame = [](struct weston_animation *base, struct weston_output *output, uint32_t msecs) {
+        AnimWrapper *animation = container_of(base, AnimWrapper, ani);
+        animation->parent->update(output, msecs);
     };
 }
 
@@ -48,15 +49,15 @@ void Animation::run(struct weston_output *output, const std::function<void (floa
     m_doneHandler = doneHandler;
     m_duration = duration;
 
-    m_animation.frame_counter = 0;
+    m_animation.ani.frame_counter = 0;
 
-    wl_list_insert(&output->animation_list, &m_animation.link);
+    wl_list_insert(&output->animation_list, &m_animation.ani.link);
     weston_compositor_schedule_repaint(output->compositor);
 }
 
 void Animation::update(struct weston_output *output, uint32_t msecs)
 {
-    if (m_animation.frame_counter <= 1) {
+    if (m_animation.ani.frame_counter <= 1) {
         m_timestamp = msecs;
     }
 
@@ -66,8 +67,8 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
         if (m_doneHandler) {
             m_doneHandler();
         }
-        wl_list_remove(&m_animation.link);
-        wl_list_init(&m_animation.link);
+        wl_list_remove(&m_animation.ani.link);
+        wl_list_init(&m_animation.ani.link);
         weston_compositor_schedule_repaint(output->compositor);
         return;
     }

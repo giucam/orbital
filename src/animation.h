@@ -37,7 +37,11 @@ public:
 private:
     void update(struct weston_output *output, uint32_t msecs);
 
-    struct weston_animation m_animation;
+    struct AnimWrapper {
+        struct weston_animation ani;
+        Animation *parent;
+    };
+    AnimWrapper m_animation;
     float m_start;
     float m_target;
     uint32_t m_duration;
