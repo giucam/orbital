@@ -15,6 +15,7 @@ set(SOURCES
     src/shellsurface.cpp
     src/effect.cpp
     src/scaleeffect.cpp
+    src/animation.cpp
     src/desktop-shell.cpp)
 
 wayland_add_protocol_server(SOURCES
