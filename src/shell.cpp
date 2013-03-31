@@ -107,13 +107,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         return;
     }
 
-    bool changedType = false;
-    if (surface->m_type != surface->m_pendingType && surface->m_pendingType != ShellSurface::Type::None) {
-        changedType = true;
-        surface->m_type = surface->m_pendingType;
-        surface->m_pendingType = ShellSurface::Type::None;
-    }
-
+    bool changedType = surface->updateType();
     if (!surface->isMapped()) {
         switch (surface->m_type) {
             case ShellSurface::Type::TopLevel:
@@ -123,7 +117,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 surface->map(surface->m_surface->geometry.x + sx, surface->m_surface->geometry.y + sy, width, height);
         }
 
-        if (surface->m_type == ShellSurface::Type::TopLevel) {
+        if (surface->m_type == ShellSurface::Type::TopLevel || surface->m_type == ShellSurface::Type::Maximized) {
             struct weston_seat *seat;
             wl_list_for_each(seat, &m_compositor->seat_list, link) {
                 weston_surface_activate(surface->m_surface, seat);
@@ -141,7 +135,8 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         struct weston_surface *es = surface->m_surface;
         weston_surface_to_global_float(es, 0, 0, &from_x, &from_y);
         weston_surface_to_global_float(es, sx, sy, &to_x, &to_y);
-        weston_surface_configure(es, surface->x() + to_x - from_x, surface->y() + to_y - from_y, width, height);
+        surface->map(surface->x() + to_x - from_x, surface->y() + to_y - from_y, width, height);
+//         weston_surface_configure(es, surface->x() + to_x - from_x, surface->y() + to_y - from_y, width, height);
 //         configure(shell, es,
 //                   es->geometry.x + to_x - from_x,
 //                   es->geometry.y + to_y - from_y,
@@ -349,6 +344,22 @@ void Shell::showPanels()
 void Shell::hidePanels()
 {
     m_panelsLayer.hide();
+}
+
+IRect2D Shell::windowsArea(struct weston_output *output) const
+{
+    int panelsHeight = 0;
+    for (const struct weston_surface *surface: m_panelsLayer) {
+        if (surface->output == output) {
+            panelsHeight = surface->geometry.height;
+        }
+    }
+    return IRect2D(output->x, output->y + panelsHeight, output->width, output->height - panelsHeight);
+}
+
+struct weston_output *Shell::getDefaultOutput() const
+{
+    return container_of(m_compositor->output_list.next, struct weston_output, link);
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

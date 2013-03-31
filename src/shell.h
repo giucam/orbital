@@ -20,6 +20,7 @@
 
 #include <vector>
 
+#include "utils.h"
 #include "layer.h"
 
 class ShellSurface;
@@ -64,6 +65,10 @@ public:
 
     void showPanels();
     void hidePanels();
+
+    virtual IRect2D windowsArea(struct weston_output *output) const;
+
+    struct weston_output *getDefaultOutput() const;
 
 protected:
     Shell(struct weston_compositor *ec);

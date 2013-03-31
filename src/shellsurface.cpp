@@ -47,6 +47,32 @@ void ShellSurface::init(uint32_t id)
     m_resource.data = this;
 }
 
+bool ShellSurface::updateType()
+{
+    if (m_type != m_pendingType && m_pendingType != Type::None) {
+        switch (m_type) {
+            case Type::Maximized:
+                unsetMaximized();
+                break;
+            default:
+                break;
+        }
+        m_type = m_pendingType;
+        m_pendingType = Type::None;
+
+        switch (m_type) {
+            case Type::Maximized:
+                m_savedX = x();
+                m_savedY = y();
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+    return false;
+}
+
 void ShellSurface::map(int32_t x, int32_t y, int32_t width, int32_t height)
 {
 //     if (m_type == Type::None) {
@@ -57,12 +83,28 @@ void ShellSurface::map(int32_t x, int32_t y, int32_t width, int32_t height)
 //     if (m_type == Type::TopLevel) {
 //         weston_surface_set_position(m_surface, x, x);
 //     }
-printf("map %d %d %d %d\n",x,y,width,height);
-    weston_surface_configure(m_surface, x, y, width, height);
+    switch (m_type) {
+        case Type::Maximized: {
+            IRect2D rect = m_shell->windowsArea(m_output);
+            x = rect.x;
+            y = rect.y;
+        }
+        default:
+            weston_surface_configure(m_surface, x, y, width, height);
+    }
+
+    printf("map %d %d %d %d - %d\n",x,y,width,height,m_type);
+
+
 //     m_surface->geometry.width = width;
 //     m_surface->geometry.height = height;
 //     weston_surface_geometry_dirty(m_surface);
-    weston_surface_update_transform(m_surface);
+    if (m_type != Type::None) {
+        weston_surface_update_transform(m_surface);
+        if (m_type == Type::Maximized) {
+            m_surface->output = m_output;
+        }
+    }
 }
 
 void ShellSurface::addTransform(struct weston_transform *transform)
@@ -119,6 +161,11 @@ int32_t ShellSurface::height() const
 void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
 {
 
+}
+
+void ShellSurface::unsetMaximized()
+{
+    weston_surface_set_position(m_surface, m_savedX, m_savedY);
 }
 
 // -- Move --
@@ -313,7 +360,21 @@ void ShellSurface::setPopup(struct wl_client *client, struct wl_resource *resour
 
 void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource)
 {
+    /* get the default output, if the client set it as NULL
+    c heck whether the ouput is available */
+    if (output_resource) {
+        m_output = static_cast<struct weston_output *>(output_resource->data);
+    } else if (m_surface->output) {
+        m_output = m_surface->output;
+    } else {
+        m_output = m_shell->getDefaultOutput();
+    }
 
+    uint32_t edges = WL_SHELL_SURFACE_RESIZE_TOP | WL_SHELL_SURFACE_RESIZE_LEFT;
+
+    IRect2D rect = m_shell->windowsArea(m_output);
+    m_client->send_configure(m_surface, edges, rect.width, rect.height);
+    m_pendingType = Type::Maximized;
 }
 
 void ShellSurface::setTitle(struct wl_client *client, struct wl_resource *resource, const char *title)

@@ -28,12 +28,14 @@ class ShellSurface {
 public:
     enum class Type {
         None,
-        TopLevel
+        TopLevel,
+        Maximized
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
 
     void init(uint32_t id);
+    bool updateType();
     void map(int32_t x, int32_t y, int32_t width, int32_t height);
 
     void addTransform(struct weston_transform *transform);
@@ -55,6 +57,8 @@ public:
     void dragResize(struct weston_seat *ws, uint32_t edges);
 
 private:
+    void unsetMaximized();
+
     Shell *m_shell;
     struct wl_resource m_resource;
     struct weston_surface *m_surface;
@@ -63,6 +67,8 @@ private:
     const struct weston_shell_client *m_client;
     std::string m_title;
     std::string m_class;
+    struct weston_output *m_output;
+    int32_t m_savedX, m_savedY;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
