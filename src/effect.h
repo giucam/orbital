@@ -36,7 +36,6 @@ protected:
     virtual void removedSurface(ShellSurface *surf) {}
 
     inline Shell *shell() const { return m_shell; }
-    const struct weston_layer *layer() const;
 
 private:
     Shell *m_shell;

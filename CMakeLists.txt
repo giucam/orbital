@@ -12,6 +12,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
 
 set(SOURCES
     src/shell.cpp
+    src/layer.cpp
     src/shellsurface.cpp
     src/effect.cpp
     src/scaleeffect.cpp

@@ -90,6 +90,7 @@ private:
     static const struct wl_shell_surface_interface m_shell_surface_implementation;
 
     friend class Shell;
+    friend class Layer;
 };
 
 inline void ShellSurface::shell_surface_pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial) {

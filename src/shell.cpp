@@ -68,10 +68,9 @@ void Shell::init()
     if (!global)
         return;
 
-    weston_layer_init(&m_layer, &m_compositor->cursor_layer.link);
-    weston_layer_init(&m_panelsLayer, &m_layer.link);
-    weston_layer_init(&m_backgroundLayer, &m_panelsLayer.link);
-
+    m_layer.init(&m_compositor->cursor_layer);
+    m_panelsLayer.init(&m_layer);
+    m_backgroundLayer.init(&m_panelsLayer);
 
     m_blackSurface = weston_surface_create(m_compositor);
 
@@ -89,7 +88,7 @@ void Shell::init()
     pixman_region32_fini(&m_blackSurface->input);
     pixman_region32_init_rect(&m_blackSurface->input, 0, 0, w, h);
 
-    wl_list_insert(&m_backgroundLayer.surface_list, &m_blackSurface->layer_link);
+    m_backgroundLayer.addSurface(m_blackSurface);
 
     struct wl_event_loop *loop = wl_display_get_event_loop(m_compositor->wl_display);
     wl_event_loop_add_idle(loop, [](void *data) { static_cast<Shell *>(data)->launchShellProcess(); }, this);
@@ -195,7 +194,7 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
     shsurf->init(id);
 
     wl_client_add_resource(client, shsurf->wl_resource());
-    wl_list_insert(&m_layer.surface_list, &surface->layer_link);
+    m_layer.addSurface(surface);
 
     return shsurf;
 }
@@ -230,7 +229,7 @@ void Shell::bindEffect(Effect *effect, uint32_t key, enum weston_keyboard_modifi
 void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)
 {
     weston_surface_activate(shsurf->m_surface, seat);
-    weston_surface_restack(shsurf->m_surface, &m_layer.surface_list);
+    m_layer.restack(shsurf);
 }
 
 void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button)
@@ -345,14 +344,12 @@ void Shell::moveSurface(ShellSurface *shsurf, struct weston_seat *ws)
 }
 
 static void
-configure_static_surface(struct weston_surface *es, struct weston_layer *layer, int32_t width, int32_t height)
+configure_static_surface(struct weston_surface *es, Layer *layer, int32_t width, int32_t height)
 {
-    struct weston_surface *s, *next;
-
     if (width == 0)
         return;
 
-    wl_list_for_each_safe(s, next, &layer->surface_list, layer_link) {
+    for (struct weston_surface *s: *layer) {
         if (s->output == es->output && s != es) {
             weston_surface_unmap(s);
             s->configure = NULL;
@@ -362,7 +359,7 @@ configure_static_surface(struct weston_surface *es, struct weston_layer *layer, 
     weston_surface_configure(es, es->output->x, es->output->y, width, height);
 
     if (wl_list_empty(&es->layer_link)) {
-        wl_list_insert(&layer->surface_list, &es->layer_link);
+        layer->addSurface(es);
         weston_compositor_schedule_repaint(es->compositor);
     }
 }
@@ -400,12 +397,12 @@ void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output
 
 void Shell::showPanels()
 {
-    wl_list_insert(&m_layer.link, &m_panelsLayer.link);
+    m_panelsLayer.show();
 }
 
 void Shell::hidePanels()
 {
-    wl_list_remove(&m_panelsLayer.link);
+    m_panelsLayer.hide();
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

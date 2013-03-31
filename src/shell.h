@@ -23,6 +23,8 @@
 // i'd like to not have this here, but it is for the desktop_shell_cursor enum
 #include "wayland-desktop-shell-server-protocol.h"
 
+#include "layer.h"
+
 class ShellSurface;
 struct ShellGrab;
 class Effect;
@@ -70,7 +72,6 @@ public:
 protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
-    inline const struct weston_layer *layer() const { return &m_layer; }
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
 
     struct {
@@ -89,9 +90,9 @@ private:
     void activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button);
 
     struct weston_compositor *m_compositor;
-    struct weston_layer m_backgroundLayer;
-    struct weston_layer m_panelsLayer;
-    struct weston_layer m_layer;
+    Layer m_backgroundLayer;
+    Layer m_panelsLayer;
+    Layer m_layer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
 
