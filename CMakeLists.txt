@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(shell)
+project(orbital)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_FLAGS "-Wall -g -std=c++0x")
@@ -24,7 +24,7 @@ wayland_add_protocol_server(SOURCES
     desktop-shell
 )
 
-add_library(shell SHARED ${SOURCES})
+add_library(orbital-shell SHARED ${SOURCES})
+set_target_properties(orbital-shell PROPERTIES PREFIX "")
 # target_link_libraries(shell )
 
-install_targets(/lib/weston/ shell)
