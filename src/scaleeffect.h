@@ -21,6 +21,7 @@
 #include "effect.h"
 
 class ShellGrab;
+class Animation;
 
 class ScaleEffect : public Effect
 {
@@ -37,6 +38,7 @@ private:
     void run(struct weston_seat *ws);
 
     bool m_scaled;
+    std::vector<struct SurfaceTransform *> m_surfaces;
     struct weston_seat *m_seat;
     struct Grab *m_grab;
 };

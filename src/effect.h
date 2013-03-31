@@ -27,11 +27,6 @@ class ShellSurface;
 
 class Effect {
 public:
-    struct SurfaceTransform {
-        ShellSurface *surface;
-        struct weston_transform transform;
-    };
-
     Effect(Shell *shell);
     void addSurface(ShellSurface *surf);
 
@@ -42,11 +37,9 @@ protected:
 
     inline Shell *shell() const { return m_shell; }
     const struct weston_layer *layer() const;
-    std::vector<SurfaceTransform> &surfaces();
 
 private:
     Shell *m_shell;
-    std::vector<SurfaceTransform> m_surfaces;
 
 };
 

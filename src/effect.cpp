@@ -26,21 +26,10 @@ Effect::Effect(Shell *shell)
 
 void Effect::addSurface(ShellSurface *surf)
 {
-    SurfaceTransform tr;
-    tr.surface = surf;
-
-    m_surfaces.push_back(tr);
-    wl_list_init(&m_surfaces.back().transform.link);
-
     addedSurface(surf);
 }
 
 const struct weston_layer *Effect::layer() const
 {
     return m_shell->layer();
-}
-
-std::vector<Effect::SurfaceTransform> &Effect::surfaces()
-{
-    return m_surfaces;
 }

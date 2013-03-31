@@ -60,10 +60,10 @@ printf("map %d %d %d %d\n",x,y,width,height);
 
 void ShellSurface::addTransform(struct weston_transform *transform)
 {
+    removeTransform(transform);
     wl_list_insert(&m_surface->geometry.transformation_list, &transform->link);
 
-    weston_surface_geometry_dirty(m_surface);
-    weston_surface_damage(m_surface);
+    damage();
 }
 
 void ShellSurface::removeTransform(struct weston_transform *transform)
@@ -75,6 +75,11 @@ void ShellSurface::removeTransform(struct weston_transform *transform)
     wl_list_remove(&transform->link);
     wl_list_init(&transform->link);
 
+    damage();
+}
+
+void ShellSurface::damage()
+{
     weston_surface_geometry_dirty(m_surface);
     weston_surface_damage(m_surface);
 }

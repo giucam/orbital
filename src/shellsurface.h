@@ -35,6 +35,7 @@ public:
 
     void addTransform(struct weston_transform *transform);
     void removeTransform(struct weston_transform *transform);
+    void damage();
 
     inline Shell *shell() const { return m_shell; }
     inline struct wl_resource *wl_resource() { return &m_resource; }

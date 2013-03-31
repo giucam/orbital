@@ -18,20 +18,24 @@
 #include "scaleeffect.h"
 #include "shellsurface.h"
 #include "shell.h"
+#include "animation.h"
 
 struct Grab : public ShellGrab {
     ScaleEffect *effect;
 };
 
-static void grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
-{
-//     grab->focus = surface;
-}
+struct SurfaceTransform {
+    void updateAnimation(float value);
+    void doneAnimation();
 
-void grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
-{
+    ShellSurface *surface;
+    struct weston_transform transform;
+    Animation *animation;
 
-}
+    float ss, ts;
+    int sx, tx;
+    int sy, ty;
+};
 
 void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
 {
@@ -47,8 +51,8 @@ void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, u
 }
 
 static const struct wl_pointer_grab_interface grab_interface = {
-    grab_focus,
-    grab_motion,
+    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+    [](struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y) {},
     grab_button,
 };
 
@@ -67,43 +71,63 @@ void ScaleEffect::run(struct wl_seat *seat, uint32_t time, uint32_t key)
 
 void ScaleEffect::run(struct weston_seat *ws)
 {
-    int num = surfaces().size();
+    int num = m_surfaces.size();
     if (num == 0) {
         return;
     }
 
-    int sq = sqrt(num);
-    int numRows = sq;
-    int numCols = num / numRows;
-    if (numRows * numCols < num)
-        ++numCols;
+    const int ANIM_DURATION = 300;
+
+    int numCols = ceil(sqrt(num));
+    int numRows = ceil((float)num / (float)numCols);
+
     int r = 0, c = 0;
-    for (SurfaceTransform &surf: surfaces()) {
-        if (!surf.surface->isMapped()) {
+    for (SurfaceTransform *surf: m_surfaces) {
+        if (!surf->surface->isMapped()) {
             continue;
         }
 
         if (m_scaled) {
-            surf.surface->removeTransform(&surf.transform);
-        } else {
-            int cellW = surf.surface->output()->width / numCols;
-            int cellH = surf.surface->output()->height / numRows;
+            surf->ss = surf->ts;
+            surf->ts = 1.f;
 
-            float rx = (float)cellW / (float)surf.surface->width();
-            float ry = (float)cellH / (float)surf.surface->height();
+            surf->sx = surf->tx;
+            surf->sy = surf->ty;
+            surf->tx = surf->ty = 0.f;
+
+            surf->animation->setStart(0.f);
+            surf->animation->setTarget(1.f);
+            surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
+                                 std::bind(&SurfaceTransform::doneAnimation, surf), ANIM_DURATION);
+        } else {
+            int cellW = surf->surface->output()->width / numCols;
+            int cellH = surf->surface->output()->height / numRows;
+
+            float rx = (float)cellW / (float)surf->surface->width();
+            float ry = (float)cellH / (float)surf->surface->height();
             if (rx > ry) {
                 rx = ry;
             } else {
                 ry = rx;
             }
-            int x = c * cellW - surf.surface->x() + (cellW - (surf.surface->width() * rx)) / 2.f;
-            int y = r * cellH - surf.surface->y() + (cellH - (surf.surface->height() * ry)) / 2.f;
+            int x = c * cellW - surf->surface->x() + (cellW - (surf->surface->width() * rx)) / 2.f;
+            int y = r * cellH - surf->surface->y() + (cellH - (surf->surface->height() * ry)) / 2.f;
 
-            struct weston_matrix *matrix = &surf.transform.matrix;
+            struct weston_matrix *matrix = &surf->transform.matrix;
             weston_matrix_init(matrix);
-            weston_matrix_translate(matrix, x / rx, y / ry, 0);
-            weston_matrix_scale(matrix, rx, ry, 1.f);
-            surf.surface->addTransform(&surf.transform);
+            weston_matrix_scale(matrix, surf->ss, surf->ss, 1.f);
+            weston_matrix_translate(matrix, surf->sx, surf->sy, 0);
+
+            surf->ts = rx;
+            surf->tx = x;
+            surf->ty = y;
+
+            surf->animation->setStart(0.f);
+            surf->animation->setTarget(1.f);
+            surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
+                                 ANIM_DURATION);
+
+            surf->surface->addTransform(&surf->transform);
         }
         if (++c >= numCols) {
             c = 0;
@@ -128,13 +152,44 @@ void ScaleEffect::end(ShellSurface *surface)
 
 void ScaleEffect::addedSurface(ShellSurface *surface)
 {
+    SurfaceTransform *tr = new SurfaceTransform;
+    tr->surface = surface;
+    tr->animation = new Animation;
+
+    wl_list_init(&tr->transform.link);
+
+    tr->sx = tr->sy = 0;
+    tr->ss = 1.f;
+
+    m_surfaces.push_back(tr);
+
     if (m_scaled) {
-        for (SurfaceTransform &surf: surfaces()) {
-            if (surf.surface != surface) {
-                surf.surface->removeTransform(&surf.transform);
+        for (SurfaceTransform *surf: m_surfaces) {
+            if (surf->surface != surface) {
+                surf->ss = surf->ts;
+                surf->sx = surf->tx;
+                surf->sy = surf->ty;
             }
         }
         m_scaled = false;
         run(m_seat);
     }
+}
+
+void SurfaceTransform::updateAnimation(float value)
+{
+    struct weston_matrix *matrix = &transform.matrix;
+    weston_matrix_init(matrix);
+    float scale = ss + (ts - ss) * value;
+    weston_matrix_scale(matrix, scale, scale, 1.f);
+
+    weston_matrix_translate(matrix, sx + (float)(tx - sx) * value, sy + (float)(ty - sy) * value, 0);
+    surface->damage();
+}
+
+void SurfaceTransform::doneAnimation()
+{
+    surface->removeTransform(&transform);
+    sx = sy = 0;
+    ss = 1.f;
 }
