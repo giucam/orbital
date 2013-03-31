@@ -20,6 +20,8 @@
 #include "shell.h"
 #include "animation.h"
 
+#include "wayland-desktop-shell-server-protocol.h"
+
 struct Grab : public ShellGrab {
     ScaleEffect *effect;
 };

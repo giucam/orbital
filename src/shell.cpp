@@ -30,6 +30,9 @@
 #include "effect.h"
 #include "desktop-shell.h"
 
+// i'd like to not have this here, but it is for the desktop_shell_cursor enum
+#include "wayland-desktop-shell-server-protocol.h"
+
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
             , m_blackSurface(nullptr)
@@ -162,12 +165,18 @@ ShellSurface *Shell::createShellSurface(struct weston_surface *surface, const st
 
     surface->configure = shell_surface_configure;
     surface->configure_private = shsurf;
-//     shsurf->client = client;
+    shsurf->m_client = client;
     return shsurf;
 }
 
-static const struct weston_shell_client shell_client = {
-//     send_configure
+void Shell::sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height)
+{
+    ShellSurface *shsurf = Shell::getShellSurface(surface);
+    wl_shell_surface_send_configure(&shsurf->m_resource, edges, width, height);
+}
+
+const struct weston_shell_client Shell::shell_client = {
+    Shell::sendConfigure
 };
 
 ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resource *resource, uint32_t id,
@@ -255,7 +264,7 @@ void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button
 }
 
 void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                      struct wl_pointer *pointer, enum desktop_shell_cursor cursor)
+                      struct wl_pointer *pointer, uint32_t cursor)
 {
 //     popup_grab_end(pointer);
 

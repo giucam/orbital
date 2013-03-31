@@ -22,6 +22,8 @@
 #include "shellsurface.h"
 #include "shell.h"
 
+#include "wayland-desktop-shell-server-protocol.h"
+
 ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             : m_shell(shell)
             , m_surface(surface)
@@ -119,6 +121,8 @@ void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, 
 
 }
 
+// -- Move --
+
 struct MoveGrab : public ShellGrab {
     struct ShellSurface *shsurf;
     struct wl_listener shsurf_destroy_listener;
@@ -191,10 +195,96 @@ void ShellSurface::dragMove(struct weston_seat *ws)
     m_shell->startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
 }
 
+// -- Resize --
+
+struct ResizeGrab : public ShellGrab {
+    struct ShellSurface *shsurf;
+    struct wl_listener shsurf_destroy_listener;
+    uint32_t edges;
+    int32_t width, height;
+};
+
+void ShellSurface::resize_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+{
+    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
+    ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
+    struct wl_pointer *pointer = grab->pointer;
+    ShellSurface *shsurf = resize->shsurf;
+
+    if (!shsurf)
+        return;
+
+    struct weston_surface *es = shsurf->m_surface;
+
+    wl_fixed_t from_x, from_y;
+    wl_fixed_t to_x, to_y;
+    weston_surface_from_global_fixed(es, pointer->grab_x, pointer->grab_y, &from_x, &from_y);
+    weston_surface_from_global_fixed(es, pointer->x, pointer->y, &to_x, &to_y);
+
+    int32_t width = resize->width;
+    if (resize->edges & WL_SHELL_SURFACE_RESIZE_LEFT) {
+        width += wl_fixed_to_int(from_x - to_x);
+    } else if (resize->edges & WL_SHELL_SURFACE_RESIZE_RIGHT) {
+        width += wl_fixed_to_int(to_x - from_x);
+    }
+
+    int32_t height = resize->height;
+    if (resize->edges & WL_SHELL_SURFACE_RESIZE_TOP) {
+        height += wl_fixed_to_int(from_y - to_y);
+    } else if (resize->edges & WL_SHELL_SURFACE_RESIZE_BOTTOM) {
+        height += wl_fixed_to_int(to_y - from_y);
+    }
+
+    shsurf->m_client->send_configure(shsurf->m_surface, resize->edges, width, height);
+}
+
+void ShellSurface::resize_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
+{
+    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
+    ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
+
+    if (grab->pointer->button_count == 0 && state_w == WL_POINTER_BUTTON_STATE_RELEASED) {
+        Shell::endGrab(resize);
+        delete resize;
+    }
+}
+
+const struct wl_pointer_grab_interface ShellSurface::m_resize_grab_interface = {
+    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+    ShellSurface::resize_grab_motion,
+    ShellSurface::resize_grab_button,
+};
+
 void ShellSurface::resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
                           uint32_t serial, uint32_t edges)
 {
+    struct weston_seat *ws = static_cast<weston_seat *>(seat_resource->data);
 
+    if (ws->seat.pointer->button_count == 0 || ws->seat.pointer->grab_serial != serial ||
+        ws->seat.pointer->focus != &m_surface->surface) {
+        return;
+    }
+
+    dragResize(ws, edges);
+}
+
+void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
+{
+    ResizeGrab *grab = new ResizeGrab;
+    if (!grab)
+        return;
+
+    if (edges == 0 || edges > 15 || (edges & 3) == 3 || (edges & 12) == 12) {
+        return;
+    }
+
+    grab->edges = edges;
+    grab->width = m_surface->geometry.width;
+    grab->height = m_surface->geometry.height;
+    grab->shsurf = this;
+    grab->grab.focus = &m_surface->surface;
+
+    m_shell->startGrab(grab, &m_resize_grab_interface, ws->seat.pointer, edges);
 }
 
 void ShellSurface::setToplevel(struct wl_client *, struct wl_resource *)

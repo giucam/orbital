@@ -20,9 +20,6 @@
 
 #include <vector>
 
-// i'd like to not have this here, but it is for the desktop_shell_cursor enum
-#include "wayland-desktop-shell-server-protocol.h"
-
 #include "layer.h"
 
 class ShellSurface;
@@ -62,7 +59,7 @@ public:
     inline struct weston_compositor *compositor() const { return m_compositor; }
 
     void startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                   struct wl_pointer *pointer, enum desktop_shell_cursor cursor);
+                   struct wl_pointer *pointer, uint32_t cursor);
     static void endGrab(ShellGrab *grab);
 
     void showPanels();
@@ -87,6 +84,7 @@ private:
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button);
+    static void sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height);
 
     struct weston_compositor *m_compositor;
     Layer m_backgroundLayer;
@@ -99,6 +97,7 @@ private:
     struct weston_surface *m_grabSurface;
 
     static const struct wl_shell_interface shell_implementation;
+    static const struct weston_shell_client shell_client;
 
     friend class Effect;
 };
