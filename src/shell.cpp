@@ -69,7 +69,8 @@ void Shell::init()
         return;
 
     weston_layer_init(&m_layer, &m_compositor->cursor_layer.link);
-    weston_layer_init(&m_backgroundLayer, &m_layer.link);
+    weston_layer_init(&m_panelsLayer, &m_layer.link);
+    weston_layer_init(&m_backgroundLayer, &m_panelsLayer.link);
 
 
     m_blackSurface = weston_surface_create(m_compositor);
@@ -371,6 +372,11 @@ void Shell::backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t s
     configure_static_surface(es, &m_backgroundLayer, width, height);
 }
 
+void Shell::panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height)
+{
+    configure_static_surface(es, &m_panelsLayer, width, height);
+}
+
 void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_output *output)
 {
     surface->configure = [](struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
@@ -382,6 +388,14 @@ void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_o
 void Shell::setGrabSurface(struct weston_surface *surface)
 {
     m_grabSurface = surface;
+}
+
+void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output *output)
+{
+    surface->configure = [](struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
+        static_cast<Shell *>(es->configure_private)->panelConfigure(es, sx, sy, width, height); };;
+    surface->configure_private = this;
+    surface->output = output;
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

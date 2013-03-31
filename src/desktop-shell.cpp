@@ -85,23 +85,17 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
 void DesktopShell::setPanel(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                             struct wl_resource *surface_resource)
 {
-//     struct desktop_shell *shell = resource->data;
-//     struct weston_surface *surface = surface_resource->data;
-//
-//     if (surface->configure) {
-//         wl_resource_post_error(surface_resource,
-//                                WL_DISPLAY_ERROR_INVALID_OBJECT,
-//                                "surface role already assigned");
-//         return;
-//     }
-//
-//     surface->configure = panel_configure;
-//     surface->configure_private = shell;
-//     surface->output = output_resource->data;
-//     desktop_shell_send_configure(resource, 0,
-//                                  surface_resource,
-//                                  surface->output->width,
-//                                  surface->output->height);
+    struct weston_surface *surface = static_cast<struct weston_surface *>(surface_resource->data);
+
+    if (surface->configure) {
+        wl_resource_post_error(surface_resource,
+                               WL_DISPLAY_ERROR_INVALID_OBJECT,
+                               "surface role already assigned");
+        return;
+    }
+
+    addPanelSurface(surface, static_cast<weston_output *>(output_resource->data));
+    desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
 }
 
 void DesktopShell::setLockSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource)
