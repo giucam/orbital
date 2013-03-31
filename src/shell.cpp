@@ -206,6 +206,13 @@ ShellSurface *Shell::getShellSurface(struct weston_surface *surf)
     return nullptr;
 }
 
+void Shell::removeShellSurface(ShellSurface *surface)
+{
+    for (Effect *e: m_effects) {
+        e->removeSurface(surface);
+    }
+}
+
 void Shell::bindEffect(Effect *effect, uint32_t key, enum weston_keyboard_modifier modifier)
 {
     m_effects.push_back(effect);

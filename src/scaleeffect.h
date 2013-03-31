@@ -18,6 +18,8 @@
 #ifndef SCALEEFFECT_H
 #define SCALEEFFECT_H
 
+#include <list>
+
 #include "effect.h"
 
 class ShellGrab;
@@ -33,12 +35,13 @@ public:
 
 protected:
     virtual void addedSurface(ShellSurface *surf);
+    virtual void removedSurface(ShellSurface *surf);
 
 private:
     void run(struct weston_seat *ws);
 
     bool m_scaled;
-    std::vector<struct SurfaceTransform *> m_surfaces;
+    std::list<struct SurfaceTransform *> m_surfaces;
     struct weston_seat *m_seat;
     struct Grab *m_grab;
 };

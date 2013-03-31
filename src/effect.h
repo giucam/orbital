@@ -18,8 +18,6 @@
 #ifndef EFFECT_H
 #define EFFECT_H
 
-#include <vector>
-
 #include <weston/compositor.h>
 
 class Shell;
@@ -29,11 +27,13 @@ class Effect {
 public:
     Effect(Shell *shell);
     void addSurface(ShellSurface *surf);
+    void removeSurface(ShellSurface *surf);
 
     virtual void run(struct wl_seat *seat, uint32_t time, uint32_t key) {}
 
 protected:
     virtual void addedSurface(ShellSurface *surf) {}
+    virtual void removedSurface(ShellSurface *surf) {}
 
     inline Shell *shell() const { return m_shell; }
     const struct weston_layer *layer() const;

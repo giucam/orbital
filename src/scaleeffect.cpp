@@ -176,6 +176,26 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     }
 }
 
+void ScaleEffect::removedSurface(ShellSurface *surface)
+{
+    for (auto i = m_surfaces.begin(); i != m_surfaces.end(); ++i) {
+        if ((*i)->surface == surface) {
+            m_surfaces.erase(i);
+            break;
+        }
+    }
+
+    if (m_scaled) {
+        for (SurfaceTransform *surf: m_surfaces) {
+            surf->ss = surf->ts;
+            surf->sx = surf->tx;
+            surf->sy = surf->ty;
+        }
+        m_scaled = false;
+        run(m_seat);
+    }
+}
+
 void SurfaceTransform::updateAnimation(float value)
 {
     struct weston_matrix *matrix = &transform.matrix;

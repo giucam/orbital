@@ -29,6 +29,11 @@ void Effect::addSurface(ShellSurface *surf)
     addedSurface(surf);
 }
 
+void Effect::removeSurface(ShellSurface *surf)
+{
+    removedSurface(surf);
+}
+
 const struct weston_layer *Effect::layer() const
 {
     return m_shell->layer();

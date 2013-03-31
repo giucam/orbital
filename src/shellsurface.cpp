@@ -31,6 +31,11 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
 
 }
 
+ShellSurface::~ShellSurface()
+{
+    m_shell->removeShellSurface(this);
+}
+
 void ShellSurface::init(uint32_t id)
 {
     m_resource.destroy = [](struct wl_resource *resource) { delete static_cast<ShellSurface *>(resource->data); };

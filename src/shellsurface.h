@@ -29,6 +29,7 @@ public:
         TopLevel
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
+    ~ShellSurface();
 
     void init(uint32_t id);
     void map(int32_t x, int32_t y, int32_t width, int32_t height);

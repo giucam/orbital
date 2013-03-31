@@ -43,6 +43,7 @@ public:
     void launchShellProcess();
     ShellSurface *createShellSurface(struct weston_surface *surface, const struct weston_shell_client *client);
     ShellSurface *getShellSurface(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource);
+    void removeShellSurface(ShellSurface *surface);
     static ShellSurface *getShellSurface(struct weston_surface *surf);
     void bindEffect(Effect *effect, uint32_t key, enum weston_keyboard_modifier modifier);
 
