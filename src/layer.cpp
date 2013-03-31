@@ -82,7 +82,6 @@ Layer::Iterator Layer::begin()
 
 Layer::Iterator Layer::end()
 {
-//     return Iterator(container_of(&m_layer.surface_list, struct weston_surface, layer_link));
     return Iterator(&m_layer.surface_list, &m_layer.surface_list);
 }
 
