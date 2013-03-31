@@ -41,8 +41,11 @@ void Layer::init(Layer *below)
 
 void Layer::hide()
 {
-    m_below = m_layer.link.prev;
-    wl_list_remove(&m_layer.link);
+    if (!wl_list_empty(&m_layer.link)) {
+        m_below = m_layer.link.prev;
+        wl_list_remove(&m_layer.link);
+        wl_list_init(&m_layer.link);
+    }
 }
 
 void Layer::show()
@@ -74,7 +77,6 @@ void Layer::restack(ShellSurface *surf)
 
 Layer::Iterator Layer::begin()
 {
-    printf("begin %p %p\n",&m_layer.surface_list,m_layer.surface_list.next);
     return Iterator(&m_layer.surface_list, m_layer.surface_list.next);
 }
 
