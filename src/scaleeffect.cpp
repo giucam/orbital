@@ -138,9 +138,11 @@ void ScaleEffect::run(struct weston_seat *ws)
     if (m_scaled) {
         m_seat = ws;
         shell()->startGrab(m_grab, &grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_ARROW);
+        shell()->hidePanels();
     } else {
         m_seat = nullptr;
         Shell::endGrab(m_grab);
+        shell()->showPanels();
     }
 }
 

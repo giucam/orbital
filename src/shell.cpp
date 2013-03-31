@@ -398,6 +398,16 @@ void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output
     surface->output = output;
 }
 
+void Shell::showPanels()
+{
+    wl_list_insert(&m_layer.link, &m_panelsLayer.link);
+}
+
+void Shell::hidePanels()
+{
+    wl_list_remove(&m_panelsLayer.link);
+}
+
 const struct wl_shell_interface Shell::shell_implementation = {
     [](struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource) {
         static_cast<Shell *>(resource->data)->getShellSurface(client, resource, id, surface_resource);

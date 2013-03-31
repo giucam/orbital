@@ -64,6 +64,9 @@ public:
                    struct wl_pointer *pointer, enum desktop_shell_cursor cursor);
     static void endGrab(ShellGrab *grab);
 
+    void showPanels();
+    void hidePanels();
+
 protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
