@@ -136,9 +136,7 @@ void DesktopShell::unlock(struct wl_client *client, struct wl_resource *resource
 
 void DesktopShell::setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource)
 {
-    //     struct desktop_shell *shell = resource->data;
-    //
-    //     shell->grab_surface = surface_resource->data;
+    this->Shell::setGrabSurface(static_cast<struct weston_surface *>(surface_resource->data));
 }
 
 const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementation = {

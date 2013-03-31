@@ -20,6 +20,9 @@
 
 #include <vector>
 
+// i'd like to not have this here, but it is for the desktop_shell_cursor enum
+#include "wayland-desktop-shell-server-protocol.h"
+
 class ShellSurface;
 struct ShellGrab;
 class Effect;
@@ -52,11 +55,12 @@ public:
     void moveSurface(ShellSurface *shsurf, struct weston_seat *seat);
     void activateSurface(ShellSurface *shsurf, struct weston_seat *seat);
     void setBackgroundSurface(struct weston_surface *surface, struct weston_output *output);
+    void setGrabSurface(struct weston_surface *surface);
 
     inline struct weston_compositor *compositor() const { return m_compositor; }
 
     void startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                   struct wl_pointer *pointer/*, enum desktop_shell_cursor cursor*/);
+                   struct wl_pointer *pointer, enum desktop_shell_cursor cursor);
     static void endGrab(ShellGrab *grab);
 
 protected:
@@ -86,6 +90,7 @@ private:
     ShellSurfaceList m_surfaces;
 
     struct weston_surface *m_blackSurface;
+    struct weston_surface *m_grabSurface;
 
     static const struct wl_shell_interface shell_implementation;
 

@@ -32,6 +32,8 @@
 
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
+            , m_blackSurface(nullptr)
+            , m_grabSurface(nullptr)
 {
     srandom(weston_compositor_get_time());
 }
@@ -301,7 +303,7 @@ const struct wl_pointer_grab_interface Shell::m_move_grab_interface = {
 };
 
 void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                      struct wl_pointer *pointer/*, enum desktop_shell_cursor cursor*/)
+                      struct wl_pointer *pointer, enum desktop_shell_cursor cursor)
 {
 //     popup_grab_end(pointer);
 
@@ -315,8 +317,8 @@ void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *i
 //     grab->grab.focus = &shsurf->m_surface->surface;
 
     wl_pointer_start_grab(pointer, &grab->grab);
-//     desktop_shell_send_grab_cursor(shell->child.desktop_shell, cursor);
-//     wl_pointer_set_focus(pointer, &shell->grab_surface->surface, wl_fixed_from_int(0), wl_fixed_from_int(0));
+    desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
+    wl_pointer_set_focus(pointer, &m_grabSurface->surface, wl_fixed_from_int(0), wl_fixed_from_int(0));
 }
 
 void Shell::endGrab(ShellGrab *grab)
@@ -338,7 +340,7 @@ void Shell::moveSurface(ShellSurface *shsurf, struct weston_seat *ws)
     move->shsurf = shsurf;
     move->grab.focus = &shsurf->m_surface->surface;
 
-    startGrab(move, &m_move_grab_interface, ws->seat.pointer/*, DESKTOP_SHELL_CURSOR_MOVE*/);
+    startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
 }
 
 static void
@@ -375,6 +377,11 @@ void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_o
         static_cast<Shell *>(es->configure_private)->backgroundConfigure(es, sx, sy, width, height); };
     surface->configure_private = this;
     surface->output = output;
+}
+
+void Shell::setGrabSurface(struct weston_surface *surface)
+{
+    m_grabSurface = surface;
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

@@ -137,7 +137,7 @@ void ScaleEffect::run(struct weston_seat *ws)
     m_scaled = !m_scaled;
     if (m_scaled) {
         m_seat = ws;
-        shell()->startGrab(m_grab, &grab_interface, ws->seat.pointer/*, DESKTOP_SHELL_CURSOR_MOVE*/);
+        shell()->startGrab(m_grab, &grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_ARROW);
     } else {
         m_seat = nullptr;
         Shell::endGrab(m_grab);
