@@ -54,7 +54,6 @@ public:
 
     void configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height);
 
-    void moveSurface(ShellSurface *shsurf, struct weston_seat *seat);
     void activateSurface(ShellSurface *shsurf, struct weston_seat *seat);
     void setBackgroundSurface(struct weston_surface *surface, struct weston_output *output);
     void setGrabSurface(struct weston_surface *surface);
@@ -100,10 +99,6 @@ private:
     struct weston_surface *m_grabSurface;
 
     static const struct wl_shell_interface shell_implementation;
-
-    static void move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
-    static void move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct wl_pointer_grab_interface m_move_grab_interface;
 
     friend class Effect;
 };

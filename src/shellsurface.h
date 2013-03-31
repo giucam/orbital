@@ -49,6 +49,8 @@ public:
     int32_t height() const;
     inline struct weston_output *output() const { return m_surface->output; }
 
+    void dragMove(struct weston_seat *ws);
+
 private:
     Shell *m_shell;
     struct wl_resource m_resource;
@@ -88,6 +90,10 @@ private:
     static void shell_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title);
     static void shell_surface_set_class(struct wl_client *client, struct wl_resource *resource, const char *className);
     static const struct wl_shell_surface_interface m_shell_surface_implementation;
+
+    static void move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
+    static void move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
+    static const struct wl_pointer_grab_interface m_move_grab_interface;
 
     friend class Shell;
     friend class Layer;

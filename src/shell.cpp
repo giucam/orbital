@@ -254,54 +254,6 @@ void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button
     };
 }
 
-struct MoveGrab : public ShellGrab {
-    struct ShellSurface *shsurf;
-    struct wl_listener shsurf_destroy_listener;
-    wl_fixed_t dx, dy;
-};
-
-static void noop_grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
-{
-    grab->focus = NULL;
-}
-
-void Shell::move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
-{
-    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
-    MoveGrab *move = static_cast<MoveGrab *>(shgrab);
-    struct wl_pointer *pointer = grab->pointer;
-    ShellSurface *shsurf = move->shsurf;
-    int dx = wl_fixed_to_int(pointer->x + move->dx);
-    int dy = wl_fixed_to_int(pointer->y + move->dy);
-
-    if (!shsurf)
-        return;
-
-    struct weston_surface *es = shsurf->m_surface;
-
-    weston_surface_configure(es, dx, dy, es->geometry.width, es->geometry.height);
-
-    weston_compositor_schedule_repaint(es->compositor);
-}
-
-void Shell::move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
-{
-    ShellGrab *shell_grab = container_of(grab, ShellGrab, grab);
-    struct wl_pointer *pointer = grab->pointer;
-    enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
-
-    if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
-        Shell::endGrab(shell_grab);
-        delete shell_grab;
-    }
-}
-
-const struct wl_pointer_grab_interface Shell::m_move_grab_interface = {
-    noop_grab_focus,
-    Shell::move_grab_motion,
-    Shell::move_grab_button,
-};
-
 void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
                       struct wl_pointer *pointer, enum desktop_shell_cursor cursor)
 {
@@ -329,22 +281,7 @@ void Shell::endGrab(ShellGrab *grab)
     wl_pointer_end_grab(grab->pointer);
 }
 
-void Shell::moveSurface(ShellSurface *shsurf, struct weston_seat *ws)
-{
-    MoveGrab *move = new MoveGrab;
-    if (!move)
-        return;
-
-    move->dx = wl_fixed_from_double(shsurf->m_surface->geometry.x) - ws->seat.pointer->grab_x;
-    move->dy = wl_fixed_from_double(shsurf->m_surface->geometry.y) - ws->seat.pointer->grab_y;
-    move->shsurf = shsurf;
-    move->grab.focus = &shsurf->m_surface->surface;
-
-    startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
-}
-
-static void
-configure_static_surface(struct weston_surface *es, Layer *layer, int32_t width, int32_t height)
+static void configure_static_surface(struct weston_surface *es, Layer *layer, int32_t width, int32_t height)
 {
     if (width == 0)
         return;

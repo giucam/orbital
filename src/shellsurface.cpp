@@ -119,8 +119,51 @@ void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, 
 
 }
 
+struct MoveGrab : public ShellGrab {
+    struct ShellSurface *shsurf;
+    struct wl_listener shsurf_destroy_listener;
+    wl_fixed_t dx, dy;
+};
+
+void ShellSurface::move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+{
+    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
+    MoveGrab *move = static_cast<MoveGrab *>(shgrab);
+    struct wl_pointer *pointer = grab->pointer;
+    ShellSurface *shsurf = move->shsurf;
+    int dx = wl_fixed_to_int(pointer->x + move->dx);
+    int dy = wl_fixed_to_int(pointer->y + move->dy);
+
+    if (!shsurf)
+        return;
+
+    struct weston_surface *es = shsurf->m_surface;
+
+    weston_surface_configure(es, dx, dy, es->geometry.width, es->geometry.height);
+
+    weston_compositor_schedule_repaint(es->compositor);
+}
+
+void ShellSurface::move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
+{
+    ShellGrab *shell_grab = container_of(grab, ShellGrab, grab);
+    struct wl_pointer *pointer = grab->pointer;
+    enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
+
+    if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
+        Shell::endGrab(shell_grab);
+        delete shell_grab;
+    }
+}
+
+const struct wl_pointer_grab_interface ShellSurface::m_move_grab_interface = {
+    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+    ShellSurface::move_grab_motion,
+    ShellSurface::move_grab_button,
+};
+
 void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-          uint32_t serial)
+                        uint32_t serial)
 {
     struct weston_seat *ws = static_cast<weston_seat *>(seat_resource->data);
 
@@ -131,12 +174,25 @@ void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, 
 
 //     if (shsurf->type == SHELL_SURFACE_FULLSCREEN)
 //         return 0;
+    dragMove(ws);
+}
 
-    m_shell->moveSurface(this, ws);
+void ShellSurface::dragMove(struct weston_seat *ws)
+{
+    MoveGrab *move = new MoveGrab;
+    if (!move)
+        return;
+
+    move->dx = wl_fixed_from_double(m_surface->geometry.x) - ws->seat.pointer->grab_x;
+    move->dy = wl_fixed_from_double(m_surface->geometry.y) - ws->seat.pointer->grab_y;
+    move->shsurf = this;
+    move->grab.focus = &m_surface->surface;
+
+    m_shell->startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
 }
 
 void ShellSurface::resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-            uint32_t serial, uint32_t edges)
+                          uint32_t serial, uint32_t edges)
 {
 
 }
