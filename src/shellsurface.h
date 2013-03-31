@@ -18,6 +18,8 @@
 #ifndef SHELL_SURFACE_H
 #define SHELL_SURFACE_H
 
+#include <string>
+
 #include <wayland-server.h>
 
 class Shell;
@@ -59,6 +61,8 @@ private:
     Type m_type;
     Type m_pendingType;
     const struct weston_shell_client *m_client;
+    std::string m_title;
+    std::string m_class;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,

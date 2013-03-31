@@ -318,12 +318,12 @@ void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *re
 
 void ShellSurface::setTitle(struct wl_client *client, struct wl_resource *resource, const char *title)
 {
-
+    m_title = title;
 }
 
 void ShellSurface::setClass(struct wl_client *client, struct wl_resource *resource, const char *className)
 {
-
+    m_class = className;
 }
 
 const struct wl_shell_surface_interface ShellSurface::m_shell_surface_implementation = {
