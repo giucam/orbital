@@ -33,6 +33,8 @@ public:
     void run(struct weston_output *output, const std::function<void (float)> &handler, uint32_t duration);
     void run(struct weston_output *output, const std::function<void (float)> &handler,
              const std::function<void ()> &done_handler, uint32_t duration);
+    void stop();
+    bool isRunning() const;
 
 private:
     void update(struct weston_output *output, uint32_t msecs);

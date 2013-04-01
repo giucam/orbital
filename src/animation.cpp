@@ -45,6 +45,8 @@ void Animation::run(struct weston_output *output, const std::function<void (floa
 void Animation::run(struct weston_output *output, const std::function<void (float)> &handler,
                     const std::function<void ()> &doneHandler, uint32_t duration)
 {
+    stop();
+
     m_handler = handler;
     m_doneHandler = doneHandler;
     m_duration = duration;
@@ -53,6 +55,20 @@ void Animation::run(struct weston_output *output, const std::function<void (floa
 
     wl_list_insert(&output->animation_list, &m_animation.ani.link);
     weston_compositor_schedule_repaint(output->compositor);
+}
+
+void Animation::stop()
+{
+    if (isRunning()) {
+        wl_list_remove(&m_animation.ani.link);
+        wl_list_init(&m_animation.ani.link);
+    }
+}
+
+bool Animation::isRunning() const
+{
+    //can't use wl_list_empty here because it wants a wl_link* while i have a const wl_link*
+    return m_animation.ani.link.next != &m_animation.ani.link;
 }
 
 void Animation::update(struct weston_output *output, uint32_t msecs)
@@ -67,8 +83,7 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
         if (m_doneHandler) {
             m_doneHandler();
         }
-        wl_list_remove(&m_animation.ani.link);
-        wl_list_init(&m_animation.ani.link);
+        stop();
         weston_compositor_schedule_repaint(output->compositor);
         return;
     }

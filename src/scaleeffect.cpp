@@ -34,9 +34,9 @@ struct SurfaceTransform {
     struct weston_transform transform;
     Animation *animation;
 
-    float ss, ts;
-    int sx, tx;
-    int sy, ty;
+    float ss, ts, cs;
+    int sx, tx, cx;
+    int sy, ty, cy;
 };
 
 void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
@@ -90,11 +90,11 @@ void ScaleEffect::run(struct weston_seat *ws)
         }
 
         if (m_scaled) {
-            surf->ss = surf->ts;
+            surf->ss = surf->cs;
             surf->ts = 1.f;
 
-            surf->sx = surf->tx;
-            surf->sy = surf->ty;
+            surf->sx = surf->cx;
+            surf->sy = surf->cy;
             surf->tx = surf->ty = 0.f;
 
             surf->animation->setStart(0.f);
@@ -117,8 +117,12 @@ void ScaleEffect::run(struct weston_seat *ws)
 
             struct weston_matrix *matrix = &surf->transform.matrix;
             weston_matrix_init(matrix);
-            weston_matrix_scale(matrix, surf->ss, surf->ss, 1.f);
-            weston_matrix_translate(matrix, surf->sx, surf->sy, 0);
+            weston_matrix_scale(matrix, surf->cs, surf->cs, 1.f);
+            weston_matrix_translate(matrix, surf->cx, surf->cy, 0);
+
+            surf->ss = surf->cs;
+            surf->sx = surf->cx;
+            surf->sy = surf->cy;
 
             surf->ts = rx;
             surf->tx = x;
@@ -162,8 +166,8 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
 
     wl_list_init(&tr->transform.link);
 
-    tr->sx = tr->sy = 0;
-    tr->ss = 1.f;
+    tr->cx = tr->cy = 0;
+    tr->cs = 1.f;
 
     m_surfaces.push_back(tr);
 
@@ -204,10 +208,12 @@ void SurfaceTransform::updateAnimation(float value)
 {
     struct weston_matrix *matrix = &transform.matrix;
     weston_matrix_init(matrix);
-    float scale = ss + (ts - ss) * value;
-    weston_matrix_scale(matrix, scale, scale, 1.f);
+    cs = ss + (ts - ss) * value;
+    weston_matrix_scale(matrix, cs, cs, 1.f);
 
-    weston_matrix_translate(matrix, sx + (float)(tx - sx) * value, sy + (float)(ty - sy) * value, 0);
+    cx = sx + (float)(tx - sx) * value;
+    cy = sy + (float)(ty - sy) * value;
+    weston_matrix_translate(matrix, cx, cy, 0);
     surface->damage();
 }
 
