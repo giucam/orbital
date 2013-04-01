@@ -125,7 +125,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 for (Effect *e: m_effects) {
                     e->addSurface(surface);
                 }
-            }
+            } break;
             case ShellSurface::Type::Transient:
                 m_layer.stackAbove(surface->m_surface, surface->m_parent);
                 break;
