@@ -65,6 +65,14 @@ void Layer::addSurface(ShellSurface *surf)
     addSurface(surf->m_surface);
 }
 
+void Layer::stackAbove(struct weston_surface *surf, struct weston_surface *parent)
+{
+    wl_list_remove(&surf->layer_link);
+    wl_list_init(&surf->layer_link);
+
+    wl_list_insert(parent->layer_link.prev, &surf->layer_link);
+}
+
 void Layer::restack(struct weston_surface *surf)
 {
     weston_surface_restack(surf, &m_layer.surface_list);

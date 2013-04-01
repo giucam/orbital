@@ -29,6 +29,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_surface(surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
+            , m_parent(nullptr)
 {
 
 }
@@ -64,6 +65,9 @@ bool ShellSurface::updateType()
             case Type::Maximized:
                 m_savedX = x();
                 m_savedY = y();
+                break;
+            case Type::Transient:
+                weston_surface_set_position(m_surface, m_parent->geometry.x + m_transient.x, m_parent->geometry.y + m_transient.y);
                 break;
             default:
                 break;
@@ -343,6 +347,11 @@ printf("top\n");
 void ShellSurface::setTransient(struct wl_client *client, struct wl_resource *resource,
                   struct wl_resource *parent_resource, int x, int y, uint32_t flags)
 {
+    m_parent = static_cast<struct weston_surface *>(parent_resource->data);
+    m_transient.x = x;
+    m_transient.y = y;
+
+    m_pendingType = Type::Transient;
 
 }
 

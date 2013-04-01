@@ -29,7 +29,8 @@ public:
     enum class Type {
         None,
         TopLevel,
-        Maximized
+        Maximized,
+        Transient
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
@@ -69,6 +70,12 @@ private:
     std::string m_class;
     struct weston_output *m_output;
     int32_t m_savedX, m_savedY;
+
+    struct weston_surface *m_parent;
+    struct {
+        int32_t x, y;
+        uint32_t flags;
+    } m_transient;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,

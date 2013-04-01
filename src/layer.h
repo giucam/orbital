@@ -69,6 +69,8 @@ public:
     void restack(struct weston_surface *surf);
     void restack(ShellSurface *surf);
 
+    void stackAbove(struct weston_surface *surf, struct weston_surface *parent);
+
     iterator begin();
     const_iterator begin() const;
     iterator end();

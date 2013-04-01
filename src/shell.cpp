@@ -118,16 +118,35 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 surface->map(surface->m_surface->geometry.x + sx, surface->m_surface->geometry.y + sy, width, height);
         }
 
-        if (surface->m_type == ShellSurface::Type::TopLevel || surface->m_type == ShellSurface::Type::Maximized) {
-            struct weston_seat *seat;
-            wl_list_for_each(seat, &m_compositor->seat_list, link) {
-                weston_surface_activate(surface->m_surface, seat);
+        switch (surface->m_type) {
+            case ShellSurface::Type::TopLevel:
+            case ShellSurface::Type::Maximized: {
+                m_surfaces.push_back(surface);
+                for (Effect *e: m_effects) {
+                    e->addSurface(surface);
+                }
             }
+            case ShellSurface::Type::Transient:
+                m_layer.stackAbove(surface->m_surface, surface->m_parent);
+                break;
+            default:
+                break;
+        }
 
-            m_surfaces.push_back(surface);
-            for (Effect *e: m_effects) {
-                e->addSurface(surface);
-            }
+        switch (surface->m_type) {
+            case ShellSurface::Type::Transient:
+                if (surface->m_transient.flags == WL_SHELL_SURFACE_TRANSIENT_INACTIVE) {
+                    break;
+                }
+            case ShellSurface::Type::TopLevel:
+            case ShellSurface::Type::Maximized: {
+                struct weston_seat *seat;
+                wl_list_for_each(seat, &m_compositor->seat_list, link) {
+                    weston_surface_activate(surface->m_surface, seat);
+                }
+            } break;
+            default:
+                break;
         }
     } else if (changedType || sx != 0 || sy != 0 || surface->width() != width || surface->height() != height) {
         float from_x, from_y;
