@@ -340,11 +340,14 @@ void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output
 void Shell::showPanels()
 {
     m_panelsLayer.show();
+    // This is necessary in the drm backend, or else the panel won't really hide
+    weston_compositor_damage_all(m_compositor);
 }
 
 void Shell::hidePanels()
 {
     m_panelsLayer.hide();
+    weston_compositor_damage_all(m_compositor);
 }
 
 IRect2D Shell::windowsArea(struct weston_output *output) const
