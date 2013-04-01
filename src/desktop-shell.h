@@ -26,6 +26,7 @@ public:
 
 protected:
     virtual void init();
+    virtual void setGrabCursor(uint32_t);
 
 private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);

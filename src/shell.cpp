@@ -30,9 +30,6 @@
 #include "effect.h"
 #include "desktop-shell.h"
 
-// i'd like to not have this here, but it is for the desktop_shell_cursor enum
-#include "wayland-desktop-shell-server-protocol.h"
-
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
             , m_blackSurface(nullptr)
@@ -293,7 +290,7 @@ void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *i
 //     grab->grab.focus = &shsurf->m_surface->surface;
 
     wl_pointer_start_grab(pointer, &grab->grab);
-    desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
+    setGrabCursor(cursor);
     wl_pointer_set_focus(pointer, &m_grabSurface->surface, wl_fixed_from_int(0), wl_fixed_from_int(0));
 }
 

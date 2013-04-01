@@ -50,6 +50,11 @@ void DesktopShell::init()
     bindEffect(e, KEY_E, MODIFIER_CTRL);
 }
 
+void DesktopShell::setGrabCursor(uint32_t cursor)
+{
+    desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
+}
+
 void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 {
     struct wl_resource *resource = wl_client_add_object(client, &desktop_shell_interface, &m_desktop_shell_implementation, id, this);

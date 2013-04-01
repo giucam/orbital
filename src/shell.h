@@ -74,6 +74,7 @@ protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
+    virtual void setGrabCursor(uint32_t cursor) {}
 
     struct Child {
         Shell *shell;
