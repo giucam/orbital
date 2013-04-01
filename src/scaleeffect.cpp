@@ -206,13 +206,6 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     m_surfaces.push_back(tr);
 
     if (m_scaled) {
-        for (SurfaceTransform *surf: m_surfaces) {
-            if (surf->surface != surface) {
-                surf->ss = surf->ts;
-                surf->sx = surf->tx;
-                surf->sy = surf->ty;
-            }
-        }
         m_scaled = false;
         run(m_seat);
     }
