@@ -75,17 +75,20 @@ protected:
     virtual void init();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
 
-    struct {
+    struct Child {
+        Shell *shell;
         struct weston_process process;
         struct wl_client *client;
         struct wl_resource *desktop_shell;
 
         unsigned deathcount;
         uint32_t deathstamp;
-    } m_child;
+    };
+    Child m_child;
 
 private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
+    void sigchld(int status);
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button);

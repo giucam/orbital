@@ -39,6 +39,7 @@ Shell::Shell(struct weston_compositor *ec)
             , m_grabSurface(nullptr)
 {
     srandom(weston_compositor_get_time());
+    m_child.shell = this;
 }
 
 Shell::~Shell()
@@ -373,31 +374,28 @@ void Shell::bind(struct wl_client *client, uint32_t version, uint32_t id)
     wl_client_add_object(client, &wl_shell_interface, &shell_implementation, id, this);
 }
 
-static void
-desktop_shell_sigchld(struct weston_process *process, int status)
+void Shell::sigchld(int status)
 {
-//     uint32_t time;
-//     struct desktop_shell *shell =
-//     container_of(process, struct desktop_shell, child.process);
-//
-//     shell->child.process.pid = 0;
-//     shell->child.client = NULL; /* already destroyed by wayland */
-//
-//     /* if desktop-shell dies more than 5 times in 30 seconds, give up */
-//     time = weston_compositor_get_time();
-//     if (time - shell->child.deathstamp > 30000) {
-//         shell->child.deathstamp = time;
-//         shell->child.deathcount = 0;
-//     }
-//
-//     shell->child.deathcount++;
-//     if (shell->child.deathcount > 5) {
-//         weston_log("weston-desktop-shell died, giving up.\n");
-//         return;
-//     }
-//
-//     weston_log("weston-desktop-shell died, respawning...\n");
-//     launch_desktop_shell_process(shell);
+    uint32_t time;
+
+    m_child.process.pid = 0;
+    m_child.client = nullptr; /* already destroyed by wayland */
+
+    /* if desktop-shell dies more than 5 times in 30 seconds, give up */
+    time = weston_compositor_get_time();
+    if (time - m_child.deathstamp > 30000) {
+        m_child.deathstamp = time;
+        m_child.deathcount = 0;
+    }
+
+    m_child.deathcount++;
+    if (m_child.deathcount > 5) {
+        weston_log("weston-desktop-shell died, giving up.\n");
+        return;
+    }
+
+    weston_log("weston-desktop-shell died, respawning...\n");
+    launchShellProcess();
 }
 
 void Shell::launchShellProcess()
@@ -408,7 +406,10 @@ void Shell::launchShellProcess()
     m_child.client = weston_client_launch(m_compositor,
                                           &m_child.process,
                                           shell_exe,
-                                          desktop_shell_sigchld);
+                                          [](struct weston_process *process, int status) {
+                                              Child *child = container_of(process, Child, process);
+                                              child->shell->sigchld(status);
+                                          });
 
     printf("launch\n");
 

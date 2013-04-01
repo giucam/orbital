@@ -29,6 +29,7 @@ protected:
 
 private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
+    void unbind(struct wl_resource *resource);
 
     void setBackground(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                                              struct wl_resource *surface_resource);

@@ -16,6 +16,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <linux/input.h>
 
 #include <wayland-server.h>
@@ -54,13 +55,19 @@ void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
     struct wl_resource *resource = wl_client_add_object(client, &desktop_shell_interface, &m_desktop_shell_implementation, id, this);
 
     if (client == m_child.client) {
-        //         resource->destroy = unbind_desktop_shell;
+        resource->destroy = [](struct wl_resource *resource) { static_cast<DesktopShell *>(resource->data)->unbind(resource); };
         m_child.desktop_shell = resource;
         return;
     }
 
     wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "permission to bind desktop_shell denied");
     wl_resource_destroy(resource);
+}
+
+void DesktopShell::unbind(struct wl_resource *resource)
+{
+    m_child.desktop_shell = nullptr;
+    free(resource);
 }
 
 void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
