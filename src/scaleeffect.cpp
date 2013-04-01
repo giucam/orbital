@@ -22,6 +22,9 @@
 
 #include "wayland-desktop-shell-server-protocol.h"
 
+const float INACTIVE_ALPHA = 0.8;
+const int ALPHA_ANIM_DURATION = 200;
+
 struct Grab : public ShellGrab {
     ScaleEffect *effect;
 };
@@ -33,11 +36,32 @@ struct SurfaceTransform {
     ShellSurface *surface;
     struct weston_transform transform;
     Animation *animation;
+    Animation *alphaAnim;
 
     float ss, ts, cs;
     int sx, tx, cx;
     int sy, ty, cy;
 };
+
+void ScaleEffect::grab_focus(struct wl_pointer_grab *base, struct wl_surface *surf, wl_fixed_t x, wl_fixed_t y)
+{
+    ShellGrab *shgrab = container_of(base, ShellGrab, grab);
+    Grab *grab = static_cast<Grab *>(shgrab);
+
+    struct weston_surface *surface = container_of(surf, struct weston_surface, surface);
+    for (SurfaceTransform *tr: grab->effect->m_surfaces) {
+        float alpha = (tr->surface->is(surface) ? 1.0 : INACTIVE_ALPHA);
+        float curr = tr->surface->alpha();
+        if (alpha == curr) {
+            continue;
+        }
+
+        tr->alphaAnim->setStart(curr);
+        tr->alphaAnim->setTarget(alpha);
+        tr->alphaAnim->run(tr->surface->output(),
+                           std::bind(&ShellSurface::setAlpha, tr->surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
+    }
+}
 
 void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
 {
@@ -52,8 +76,8 @@ void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, u
     }
 }
 
-static const struct wl_pointer_grab_interface grab_interface = {
-    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+const struct wl_pointer_grab_interface ScaleEffect::grab_interface = {
+    ScaleEffect::grab_focus,
     [](struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y) {},
     grab_button,
 };
@@ -101,6 +125,10 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->animation->setTarget(1.f);
             surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
                                  std::bind(&SurfaceTransform::doneAnimation, surf), ANIM_DURATION);
+
+            surf->alphaAnim->setStart(surf->surface->alpha());
+            surf->alphaAnim->setTarget(1.f);
+            surf->alphaAnim->run(surf->surface->output(), std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1), 100);
         } else {
             int cellW = surf->surface->output()->width / numCols;
             int cellH = surf->surface->output()->height / numRows;
@@ -133,6 +161,11 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
                                  ANIM_DURATION);
 
+            surf->alphaAnim->setStart(surf->surface->alpha());
+            surf->alphaAnim->setTarget(INACTIVE_ALPHA);
+            surf->alphaAnim->run(surf->surface->output(),
+                                 std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
+
             surf->surface->addTransform(&surf->transform);
         }
         if (++c >= numCols) {
@@ -163,6 +196,7 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     SurfaceTransform *tr = new SurfaceTransform;
     tr->surface = surface;
     tr->animation = new Animation;
+    tr->alphaAnim = new Animation;
 
     wl_list_init(&tr->transform.link);
 

@@ -42,6 +42,7 @@ public:
     void addTransform(struct weston_transform *transform);
     void removeTransform(struct weston_transform *transform);
     void damage();
+    void setAlpha(float alpha);
 
     inline Shell *shell() const { return m_shell; }
     inline struct wl_resource *wl_resource() { return &m_resource; }
@@ -52,6 +53,8 @@ public:
     int32_t y() const;
     int32_t width() const;
     int32_t height() const;
+    float alpha() const;
+    inline bool is(struct weston_surface *s) const { return s == m_surface; }
     inline struct weston_output *output() const { return m_surface->output; }
 
     void dragMove(struct weston_seat *ws);

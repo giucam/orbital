@@ -137,6 +137,12 @@ void ShellSurface::damage()
     weston_surface_damage(m_surface);
 }
 
+void ShellSurface::setAlpha(float alpha)
+{
+    m_surface->alpha = alpha;
+    damage();
+}
+
 bool ShellSurface::isMapped() const
 {
     return weston_surface_is_mapped(m_surface);
@@ -160,6 +166,11 @@ int32_t ShellSurface::width() const
 int32_t ShellSurface::height() const
 {
     return m_surface->geometry.height;
+}
+
+float ShellSurface::alpha() const
+{
+    return m_surface->alpha;
 }
 
 void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial)

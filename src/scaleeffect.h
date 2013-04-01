@@ -44,6 +44,9 @@ private:
     std::list<struct SurfaceTransform *> m_surfaces;
     struct weston_seat *m_seat;
     struct Grab *m_grab;
+
+    static void grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
+    static const struct wl_pointer_grab_interface grab_interface;
 };
 
 #endif
