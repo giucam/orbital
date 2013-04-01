@@ -41,6 +41,9 @@ void Layer::init(Layer *below)
 
 void Layer::hide()
 {
+    for (struct weston_surface *s: *this) {
+        weston_surface_damage_below(s);
+    }
     if (!wl_list_empty(&m_layer.link)) {
         m_below = m_layer.link.prev;
         wl_list_remove(&m_layer.link);
@@ -52,6 +55,9 @@ void Layer::show()
 {
     if (m_below) {
         wl_list_insert(m_below, &m_layer.link);
+    }
+    for (struct weston_surface *s: *this) {
+        weston_surface_damage(s);
     }
 }
 
