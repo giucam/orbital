@@ -72,9 +72,9 @@ void Shell::init()
     if (!global)
         return;
 
-    m_layer.init(&m_compositor->cursor_layer);
-    m_panelsLayer.init(&m_layer);
-    m_backgroundLayer.init(&m_panelsLayer);
+    m_panelsLayer.init(&m_compositor->cursor_layer);
+    m_layer.init(&m_panelsLayer);
+    m_backgroundLayer.init(&m_layer);
 
     m_blackSurface = weston_surface_create(m_compositor);
 
