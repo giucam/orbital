@@ -37,8 +37,8 @@ struct SurfaceTransform {
 
     ShellSurface *surface;
     struct weston_transform transform;
-    Animation *animation;
-    Animation *alphaAnim;
+    Animation animation;
+    Animation alphaAnim;
 
     float ss, ts, cs;
     int sx, tx, cx;
@@ -58,9 +58,9 @@ void ScaleEffect::grab_focus(struct wl_pointer_grab *base, struct wl_surface *su
             continue;
         }
 
-        tr->alphaAnim->setStart(curr);
-        tr->alphaAnim->setTarget(alpha);
-        tr->alphaAnim->run(tr->surface->output(),
+        tr->alphaAnim.setStart(curr);
+        tr->alphaAnim.setTarget(alpha);
+        tr->alphaAnim.run(tr->surface->output(),
                            std::bind(&ShellSurface::setAlpha, tr->surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
     }
 }
@@ -129,14 +129,15 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->sy = surf->cy;
             surf->tx = surf->ty = 0.f;
 
-            surf->animation->setStart(0.f);
-            surf->animation->setTarget(1.f);
-            surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
-                                 std::bind(&SurfaceTransform::doneAnimation, surf), ANIM_DURATION);
+            surf->animation.setStart(0.f);
+            surf->animation.setTarget(1.f);
+            surf->animation.run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
+                                std::bind(&SurfaceTransform::doneAnimation, surf), ANIM_DURATION);
 
-            surf->alphaAnim->setStart(surf->surface->alpha());
-            surf->alphaAnim->setTarget(1.f);
-            surf->alphaAnim->run(surf->surface->output(), std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1), 100);
+            surf->alphaAnim.setStart(surf->surface->alpha());
+            surf->alphaAnim.setTarget(1.f);
+            surf->alphaAnim.run(surf->surface->output(), std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1),
+                                ALPHA_ANIM_DURATION);
         } else {
             int cellW = surf->surface->output()->width / numCols;
             int cellH = surf->surface->output()->height / numRows;
@@ -164,15 +165,15 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->tx = x;
             surf->ty = y;
 
-            surf->animation->setStart(0.f);
-            surf->animation->setTarget(1.f);
-            surf->animation->run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
-                                 ANIM_DURATION);
+            surf->animation.setStart(0.f);
+            surf->animation.setTarget(1.f);
+            surf->animation.run(surf->surface->output(), std::bind(&SurfaceTransform::updateAnimation, surf, std::placeholders::_1),
+                                ANIM_DURATION);
 
-            surf->alphaAnim->setStart(surf->surface->alpha());
-            surf->alphaAnim->setTarget(INACTIVE_ALPHA);
-            surf->alphaAnim->run(surf->surface->output(),
-                                 std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
+            surf->alphaAnim.setStart(surf->surface->alpha());
+            surf->alphaAnim.setTarget(INACTIVE_ALPHA);
+            surf->alphaAnim.run(surf->surface->output(),
+                                std::bind(&ShellSurface::setAlpha, surf->surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
 
             surf->surface->addTransform(&surf->transform);
         }
@@ -203,8 +204,6 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
 {
     SurfaceTransform *tr = new SurfaceTransform;
     tr->surface = surface;
-    tr->animation = new Animation;
-    tr->alphaAnim = new Animation;
 
     wl_list_init(&tr->transform.link);
 
@@ -223,6 +222,7 @@ void ScaleEffect::removedSurface(ShellSurface *surface)
 {
     for (auto i = m_surfaces.begin(); i != m_surfaces.end(); ++i) {
         if ((*i)->surface == surface) {
+            delete *i;
             m_surfaces.erase(i);
             break;
         }
