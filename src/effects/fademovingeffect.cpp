@@ -45,7 +45,7 @@ void FadeMovingEffect::start(ShellSurface *surface)
     Surface *surf = findSurface(surface);
     surf->animation.setStart(surface->alpha());
     surf->animation.setTarget(0.8);
-    surf->animation.run(surface->output(), std::bind(&ShellSurface::setAlpha, surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
+    surf->animation.run(surface->output(), ALPHA_ANIM_DURATION);
 }
 
 void FadeMovingEffect::end(ShellSurface *surface)
@@ -53,7 +53,7 @@ void FadeMovingEffect::end(ShellSurface *surface)
     Surface *surf = findSurface(surface);
     surf->animation.setStart(surface->alpha());
     surf->animation.setTarget(1.0);
-    surf->animation.run(surface->output(), std::bind(&ShellSurface::setAlpha, surface, std::placeholders::_1), ALPHA_ANIM_DURATION);
+    surf->animation.run(surface->output(), ALPHA_ANIM_DURATION);
 }
 
 void FadeMovingEffect::addedSurface(ShellSurface *surface)
@@ -63,6 +63,7 @@ void FadeMovingEffect::addedSurface(ShellSurface *surface)
 
     surface->moveStartSignal.connect(this, &FadeMovingEffect::start);
     surface->moveEndSignal.connect(this, &FadeMovingEffect::end);
+    surf->animation.updateSignal.connect(surface, &ShellSurface::setAlpha);
 
     m_surfaces.push_back(surf);
 }

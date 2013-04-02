@@ -37,20 +37,12 @@ void Animation::setTarget(float value)
     m_target = value;
 }
 
-void Animation::run(struct weston_output *output, const std::function<void (float)> &handler, uint32_t duration)
-{
-    run(output, handler, nullptr, duration);
-}
-
-void Animation::run(struct weston_output *output, const std::function<void (float)> &handler,
-                    const std::function<void ()> &doneHandler, uint32_t duration)
+void Animation::run(struct weston_output *output, uint32_t duration, Animation::Flags flags)
 {
     stop();
 
-    m_handler = handler;
-    m_doneHandler = doneHandler;
     m_duration = duration;
-
+    m_runFlags = flags;
     m_animation.ani.frame_counter = 0;
 
     wl_list_insert(&output->animation_list, &m_animation.ani.link);
@@ -79,9 +71,9 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
 
     uint32_t time = msecs - m_timestamp;
     if (time > m_duration) {
-        m_handler(m_target);
-        if (m_doneHandler) {
-            m_doneHandler();
+        updateSignal(m_target);
+        if ((int)Flags::SendDone & (int)m_runFlags) {
+            doneSignal();
         }
         stop();
         weston_compositor_schedule_repaint(output->compositor);
@@ -89,7 +81,7 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
     }
 
     float f = (float)time / (float)m_duration;
-    m_handler(m_target * f + m_start * (1.f - f));
+    updateSignal(m_target * f + m_start * (1.f - f));
 
     weston_compositor_schedule_repaint(output->compositor);
 }

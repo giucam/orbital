@@ -18,23 +18,28 @@
 #ifndef ANIMATION_H
 #define ANIMATION_H
 
-#include <functional>
-
 #include <weston/compositor.h>
+
+#include "signal.h"
 
 class ShellSurface;
 
 class Animation {
 public:
+    enum class Flags {
+        None = 0,
+        SendDone = 1
+    };
     explicit Animation();
 
     void setStart(float value);
     void setTarget(float value);
-    void run(struct weston_output *output, const std::function<void (float)> &handler, uint32_t duration);
-    void run(struct weston_output *output, const std::function<void (float)> &handler,
-             const std::function<void ()> &done_handler, uint32_t duration);
+    void run(struct weston_output *output, uint32_t duration, Flags flags = Flags::None);
     void stop();
     bool isRunning() const;
+
+    Signal<float> updateSignal;
+    Signal<> doneSignal;
 
 private:
     void update(struct weston_output *output, uint32_t msecs);
@@ -48,8 +53,11 @@ private:
     float m_target;
     uint32_t m_duration;
     uint32_t m_timestamp;
-    std::function<void (float)> m_handler;
-    std::function<void ()> m_doneHandler;
+    Flags m_runFlags;
 };
+
+inline Animation::Flags operator|(Animation::Flags a, Animation::Flags b) {
+    return (Animation::Flags)(a | b);
+}
 
 #endif
