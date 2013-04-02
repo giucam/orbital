@@ -8,6 +8,7 @@ include(Wayland)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_SOURCE_DIR}/src/
+                    ${CMAKE_CURRENT_SOURCE_DIR}/src/effects
                     /usr/include/pixman-1)
 
 set(SOURCES
@@ -15,10 +16,10 @@ set(SOURCES
     src/layer.cpp
     src/shellsurface.cpp
     src/effect.cpp
-    src/scaleeffect.cpp
-    src/fademovingeffect.cpp
     src/animation.cpp
-    src/desktop-shell.cpp)
+    src/desktop-shell.cpp
+    src/effects/scaleeffect.cpp
+    src/effects/fademovingeffect.cpp)
 
 wayland_add_protocol_server(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
