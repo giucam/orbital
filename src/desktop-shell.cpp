@@ -27,7 +27,9 @@
 
 #include "desktop-shell.h"
 #include "wayland-desktop-shell-server-protocol.h"
+
 #include "scaleeffect.h"
+#include "fademovingeffect.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -47,6 +49,7 @@ void DesktopShell::init()
         return;
 
     new ScaleEffect(this);
+    new FadeMovingEffect(this);
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)
