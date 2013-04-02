@@ -22,6 +22,8 @@
 
 #include <wayland-server.h>
 
+#include "signal.h"
+
 class Shell;
 
 class ShellSurface {
@@ -59,6 +61,9 @@ public:
 
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);
+
+    Signal<ShellSurface *> moveStartSignal;
+    Signal<ShellSurface *> moveEndSignal;
 
 private:
     void unsetMaximized();

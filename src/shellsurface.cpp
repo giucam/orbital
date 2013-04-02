@@ -213,12 +213,14 @@ void ShellSurface::move_grab_motion(struct wl_pointer_grab *grab, uint32_t time,
 void ShellSurface::move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
 {
     ShellGrab *shell_grab = container_of(grab, ShellGrab, grab);
+    MoveGrab *move = static_cast<MoveGrab *>(shell_grab);
     struct wl_pointer *pointer = grab->pointer;
     enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
 
     if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
         Shell::endGrab(shell_grab);
         delete shell_grab;
+        move->shsurf->moveEndSignal(move->shsurf);
     }
 }
 
@@ -255,6 +257,7 @@ void ShellSurface::dragMove(struct weston_seat *ws)
     move->grab.focus = &m_surface->surface;
 
     m_shell->startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
+    moveStartSignal(this);
 }
 
 // -- Resize --
