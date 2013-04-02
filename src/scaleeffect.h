@@ -24,11 +24,13 @@
 
 class ShellGrab;
 class Animation;
+class Binding;
 
 class ScaleEffect : public Effect
 {
 public:
     ScaleEffect(Shell *shell);
+    ~ScaleEffect();
 
     virtual void run(struct wl_seat *seat, uint32_t time, uint32_t key);
     void end(ShellSurface *surface);
@@ -44,6 +46,7 @@ private:
     std::list<struct SurfaceTransform *> m_surfaces;
     struct weston_seat *m_seat;
     struct Grab *m_grab;
+    Binding *m_binding;
 
     static void grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
     static const struct wl_pointer_grab_interface grab_interface;

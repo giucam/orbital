@@ -46,8 +46,7 @@ void DesktopShell::init()
     if (!global)
         return;
 
-    ScaleEffect *e = new ScaleEffect(this);
-    bindEffect(e, KEY_E, MODIFIER_CTRL);
+    new ScaleEffect(this);
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)

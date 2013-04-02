@@ -21,7 +21,7 @@
 Effect::Effect(Shell *shell)
       : m_shell(shell)
 {
-
+    shell->registerEffect(this);
 }
 
 void Effect::addSurface(ShellSurface *surf)

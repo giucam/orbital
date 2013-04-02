@@ -30,6 +30,18 @@
 #include "effect.h"
 #include "desktop-shell.h"
 
+Binding::Binding(struct weston_binding *binding)
+       : m_binding(binding)
+{
+
+}
+
+Binding::~Binding()
+{
+    weston_binding_destroy(m_binding);
+}
+
+
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
             , m_blackSurface(nullptr)
@@ -236,15 +248,17 @@ void Shell::removeShellSurface(ShellSurface *surface)
     }
 }
 
-void Shell::bindEffect(Effect *effect, uint32_t key, enum weston_keyboard_modifier modifier)
+Binding *Shell::bindKey(uint32_t key, enum weston_keyboard_modifier modifier, weston_key_binding_handler_t handler, void *data)
+{
+    return new Binding(weston_compositor_add_key_binding(compositor(), key, modifier, handler, data));
+}
+
+void Shell::registerEffect(Effect *effect)
 {
     m_effects.push_back(effect);
     for (ShellSurface *s: m_surfaces) {
         effect->addSurface(s);
     }
-    weston_compositor_add_key_binding(compositor(), key, modifier,
-                                      [](struct wl_seat *seat, uint32_t time, uint32_t key, void *data) {
-                                          static_cast<Effect *>(data)->run(seat, time, key); }, effect);
 }
 
 void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)

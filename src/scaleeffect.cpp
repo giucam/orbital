@@ -15,6 +15,8 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/input.h>
+
 #include "scaleeffect.h"
 #include "shellsurface.h"
 #include "shell.h"
@@ -88,6 +90,12 @@ ScaleEffect::ScaleEffect(Shell *shell)
            , m_grab(new Grab)
 {
     m_grab->effect = this;
+    m_binding = shell->bindKey(KEY_E, MODIFIER_CTRL, &ScaleEffect::run, this);
+}
+
+ScaleEffect::~ScaleEffect()
+{
+    delete m_binding;
 }
 
 void ScaleEffect::run(struct wl_seat *seat, uint32_t time, uint32_t key)
