@@ -80,8 +80,6 @@ public:
     void setGrabSurface(struct weston_surface *surface);
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
 
-    inline struct weston_compositor *compositor() const { return m_compositor; }
-
     void startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
                    struct wl_pointer *pointer, uint32_t cursor);
     static void endGrab(ShellGrab *grab);
@@ -97,6 +95,7 @@ protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
+    inline struct weston_compositor *compositor() const { return m_compositor; }
     virtual void setGrabCursor(uint32_t cursor) {}
 
     struct Child {
