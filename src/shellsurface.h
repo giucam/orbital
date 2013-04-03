@@ -25,6 +25,7 @@
 #include "signal.h"
 
 class Shell;
+class ShellSeat;
 
 class ShellSurface {
 public:
@@ -32,7 +33,8 @@ public:
         None,
         TopLevel,
         Maximized,
-        Transient
+        Transient,
+        Popup
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
@@ -40,6 +42,7 @@ public:
     void init(uint32_t id);
     bool updateType();
     void map(int32_t x, int32_t y, int32_t width, int32_t height);
+    void unmapped();
 
     void addTransform(struct weston_transform *transform);
     void removeTransform(struct weston_transform *transform);
@@ -49,6 +52,7 @@ public:
     inline Shell *shell() const { return m_shell; }
     inline struct wl_resource *wl_resource() { return &m_resource; }
     inline const struct wl_resource *wl_resource() const { return &m_resource; }
+    inline struct wl_client *client() const { return m_surface->surface.resource.client; }
 
     bool isMapped() const;
     int32_t x() const;
@@ -61,12 +65,14 @@ public:
 
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);
+    void popupDone();
 
     Signal<ShellSurface *> moveStartSignal;
     Signal<ShellSurface *> moveEndSignal;
 
 private:
     void unsetMaximized();
+    void mapPopup();
 
     Shell *m_shell;
     struct wl_resource m_resource;
@@ -84,6 +90,12 @@ private:
         int32_t x, y;
         uint32_t flags;
     } m_transient;
+
+    struct {
+        int32_t x, y;
+        uint32_t serial;
+        ShellSeat *seat;
+    } m_popup;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,

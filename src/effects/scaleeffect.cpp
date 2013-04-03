@@ -180,7 +180,7 @@ void ScaleEffect::run(struct weston_seat *ws)
     m_scaled = !m_scaled;
     if (m_scaled) {
         m_seat = ws;
-        shell()->startGrab(m_grab, &grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_ARROW);
+        shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
         shell()->hidePanels();
     } else {
         m_seat = nullptr;

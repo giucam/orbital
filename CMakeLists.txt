@@ -15,6 +15,7 @@ set(SOURCES
     src/shell.cpp
     src/layer.cpp
     src/shellsurface.cpp
+    src/shellseat.cpp
     src/effect.cpp
     src/animation.cpp
     src/desktop-shell.cpp

@@ -27,6 +27,7 @@
 
 #include "shell.h"
 #include "shellsurface.h"
+#include "shellseat.h"
 #include "effect.h"
 #include "desktop-shell.h"
 
@@ -114,6 +115,7 @@ void Shell::init()
 void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height)
 {
     if (width == 0) {
+        surface->unmapped();
         return;
     }
 
@@ -128,18 +130,21 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         }
 
         switch (surface->m_type) {
-            case ShellSurface::Type::TopLevel:
-            case ShellSurface::Type::Maximized: {
+            case ShellSurface::Type::Transient:
+            case ShellSurface::Type::Popup:
+                m_layer.addSurface(surface);
+                m_layer.stackAbove(surface->m_surface, surface->m_parent);
+                break;
+//             case ShellSurface::Type::Fullscreen:
+            case ShellSurface::Type::None:
+                break;
+            default:
+                printf("add %p\n",surface);
+                m_layer.addSurface(surface);
                 m_surfaces.push_back(surface);
                 for (Effect *e: m_effects) {
                     e->addSurface(surface);
                 }
-            } break;
-            case ShellSurface::Type::Transient:
-                m_layer.stackAbove(surface->m_surface, surface->m_parent);
-                break;
-            default:
-                break;
         }
 
         switch (surface->m_type) {
@@ -164,15 +169,22 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         struct weston_surface *es = surface->m_surface;
         weston_surface_to_global_float(es, 0, 0, &from_x, &from_y);
         weston_surface_to_global_float(es, sx, sy, &to_x, &to_y);
-        surface->map(surface->x() + to_x - from_x, surface->y() + to_y - from_y, width, height);
-//         weston_surface_configure(es, surface->x() + to_x - from_x, surface->y() + to_y - from_y, width, height);
-//         configure(shell, es,
-//                   es->geometry.x + to_x - from_x,
-//                   es->geometry.y + to_y - from_y,
-//                   width, height);
+        int x = surface->x() + to_x - from_x;
+        int y = surface->y() + to_y - from_y;
+
+        switch (surface->m_type) {
+            case ShellSurface::Type::Maximized: {
+                IRect2D rect = windowsArea(surface->output());
+                x = rect.x;
+                y = rect.y;
+            }
+            break;
+            default:
+                break;
+        }
+
+        weston_surface_configure(es, x, y, width, height);
     }
-
-
 }
 
 static void shell_surface_configure(struct weston_surface *surf, int32_t sx, int32_t sy, int32_t w, int32_t h)
@@ -227,7 +239,6 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
     shsurf->init(id);
 
     wl_client_add_resource(client, shsurf->wl_resource());
-    m_layer.addSurface(surface);
 
     return shsurf;
 }
@@ -290,9 +301,9 @@ void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button
 }
 
 void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                      struct wl_pointer *pointer, uint32_t cursor)
+                      struct weston_seat *seat, uint32_t cursor)
 {
-//     popup_grab_end(pointer);
+    ShellSeat::shellSeat(seat)->endPopupGrab();
 
     grab->shell = this;
     grab->grab.interface = interface;
@@ -300,6 +311,7 @@ void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *i
 //     grab->shsurf_destroy_listener.notify = destroy_shell_grab_shsurf;
 //     wl_signal_add(&shsurf->resource.destroy_signal, &grab->shsurf_destroy_listener);
 
+    struct wl_pointer *pointer = seat->seat.pointer;
     grab->pointer = pointer;
 //     grab->grab.focus = &shsurf->m_surface->surface;
 

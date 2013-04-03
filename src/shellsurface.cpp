@@ -21,6 +21,7 @@
 
 #include "shellsurface.h"
 #include "shell.h"
+#include "shellseat.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -31,11 +32,14 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_pendingType(Type::None)
             , m_parent(nullptr)
 {
-
+    m_popup.seat = nullptr;
 }
 
 ShellSurface::~ShellSurface()
 {
+    if (m_popup.seat) {
+        m_popup.seat->removePopupGrab(this);
+    }
     m_shell->removeShellSurface(this);
 }
 
@@ -79,35 +83,54 @@ bool ShellSurface::updateType()
 
 void ShellSurface::map(int32_t x, int32_t y, int32_t width, int32_t height)
 {
-//     if (m_type == Type::None) {
-//         return;
-//     }
+    m_surface->geometry.width = width;
+    m_surface->geometry.height = height;
+    weston_surface_geometry_dirty(m_surface);
 
-
-//     if (m_type == Type::TopLevel) {
-//         weston_surface_set_position(m_surface, x, x);
-//     }
     switch (m_type) {
+        case Type::Popup:
+            mapPopup();
+            break;
         case Type::Maximized: {
             IRect2D rect = m_shell->windowsArea(m_output);
             x = rect.x;
             y = rect.y;
         }
+        case Type::TopLevel:
+        case Type::None:
+            weston_surface_set_position(m_surface, x, y);
         default:
-            weston_surface_configure(m_surface, x, y, width, height);
+            break;
     }
 
     printf("map %d %d %d %d - %d\n",x,y,width,height,m_type);
 
 
-//     m_surface->geometry.width = width;
-//     m_surface->geometry.height = height;
-//     weston_surface_geometry_dirty(m_surface);
     if (m_type != Type::None) {
         weston_surface_update_transform(m_surface);
         if (m_type == Type::Maximized) {
             m_surface->output = m_output;
         }
+    }
+}
+
+void ShellSurface::unmapped()
+{
+    if (m_popup.seat) {
+        m_popup.seat->removePopupGrab(this);
+    }
+}
+
+void ShellSurface::mapPopup()
+{
+    m_surface->output = m_parent->output;
+
+    weston_surface_set_transform_parent(m_surface, m_parent);
+    weston_surface_set_position(m_surface, m_popup.x, m_popup.y);
+    weston_surface_update_transform(m_surface);
+
+    if (!m_popup.seat->addPopupGrab(this, m_popup.serial)) {
+        popupDone();
     }
 }
 
@@ -141,6 +164,12 @@ void ShellSurface::setAlpha(float alpha)
 {
     m_surface->alpha = alpha;
     damage();
+}
+
+void ShellSurface::popupDone()
+{
+    wl_shell_surface_send_popup_done(&m_resource);
+    m_popup.seat = nullptr;
 }
 
 bool ShellSurface::isMapped() const
@@ -256,7 +285,7 @@ void ShellSurface::dragMove(struct weston_seat *ws)
     move->shsurf = this;
     move->grab.focus = &m_surface->surface;
 
-    m_shell->startGrab(move, &m_move_grab_interface, ws->seat.pointer, DESKTOP_SHELL_CURSOR_MOVE);
+    m_shell->startGrab(move, &m_move_grab_interface, ws, DESKTOP_SHELL_CURSOR_MOVE);
     moveStartSignal(this);
 }
 
@@ -349,7 +378,7 @@ void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
     grab->shsurf = this;
     grab->grab.focus = &m_surface->surface;
 
-    m_shell->startGrab(grab, &m_resize_grab_interface, ws->seat.pointer, edges);
+    m_shell->startGrab(grab, &m_resize_grab_interface, ws, edges);
 }
 
 void ShellSurface::setToplevel(struct wl_client *, struct wl_resource *)
@@ -364,6 +393,7 @@ void ShellSurface::setTransient(struct wl_client *client, struct wl_resource *re
     m_parent = static_cast<struct weston_surface *>(parent_resource->data);
     m_transient.x = x;
     m_transient.y = y;
+    m_transient.flags = flags;
 
     m_pendingType = Type::Transient;
 
@@ -378,7 +408,13 @@ void ShellSurface::setFullscreen(struct wl_client *client, struct wl_resource *r
 void ShellSurface::setPopup(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
               uint32_t serial, struct wl_resource *parent_resource, int32_t x, int32_t y, uint32_t flags)
 {
+    m_parent = static_cast<struct weston_surface *>(parent_resource->data);
+    m_popup.x = x;
+    m_popup.y = y;
+    m_popup.serial = serial;
+    m_popup.seat = ShellSeat::shellSeat(static_cast<struct weston_seat *>(seat_resource->data));
 
+    m_pendingType = Type::Popup;
 }
 
 void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource)

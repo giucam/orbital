@@ -81,7 +81,7 @@ public:
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
 
     void startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
-                   struct wl_pointer *pointer, uint32_t cursor);
+                   struct weston_seat *seat, uint32_t cursor);
     static void endGrab(ShellGrab *grab);
 
     void showPanels();
