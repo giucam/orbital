@@ -182,6 +182,21 @@ void ScaleEffect::run(struct weston_seat *ws)
         m_seat = ws;
         shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
         shell()->hidePanels();
+        if (ws->pointer.current) {
+            ShellSurface *s = Shell::getShellSurface(container_of(ws->pointer.current, struct weston_surface, surface));
+            if (!s) {
+                return;
+            }
+
+            for (SurfaceTransform *tr: m_surfaces) {
+                if (tr->surface == s) {
+                    tr->alphaAnim.setStart(tr->surface->alpha());
+                    tr->alphaAnim.setTarget(1.0);
+                    tr->alphaAnim.run(tr->surface->output(), ALPHA_ANIM_DURATION);
+                    break;
+                }
+            }
+        }
     } else {
         m_seat = nullptr;
         Shell::endGrab(m_grab);
