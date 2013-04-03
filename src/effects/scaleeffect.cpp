@@ -139,15 +139,15 @@ void ScaleEffect::run(struct weston_seat *ws)
             int cellW = surf->surface->output()->width / numCols;
             int cellH = surf->surface->output()->height / numRows;
 
-            float rx = (float)cellW / (float)surf->surface->width();
-            float ry = (float)cellH / (float)surf->surface->height();
+            float rx = (float)cellW / (float)surf->surface->transformedWidth();
+            float ry = (float)cellH / (float)surf->surface->transformedHeight();
             if (rx > ry) {
                 rx = ry;
             } else {
                 ry = rx;
             }
-            int x = c * cellW - surf->surface->x() + (cellW - (surf->surface->width() * rx)) / 2.f;
-            int y = r * cellH - surf->surface->y() + (cellH - (surf->surface->height() * ry)) / 2.f;
+            int x = c * cellW - surf->surface->x() + (cellW - (surf->surface->transformedWidth() * rx)) / 2.f;
+            int y = r * cellH - surf->surface->y() + (cellH - (surf->surface->transformedHeight() * ry)) / 2.f;
 
             struct weston_matrix *matrix = &surf->transform.matrix;
             weston_matrix_init(matrix);
