@@ -86,6 +86,7 @@ public:
 
     void showPanels();
     void hidePanels();
+    bool isInFullscreen() const;
 
     virtual IRect2D windowsArea(struct weston_output *output) const;
 

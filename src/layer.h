@@ -63,6 +63,7 @@ public:
     void init(Layer *below);
     void hide();
     void show();
+    bool isVisible() const;
 
     void addSurface(struct weston_surface *surf);
     void addSurface(ShellSurface *surf);

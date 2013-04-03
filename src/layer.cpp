@@ -51,6 +51,11 @@ void Layer::hide()
     }
 }
 
+bool Layer::isVisible() const
+{
+    return !wl_list_empty(&m_layer.link) && !wl_list_empty(&m_layer.surface_list);
+}
+
 void Layer::show()
 {
     if (m_below) {

@@ -105,7 +105,7 @@ void ScaleEffect::run(struct wl_seat *seat, uint32_t time, uint32_t key)
 void ScaleEffect::run(struct weston_seat *ws)
 {
     int num = m_surfaces.size();
-    if (num == 0 && !m_scaled) {
+    if ((num == 0 && !m_scaled) || shell()->isInFullscreen()) {
         return;
     }
 

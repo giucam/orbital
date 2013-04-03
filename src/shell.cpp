@@ -313,6 +313,11 @@ bool Shell::surfaceIsTopFullscreen(ShellSurface *surface)
     return top == surface->m_surface;
 }
 
+bool Shell::isInFullscreen() const
+{
+    return m_fullscreenLayer.isVisible();
+}
+
 static void shell_surface_configure(struct weston_surface *surf, int32_t sx, int32_t sy, int32_t w, int32_t h)
 {
     ShellSurface *shsurf = Shell::getShellSurface(surf);
