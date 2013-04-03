@@ -23,6 +23,7 @@
 #include <wayland-server.h>
 
 #include "signal.h"
+#include "utils.h"
 
 class Shell;
 class ShellSeat;
@@ -73,10 +74,12 @@ public:
 private:
     void unsetMaximized();
     void mapPopup();
+    void surfaceDestroyed();
 
     Shell *m_shell;
     struct wl_resource m_resource;
     struct weston_surface *m_surface;
+    WlListener m_surfaceDestroyListener;
     Type m_type;
     Type m_pendingType;
     const struct weston_shell_client *m_client;

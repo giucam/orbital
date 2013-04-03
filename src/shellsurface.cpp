@@ -33,6 +33,9 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_parent(nullptr)
 {
     m_popup.seat = nullptr;
+
+    m_surfaceDestroyListener.listen(&surface->surface.resource.destroy_signal);
+    m_surfaceDestroyListener.signal->connect(this, &ShellSurface::surfaceDestroyed);
 }
 
 ShellSurface::~ShellSurface()
@@ -50,6 +53,15 @@ void ShellSurface::init(uint32_t id)
     m_resource.object.interface = &wl_shell_surface_interface;
     m_resource.object.implementation = &m_shell_surface_implementation;
     m_resource.data = this;
+}
+
+void ShellSurface::surfaceDestroyed()
+{
+    if (m_resource.client) {
+        wl_resource_destroy(&m_resource);
+    } else {
+        delete this;
+    }
 }
 
 bool ShellSurface::updateType()
@@ -118,6 +130,7 @@ void ShellSurface::unmapped()
 {
     if (m_popup.seat) {
         m_popup.seat->removePopupGrab(this);
+        m_popup.seat = nullptr;
     }
 }
 
