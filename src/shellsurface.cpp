@@ -248,8 +248,8 @@ void ShellSurface::move_grab_button(struct wl_pointer_grab *grab, uint32_t time,
 
     if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
         Shell::endGrab(shell_grab);
-        delete shell_grab;
         move->shsurf->moveEndSignal(move->shsurf);
+        delete shell_grab;
     }
 }
 
