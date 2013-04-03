@@ -56,6 +56,7 @@ public:
     inline const struct wl_resource *wl_resource() const { return &m_resource; }
     inline struct wl_client *client() const { return m_surface->surface.resource.client; }
 
+    inline Type type() const { return m_type; }
     bool isMapped() const;
     int32_t x() const;
     int32_t y() const;
@@ -63,7 +64,9 @@ public:
     int32_t height() const;
     float alpha() const;
     inline bool is(struct weston_surface *s) const { return s == m_surface; }
+    bool isPopup() const;
     inline struct weston_output *output() const { return m_surface->output; }
+    ShellSurface *topLevelParent();
 
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);

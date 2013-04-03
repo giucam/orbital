@@ -27,6 +27,7 @@
 
 #include "desktop-shell.h"
 #include "wayland-desktop-shell-server-protocol.h"
+#include "shellsurface.h"
 
 #include "scaleeffect.h"
 #include "fademovingeffect.h"
@@ -47,6 +48,11 @@ void DesktopShell::init()
 
     if (!global)
         return;
+
+    weston_compositor_add_button_binding(compositor(), BTN_LEFT, MODIFIER_SUPER,
+                                         [](struct wl_seat *seat, uint32_t time, uint32_t button, void *data) {
+                                             static_cast<DesktopShell *>(data)->moveBinding(seat, time, button);
+                                         }, this);
 
     new ScaleEffect(this);
     new FadeMovingEffect(this);
@@ -75,6 +81,24 @@ void DesktopShell::unbind(struct wl_resource *resource)
 {
     m_child.desktop_shell = nullptr;
     free(resource);
+}
+
+void DesktopShell::moveBinding(struct wl_seat *seat, uint32_t time, uint32_t button)
+{
+    struct weston_surface *surface = container_of(seat->pointer->focus, struct weston_surface, surface);
+    if (!surface) {
+        return;
+    }
+
+    ShellSurface *shsurf = getShellSurface(surface);
+    if (!shsurf || shsurf->type() == ShellSurface::Type::Fullscreen || shsurf->type() == ShellSurface::Type::Maximized) {
+        return;
+    }
+
+    shsurf = shsurf->topLevelParent();
+    if (shsurf) {
+        shsurf->dragMove(container_of(seat, struct weston_seat, seat));
+    }
 }
 
 void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,

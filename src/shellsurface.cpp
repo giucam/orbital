@@ -224,6 +224,24 @@ float ShellSurface::alpha() const
     return m_surface->alpha;
 }
 
+bool ShellSurface::isPopup() const
+{
+    return m_popup.seat != nullptr;
+}
+
+ShellSurface *ShellSurface::topLevelParent()
+{
+    if (isPopup() && m_parent) {
+        ShellSurface *p = Shell::getShellSurface(m_parent);
+        if (p) {
+            return p->topLevelParent();
+        }
+        return nullptr;
+    }
+
+    return this;
+}
+
 void ShellSurface::setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output)
 {
     if (output) {
