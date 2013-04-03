@@ -30,7 +30,8 @@ public:
         None = 0,
         SendDone = 1
     };
-    explicit Animation();
+    Animation();
+    ~Animation();
 
     void setStart(float value);
     void setTarget(float value);

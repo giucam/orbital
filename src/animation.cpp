@@ -27,6 +27,11 @@ Animation::Animation()
     };
 }
 
+Animation::~Animation()
+{
+    stop();
+}
+
 void Animation::setStart(float value)
 {
     m_start = value;
