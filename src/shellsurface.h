@@ -62,6 +62,8 @@ public:
     int32_t y() const;
     int32_t width() const;
     int32_t height() const;
+    int32_t transformedWidth() const;
+    int32_t transformedHeight() const;
     float alpha() const;
     inline bool is(struct weston_surface *s) const { return s == m_surface; }
     bool isPopup() const;

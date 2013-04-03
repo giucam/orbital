@@ -219,6 +219,18 @@ int32_t ShellSurface::height() const
     return m_surface->geometry.height;
 }
 
+int32_t ShellSurface::transformedWidth() const
+{
+    pixman_box32_t *box = pixman_region32_extents(&m_surface->transform.boundingbox);
+    return box->x2 - box->x1;
+}
+
+int32_t ShellSurface::transformedHeight() const
+{
+    pixman_box32_t *box = pixman_region32_extents(&m_surface->transform.boundingbox);
+    return box->y2 - box->y1;
+}
+
 float ShellSurface::alpha() const
 {
     return m_surface->alpha;
