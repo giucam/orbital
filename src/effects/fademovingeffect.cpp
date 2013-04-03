@@ -70,6 +70,9 @@ void FadeMovingEffect::addedSurface(ShellSurface *surface)
 
 void FadeMovingEffect::removedSurface(ShellSurface *surface)
 {
+    surface->moveStartSignal.disconnect(this, &FadeMovingEffect::start);
+    surface->moveEndSignal.disconnect(this, &FadeMovingEffect::end);
+
     for (auto i = m_surfaces.begin(); i != m_surfaces.end(); ++i) {
         if ((*i)->surface == surface) {
             delete *i;
