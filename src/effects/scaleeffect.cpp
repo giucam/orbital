@@ -158,7 +158,7 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->sx = surf->cx;
             surf->sy = surf->cy;
 
-            surf->ts = rx;
+            surf->ts = rx * surf->cs;
             surf->tx = x;
             surf->ty = y;
 
