@@ -227,11 +227,6 @@ void ScaleEffect::removedSurface(ShellSurface *surface)
     }
 
     if (m_scaled) {
-        for (SurfaceTransform *surf: m_surfaces) {
-            surf->ss = surf->ts;
-            surf->sx = surf->tx;
-            surf->sy = surf->ty;
-        }
         m_scaled = false;
         run(m_seat);
     }
@@ -253,6 +248,4 @@ void SurfaceTransform::updateAnimation(float value)
 void SurfaceTransform::doneAnimation()
 {
     surface->removeTransform(&transform);
-    sx = sy = 0;
-    ss = 1.f;
 }
