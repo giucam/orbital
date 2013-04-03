@@ -105,7 +105,7 @@ void Layer::restack(ShellSurface *surf)
 
 bool Layer::isEmpty() const
 {
-    return wl_list_empty(const_cast<struct wl_list *>(&m_layer.surface_list)); //ugh
+    return wl_list_empty(&m_layer.surface_list);
 }
 
 Layer::iterator Layer::begin()
