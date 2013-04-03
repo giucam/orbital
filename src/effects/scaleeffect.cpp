@@ -105,7 +105,7 @@ void ScaleEffect::run(struct wl_seat *seat, uint32_t time, uint32_t key)
 void ScaleEffect::run(struct weston_seat *ws)
 {
     int num = m_surfaces.size();
-    if (num == 0) {
+    if (num == 0 && !m_scaled) {
         return;
     }
 
@@ -227,7 +227,9 @@ void ScaleEffect::removedSurface(ShellSurface *surface)
     }
 
     if (m_scaled) {
-        m_scaled = false;
+        if (!m_surfaces.empty()) {
+            m_scaled = false;
+        }
         run(m_seat);
     }
 }
