@@ -35,7 +35,8 @@ public:
         TopLevel,
         Maximized,
         Transient,
-        Popup
+        Popup,
+        Fullscreen
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
@@ -72,8 +73,11 @@ public:
     Signal<ShellSurface *> moveEndSignal;
 
 private:
+    void setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output);
+    void unsetFullscreen();
     void unsetMaximized();
     void mapPopup();
+    void centerOnOutput(struct weston_output *output);
     void surfaceDestroyed();
 
     Shell *m_shell;
@@ -99,6 +103,14 @@ private:
         uint32_t serial;
         ShellSeat *seat;
     } m_popup;
+
+    struct {
+        enum wl_shell_surface_fullscreen_method type;
+        struct weston_transform transform; /* matrix from x, y */
+        uint32_t framerate;
+        struct weston_surface *blackSurface;
+        struct weston_output *output;
+    } m_fullscreen;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,

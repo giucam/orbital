@@ -63,6 +63,7 @@ void Layer::show()
 
 void Layer::addSurface(struct weston_surface *surf)
 {
+    wl_list_remove(&surf->layer_link);
     wl_list_insert(&m_layer.surface_list, &surf->layer_link);
 }
 
@@ -79,6 +80,14 @@ void Layer::stackAbove(struct weston_surface *surf, struct weston_surface *paren
     wl_list_insert(parent->layer_link.prev, &surf->layer_link);
 }
 
+void Layer::stackBelow(struct weston_surface *surf, struct weston_surface *parent)
+{
+    wl_list_remove(&surf->layer_link);
+    wl_list_init(&surf->layer_link);
+
+    wl_list_insert(parent->layer_link.prev->prev, &surf->layer_link);
+}
+
 void Layer::restack(struct weston_surface *surf)
 {
     weston_surface_restack(surf, &m_layer.surface_list);
@@ -87,6 +96,11 @@ void Layer::restack(struct weston_surface *surf)
 void Layer::restack(ShellSurface *surf)
 {
     restack(surf->m_surface);
+}
+
+bool Layer::isEmpty() const
+{
+    return wl_list_empty(const_cast<struct wl_list *>(&m_layer.surface_list)); //ugh
 }
 
 Layer::iterator Layer::begin()

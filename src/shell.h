@@ -115,12 +115,17 @@ private:
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button);
+    void configureFullscreen(ShellSurface *surface);
+    void stackFullscreen(ShellSurface *surface);
+    struct weston_surface *createBlackSurface(ShellSurface *fs_surface, float x, float y, int w, int h);
     static void sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height);
+    bool surfaceIsTopFullscreen(ShellSurface *surface);
 
     struct weston_compositor *m_compositor;
     Layer m_backgroundLayer;
     Layer m_panelsLayer;
     Layer m_layer;
+    Layer m_fullscreenLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
 

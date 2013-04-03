@@ -82,7 +82,8 @@ void Shell::init()
     if (!global)
         return;
 
-    m_panelsLayer.init(&m_compositor->cursor_layer);
+    m_fullscreenLayer.init(&m_compositor->cursor_layer);
+    m_panelsLayer.init(&m_fullscreenLayer);
     m_layer.init(&m_panelsLayer);
     m_backgroundLayer.init(&m_layer);
 
@@ -119,7 +120,14 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         return;
     }
 
+    if (surface->m_type == ShellSurface::Type::Fullscreen && surface->m_pendingType != ShellSurface::Type::Fullscreen &&
+        surface->m_pendingType != ShellSurface::Type::None) {
+        if (surface->m_fullscreen.type == WL_SHELL_SURFACE_FULLSCREEN_METHOD_DRIVER && surfaceIsTopFullscreen(surface)) {
+            weston_output_switch_mode(surface->m_fullscreen.output, surface->m_fullscreen.output->origin);
+        }
+    }
     bool changedType = surface->updateType();
+
     if (!surface->isMapped()) {
         switch (surface->m_type) {
             case ShellSurface::Type::TopLevel:
@@ -135,7 +143,10 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 m_layer.addSurface(surface);
                 m_layer.stackAbove(surface->m_surface, surface->m_parent);
                 break;
-//             case ShellSurface::Type::Fullscreen:
+            case ShellSurface::Type::Fullscreen:
+                stackFullscreen(surface);
+                configureFullscreen(surface);
+                break;
             case ShellSurface::Type::None:
                 break;
             default:
@@ -172,19 +183,134 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         int x = surface->x() + to_x - from_x;
         int y = surface->y() + to_y - from_y;
 
+        weston_surface_configure(es, x, y, width, height);
+
         switch (surface->m_type) {
+            case ShellSurface::Type::Fullscreen:
+                stackFullscreen(surface);
+                configureFullscreen(surface);
+                break;
             case ShellSurface::Type::Maximized: {
                 IRect2D rect = windowsArea(surface->output());
-                x = rect.x;
-                y = rect.y;
-            }
-            break;
+                weston_surface_set_position(surface->m_surface, rect.x, rect.y);
+            } break;
             default:
+                m_layer.addSurface(surface);
                 break;
         }
 
-        weston_surface_configure(es, x, y, width, height);
+        if (surface->m_surface->output) {
+            weston_surface_update_transform(surface->m_surface);
+
+            if (surface->m_type == ShellSurface::Type::Maximized) {
+                surface->m_surface->output = surface->m_output;
+            }
+        }
     }
+}
+
+struct weston_surface *Shell::createBlackSurface(ShellSurface *fs_surface, float x, float y, int w, int h)
+{
+    struct weston_surface *surface = weston_surface_create(m_compositor);
+    if (!surface) {
+        weston_log("no memory\n");
+        return nullptr;
+    }
+
+    surface->configure = black_surface_configure;
+    surface->configure_private = fs_surface;
+    weston_surface_configure(surface, x, y, w, h);
+    weston_surface_set_color(surface, 0.0, 0.0, 0.0, 1);
+    pixman_region32_fini(&surface->opaque);
+    pixman_region32_init_rect(&surface->opaque, 0, 0, w, h);
+    pixman_region32_fini(&surface->input);
+    pixman_region32_init_rect(&surface->input, 0, 0, w, h);
+
+    return surface;
+}
+
+void Shell::configureFullscreen(ShellSurface *shsurf)
+{
+    struct weston_output *output = shsurf->m_fullscreen.output;
+    struct weston_surface *surface = shsurf->m_surface;
+
+    if (!shsurf->m_fullscreen.blackSurface) {
+        shsurf->m_fullscreen.blackSurface = createBlackSurface(shsurf, output->x, output->y, output->width, output->height);
+    }
+
+    m_fullscreenLayer.stackBelow(shsurf->m_fullscreen.blackSurface, shsurf->m_surface);
+
+    switch (shsurf->m_fullscreen.type) {
+    case WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT:
+        if (surface->buffer_ref.buffer) {
+            shsurf->centerOnOutput(shsurf->m_fullscreen.output);
+        } break;
+    case WL_SHELL_SURFACE_FULLSCREEN_METHOD_SCALE: {
+        /* 1:1 mapping between surface and output dimensions */
+        if (output->width == surface->geometry.width && output->height == surface->geometry.height) {
+            weston_surface_set_position(surface, output->x, output->y);
+            break;
+        }
+
+        struct weston_matrix *matrix = &shsurf->m_fullscreen.transform.matrix;
+        weston_matrix_init(matrix);
+
+        float output_aspect = (float) output->width / (float) output->height;
+        float surface_aspect = (float) surface->geometry.width / (float) surface->geometry.height;
+        float scale;
+        if (output_aspect < surface_aspect) {
+            scale = (float) output->width / (float) surface->geometry.width;
+        } else {
+            scale = (float) output->height / (float) surface->geometry.height;
+        }
+
+        weston_matrix_scale(matrix, scale, scale, 1);
+        shsurf->addTransform(&shsurf->m_fullscreen.transform);
+        float x = output->x + (output->width - surface->geometry.width * scale) / 2;
+        float y = output->y + (output->height - surface->geometry.height * scale) / 2;
+        weston_surface_set_position(surface, x, y);
+
+    } break;
+    case WL_SHELL_SURFACE_FULLSCREEN_METHOD_DRIVER:
+        if (surfaceIsTopFullscreen(shsurf)) {
+            struct weston_mode mode = {0, surface->geometry.width, surface->geometry.height, shsurf->m_fullscreen.framerate};
+
+            if (weston_output_switch_mode(output, &mode) == 0) {
+                weston_surface_configure(shsurf->m_fullscreen.blackSurface, output->x, output->y, output->width, output->height);
+                weston_surface_set_position(surface, output->x, output->y);
+                break;
+            }
+        }
+        break;
+    case WL_SHELL_SURFACE_FULLSCREEN_METHOD_FILL:
+        break;
+    default:
+        break;
+    }
+}
+
+void Shell::stackFullscreen(ShellSurface *shsurf)
+{
+    m_fullscreenLayer.addSurface(shsurf);
+    weston_surface_damage(shsurf->m_surface);
+
+    if (!shsurf->m_fullscreen.blackSurface) {
+        struct weston_output *output = shsurf->m_fullscreen.output;
+        shsurf->m_fullscreen.blackSurface = createBlackSurface(shsurf, output->x, output->y, output->width, output->height);
+    }
+
+    m_fullscreenLayer.stackBelow(shsurf->m_fullscreen.blackSurface, shsurf->m_surface);
+    weston_surface_damage(shsurf->m_fullscreen.blackSurface);
+}
+
+bool Shell::surfaceIsTopFullscreen(ShellSurface *surface)
+{
+    if (m_fullscreenLayer.isEmpty()) {
+        return false;
+    }
+
+    struct weston_surface *top = *m_fullscreenLayer.begin();
+    return top == surface->m_surface;
 }
 
 static void shell_surface_configure(struct weston_surface *surf, int32_t sx, int32_t sy, int32_t w, int32_t h)

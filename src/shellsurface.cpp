@@ -33,6 +33,8 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_parent(nullptr)
 {
     m_popup.seat = nullptr;
+    wl_list_init(&m_fullscreen.transform.link);
+    m_fullscreen.blackSurface = nullptr;
 
     m_surfaceDestroyListener.listen(&surface->surface.resource.destroy_signal);
     m_surfaceDestroyListener.signal->connect(this, &ShellSurface::surfaceDestroyed);
@@ -71,6 +73,9 @@ bool ShellSurface::updateType()
             case Type::Maximized:
                 unsetMaximized();
                 break;
+            case Type::Fullscreen:
+                unsetFullscreen();
+                break;
             default:
                 break;
         }
@@ -79,6 +84,7 @@ bool ShellSurface::updateType()
 
         switch (m_type) {
             case Type::Maximized:
+            case Type::Fullscreen:
                 m_savedX = x();
                 m_savedY = y();
                 break;
@@ -102,6 +108,9 @@ void ShellSurface::map(int32_t x, int32_t y, int32_t width, int32_t height)
     switch (m_type) {
         case Type::Popup:
             mapPopup();
+            break;
+        case Type::Fullscreen:
+            centerOnOutput(m_fullscreen.output);
             break;
         case Type::Maximized: {
             IRect2D rect = m_shell->windowsArea(m_output);
@@ -215,14 +224,57 @@ float ShellSurface::alpha() const
     return m_surface->alpha;
 }
 
-void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
+void ShellSurface::setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output)
 {
+    if (output) {
+        m_output = output;
+    } else if (m_surface->output) {
+        m_output = m_surface->output;
+    } else {
+        m_output = m_shell->getDefaultOutput();
+    }
 
+    m_fullscreen.output = m_output;
+    m_fullscreen.type = (enum wl_shell_surface_fullscreen_method)method;
+    m_fullscreen.framerate = framerate;
+    m_pendingType = Type::Fullscreen;
+
+    m_client->send_configure(m_surface, 0, m_output->width, m_output->height);
+}
+
+void ShellSurface::unsetFullscreen()
+{
+    m_fullscreen.type = WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT;
+    m_fullscreen.framerate = 0;
+    removeTransform(&m_fullscreen.transform);
+    if (m_fullscreen.blackSurface) {
+        weston_surface_destroy(m_fullscreen.blackSurface);
+    }
+    m_fullscreen.blackSurface = nullptr;
+    m_fullscreen.output = nullptr;
+    weston_surface_set_position(m_surface, m_savedX, m_savedY);
 }
 
 void ShellSurface::unsetMaximized()
 {
     weston_surface_set_position(m_surface, m_savedX, m_savedY);
+}
+
+void ShellSurface::centerOnOutput(struct weston_output *output)
+{
+    int32_t width = weston_surface_buffer_width(m_surface);
+    int32_t height = weston_surface_buffer_height(m_surface);
+    float x, y;
+
+    x = output->x + (output->width - width) / 2;
+    y = output->y + (output->height - height) / 2;
+
+    weston_surface_configure(m_surface, x, y, width, height);
+}
+
+void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
+{
+
 }
 
 // -- Move --
@@ -415,7 +467,8 @@ void ShellSurface::setTransient(struct wl_client *client, struct wl_resource *re
 void ShellSurface::setFullscreen(struct wl_client *client, struct wl_resource *resource, uint32_t method,
                    uint32_t framerate, struct wl_resource *output_resource)
 {
-
+    struct weston_output *output = output_resource ? static_cast<struct weston_output *>(output_resource->data) : nullptr;
+    setFullscreen(method, framerate, output);
 }
 
 void ShellSurface::setPopup(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
