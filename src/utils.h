@@ -18,6 +18,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "signal.h"
+
 template<typename T>
 class Vector2D {
 public:
@@ -38,5 +40,27 @@ public:
 
 typedef Vector2D<int> IVector2D;
 typedef Rect2D<int> IRect2D;
+
+class WlListener {
+public:
+    WlListener() { m_listener.parent = this; signal = new Signal<>; }
+    ~WlListener() { signal->flush(); wl_list_remove(&m_listener.listener.link); }
+
+    void listen(struct wl_signal *signal) {
+        m_listener.listener.notify = [](struct wl_listener *listener, void *data) {
+            WlListener *_this = static_cast<Wrapper *>(container_of(listener, Wrapper, listener))->parent;
+            (*_this->signal)();
+        };
+        wl_signal_add(signal, &m_listener.listener);
+    }
+
+    Signal<> *signal;
+private:
+    struct Wrapper {
+        struct wl_listener listener;
+        WlListener *parent;
+    };
+    Wrapper m_listener;
+};
 
 #endif

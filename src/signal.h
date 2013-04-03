@@ -26,7 +26,7 @@ class Functor;
 template<class... Args>
 class Signal {
 public:
-    Signal() : m_startAgain(false) { }
+    Signal() : m_startAgain(false), m_flush(false) { }
 
     template<class T> void connect(T *obj, void (T::*func)(Args...));
     template<class T> void disconnect(T *obj, void (T::*func)(Args...));
@@ -34,11 +34,14 @@ public:
 
     void operator()(Args... args);
 
+    void flush() { m_flush = true; }
+
 private:
     void call(Args... args);
 
     std::list<Functor<Args...> *> m_listeners;
     bool m_startAgain;
+    bool m_flush;
 };
 
 // -- End of API --
@@ -105,6 +108,9 @@ void Signal<Args...>::operator()(Args... args) {
     }
     m_startAgain = false;
     call(args...);
+    if (m_flush) {
+        delete this;
+    }
 }
 
 template<class... Args>
