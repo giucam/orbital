@@ -34,6 +34,7 @@ ShellSeat::~ShellSeat()
     if (m_popupGrab.client) {
         wl_pointer_end_grab(m_popupGrab.grab.pointer);
     }
+    wl_list_remove(&m_seatDestroyListener.link);
 }
 
 ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
