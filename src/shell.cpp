@@ -28,6 +28,7 @@
 #include "shell.h"
 #include "shellsurface.h"
 #include "shellseat.h"
+#include "workspace.h"
 #include "effect.h"
 #include "desktop-shell.h"
 
@@ -83,10 +84,16 @@ void Shell::init()
     if (!global)
         return;
 
-    m_fullscreenLayer.init(&m_compositor->cursor_layer);
-    m_panelsLayer.init(&m_fullscreenLayer);
-    m_layer.init(&m_panelsLayer);
-    m_backgroundLayer.init(&m_layer);
+    for (int i = 0; i < 4; ++i) {
+        Workspace *w = new Workspace(this);
+        m_workspaces.push_back(w);
+    }
+    m_currentWorkspace = m_workspaces.begin();
+
+    m_fullscreenLayer.insert(&m_compositor->cursor_layer);
+    m_panelsLayer.insert(&m_fullscreenLayer);
+    m_backgroundLayer.insert(&m_panelsLayer);
+    activateWorkspace(nullptr);
 
     m_blackSurface = weston_surface_create(m_compositor);
 
@@ -112,6 +119,11 @@ void Shell::init()
     weston_compositor_add_button_binding(compositor(), BTN_LEFT, (weston_keyboard_modifier)0,
                                          [](struct wl_seat *seat, uint32_t time, uint32_t button, void *data) {
                                              static_cast<Shell *>(data)->activateSurface(seat, time, button); }, this);
+
+    bindKey(KEY_LEFT, MODIFIER_CTRL, [](struct wl_seat *seat, uint32_t time, uint32_t key, void *data) {
+                                            static_cast<Shell *>(data)->selectPreviousWorkspace(); }, this);
+    bindKey(KEY_RIGHT, MODIFIER_CTRL, [](struct wl_seat *seat, uint32_t time, uint32_t key, void *data) {
+                                            static_cast<Shell *>(data)->selectNextWorkspace(); }, this);
 }
 
 void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height)
@@ -141,8 +153,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         switch (surface->m_type) {
             case ShellSurface::Type::Transient:
             case ShellSurface::Type::Popup:
-                m_layer.addSurface(surface);
-                m_layer.stackAbove(surface->m_surface, surface->m_parent);
+                surface->m_workspace->m_layer.stackAbove(surface->m_surface, surface->m_parent);
                 break;
             case ShellSurface::Type::Fullscreen:
                 stackFullscreen(surface);
@@ -152,7 +163,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 break;
             default:
                 printf("add %p\n",surface);
-                m_layer.addSurface(surface);
+                surface->m_workspace->m_layer.addSurface(surface);
                 m_surfaces.push_back(surface);
                 for (Effect *e: m_effects) {
                     e->addSurface(surface);
@@ -196,7 +207,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 weston_surface_set_position(surface->m_surface, rect.x, rect.y);
             } break;
             default:
-                m_layer.addSurface(surface);
+                surface->m_workspace->m_layer.addSurface(surface);
                 break;
         }
 
@@ -368,7 +379,7 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
         return nullptr;
     }
 
-    shsurf->init(id);
+    shsurf->init(id, currentWorkspace());
 
     wl_client_add_resource(client, shsurf->wl_resource());
 
@@ -407,7 +418,7 @@ void Shell::registerEffect(Effect *effect)
 void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)
 {
     weston_surface_activate(shsurf->m_surface, seat);
-    m_layer.restack(shsurf);
+    shsurf->m_workspace->m_layer.restack(shsurf);
 }
 
 void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button)
@@ -535,6 +546,37 @@ IRect2D Shell::windowsArea(struct weston_output *output) const
 struct weston_output *Shell::getDefaultOutput() const
 {
     return container_of(m_compositor->output_list.next, struct weston_output, link);
+}
+
+Workspace *Shell::currentWorkspace() const
+{
+    return *m_currentWorkspace;
+}
+
+void Shell::selectPreviousWorkspace()
+{
+    Workspace *old = currentWorkspace();
+    if (--m_currentWorkspace == m_workspaces.end()) {
+        m_currentWorkspace = --m_workspaces.end();
+    }
+    activateWorkspace(old);
+}
+
+void Shell::selectNextWorkspace()
+{
+    Workspace *old = currentWorkspace();
+    if (++m_currentWorkspace == m_workspaces.end()) {
+        m_currentWorkspace = m_workspaces.begin();
+    }
+    activateWorkspace(old);
+}
+
+void Shell::activateWorkspace(Workspace *old)
+{
+    if (old) {
+        old->m_layer.remove();
+    }
+    currentWorkspace()->m_layer.insert(&m_panelsLayer);
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

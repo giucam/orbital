@@ -21,28 +21,40 @@
 Layer::Layer()
      : m_below(nullptr)
 {
-
-}
-
-void Layer::init()
-{
     weston_layer_init(&m_layer, nullptr);
 }
 
-void Layer::init(struct weston_layer *below)
+void Layer::insert(struct weston_layer *below)
 {
-    weston_layer_init(&m_layer, &below->link);
+    if (below) {
+        wl_list_insert(&below->link, &m_layer.link);
+        for (struct weston_surface *s: *this) {
+            weston_surface_damage(s);
+        }
+    }
 }
 
-void Layer::init(Layer *below)
+void Layer::insert(Layer *below)
 {
-    init(&below->m_layer);
+    if (below) {
+        wl_list_insert(&below->m_layer.link, &m_layer.link);
+        for (struct weston_surface *s: *this) {
+            weston_surface_damage(s);
+        }
+    }
+}
+
+void Layer::remove()
+{
+    hide();
+    m_below = nullptr;
 }
 
 void Layer::hide()
 {
     for (struct weston_surface *s: *this) {
         weston_surface_damage_below(s);
+        weston_surface_schedule_repaint(s);
     }
     if (!wl_list_empty(&m_layer.link)) {
         m_below = m_layer.link.prev;

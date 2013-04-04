@@ -26,6 +26,7 @@
 class ShellSurface;
 struct ShellGrab;
 class Effect;
+class Workspace;
 
 typedef std::vector<ShellSurface *> ShellSurfaceList;
 
@@ -91,6 +92,9 @@ public:
     virtual IRect2D windowsArea(struct weston_output *output) const;
 
     struct weston_output *getDefaultOutput() const;
+    Workspace *currentWorkspace() const;
+    void selectPreviousWorkspace();
+    void selectNextWorkspace();
 
 protected:
     Shell(struct weston_compositor *ec);
@@ -121,14 +125,16 @@ private:
     struct weston_surface *createBlackSurface(ShellSurface *fs_surface, float x, float y, int w, int h);
     static void sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height);
     bool surfaceIsTopFullscreen(ShellSurface *surface);
+    void activateWorkspace(Workspace *old);
 
     struct weston_compositor *m_compositor;
     Layer m_backgroundLayer;
     Layer m_panelsLayer;
-    Layer m_layer;
     Layer m_fullscreenLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
+    std::list<Workspace *> m_workspaces;
+    std::list<Workspace *>::iterator m_currentWorkspace;
 
     struct weston_surface *m_blackSurface;
     struct weston_surface *m_grabSurface;

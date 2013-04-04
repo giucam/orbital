@@ -27,6 +27,7 @@
 
 ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             : m_shell(shell)
+            , m_workspace(nullptr)
             , m_surface(surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
@@ -48,13 +49,15 @@ ShellSurface::~ShellSurface()
     m_shell->removeShellSurface(this);
 }
 
-void ShellSurface::init(uint32_t id)
+void ShellSurface::init(uint32_t id, Workspace *workspace)
 {
     m_resource.destroy = [](struct wl_resource *resource) { delete static_cast<ShellSurface *>(resource->data); };
     m_resource.object.id = id;
     m_resource.object.interface = &wl_shell_surface_interface;
     m_resource.object.implementation = &m_shell_surface_implementation;
     m_resource.data = this;
+
+    m_workspace = workspace;
 }
 
 void ShellSurface::surfaceDestroyed()

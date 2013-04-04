@@ -58,9 +58,9 @@ public:
 
     Layer();
 
-    void init();
-    void init(struct weston_layer *below);
-    void init(Layer *below);
+    void insert(struct weston_layer *below);
+    void insert(Layer *below);
+    void remove();
     void hide();
     void show();
     bool isVisible() const;

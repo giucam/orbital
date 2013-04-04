@@ -27,6 +27,7 @@
 
 class Shell;
 class ShellSeat;
+class Workspace;
 
 class ShellSurface {
 public:
@@ -41,7 +42,7 @@ public:
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
 
-    void init(uint32_t id);
+    void init(uint32_t id, Workspace *workspace);
     bool updateType();
     void map(int32_t x, int32_t y, int32_t width, int32_t height);
     void unmapped();
@@ -86,6 +87,7 @@ private:
     void surfaceDestroyed();
 
     Shell *m_shell;
+    Workspace *m_workspace;
     struct wl_resource m_resource;
     struct weston_surface *m_surface;
     WlListener m_surfaceDestroyListener;
