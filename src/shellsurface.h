@@ -70,6 +70,7 @@ public:
     bool isPopup() const;
     inline struct weston_output *output() const { return m_surface->output; }
     ShellSurface *topLevelParent();
+    inline Workspace *workspace() const { return m_workspace; }
 
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);

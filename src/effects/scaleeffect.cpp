@@ -50,8 +50,13 @@ void ScaleEffect::grab_focus(struct wl_pointer_grab *base, struct wl_surface *su
     ShellGrab *shgrab = container_of(base, ShellGrab, grab);
     Grab *grab = static_cast<Grab *>(shgrab);
 
+    Workspace *currWs = grab->shell->currentWorkspace();
     struct weston_surface *surface = container_of(surf, struct weston_surface, surface);
     for (SurfaceTransform *tr: grab->effect->m_surfaces) {
+        if (tr->surface->workspace() != currWs) {
+            continue;
+        }
+
         float alpha = (tr->surface->is(surface) ? 1.0 : INACTIVE_ALPHA);
         float curr = tr->surface->alpha();
         if (alpha == curr) {
@@ -109,6 +114,18 @@ void ScaleEffect::run(struct weston_seat *ws)
         return;
     }
 
+    num = 0;
+    Workspace *currWs = shell()->currentWorkspace();
+    for (SurfaceTransform *surf: m_surfaces) {
+        if (surf->surface->workspace() == currWs) {
+            ++num;
+        }
+    }
+
+    if (num == 0) {
+        return;
+    }
+
     const int ANIM_DURATION = 300;
 
     int numCols = ceil(sqrt(num));
@@ -116,7 +133,7 @@ void ScaleEffect::run(struct weston_seat *ws)
 
     int r = 0, c = 0;
     for (SurfaceTransform *surf: m_surfaces) {
-        if (!surf->surface->isMapped()) {
+        if (!surf->surface->isMapped() || surf->surface->workspace() != currWs) {
             continue;
         }
 
