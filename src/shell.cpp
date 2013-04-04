@@ -50,6 +50,7 @@ Shell::Shell(struct weston_compositor *ec)
 {
     srandom(weston_compositor_get_time());
     m_child.shell = this;
+    m_child.deathstamp = 0
 }
 
 Shell::~Shell()
