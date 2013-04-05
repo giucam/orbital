@@ -30,6 +30,7 @@
 #include "shellsurface.h"
 
 #include "scaleeffect.h"
+#include "griddesktops.h"
 #include "fademovingeffect.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
@@ -55,6 +56,7 @@ void DesktopShell::init()
                                          }, this);
 
     new ScaleEffect(this);
+    new GridDesktops(this);
     new FadeMovingEffect(this);
 }
 

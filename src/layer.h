@@ -71,6 +71,7 @@ public:
     void restack(ShellSurface *surf);
 
     bool isEmpty() const;
+    int numberOfSurfaces() const;
 
     void stackAbove(struct weston_surface *surf, struct weston_surface *parent);
     void stackBelow(struct weston_surface *surf, struct weston_surface *parent);

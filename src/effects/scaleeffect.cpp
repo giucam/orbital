@@ -69,7 +69,7 @@ void ScaleEffect::grab_focus(struct wl_pointer_grab *base, struct wl_surface *su
     }
 }
 
-void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
+static void grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
 {
     ShellGrab *shgrab = container_of(base, ShellGrab, grab);
     Grab *grab = static_cast<Grab *>(shgrab);

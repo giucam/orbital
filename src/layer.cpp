@@ -120,6 +120,11 @@ bool Layer::isEmpty() const
     return wl_list_empty(&m_layer.surface_list);
 }
 
+int Layer::numberOfSurfaces() const
+{
+    return wl_list_length(&m_layer.surface_list);
+}
+
 Layer::iterator Layer::begin()
 {
     return iterator(&m_layer.surface_list, m_layer.surface_list.next);

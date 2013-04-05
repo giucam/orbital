@@ -163,6 +163,7 @@ private:
 
     friend class Shell;
     friend class Layer;
+    friend class Workspace;
 };
 
 inline void ShellSurface::shell_surface_pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial) {

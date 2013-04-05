@@ -18,9 +18,11 @@ set(SOURCES
     src/shellseat.cpp
     src/workspace.cpp
     src/effect.cpp
+    src/transform.cpp
     src/animation.cpp
     src/desktop-shell.cpp
     src/effects/scaleeffect.cpp
+    src/effects/griddesktops.cpp
     src/effects/fademovingeffect.cpp)
 
 wayland_add_protocol_server(SOURCES

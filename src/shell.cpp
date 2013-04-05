@@ -85,14 +85,14 @@ void Shell::init()
         return;
 
     for (int i = 0; i < 4; ++i) {
-        Workspace *w = new Workspace(this);
-        m_workspaces.push_back(w);
+        m_workspaces.push_back(new Workspace(this, i));
     }
-    m_currentWorkspace = m_workspaces.begin();
 
     m_fullscreenLayer.insert(&m_compositor->cursor_layer);
     m_panelsLayer.insert(&m_fullscreenLayer);
     m_backgroundLayer.insert(&m_panelsLayer);
+
+    m_currentWorkspace = 0;
     activateWorkspace(nullptr);
 
     m_blackSurface = weston_surface_create(m_compositor);
@@ -153,7 +153,8 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         switch (surface->m_type) {
             case ShellSurface::Type::Transient:
             case ShellSurface::Type::Popup:
-                surface->m_workspace->m_layer.stackAbove(surface->m_surface, surface->m_parent);
+                surface->m_workspace->addSurface(surface);
+                surface->m_workspace->stackAbove(surface->m_surface, surface->m_parent);
                 break;
             case ShellSurface::Type::Fullscreen:
                 stackFullscreen(surface);
@@ -163,7 +164,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 break;
             default:
                 printf("add %p\n",surface);
-                surface->m_workspace->m_layer.addSurface(surface);
+                surface->m_workspace->addSurface(surface);
                 m_surfaces.push_back(surface);
                 for (Effect *e: m_effects) {
                     e->addSurface(surface);
@@ -207,7 +208,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 weston_surface_set_position(surface->m_surface, rect.x, rect.y);
             } break;
             default:
-                surface->m_workspace->m_layer.addSurface(surface);
+                surface->m_workspace->addSurface(surface);
                 break;
         }
 
@@ -418,7 +419,7 @@ void Shell::registerEffect(Effect *effect)
 void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)
 {
     weston_surface_activate(shsurf->m_surface, seat);
-    shsurf->m_workspace->m_layer.restack(shsurf);
+    shsurf->m_workspace->restack(shsurf);
 }
 
 void Shell::activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button)
@@ -550,14 +551,23 @@ struct weston_output *Shell::getDefaultOutput() const
 
 Workspace *Shell::currentWorkspace() const
 {
-    return *m_currentWorkspace;
+    return m_workspaces[m_currentWorkspace];
+}
+
+Workspace *Shell::workspace(uint32_t id) const
+{
+    if (id >= m_workspaces.size()) {
+        return nullptr;
+    }
+
+    return m_workspaces[id];
 }
 
 void Shell::selectPreviousWorkspace()
 {
     Workspace *old = currentWorkspace();
-    if (--m_currentWorkspace == m_workspaces.end()) {
-        m_currentWorkspace = --m_workspaces.end();
+    if (--m_currentWorkspace < 0) {
+        m_currentWorkspace = m_workspaces.size() - 1;
     }
     activateWorkspace(old);
 }
@@ -565,18 +575,58 @@ void Shell::selectPreviousWorkspace()
 void Shell::selectNextWorkspace()
 {
     Workspace *old = currentWorkspace();
-    if (++m_currentWorkspace == m_workspaces.end()) {
-        m_currentWorkspace = m_workspaces.begin();
+    if (++m_currentWorkspace == m_workspaces.size()) {
+        m_currentWorkspace = 0;
     }
+    activateWorkspace(old);
+}
+
+void Shell::selectWorkspace(uint32_t id)
+{
+    if (id >= m_workspaces.size()) {
+        return;
+    }
+
+    Workspace *old = currentWorkspace();
+    m_currentWorkspace = id;
     activateWorkspace(old);
 }
 
 void Shell::activateWorkspace(Workspace *old)
 {
     if (old) {
-        old->m_layer.remove();
+        old->remove();
     }
-    currentWorkspace()->m_layer.insert(&m_panelsLayer);
+
+    currentWorkspace()->insert(container_of(m_compositor->cursor_layer.link.next, struct weston_layer, link));
+}
+
+uint32_t Shell::numWorkspaces() const
+{
+    return m_workspaces.size();
+}
+
+void Shell::showAllWorkspaces()
+{
+    currentWorkspace()->remove();
+
+    Workspace *prev = nullptr;
+    for (Workspace *w: m_workspaces) {
+        if (prev) {
+            w->insert(prev);
+        } else {
+            w->insert(container_of(m_compositor->cursor_layer.link.next, struct weston_layer, link));
+        }
+        prev = w;
+    }
+}
+
+void Shell::resetWorkspaces()
+{
+    for (Workspace *w: m_workspaces) {
+        w->remove();
+    }
+    activateWorkspace(nullptr);
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

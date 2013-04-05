@@ -91,16 +91,22 @@ public:
 
     virtual IRect2D windowsArea(struct weston_output *output) const;
 
+    inline struct weston_compositor *compositor() const { return m_compositor; }
     struct weston_output *getDefaultOutput() const;
     Workspace *currentWorkspace() const;
+    Workspace *workspace(uint32_t id) const;
     void selectPreviousWorkspace();
     void selectNextWorkspace();
+    void selectWorkspace(uint32_t id);
+    uint32_t numWorkspaces() const;
+
+    void showAllWorkspaces();
+    void resetWorkspaces();
 
 protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
-    inline struct weston_compositor *compositor() const { return m_compositor; }
     virtual void setGrabCursor(uint32_t cursor) {}
 
     struct Child {
@@ -133,8 +139,8 @@ private:
     Layer m_fullscreenLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
-    std::list<Workspace *> m_workspaces;
-    std::list<Workspace *>::iterator m_currentWorkspace;
+    std::vector<Workspace *> m_workspaces;
+    uint32_t m_currentWorkspace;
 
     struct weston_surface *m_blackSurface;
     struct weston_surface *m_grabSurface;
