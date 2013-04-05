@@ -80,7 +80,9 @@ void Layer::show()
 
 void Layer::addSurface(struct weston_surface *surf)
 {
-    wl_list_remove(&surf->layer_link);
+    if (surf->layer_link.prev) {
+        wl_list_remove(&surf->layer_link);
+    }
     wl_list_insert(&m_layer.surface_list, &surf->layer_link);
 }
 
