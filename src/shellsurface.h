@@ -71,6 +71,7 @@ public:
     inline struct weston_output *output() const { return m_surface->output; }
     ShellSurface *topLevelParent();
     inline Workspace *workspace() const { return m_workspace; }
+    struct weston_surface *transformParent() const;
 
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);

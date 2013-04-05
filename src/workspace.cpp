@@ -46,7 +46,9 @@ Workspace::~Workspace()
 
 void Workspace::addSurface(ShellSurface *surface)
 {
-    weston_surface_set_transform_parent(surface->m_surface, m_rootSurface);
+    if (!surface->transformParent()) {
+        weston_surface_set_transform_parent(surface->m_surface, m_rootSurface);
+    }
     m_layer.addSurface(surface);
 }
 

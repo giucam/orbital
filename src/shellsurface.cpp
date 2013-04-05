@@ -257,6 +257,11 @@ ShellSurface *ShellSurface::topLevelParent()
     return this;
 }
 
+struct weston_surface *ShellSurface::transformParent() const
+{
+    return m_surface->geometry.parent;
+}
+
 void ShellSurface::setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output)
 {
     if (output) {
