@@ -449,6 +449,7 @@ void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *i
 {
     ShellSeat::shellSeat(seat)->endPopupGrab();
 
+    grab->grab.focus = nullptr;
     grab->shell = this;
     grab->grab.interface = interface;
 //     grab->shsurf = shsurf;
