@@ -171,4 +171,45 @@ public:
 };
 
 
+// This comes instead from http://stereopsis.com/stopping/
+
+class PulseCurve : public AnimationCurve {
+public:
+    PulseCurve() { m_pulseNormalize = 1.f; m_pulseNormalize = 1.f / pulse(1); }
+
+    // viscous fluid with a pulse for part and decay for the rest
+    virtual float value(float x) override {
+        if (x >= 1) return 1;
+        if (x <= 0) return 0;
+
+        return pulse(x);
+    }
+
+private:
+    // viscous fluid with a pulse for part and decay for the rest
+    float pulse(float x)
+    {
+        const float pulseScale = 8; // ratio of "tail" to "acceleration"
+        float val;
+
+        // test
+        x = x * pulseScale;
+        if (x < 1) {
+            val = x - (1 - exp(-x));
+        } else {
+            // the previous animation ended here:
+            float start = exp(-1);
+
+            // simple viscous drag
+            x -= 1;
+            float expx = 1 - exp(-x);
+            val = start + (expx * (1.0 - start));
+        }
+
+        return val * m_pulseNormalize;
+    }
+
+    float m_pulseNormalize;
+};
+
 #endif
