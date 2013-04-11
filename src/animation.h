@@ -23,6 +23,7 @@
 #include "signal.h"
 
 class ShellSurface;
+class AnimationCurve;
 
 class Animation {
 public:
@@ -38,6 +39,7 @@ public:
     void run(struct weston_output *output, uint32_t duration, Flags flags = Flags::None);
     void stop();
     bool isRunning() const;
+    void setCurve(AnimationCurve *curve);
 
     Signal<float> updateSignal;
     Signal<> doneSignal;
@@ -55,6 +57,7 @@ private:
     uint32_t m_duration;
     uint32_t m_timestamp;
     Flags m_runFlags;
+    AnimationCurve *m_curve;
 };
 
 inline Animation::Flags operator|(Animation::Flags a, Animation::Flags b) {

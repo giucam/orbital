@@ -21,6 +21,7 @@
 #include "shellsurface.h"
 #include "shell.h"
 #include "animation.h"
+#include "animationcurve.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -39,6 +40,7 @@ struct SurfaceTransform {
     struct weston_transform transform;
     Animation animation;
     Animation alphaAnim;
+    OutElasticCurve curve;
 
     float ss, ts, cs;
     int sx, tx, cx;
@@ -126,7 +128,7 @@ void ScaleEffect::run(struct weston_seat *ws)
         return;
     }
 
-    const int ANIM_DURATION = 300;
+    const int ANIM_DURATION = 500;
 
     int numCols = ceil(sqrt(num));
     int numRows = ceil((float)num / (float)numCols);
@@ -234,6 +236,7 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     tr->animation.updateSignal.connect(tr, &SurfaceTransform::updateAnimation);
     tr->animation.doneSignal.connect(tr, &SurfaceTransform::doneAnimation);
     tr->alphaAnim.updateSignal.connect(surface, &ShellSurface::setAlpha);
+    tr->animation.setCurve(&tr->curve);
 
     wl_list_init(&tr->transform.link);
 

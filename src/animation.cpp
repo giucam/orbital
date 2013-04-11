@@ -16,8 +16,10 @@
  */
 
 #include "animation.h"
+#include "animationcurve.h"
 
 Animation::Animation()
+         : m_curve(nullptr)
 {
     m_animation.parent = this;
     wl_list_init(&m_animation.ani.link);
@@ -68,6 +70,11 @@ bool Animation::isRunning() const
     return m_animation.ani.link.next != &m_animation.ani.link;
 }
 
+void Animation::setCurve(AnimationCurve *curve)
+{
+    m_curve = curve;
+}
+
 void Animation::update(struct weston_output *output, uint32_t msecs)
 {
     if (m_animation.ani.frame_counter <= 1) {
@@ -86,6 +93,9 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
     }
 
     float f = (float)time / (float)m_duration;
+    if (m_curve) {
+        f = m_curve->value(f);
+    }
     updateSignal(m_target * f + m_start * (1.f - f));
 
     weston_compositor_schedule_repaint(output->compositor);
