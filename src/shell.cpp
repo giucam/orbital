@@ -54,6 +54,11 @@ Shell::Shell(struct weston_compositor *ec)
     m_child.deathstamp = 0;
 }
 
+ShellGrab::ShellGrab()
+{
+    grab.focus = nullptr;
+}
+
 Shell::~Shell()
 {
     printf("dtor\n");
@@ -83,6 +88,12 @@ void Shell::init()
 
     if (!global)
         return;
+
+    struct weston_seat *seat;
+    wl_list_for_each(seat, &m_compositor->seat_list, link) {
+        ShellSeat *shseat = ShellSeat::shellSeat(seat);
+        shseat->pointerFocusSignal.connect(this, &Shell::pointerFocus);
+    }
 
     for (int i = 0; i < 4; ++i) {
         m_workspaces.push_back(new Workspace(this, i));
@@ -381,6 +392,7 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
     }
 
     shsurf->init(id, currentWorkspace());
+    shsurf->pingTimeoutSignal.connect(this, &Shell::pingTimeout);
 
     wl_client_add_resource(client, shsurf->wl_resource());
 
@@ -449,7 +461,6 @@ void Shell::startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *i
 {
     ShellSeat::shellSeat(seat)->endPopupGrab();
 
-    grab->grab.focus = nullptr;
     grab->shell = this;
     grab->grab.interface = interface;
 //     grab->shsurf = shsurf;
@@ -628,6 +639,49 @@ void Shell::resetWorkspaces()
         w->remove();
     }
     activateWorkspace(nullptr);
+}
+
+void Shell::pointerFocus(ShellSeat *, struct wl_pointer *pointer)
+{
+    struct weston_surface *surface = container_of(pointer->focus, struct weston_surface, surface);
+
+    if (!surface)
+        return;
+
+    struct weston_compositor *compositor = surface->compositor;
+    ShellSurface *shsurf = Shell::getShellSurface(surface);
+    if (!shsurf)
+        return;
+
+    if (!shsurf->isResponsive()) {
+        shsurf->shell()->setBusyCursor(shsurf, container_of(pointer->seat, struct weston_seat, seat));
+    } else {
+        uint32_t serial = wl_display_next_serial(compositor->wl_display);
+        shsurf->ping(serial);
+    }
+}
+
+void Shell::pingTimeout(ShellSurface *shsurf)
+{
+    struct weston_seat *seat;
+    wl_list_for_each(seat, &m_compositor->seat_list, link) {
+        if (seat->seat.pointer->focus == &shsurf->m_surface->surface)
+            setBusyCursor(shsurf, seat);
+    }
+}
+
+void Shell::pong(ShellSurface *shsurf)
+{
+    if (!shsurf->isResponsive()) {
+        struct weston_seat *seat;
+        /* Received pong from previously unresponsive client */
+        wl_list_for_each(seat, &m_compositor->seat_list, link) {
+            struct wl_pointer *pointer = seat->seat.pointer;
+            if (pointer->focus == &m_grabSurface->surface && pointer->current == &shsurf->m_surface->surface) {
+                endBusyCursor(seat);
+            }
+        }
+    }
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {

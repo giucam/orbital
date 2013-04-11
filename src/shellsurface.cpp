@@ -31,7 +31,9 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_surface(surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
+            , m_unresponsive(false)
             , m_parent(nullptr)
+            , m_pingTimer(nullptr)
 {
     m_popup.seat = nullptr;
     wl_list_init(&m_fullscreen.transform.link);
@@ -46,6 +48,7 @@ ShellSurface::~ShellSurface()
     if (m_popup.seat) {
         m_popup.seat->removePopupGrab(this);
     }
+    destroyPingTimer();
     m_shell->removeShellSurface(this);
 }
 
@@ -310,9 +313,62 @@ void ShellSurface::centerOnOutput(struct weston_output *output)
     weston_surface_configure(m_surface, x, y, width, height);
 }
 
+
+int ShellSurface::pingTimeout()
+{
+    m_unresponsive = true;
+    pingTimeoutSignal(this);
+
+    return 1;
+}
+
+void ShellSurface::ping(uint32_t serial)
+{
+    const int ping_timeout = 200;
+
+    if (!m_resource.client)
+        return;
+
+    if (!m_pingTimer) {
+        m_pingTimer = new PingTimer;
+        if (!m_pingTimer)
+            return;
+
+        m_pingTimer->serial = serial;
+        struct wl_event_loop *loop = wl_display_get_event_loop(m_surface->compositor->wl_display);
+        m_pingTimer->source = wl_event_loop_add_timer(loop, [](void *data)
+                                                     { return static_cast<ShellSurface *>(data)->pingTimeout(); }, this);
+        wl_event_source_timer_update(m_pingTimer->source, ping_timeout);
+
+        wl_shell_surface_send_ping(&m_resource, serial);
+    }
+}
+
+bool ShellSurface::isResponsive() const
+{
+    return !m_unresponsive;
+}
+
 void ShellSurface::pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial)
 {
+    if (!m_pingTimer)
+        /* Just ignore unsolicited pong. */
+        return;
 
+    if (m_pingTimer->serial == serial) {
+        pongSignal(this);
+        m_unresponsive = false;
+        destroyPingTimer();
+    }
+}
+
+void ShellSurface::destroyPingTimer()
+{
+    if (m_pingTimer && m_pingTimer->source)
+        wl_event_source_remove(m_pingTimer->source);
+
+    delete m_pingTimer;
+    m_pingTimer = nullptr;
 }
 
 // -- Move --

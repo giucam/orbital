@@ -56,6 +56,7 @@ public:
     inline struct wl_resource *wl_resource() { return &m_resource; }
     inline const struct wl_resource *wl_resource() const { return &m_resource; }
     inline struct wl_client *client() const { return m_surface->surface.resource.client; }
+    inline struct wl_surface *wl_surface() const { return &m_surface->surface; }
 
     inline Type type() const { return m_type; }
     bool isMapped() const;
@@ -77,8 +78,13 @@ public:
     void dragResize(struct weston_seat *ws, uint32_t edges);
     void popupDone();
 
+    void ping(uint32_t serial);
+    bool isResponsive() const;
+
     Signal<ShellSurface *> moveStartSignal;
     Signal<ShellSurface *> moveEndSignal;
+    Signal<ShellSurface *> pingTimeoutSignal;
+    Signal<ShellSurface *> pongSignal;
 
 private:
     void setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output);
@@ -87,6 +93,8 @@ private:
     void mapPopup();
     void centerOnOutput(struct weston_output *output);
     void surfaceDestroyed();
+    int pingTimeout();
+    void destroyPingTimer();
 
     Shell *m_shell;
     Workspace *m_workspace;
@@ -100,6 +108,7 @@ private:
     std::string m_class;
     struct weston_output *m_output;
     int32_t m_savedX, m_savedY;
+    bool m_unresponsive;
 
     struct weston_surface *m_parent;
     struct {
@@ -120,6 +129,12 @@ private:
         struct weston_surface *blackSurface;
         struct weston_output *output;
     } m_fullscreen;
+
+    struct PingTimer {
+        struct wl_event_source *source;
+        uint32_t serial;
+    };
+    PingTimer *m_pingTimer;
 
     void pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
     void move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,

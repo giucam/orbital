@@ -65,6 +65,59 @@ void DesktopShell::setGrabCursor(uint32_t cursor)
     desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
 }
 
+static void busy_cursor_grab_focus(struct wl_pointer_grab *base, struct wl_surface *surface, int32_t x, int32_t y)
+{
+    ShellGrab *grab = container_of(base, ShellGrab, grab);
+
+    if (grab->grab.focus != surface) {
+        Shell::endGrab(grab);
+        delete grab;
+    }
+}
+
+static void busy_cursor_grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
+{
+    ShellGrab *grab = container_of(base, ShellGrab, grab);
+
+    struct weston_surface *surface = container_of(grab->grab.pointer->current, struct weston_surface, surface);
+    struct weston_seat *seat = container_of(grab->grab.pointer->seat, struct weston_seat, seat);
+
+    ShellSurface *shsurf = Shell::getShellSurface(surface);
+    if (shsurf && button == BTN_LEFT && state) {
+        grab->shell->activateSurface(shsurf, seat);
+        shsurf->dragMove(seat);
+    } else if (shsurf && button == BTN_RIGHT && state) {
+        grab->shell->activateSurface(shsurf, seat);
+//         surface_rotate(shsurf, &seat->seat);
+    }
+}
+
+static const struct wl_pointer_grab_interface busy_cursor_grab_interface = {
+    busy_cursor_grab_focus,
+    [](struct wl_pointer_grab *grab, uint32_t time, int32_t x, int32_t y) {},
+    busy_cursor_grab_button,
+};
+
+void DesktopShell::setBusyCursor(ShellSurface *surface, struct weston_seat *seat)
+{
+    ShellGrab *grab = new ShellGrab;
+    if (!grab)
+        return;
+
+    grab->grab.focus = surface->wl_surface();
+    startGrab(grab, &busy_cursor_grab_interface, seat, DESKTOP_SHELL_CURSOR_BUSY);
+}
+
+void DesktopShell::endBusyCursor(struct weston_seat *seat)
+{
+    ShellGrab *grab = container_of(seat->pointer.grab, ShellGrab, grab);
+
+    if (grab->grab.interface == &busy_cursor_grab_interface) {
+        endGrab(grab);
+        delete grab;
+    }
+}
+
 void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 {
     struct wl_resource *resource = wl_client_add_object(client, &desktop_shell_interface, &m_desktop_shell_implementation, id, this);

@@ -27,12 +27,15 @@ class ShellSurface;
 struct ShellGrab;
 class Effect;
 class Workspace;
+class ShellSeat;
 
 typedef std::vector<ShellSurface *> ShellSurfaceList;
 
 class Shell;
 
 struct ShellGrab {
+    ShellGrab();
+
     Shell *shell;
     struct wl_pointer_grab grab;
     struct wl_pointer *pointer;
@@ -108,6 +111,8 @@ protected:
     virtual void init();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
     virtual void setGrabCursor(uint32_t cursor) {}
+    virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) {}
+    virtual void endBusyCursor(struct weston_seat *seat) {}
 
     struct Child {
         Shell *shell;
@@ -132,6 +137,9 @@ private:
     static void sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height);
     bool surfaceIsTopFullscreen(ShellSurface *surface);
     void activateWorkspace(Workspace *old);
+    void pointerFocus(ShellSeat *shseat, struct wl_pointer *pointer);
+    void pingTimeout(ShellSurface *shsurf);
+    void pong(ShellSurface *shsurf);
 
     struct weston_compositor *m_compositor;
     Layer m_backgroundLayer;

@@ -27,6 +27,12 @@ ShellSeat::ShellSeat(struct weston_seat *seat)
 
     m_seatDestroyListener.notify = seatDestroyed;
     wl_signal_add(&seat->destroy_signal, &m_seatDestroyListener);
+
+    if (!seat->seat.pointer)
+        return;
+
+    m_focusListener.notify = pointerFocus;
+    wl_signal_add(&seat->seat.pointer->focus_signal, &m_focusListener);
 }
 
 ShellSeat::~ShellSeat()
@@ -53,6 +59,12 @@ void ShellSeat::seatDestroyed(struct wl_listener *listener, void *data)
     delete shseat;
 }
 
+void ShellSeat::pointerFocus(struct wl_listener *listener, void *data)
+{
+    ShellSeat *shseat = static_cast<ShellSeat *>(container_of(listener, ShellSeat, m_focusListener));
+    struct wl_pointer *pointer = static_cast<wl_pointer *>(data);
+    shseat->pointerFocusSignal(shseat, pointer);
+}
 
 void ShellSeat::popup_grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {

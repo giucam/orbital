@@ -22,6 +22,8 @@
 
 #include <wayland-server.h>
 
+#include "signal.h"
+
 class ShellSurface;
 
 class ShellSeat {
@@ -33,12 +35,16 @@ public:
     void removePopupGrab(ShellSurface *surface);
     void endPopupGrab();
 
+    Signal<ShellSeat *, struct wl_pointer *> pointerFocusSignal;
+
 private:
     ShellSeat(struct weston_seat *seat);
     static void seatDestroyed(struct wl_listener *listener, void *data);
+    static void pointerFocus(struct wl_listener *listener, void *data);
 
     struct weston_seat *m_seat;
     struct wl_listener m_seatDestroyListener;
+    struct wl_listener m_focusListener;
 
     struct {
         struct wl_pointer_grab grab;
