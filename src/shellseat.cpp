@@ -24,15 +24,18 @@ ShellSeat::ShellSeat(struct weston_seat *seat)
          : m_seat(seat)
 {
     m_popupGrab.client = nullptr;
+    m_popupGrab.seat = this;
+    m_listeners.seat = this;
 
-    m_seatDestroyListener.notify = seatDestroyed;
-    wl_signal_add(&seat->destroy_signal, &m_seatDestroyListener);
+    m_listeners.seatDestroy.notify = seatDestroyed;
+    wl_signal_add(&seat->destroy_signal, &m_listeners.seatDestroy);
 
-    if (!seat->seat.pointer)
-        return;
-
-    m_focusListener.notify = pointerFocus;
-    wl_signal_add(&seat->seat.pointer->focus_signal, &m_focusListener);
+    if (seat->seat.pointer) {
+        m_listeners.focus.notify = pointerFocus;
+        wl_signal_add(&seat->seat.pointer->focus_signal, &m_listeners.focus);
+    } else {
+        wl_list_init(&m_listeners.focus.link);
+    }
 }
 
 ShellSeat::~ShellSeat()
@@ -40,7 +43,8 @@ ShellSeat::~ShellSeat()
     if (m_popupGrab.client) {
         wl_pointer_end_grab(m_popupGrab.grab.pointer);
     }
-    wl_list_remove(&m_seatDestroyListener.link);
+    wl_list_remove(&m_listeners.seatDestroy.link);
+    wl_list_remove(&m_listeners.focus.link);
 }
 
 ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
@@ -50,18 +54,18 @@ ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
         return new ShellSeat(seat);
     }
 
-    return static_cast<ShellSeat *>(container_of(listener, ShellSeat, m_seatDestroyListener));
+    return static_cast<Wrapper *>(container_of(listener, Wrapper, seatDestroy))->seat;
 }
 
 void ShellSeat::seatDestroyed(struct wl_listener *listener, void *data)
 {
-    ShellSeat *shseat = static_cast<ShellSeat *>(container_of(listener, ShellSeat, m_seatDestroyListener));
+    ShellSeat *shseat = static_cast<Wrapper *>(container_of(listener, Wrapper, seatDestroy))->seat;
     delete shseat;
 }
 
 void ShellSeat::pointerFocus(struct wl_listener *listener, void *data)
 {
-    ShellSeat *shseat = static_cast<ShellSeat *>(container_of(listener, ShellSeat, m_focusListener));
+    ShellSeat *shseat = static_cast<Wrapper *>(container_of(listener, Wrapper, focus))->seat;
     struct wl_pointer *pointer = static_cast<wl_pointer *>(data);
     shseat->pointerFocusSignal(shseat, pointer);
 }
@@ -69,7 +73,7 @@ void ShellSeat::pointerFocus(struct wl_listener *listener, void *data)
 void ShellSeat::popup_grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {
     struct wl_pointer *pointer = grab->pointer;
-    ShellSeat *shseat = static_cast<ShellSeat *>(container_of(grab, ShellSeat, m_popupGrab.grab));
+    ShellSeat *shseat = static_cast<PopupGrab *>(container_of(grab, PopupGrab, grab))->seat;
 
     if (surface && surface->resource.client == shseat->m_popupGrab.client) {
         wl_pointer_set_focus(pointer, surface, x, y);
@@ -89,7 +93,7 @@ static void popup_grab_motion(struct wl_pointer_grab *grab,  uint32_t time, wl_f
 
 void ShellSeat::popup_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
 {
-    ShellSeat *shseat = static_cast<ShellSeat *>(container_of(grab, ShellSeat, m_popupGrab.grab));
+    ShellSeat *shseat = static_cast<PopupGrab *>(container_of(grab, PopupGrab, grab))->seat;
 
     struct wl_resource *resource = grab->pointer->focus_resource;
     if (resource) {

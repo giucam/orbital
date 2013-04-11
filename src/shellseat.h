@@ -43,10 +43,14 @@ private:
     static void pointerFocus(struct wl_listener *listener, void *data);
 
     struct weston_seat *m_seat;
-    struct wl_listener m_seatDestroyListener;
-    struct wl_listener m_focusListener;
+    struct Wrapper {
+        ShellSeat *seat;
+        struct wl_listener seatDestroy;
+        struct wl_listener focus;
+    } m_listeners;
 
-    struct {
+    struct PopupGrab {
+        ShellSeat *seat;
         struct wl_pointer_grab grab;
         std::list<ShellSurface *> surfaces;
         struct wl_client *client;
