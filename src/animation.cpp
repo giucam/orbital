@@ -70,11 +70,6 @@ bool Animation::isRunning() const
     return m_animation.ani.link.next != &m_animation.ani.link;
 }
 
-void Animation::setCurve(AnimationCurve *curve)
-{
-    m_curve = curve;
-}
-
 void Animation::update(struct weston_output *output, uint32_t msecs)
 {
     if (m_animation.ani.frame_counter <= 1) {

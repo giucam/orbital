@@ -23,6 +23,7 @@
 class AnimationCurve {
 public:
     AnimationCurve() {}
+    virtual ~AnimationCurve() {}
 
     virtual float value(float progress) = 0;
 };

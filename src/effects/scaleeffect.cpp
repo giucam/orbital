@@ -40,7 +40,6 @@ struct SurfaceTransform {
     struct weston_transform transform;
     Animation animation;
     Animation alphaAnim;
-    OutElasticCurve curve;
 
     float ss, ts, cs;
     int sx, tx, cx;
@@ -236,7 +235,7 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     tr->animation.updateSignal.connect(tr, &SurfaceTransform::updateAnimation);
     tr->animation.doneSignal.connect(tr, &SurfaceTransform::doneAnimation);
     tr->alphaAnim.updateSignal.connect(surface, &ShellSurface::setAlpha);
-    tr->animation.setCurve(&tr->curve);
+    tr->animation.setCurve(OutElasticCurve());
 
     wl_list_init(&tr->transform.link);
 

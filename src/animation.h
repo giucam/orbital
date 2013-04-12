@@ -39,7 +39,8 @@ public:
     void run(struct weston_output *output, uint32_t duration, Flags flags = Flags::None);
     void stop();
     bool isRunning() const;
-    void setCurve(AnimationCurve *curve);
+    template<class T>
+    void setCurve(const T &curve) { delete m_curve; m_curve = new T; *static_cast<T *>(m_curve) = curve; }
 
     Signal<float> updateSignal;
     Signal<> doneSignal;
