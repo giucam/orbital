@@ -32,6 +32,7 @@
 #include "scaleeffect.h"
 #include "griddesktops.h"
 #include "fademovingeffect.h"
+#include "zoomeffect.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -58,6 +59,7 @@ void DesktopShell::init()
     new ScaleEffect(this);
     new GridDesktops(this);
     new FadeMovingEffect(this);
+    new ZoomEffect(this);
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)

@@ -23,6 +23,7 @@ set(SOURCES
     src/desktop-shell.cpp
     src/effects/scaleeffect.cpp
     src/effects/griddesktops.cpp
+    src/effects/zoomeffect.cpp
     src/effects/fademovingeffect.cpp)
 
 wayland_add_protocol_server(SOURCES
