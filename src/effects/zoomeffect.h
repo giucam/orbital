@@ -28,7 +28,7 @@ public:
     ~ZoomEffect();
 
 private:
-    void run(struct wl_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value);
+    void run(struct weston_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value);
 
     Binding *m_binding;
 };

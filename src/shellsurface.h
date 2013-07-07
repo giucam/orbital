@@ -42,7 +42,7 @@ public:
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
 
-    void init(uint32_t id, Workspace *workspace);
+    void init(struct wl_client *client, uint32_t id, Workspace *workspace);
     bool updateType();
     void map(int32_t x, int32_t y, int32_t width, int32_t height);
     void unmapped();
@@ -53,10 +53,10 @@ public:
     void setAlpha(float alpha);
 
     inline Shell *shell() const { return m_shell; }
-    inline struct wl_resource *wl_resource() { return &m_resource; }
-    inline const struct wl_resource *wl_resource() const { return &m_resource; }
-    inline struct wl_client *client() const { return m_surface->surface.resource.client; }
-    inline struct wl_surface *wl_surface() const { return &m_surface->surface; }
+    inline struct wl_resource *wl_resource() { return m_resource; }
+    inline const struct wl_resource *wl_resource() const { return m_resource; }
+    inline struct wl_client *client() const { return m_surface->resource->client; }
+    inline struct weston_surface *weston_surface() const { return m_surface; }
 
     inline Type type() const { return m_type; }
     bool isMapped() const;
@@ -98,7 +98,7 @@ private:
 
     Shell *m_shell;
     Workspace *m_workspace;
-    struct wl_resource m_resource;
+    struct wl_resource *m_resource;
     struct weston_surface *m_surface;
     WlListener m_surfaceDestroyListener;
     Type m_type;
@@ -169,13 +169,13 @@ private:
     static void shell_surface_set_class(struct wl_client *client, struct wl_resource *resource, const char *className);
     static const struct wl_shell_surface_interface m_shell_surface_implementation;
 
-    static void move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
-    static void move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct wl_pointer_grab_interface m_move_grab_interface;
+    static void move_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
+    static void move_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
+    static const struct weston_pointer_grab_interface m_move_grab_interface;
 
-    static void resize_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
-    static void resize_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct wl_pointer_grab_interface m_resize_grab_interface;
+    static void resize_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
+    static void resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
+    static const struct weston_pointer_grab_interface m_resize_grab_interface;
 
     friend class Shell;
     friend class Layer;

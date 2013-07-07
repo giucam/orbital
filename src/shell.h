@@ -37,8 +37,8 @@ struct ShellGrab {
     ShellGrab();
 
     Shell *shell;
-    struct wl_pointer_grab grab;
-    struct wl_pointer *pointer;
+    struct weston_pointer_grab grab;
+    struct weston_pointer *pointer;
 };
 
 class Binding {
@@ -68,12 +68,12 @@ public:
     Binding *bindKey(uint32_t key, enum weston_keyboard_modifier modifier, weston_key_binding_handler_t handler, void *data);
     template<class T>
     Binding *bindKey(uint32_t key, enum weston_keyboard_modifier modifier,
-                                   void (T::*func)(struct wl_seat *seat, uint32_t time, uint32_t key), T *obj);
+                                   void (T::*func)(struct weston_seat *seat, uint32_t time, uint32_t key), T *obj);
 
     Binding *bindAxis(uint32_t axis, enum weston_keyboard_modifier modifier, weston_axis_binding_handler_t handler, void *data);
     template<class T>
     Binding *bindAxis(uint32_t axis, enum weston_keyboard_modifier modifier,
-                      void (T::*func)(struct wl_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value), T *obj);
+                      void (T::*func)(struct weston_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value), T *obj);
 
     void registerEffect(Effect *effect);
 
@@ -84,7 +84,7 @@ public:
     void setGrabSurface(struct weston_surface *surface);
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
 
-    void startGrab(ShellGrab *grab, const struct wl_pointer_grab_interface *interface,
+    void startGrab(ShellGrab *grab, const struct weston_pointer_grab_interface *interface,
                    struct weston_seat *seat, uint32_t cursor);
     static void endGrab(ShellGrab *grab);
 
@@ -130,14 +130,14 @@ private:
     void sigchld(int status);
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
     void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
-    void activateSurface(struct wl_seat *seat, uint32_t time, uint32_t button);
+    void activateSurface(struct weston_seat *seat, uint32_t time, uint32_t button);
     void configureFullscreen(ShellSurface *surface);
     void stackFullscreen(ShellSurface *surface);
     struct weston_surface *createBlackSurface(ShellSurface *fs_surface, float x, float y, int w, int h);
     static void sendConfigure(struct weston_surface *surface, uint32_t edges, int32_t width, int32_t height);
     bool surfaceIsTopFullscreen(ShellSurface *surface);
     void activateWorkspace(Workspace *old);
-    void pointerFocus(ShellSeat *shseat, struct wl_pointer *pointer);
+    void pointerFocus(ShellSeat *shseat, struct weston_pointer *pointer);
     void pingTimeout(ShellSurface *shsurf);
     void pong(ShellSurface *shsurf);
 
@@ -191,20 +191,20 @@ private:
 
 template<class T>
 Binding *Shell::bindKey(uint32_t key, enum weston_keyboard_modifier modifier,
-                        void (T::*func)(struct wl_seat *seat, uint32_t time, uint32_t key), T *obj) {
-    MemberBinding<T, struct wl_seat *, uint32_t, uint32_t> *binding = new MemberBinding<T, struct wl_seat *, uint32_t, uint32_t>(obj, func);
+                        void (T::*func)(struct weston_seat *seat, uint32_t time, uint32_t key), T *obj) {
+    MemberBinding<T, struct weston_seat *, uint32_t, uint32_t> *binding = new MemberBinding<T, struct weston_seat *, uint32_t, uint32_t>(obj, func);
     binding->m_binding = weston_compositor_add_key_binding(m_compositor, key, modifier,
-                                                           MemberBinding<T, struct wl_seat *, uint32_t, uint32_t>::handler, binding);
+                                                           MemberBinding<T, struct weston_seat *, uint32_t, uint32_t>::handler, binding);
     return binding;
 }
 
 template<class T>
 Binding *Shell::bindAxis(uint32_t axis, enum weston_keyboard_modifier modifier,
-                         void (T::*func)(struct wl_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value), T *obj) {
-    MemberBinding<T, struct wl_seat *, uint32_t, uint32_t, wl_fixed_t> *binding =
-        new MemberBinding<T, struct wl_seat *, uint32_t, uint32_t, wl_fixed_t>(obj, func);
+                         void (T::*func)(struct weston_seat *seat, uint32_t time, uint32_t axis, wl_fixed_t value), T *obj) {
+    MemberBinding<T, struct weston_seat *, uint32_t, uint32_t, wl_fixed_t> *binding =
+    new MemberBinding<T, struct weston_seat *, uint32_t, uint32_t, wl_fixed_t>(obj, func);
     binding->m_binding = weston_compositor_add_axis_binding(m_compositor, axis, modifier,
-                         MemberBinding<T, struct wl_seat *, uint32_t, uint32_t, wl_fixed_t>::handler, binding);
+                         MemberBinding<T, struct weston_seat *, uint32_t, uint32_t, wl_fixed_t>::handler, binding);
     return binding;
 }
 

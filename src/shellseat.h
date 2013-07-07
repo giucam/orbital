@@ -35,7 +35,7 @@ public:
     void removePopupGrab(ShellSurface *surface);
     void endPopupGrab();
 
-    Signal<ShellSeat *, struct wl_pointer *> pointerFocusSignal;
+    Signal<ShellSeat *, struct weston_pointer *> pointerFocusSignal;
 
 private:
     ShellSeat(struct weston_seat *seat);
@@ -51,15 +51,15 @@ private:
 
     struct PopupGrab {
         ShellSeat *seat;
-        struct wl_pointer_grab grab;
+        struct weston_pointer_grab grab;
         std::list<ShellSurface *> surfaces;
         struct wl_client *client;
         int32_t initial_up;
     } m_popupGrab;
 
-    static void popup_grab_focus(struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
-    static void popup_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct wl_pointer_grab_interface popup_grab_interface;
+    static void popup_grab_focus(struct weston_pointer_grab *grab);
+    static void popup_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
+    static const struct weston_pointer_grab_interface popup_grab_interface;
 };
 
 #endif

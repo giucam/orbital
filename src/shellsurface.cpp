@@ -39,7 +39,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
     wl_list_init(&m_fullscreen.transform.link);
     m_fullscreen.blackSurface = nullptr;
 
-    m_surfaceDestroyListener.listen(&surface->surface.resource.destroy_signal);
+    m_surfaceDestroyListener.listen(&surface->resource->destroy_signal);
     m_surfaceDestroyListener.signal->connect(this, &ShellSurface::surfaceDestroyed);
 }
 
@@ -52,21 +52,24 @@ ShellSurface::~ShellSurface()
     m_shell->removeShellSurface(this);
 }
 
-void ShellSurface::init(uint32_t id, Workspace *workspace)
+void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)
 {
-    m_resource.destroy = [](struct wl_resource *resource) { delete static_cast<ShellSurface *>(resource->data); };
-    m_resource.object.id = id;
-    m_resource.object.interface = &wl_shell_surface_interface;
-    m_resource.object.implementation = &m_shell_surface_implementation;
-    m_resource.data = this;
+    m_resource = wl_resource_create(client, &wl_shell_surface_interface, 1, id);
+    wl_resource_set_implementation(m_resource, &m_shell_surface_implementation, this, [](struct wl_resource *resource) { delete static_cast<ShellSurface *>(resource->data); });
+
+//     m_resource.destroy = [](struct wl_resource *resource) { delete static_cast<ShellSurface *>(resource->data); };
+//     m_resource.object.id = id;
+//     m_resource.object.interface = &wl_shell_surface_interface;
+//     m_resource.object.implementation = &m_shell_surface_implementation;
+//     m_resource.data = this;
 
     m_workspace = workspace;
 }
 
 void ShellSurface::surfaceDestroyed()
 {
-    if (m_resource.client) {
-        wl_resource_destroy(&m_resource);
+    if (m_resource->client) {
+        wl_resource_destroy(m_resource);
     } else {
         delete this;
     }
@@ -196,7 +199,7 @@ void ShellSurface::setAlpha(float alpha)
 
 void ShellSurface::popupDone()
 {
-    wl_shell_surface_send_popup_done(&m_resource);
+    wl_shell_surface_send_popup_done(m_resource);
     m_popup.seat = nullptr;
 }
 
@@ -326,7 +329,7 @@ void ShellSurface::ping(uint32_t serial)
 {
     const int ping_timeout = 200;
 
-    if (!m_resource.client)
+    if (!m_resource->client)
         return;
 
     if (!m_pingTimer) {
@@ -340,7 +343,7 @@ void ShellSurface::ping(uint32_t serial)
                                                      { return static_cast<ShellSurface *>(data)->pingTimeout(); }, this);
         wl_event_source_timer_update(m_pingTimer->source, ping_timeout);
 
-        wl_shell_surface_send_ping(&m_resource, serial);
+        wl_shell_surface_send_ping(m_resource, serial);
     }
 }
 
@@ -379,11 +382,11 @@ struct MoveGrab : public ShellGrab {
     wl_fixed_t dx, dy;
 };
 
-void ShellSurface::move_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+void ShellSurface::move_grab_motion(struct weston_pointer_grab *grab, uint32_t time)
 {
     ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
     MoveGrab *move = static_cast<MoveGrab *>(shgrab);
-    struct wl_pointer *pointer = grab->pointer;
+    struct weston_pointer *pointer = grab->pointer;
     ShellSurface *shsurf = move->shsurf;
     int dx = wl_fixed_to_int(pointer->x + move->dx);
     int dy = wl_fixed_to_int(pointer->y + move->dy);
@@ -398,11 +401,11 @@ void ShellSurface::move_grab_motion(struct wl_pointer_grab *grab, uint32_t time,
     weston_compositor_schedule_repaint(es->compositor);
 }
 
-void ShellSurface::move_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
+void ShellSurface::move_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
 {
     ShellGrab *shell_grab = container_of(grab, ShellGrab, grab);
     MoveGrab *move = static_cast<MoveGrab *>(shell_grab);
-    struct wl_pointer *pointer = grab->pointer;
+    struct weston_pointer *pointer = grab->pointer;
     enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
 
     if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
@@ -412,8 +415,8 @@ void ShellSurface::move_grab_button(struct wl_pointer_grab *grab, uint32_t time,
     }
 }
 
-const struct wl_pointer_grab_interface ShellSurface::m_move_grab_interface = {
-    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+const struct weston_pointer_grab_interface ShellSurface::m_move_grab_interface = {
+    [](struct weston_pointer_grab *grab) {},
     ShellSurface::move_grab_motion,
     ShellSurface::move_grab_button,
 };
@@ -423,8 +426,7 @@ void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, 
 {
     struct weston_seat *ws = static_cast<weston_seat *>(seat_resource->data);
 
-    if (ws->seat.pointer->button_count == 0 || ws->seat.pointer->grab_serial != serial ||
-        ws->seat.pointer->focus != &m_surface->surface) {
+    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || ws->pointer->focus != m_surface) {
         return;
     }
 
@@ -439,10 +441,9 @@ void ShellSurface::dragMove(struct weston_seat *ws)
     if (!move)
         return;
 
-    move->dx = wl_fixed_from_double(m_surface->geometry.x) - ws->seat.pointer->grab_x;
-    move->dy = wl_fixed_from_double(m_surface->geometry.y) - ws->seat.pointer->grab_y;
+    move->dx = wl_fixed_from_double(m_surface->geometry.x) - ws->pointer->grab_x;
+    move->dy = wl_fixed_from_double(m_surface->geometry.y) - ws->pointer->grab_y;
     move->shsurf = this;
-    move->grab.focus = &m_surface->surface;
 
     m_shell->startGrab(move, &m_move_grab_interface, ws, DESKTOP_SHELL_CURSOR_MOVE);
     moveStartSignal(this);
@@ -457,11 +458,11 @@ struct ResizeGrab : public ShellGrab {
     int32_t width, height;
 };
 
-void ShellSurface::resize_grab_motion(struct wl_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+void ShellSurface::resize_grab_motion(struct weston_pointer_grab *grab, uint32_t time)
 {
     ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
     ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
-    struct wl_pointer *pointer = grab->pointer;
+    struct weston_pointer *pointer = grab->pointer;
     ShellSurface *shsurf = resize->shsurf;
 
     if (!shsurf)
@@ -491,7 +492,7 @@ void ShellSurface::resize_grab_motion(struct wl_pointer_grab *grab, uint32_t tim
     shsurf->m_client->send_configure(shsurf->m_surface, resize->edges, width, height);
 }
 
-void ShellSurface::resize_grab_button(struct wl_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
+void ShellSurface::resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
 {
     ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
     ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
@@ -502,8 +503,8 @@ void ShellSurface::resize_grab_button(struct wl_pointer_grab *grab, uint32_t tim
     }
 }
 
-const struct wl_pointer_grab_interface ShellSurface::m_resize_grab_interface = {
-    [](struct wl_pointer_grab *grab, struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y) {},
+const struct weston_pointer_grab_interface ShellSurface::m_resize_grab_interface = {
+    [](struct weston_pointer_grab *grab) {},
     ShellSurface::resize_grab_motion,
     ShellSurface::resize_grab_button,
 };
@@ -513,8 +514,7 @@ void ShellSurface::resize(struct wl_client *client, struct wl_resource *resource
 {
     struct weston_seat *ws = static_cast<weston_seat *>(seat_resource->data);
 
-    if (ws->seat.pointer->button_count == 0 || ws->seat.pointer->grab_serial != serial ||
-        ws->seat.pointer->focus != &m_surface->surface) {
+    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || ws->pointer->focus != m_surface) {
         return;
     }
 
@@ -535,7 +535,6 @@ void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
     grab->width = m_surface->geometry.width;
     grab->height = m_surface->geometry.height;
     grab->shsurf = this;
-    grab->grab.focus = &m_surface->surface;
 
     m_shell->startGrab(grab, &m_resize_grab_interface, ws, edges);
 }

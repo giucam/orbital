@@ -52,7 +52,7 @@ void DesktopShell::init()
         return;
 
     weston_compositor_add_button_binding(compositor(), BTN_LEFT, MODIFIER_SUPER,
-                                         [](struct wl_seat *seat, uint32_t time, uint32_t button, void *data) {
+                                         [](struct weston_seat *seat, uint32_t time, uint32_t button, void *data) {
                                              static_cast<DesktopShell *>(data)->moveBinding(seat, time, button);
                                          }, this);
 
@@ -67,22 +67,26 @@ void DesktopShell::setGrabCursor(uint32_t cursor)
     desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
 }
 
-static void busy_cursor_grab_focus(struct wl_pointer_grab *base, struct wl_surface *surface, int32_t x, int32_t y)
+static void busy_cursor_grab_focus(struct weston_pointer_grab *base)
 {
     ShellGrab *grab = container_of(base, ShellGrab, grab);
+    wl_fixed_t sx, sy;
+    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
+                                                                    grab->pointer->x, grab->pointer->y,
+                                                                    &sx, &sy);
 
-    if (grab->grab.focus != surface) {
+    if (grab->pointer->focus != surface) {
         Shell::endGrab(grab);
         delete grab;
     }
 }
 
-static void busy_cursor_grab_button(struct wl_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
+static void busy_cursor_grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
 {
     ShellGrab *grab = container_of(base, ShellGrab, grab);
 
-    struct weston_surface *surface = container_of(grab->grab.pointer->current, struct weston_surface, surface);
-    struct weston_seat *seat = container_of(grab->grab.pointer->seat, struct weston_seat, seat);
+    struct weston_surface *surface = grab->pointer->focus;
+    struct weston_seat *seat = grab->pointer->seat;
 
     ShellSurface *shsurf = Shell::getShellSurface(surface);
     if (shsurf && button == BTN_LEFT && state) {
@@ -94,9 +98,9 @@ static void busy_cursor_grab_button(struct wl_pointer_grab *base, uint32_t time,
     }
 }
 
-static const struct wl_pointer_grab_interface busy_cursor_grab_interface = {
+static const struct weston_pointer_grab_interface busy_cursor_grab_interface = {
     busy_cursor_grab_focus,
-    [](struct wl_pointer_grab *grab, uint32_t time, int32_t x, int32_t y) {},
+    [](struct weston_pointer_grab *grab, uint32_t time) {},
     busy_cursor_grab_button,
 };
 
@@ -106,13 +110,13 @@ void DesktopShell::setBusyCursor(ShellSurface *surface, struct weston_seat *seat
     if (!grab)
         return;
 
-    grab->grab.focus = surface->wl_surface();
+    grab->pointer->focus = surface->weston_surface();
     startGrab(grab, &busy_cursor_grab_interface, seat, DESKTOP_SHELL_CURSOR_BUSY);
 }
 
 void DesktopShell::endBusyCursor(struct weston_seat *seat)
 {
-    ShellGrab *grab = container_of(seat->pointer.grab, ShellGrab, grab);
+    ShellGrab *grab = container_of(seat->pointer->grab, ShellGrab, grab);
 
     if (grab->grab.interface == &busy_cursor_grab_interface) {
         endGrab(grab);
@@ -122,10 +126,11 @@ void DesktopShell::endBusyCursor(struct weston_seat *seat)
 
 void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 {
-    struct wl_resource *resource = wl_client_add_object(client, &desktop_shell_interface, &m_desktop_shell_implementation, id, this);
+    struct wl_resource *resource = wl_resource_create(client, &desktop_shell_interface, version, id);
 
     if (client == m_child.client) {
-        resource->destroy = [](struct wl_resource *resource) { static_cast<DesktopShell *>(resource->data)->unbind(resource); };
+        wl_resource_set_implementation(resource, &m_desktop_shell_implementation, this,
+                                       [](struct wl_resource *resource) { static_cast<DesktopShell *>(resource->data)->unbind(resource); });
         m_child.desktop_shell = resource;
         return;
     }
@@ -140,9 +145,9 @@ void DesktopShell::unbind(struct wl_resource *resource)
     free(resource);
 }
 
-void DesktopShell::moveBinding(struct wl_seat *seat, uint32_t time, uint32_t button)
+void DesktopShell::moveBinding(struct weston_seat *seat, uint32_t time, uint32_t button)
 {
-    struct weston_surface *surface = container_of(seat->pointer->focus, struct weston_surface, surface);
+    struct weston_surface *surface = seat->pointer->focus;
     if (!surface) {
         return;
     }
@@ -154,7 +159,7 @@ void DesktopShell::moveBinding(struct wl_seat *seat, uint32_t time, uint32_t but
 
     shsurf = shsurf->topLevelParent();
     if (shsurf) {
-        shsurf->dragMove(container_of(seat, struct weston_seat, seat));
+        shsurf->dragMove(seat);
     }
 }
 
@@ -228,10 +233,17 @@ void DesktopShell::setGrabSurface(struct wl_client *client, struct wl_resource *
     this->Shell::setGrabSurface(static_cast<struct weston_surface *>(surface_resource->data));
 }
 
+static void
+desktop_shell_desktop_ready(struct wl_client *client,
+                            struct wl_resource *resource)
+{
+}
+
 const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementation = {
     DesktopShell::desktop_shell_set_background,
     DesktopShell::desktop_shell_set_panel,
     DesktopShell::desktop_shell_set_lock_surface,
     DesktopShell::desktop_shell_unlock,
-    DesktopShell::desktop_shell_set_grab_surface
+    DesktopShell::desktop_shell_set_grab_surface,
+    desktop_shell_desktop_ready
 };
