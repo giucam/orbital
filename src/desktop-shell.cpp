@@ -60,6 +60,15 @@ void DesktopShell::init()
     new GridDesktops(this);
     new FadeMovingEffect(this);
     new ZoomEffect(this);
+
+#define CHVOL(key, value) \
+    weston_compositor_add_key_binding(compositor(), key, (weston_keyboard_modifier)0, \
+                                         [](struct weston_seat *seat, uint32_t time, uint32_t button, void *data) { \
+                                             system("amixer set Master " value " > /dev/null");\
+                                         }, this);
+    CHVOL(KEY_VOLUMEUP, "5%+")
+    CHVOL(KEY_VOLUMEDOWN, "5%-")
+    CHVOL(KEY_MUTE, "toggle")
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)
