@@ -5,7 +5,7 @@ import QtQuick.Window 2.1
 Rectangle {
     width: Screen.width
     height: Screen.height
-    color: "red"
+    color: "black"
 
     Image {
         anchors.fill: parent
