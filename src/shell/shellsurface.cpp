@@ -50,6 +50,9 @@ ShellSurface::~ShellSurface()
     }
     destroyPingTimer();
     m_shell->removeShellSurface(this);
+    if (m_fullscreen.blackSurface) {
+        weston_surface_destroy(m_fullscreen.blackSurface);
+    }
 }
 
 void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)
