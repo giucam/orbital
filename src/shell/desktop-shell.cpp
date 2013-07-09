@@ -243,6 +243,22 @@ void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *r
                                          }, res);
 }
 
+void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource)
+{
+    struct weston_surface *surface = static_cast<weston_surface *>(surface_resource->data);
+    if (surface->configure) {
+        wl_resource_post_error(surface_resource,
+                               WL_DISPLAY_ERROR_INVALID_OBJECT,
+                               "surface role already assigned");
+        return;
+    }
+
+    addOverlaySurface(surface, static_cast<weston_output *>(output_resource->data));
+    desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
+    pixman_region32_fini(&surface->pending.input);
+    pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
+}
+
 static void
 desktop_shell_desktop_ready(struct wl_client *client,
                             struct wl_resource *resource)
@@ -256,5 +272,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     DesktopShell::desktop_shell_unlock,
     DesktopShell::desktop_shell_set_grab_surface,
     desktop_shell_desktop_ready,
-    DesktopShell::desktop_shell_add_key_binding
+    DesktopShell::desktop_shell_add_key_binding,
+    DesktopShell::desktop_shell_add_overlay
 };

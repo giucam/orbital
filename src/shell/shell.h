@@ -83,6 +83,7 @@ public:
     void setBackgroundSurface(struct weston_surface *surface, struct weston_output *output);
     void setGrabSurface(struct weston_surface *surface);
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
+    void addOverlaySurface(struct weston_surface *surface, struct weston_output *output);
 
     void startGrab(ShellGrab *grab, const struct weston_pointer_grab_interface *interface,
                    struct weston_seat *seat, uint32_t cursor);
@@ -148,6 +149,7 @@ private:
     Layer m_backgroundLayer;
     Layer m_panelsLayer;
     Layer m_fullscreenLayer;
+    Layer m_overlayLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
     std::vector<Workspace *> m_workspaces;

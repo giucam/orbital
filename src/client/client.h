@@ -41,15 +41,12 @@ public:
     Client();
     ~Client();
 
-    Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
+    Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
 
 private slots:
     void create();
 
 private:
-    void volumeUp();
-    void volumeDown();
-
     static void handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
     static void configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
     static void handlePrepareLockSurface(void *data, desktop_shell *desktop_shell);
@@ -68,6 +65,7 @@ private:
 
     QQuickView *m_backgroundView;
     QList<QQuickView *> m_panelViews;
+    QQuickView *m_volumeView;
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include <QScreen>
 #include <QDebug>
 #include <QTimer>
+#include <QtQml>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -38,6 +39,9 @@ Client::Client()
     Q_ASSERT(m_registry);
 
     wl_registry_add_listener(m_registry, &s_registryListener, this);
+
+
+    qmlRegisterType<Binding>();
 }
 
 Client::~Client()
@@ -87,8 +91,9 @@ void Client::create()
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setAlphaBufferSize(8);
+    format.setStencilBufferSize(2);
 
-//     m_backgroundView->setFormat(format);
+    m_backgroundView->setFormat(format);
     m_backgroundView->setFlags(Qt::BypassWindowManagerHint);
     m_backgroundView->setScreen(screen);
     m_backgroundView->show();
@@ -103,9 +108,10 @@ void Client::create()
 
     QQuickView *panelView = new QQuickView;
     panelView = new QQuickView;
+    panelView->setFormat(format);
+    panelView->setColor(Qt::transparent);
     panelView->engine()->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
     panelView->setSource(path + QLatin1String("panel.qml"));
-    //     panelView->setFormat(format);
     panelView->setFlags(Qt::BypassWindowManagerHint);
     panelView->setScreen(screen);
     panelView->show();
@@ -116,18 +122,23 @@ void Client::create()
 
     m_panelViews << panelView;
 
-    connect(addKeyBinding(KEY_VOLUMEUP, 0), &Binding::triggered, this, &Client::volumeUp);
-    connect(addKeyBinding(KEY_VOLUMEDOWN, 0), &Binding::triggered, this, &Client::volumeDown);
-}
 
-void Client::volumeUp()
-{
-    system("amixer set Master 5%+ > /dev/null");
-}
 
-void Client::volumeDown()
-{
-    system("amixer set Master 5%- > /dev/null");
+
+
+    m_volumeView = new QQuickView;
+    m_volumeView->engine()->rootContext()->setContextProperty("Client", this);
+    m_volumeView->engine()->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
+    m_volumeView->setSource(path + QLatin1String("volume.qml"));
+    m_volumeView->setFormat(format);
+    m_volumeView->setColor(Qt::transparent);
+    m_volumeView->setFlags(Qt::BypassWindowManagerHint);
+    m_volumeView->setScreen(screen);
+    m_volumeView->show();
+    m_volumeView->create();
+
+    wl_surface *volumeSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_volumeView));
+    desktop_shell_add_overlay(m_shell, output, volumeSurface);
 }
 
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)

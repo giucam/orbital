@@ -108,7 +108,8 @@ void Shell::init()
         m_workspaces.push_back(new Workspace(this, i));
     }
 
-    m_fullscreenLayer.insert(&m_compositor->cursor_layer);
+    m_overlayLayer.insert(&m_compositor->cursor_layer);
+    m_fullscreenLayer.insert(&m_overlayLayer);
     m_panelsLayer.insert(&m_fullscreenLayer);
     m_backgroundLayer.insert(&m_panelsLayer);
 
@@ -537,7 +538,15 @@ void Shell::setGrabSurface(struct weston_surface *surface)
 void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output *output)
 {
     surface->configure = [](struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
-        static_cast<Shell *>(es->configure_private)->panelConfigure(es, sx, sy, width, height); };;
+        static_cast<Shell *>(es->configure_private)->panelConfigure(es, sx, sy, width, height); };
+    surface->configure_private = this;
+    surface->output = output;
+}
+
+void Shell::addOverlaySurface(struct weston_surface *surface, struct weston_output *output)
+{
+    surface->configure = [](struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
+        configure_static_surface(es, &static_cast<Shell *>(es->configure_private)->m_overlayLayer, width, height); };
     surface->configure_private = this;
     surface->output = output;
 }
@@ -617,7 +626,7 @@ void Shell::activateWorkspace(Workspace *old)
         old->remove();
     }
 
-    currentWorkspace()->insert(container_of(m_compositor->cursor_layer.link.next, struct weston_layer, link));
+    currentWorkspace()->insert(&m_fullscreenLayer);
 }
 
 uint32_t Shell::numWorkspaces() const
@@ -634,7 +643,7 @@ void Shell::showAllWorkspaces()
         if (prev) {
             w->insert(prev);
         } else {
-            w->insert(container_of(m_compositor->cursor_layer.link.next, struct weston_layer, link));
+            w->insert(&m_fullscreenLayer);
         }
         prev = w;
     }

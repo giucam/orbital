@@ -12,6 +12,7 @@ public:
 
 public slots:
     void launch(const QString &process);
+    QString run(const QString &process);
 
 };
 
