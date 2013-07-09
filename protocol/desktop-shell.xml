@@ -44,6 +44,12 @@
       </description>
     </request>
 
+    <request name="add_key_binding">
+        <arg name="id" type="new_id" interface="desktop_shell_binding"/>
+        <arg name="key" type="uint"/>
+        <arg name="modifiers" type="uint"/>
+    </request>
+
     <!-- We'll fold most of wl_shell into this interface and then
          they'll share the configure event.  -->
     <event name="configure">
@@ -91,6 +97,10 @@
 
       <entry name="busy" value="11"/>
     </enum>
+  </interface>
+
+  <interface name="desktop_shell_binding" version="1">
+      <event name="triggered"/>
   </interface>
 
   <interface name="screensaver" version="1">

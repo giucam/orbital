@@ -42,6 +42,7 @@ private:
     void setLockSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
     void unlock(struct wl_client *client, struct wl_resource *resource);
     void setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
+    void addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
 
     static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                                              struct wl_resource *surface_resource);
@@ -50,6 +51,7 @@ private:
     static void desktop_shell_set_lock_surface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
     static void desktop_shell_unlock(struct wl_client *client, struct wl_resource *resource);
     static void desktop_shell_set_grab_surface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
+    static void desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     static const struct desktop_shell_interface m_desktop_shell_implementation;
 };
 
@@ -76,6 +78,10 @@ inline void DesktopShell::desktop_shell_unlock(struct wl_client *client, struct 
 inline void DesktopShell::desktop_shell_set_grab_surface(struct wl_client *client, struct wl_resource *resource,
                                                          struct wl_resource *surface_resource) {
     _this->setGrabSurface(client, resource, surface_resource);
+}
+
+inline void DesktopShell::desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers) {
+    _this->addKeyBinding(client, resource, id, key, modifiers);
 }
 
 #endif

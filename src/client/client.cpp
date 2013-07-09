@@ -1,4 +1,6 @@
 
+#include <linux/input.h>
+
 #include <QGuiApplication>
 #include <QQmlEngine>
 #include <QQmlContext>
@@ -16,7 +18,10 @@
 #include "client.h"
 #include "processlauncher.h"
 
-QTimer timer;
+Binding::~Binding()
+{
+    desktop_shell_binding_destroy(bind);
+}
 
 Client::Client()
       : QObject()
@@ -40,6 +45,24 @@ Client::~Client()
     delete m_grabWindow;
     delete m_backgroundView;
     qDeleteAll(m_panelViews);
+    qDeleteAll(m_bindings);
+}
+
+static const desktop_shell_binding_listener binding_listener = {
+    [](void *data, desktop_shell_binding *bind) {
+        Binding *b = static_cast<Binding *>(data);
+        emit b->triggered();
+    }
+};
+
+Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
+{
+    Binding *binding = new Binding;
+    binding->bind = desktop_shell_add_key_binding(m_shell, key, modifiers);
+    desktop_shell_binding_add_listener(binding->bind, &binding_listener, binding);
+    m_bindings << binding;
+
+    return binding;
 }
 
 void Client::create()
@@ -92,6 +115,19 @@ void Client::create()
     desktop_shell_set_panel(m_shell, output, panelSurface);
 
     m_panelViews << panelView;
+
+    connect(addKeyBinding(KEY_VOLUMEUP, 0), &Binding::triggered, this, &Client::volumeUp);
+    connect(addKeyBinding(KEY_VOLUMEDOWN, 0), &Binding::triggered, this, &Client::volumeDown);
+}
+
+void Client::volumeUp()
+{
+    system("amixer set Master 5%+ > /dev/null");
+}
+
+void Client::volumeDown()
+{
+    system("amixer set Master 5%- > /dev/null");
 }
 
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)

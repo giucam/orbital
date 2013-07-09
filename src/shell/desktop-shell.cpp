@@ -60,15 +60,6 @@ void DesktopShell::init()
     new GridDesktops(this);
     new FadeMovingEffect(this);
     new ZoomEffect(this);
-
-#define CHVOL(key, value) \
-    weston_compositor_add_key_binding(compositor(), key, (weston_keyboard_modifier)0, \
-                                         [](struct weston_seat *seat, uint32_t time, uint32_t button, void *data) { \
-                                             system("amixer set Master " value " > /dev/null");\
-                                         }, this);
-    CHVOL(KEY_VOLUMEUP, "5%+")
-    CHVOL(KEY_VOLUMEDOWN, "5%-")
-    CHVOL(KEY_MUTE, "toggle")
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)
@@ -241,6 +232,17 @@ void DesktopShell::setGrabSurface(struct wl_client *client, struct wl_resource *
     this->Shell::setGrabSurface(static_cast<struct weston_surface *>(surface_resource->data));
 }
 
+void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers)
+{
+    wl_resource *res = wl_resource_create(client, &desktop_shell_binding_interface, wl_resource_get_version(resource), id);
+    wl_resource_set_implementation(res, nullptr, res, [](wl_resource *) {});
+
+    weston_compositor_add_key_binding(compositor(), key, (weston_keyboard_modifier)modifiers,
+                                         [](struct weston_seat *seat, uint32_t time, uint32_t key, void *data) {
+                                             desktop_shell_binding_send_triggered(static_cast<wl_resource *>(data));
+                                         }, res);
+}
+
 static void
 desktop_shell_desktop_ready(struct wl_client *client,
                             struct wl_resource *resource)
@@ -253,5 +255,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     DesktopShell::desktop_shell_set_lock_surface,
     DesktopShell::desktop_shell_unlock,
     DesktopShell::desktop_shell_set_grab_surface,
-    desktop_shell_desktop_ready
+    desktop_shell_desktop_ready,
+    DesktopShell::desktop_shell_add_key_binding
 };
