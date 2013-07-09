@@ -58,7 +58,7 @@ class Shell {
 public:
     template<class T>
     static Shell *load(struct weston_compositor *ec, char *client);
-    ~Shell();
+    virtual ~Shell();
 
     void launchShellProcess();
     ShellSurface *createShellSurface(struct weston_surface *surface, const struct weston_shell_client *client);
@@ -126,6 +126,7 @@ protected:
     Child m_child;
 
 private:
+    void destroy();
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
     void sigchld(int status);
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
@@ -142,6 +143,7 @@ private:
     void pong(ShellSurface *shsurf);
 
     struct weston_compositor *m_compositor;
+    WlListener m_destroyListener;
     char *m_clientPath;
     Layer m_backgroundLayer;
     Layer m_panelsLayer;

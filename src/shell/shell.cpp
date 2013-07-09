@@ -62,6 +62,13 @@ ShellGrab::ShellGrab()
 Shell::~Shell()
 {
     free(m_clientPath);
+    if (m_child.client)
+        wl_client_destroy(m_child.client);
+}
+
+void Shell::destroy()
+{
+    delete this;
 }
 
 static void
@@ -80,6 +87,8 @@ void Shell::init()
     //     ec->shell_interface.set_fullscreen = set_fullscreen;
     //     ec->shell_interface.move = surface_move;
     //     ec->shell_interface.resize = surface_resize;
+    m_destroyListener.listen(&m_compositor->destroy_signal);
+    m_destroyListener.signal->connect(this, &Shell::destroy);
 
     struct wl_global *global = wl_display_add_global(m_compositor->wl_display, &wl_shell_interface, this,
                                                      [](struct wl_client *client, void *data, uint32_t version, uint32_t id) {

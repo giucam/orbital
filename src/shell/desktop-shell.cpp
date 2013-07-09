@@ -151,7 +151,6 @@ void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 void DesktopShell::unbind(struct wl_resource *resource)
 {
     m_child.desktop_shell = nullptr;
-    free(resource);
 }
 
 void DesktopShell::moveBinding(struct weston_seat *seat, uint32_t time, uint32_t button)
