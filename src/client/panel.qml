@@ -10,7 +10,7 @@ Rectangle {
 
     gradient: Gradient {
         GradientStop { position: 1.0; color: "black" }
-        GradientStop { position: 0.0; color: "darkgrey" }
+        GradientStop { position: 0.0; color: "dimgrey" }
     }
 
     RowLayout {
