@@ -57,7 +57,7 @@ private:
 class Shell {
 public:
     template<class T>
-    static Shell *load(struct weston_compositor *ec);
+    static Shell *load(struct weston_compositor *ec, char *client);
     ~Shell();
 
     void launchShellProcess();
@@ -142,6 +142,7 @@ private:
     void pong(ShellSurface *shsurf);
 
     struct weston_compositor *m_compositor;
+    char *m_clientPath;
     Layer m_backgroundLayer;
     Layer m_panelsLayer;
     Layer m_fullscreenLayer;
@@ -160,10 +161,11 @@ private:
 };
 
 template<class T>
-Shell *Shell::load(struct weston_compositor *ec)
+Shell *Shell::load(struct weston_compositor *ec, char *client)
 {
     Shell *shell = new T(ec);
     if (shell) {
+        shell->m_clientPath = client;
         shell->init();
     }
 

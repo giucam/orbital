@@ -61,7 +61,7 @@ ShellGrab::ShellGrab()
 
 Shell::~Shell()
 {
-    printf("dtor\n");
+    free(m_clientPath);
 }
 
 static void
@@ -721,12 +721,9 @@ void Shell::sigchld(int status)
 
 void Shell::launchShellProcess()
 {
-#define LIBEXECDIR "/usr/libexec"
-    const char *shell_exe = LIBEXECDIR "/weston-desktop-shell";
-
     m_child.client = weston_client_launch(m_compositor,
                                           &m_child.process,
-                                          shell_exe,
+                                          m_clientPath,
                                           [](struct weston_process *process, int status) {
                                               Child *child = container_of(process, Child, process);
                                               child->shell->sigchld(status);
@@ -735,17 +732,23 @@ void Shell::launchShellProcess()
     printf("launch\n");
 
     if (!m_child.client)
-        weston_log("not able to start %s\n", shell_exe);
+        weston_log("not able to start %s\n", m_clientPath);
 }
 
 
 WL_EXPORT int
 module_init(struct weston_compositor *ec, int *argc, char *argv[])
 {
-    Shell *shell = Shell::load<DesktopShell>(ec);
+
+    weston_config_section *s = weston_config_get_section(ec->config, "orbital", NULL, NULL);
+    char *client;
+    weston_config_section_get_string(s, "shell_client", &client, NULL);
+
+    Shell *shell = Shell::load<DesktopShell>(ec, client);
     if (!shell) {
         return -1;
     }
+
 //     struct weston_seat *seat;
 //     struct desktop_shell *shell;
 //     struct wl_notification_daemon *notification;
