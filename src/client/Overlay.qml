@@ -7,6 +7,7 @@ ShellItem {
     type: ShellItem.Overlay
     width: Screen.width
     height: Screen.height
+    color: "transparent"
 
     Volume {}
 }

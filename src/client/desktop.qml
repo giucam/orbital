@@ -7,6 +7,7 @@ ShellUI {
     iconTheme: "oxygen"
 
     Background {
+        color: "black"
         imageSource: "/home/giulio/Immagini/civetta/DSCF0470.JPG"
         imageFillMode: Image.PreserveAspectFit
     }
