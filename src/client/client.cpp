@@ -113,7 +113,6 @@ void Client::create()
         window->setFormat(format);
         window->setFlags(Qt::BypassWindowManagerHint);
         window->setScreen(screen);
-        window->setColor(Qt::transparent);
         window->show();
         window->create();
         wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
