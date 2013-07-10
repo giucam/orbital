@@ -10,6 +10,8 @@ ShellItem {
     height: 30
     color: "black"
 
+    default property alias items: layout.children
+
     Rectangle {
         anchors.fill: parent
 
@@ -19,11 +21,9 @@ ShellItem {
         }
 
         RowLayout {
+            id: layout
             anchors.fill: parent
-            Launcher {
-                icon: "/usr/share/icons/default.kde4/32x32/apps/utilities-terminal.png"
-                process: "/home/giulio/projects/wayland/weston/clients/weston-terminal"
-            }
+            anchors.margins: 2
         }
     }
 

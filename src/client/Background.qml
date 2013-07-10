@@ -8,14 +8,16 @@ ShellItem {
     width: Screen.width
     height: Screen.height
 
+    property alias imageSource: image.source
+    property alias imageFillMode: image.fillMode
+
     Rectangle {
         anchors.fill: parent
         color: "black"
 
         Image {
+            id: image
             anchors.fill: parent
-            source: "/home/giulio/Immagini/civetta/DSCF0470.JPG"
-            fillMode: Image.PreserveAspectFit
             smooth: true
         }
     }
