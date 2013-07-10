@@ -18,6 +18,7 @@
 #include "client.h"
 #include "processlauncher.h"
 #include "shellitem.h"
+#include "iconimageprovider.h"
 
 Binding::~Binding()
 {
@@ -80,8 +81,6 @@ void Client::create()
     wl_surface *grabSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_grabWindow));
     desktop_shell_set_grab_surface(m_shell, grabSurface);
 
-    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
-
     QScreen *screen = QGuiApplication::screens().first();
     wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 
@@ -93,16 +92,17 @@ void Client::create()
     m_engine = new QQmlEngine(this);
     m_engine->rootContext()->setContextProperty("Client", this);
     m_engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
+    m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
+    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/desktop.qml"));
     m_component = new QQmlComponent(m_engine, this);
-    m_component->loadUrl(path + "desktop.qml");
+    m_component->loadUrl(path);
     if (!m_component->isReady())
         qFatal(qPrintable(m_component->errorString()));
 
     QObject *rootObject = m_component->create();
     if (!rootObject)
-        qFatal("Couldn't create component from Shell.qml!");
-
+        qFatal(qPrintable("Couldn't create component from " + path));
 
     const QObjectList objects = rootObject->children();
     for (int i = 0; i < objects.size(); i++) {

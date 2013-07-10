@@ -17,7 +17,7 @@ Item {
         Image {
             id: image
             anchors.fill: parent
-
+            sourceSize: Qt.size(width, height)
             fillMode: Image.PreserveAspectFit
         }
 

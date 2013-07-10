@@ -14,7 +14,9 @@ set(SOURCES
     client.cpp
     processlauncher.cpp
     volumecontrol.cpp
-    shellitem.cpp)
+    shellitem.cpp
+    iconimageprovider.cpp
+    shellui.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
