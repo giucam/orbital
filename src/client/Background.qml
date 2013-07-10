@@ -11,14 +11,9 @@ ShellItem {
     property alias imageSource: image.source
     property alias imageFillMode: image.fillMode
 
-    Rectangle {
+    Image {
+        id: image
         anchors.fill: parent
-        color: "black"
-
-        Image {
-            id: image
-            anchors.fill: parent
-            smooth: true
-        }
+        smooth: true
     }
 }
