@@ -6,7 +6,6 @@
 
 class QQmlEngine;
 class QQmlComponent;
-class QQuickView;
 class QWindow;
 
 struct wl_display;
@@ -63,9 +62,8 @@ private:
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
 
-    QQuickView *m_backgroundView;
-    QList<QQuickView *> m_panelViews;
-    QQuickView *m_volumeView;
+    QQmlEngine *m_engine;
+    QQmlComponent *m_component;
 };
 
 #endif

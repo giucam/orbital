@@ -13,7 +13,8 @@ set(SOURCES
     main.cpp
     client.cpp
     processlauncher.cpp
-    volumecontrol.cpp)
+    volumecontrol.cpp
+    shellitem.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
