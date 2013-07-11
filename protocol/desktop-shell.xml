@@ -85,7 +85,14 @@
     <event name="window_added">
         <arg name="id" type="new_id" interface="desktop_shell_window"/>
         <arg name="title" type="string"/>
+        <arg name="window_state" type="int"/>
     </event>
+
+    <enum name="window_state">
+        <entry name="inactive" value="0"/>
+        <entry name="active" value="1"/>
+        <entry name="minimized" value="2"/>
+    </enum>
 
     <enum name="cursor">
       <entry name="none" value="0"/>

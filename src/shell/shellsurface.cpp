@@ -29,11 +29,13 @@
 ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             : m_shell(shell)
             , m_workspace(nullptr)
+            , m_windowResource(nullptr)
             , m_surface(surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
             , m_unresponsive(false)
             , m_minimized(false)
+            , m_active(false)
             , m_parent(nullptr)
             , m_pingTimer(nullptr)
 {
@@ -55,8 +57,7 @@ ShellSurface::~ShellSurface()
     if (m_fullscreen.blackSurface) {
         weston_surface_destroy(m_fullscreen.blackSurface);
     }
-    desktop_shell_window_send_removed(m_windowResource);
-    wl_resource_destroy(m_windowResource);
+    destroyWindow();
 }
 
 void ShellSurface::activate(struct wl_client *client, struct wl_resource *resource)
@@ -99,11 +100,16 @@ void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *worksp
 //     m_resource.object.implementation = &m_shell_surface_implementation;
 //     m_resource.data = this;
 
-    m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
-    wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
-    desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str());
-
     m_workspace = workspace;
+}
+
+void ShellSurface::destroyWindow()
+{
+    if (m_windowResource) {
+        desktop_shell_window_send_removed(m_windowResource);
+        wl_resource_destroy(m_windowResource);
+        m_windowResource = nullptr;
+    }
 }
 
 void ShellSurface::surfaceDestroyed()
@@ -117,7 +123,10 @@ void ShellSurface::surfaceDestroyed()
 
 void ShellSurface::setActive(bool active)
 {
-    desktop_shell_window_send_set_active(m_windowResource, active);
+    m_active = active;
+    if (m_windowResource) {
+        desktop_shell_window_send_set_active(m_windowResource, active);
+    }
 }
 
 bool ShellSurface::updateType()
@@ -147,6 +156,17 @@ bool ShellSurface::updateType()
                 break;
             default:
                 break;
+        }
+
+        if (m_type == Type::TopLevel || m_type == Type::Maximized || m_type == Type::Fullscreen) {
+            m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
+            wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
+            int state = DESKTOP_SHELL_WINDOW_STATE_INACTIVE;
+            if (m_active) state = DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+            if (m_minimized) state = DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+            desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), state);
+        } else {
+            destroyWindow();
         }
         return true;
     }
@@ -643,7 +663,9 @@ void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *re
 void ShellSurface::setTitle(struct wl_client *client, struct wl_resource *resource, const char *title)
 {
     m_title = title;
-    desktop_shell_window_send_set_title(m_windowResource, title);
+    if (m_windowResource) {
+        desktop_shell_window_send_set_title(m_windowResource, title);
+    }
 }
 
 void ShellSurface::setClass(struct wl_client *client, struct wl_resource *resource, const char *className)

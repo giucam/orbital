@@ -22,6 +22,8 @@ public:
 
     inline bool isActive() const { return m_active; }
 
+    void setState(int32_t state);
+
 public slots:
     void activate();
     void minimize();

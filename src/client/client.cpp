@@ -245,11 +245,12 @@ void Client::handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t
     object->m_grabWindow->setCursor(qcursor);
 }
 
-void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title)
+void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
 {
     Client *c = static_cast<Client *>(data);
     c->m_nextWindow->init(window);
     c->m_nextWindow->setTitle(title);
+    c->m_nextWindow->setState(state);
 
     QMetaObject::invokeMethod(c, "createWindow", Qt::QueuedConnection);
 }

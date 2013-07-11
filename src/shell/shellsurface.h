@@ -99,6 +99,7 @@ private:
     void surfaceDestroyed();
     int pingTimeout();
     void destroyPingTimer();
+    void destroyWindow();
 
     Shell *m_shell;
     Workspace *m_workspace;
@@ -115,6 +116,7 @@ private:
     int32_t m_savedX, m_savedY;
     bool m_unresponsive;
     bool m_minimized;
+    bool m_active;
 
     struct weston_surface *m_parent;
     struct {

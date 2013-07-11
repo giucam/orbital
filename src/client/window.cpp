@@ -51,6 +51,15 @@ void Window::setTitle(const QString &t)
     emit titleChanged();
 }
 
+void Window::setState(int32_t state)
+{
+    if (state == DESKTOP_SHELL_WINDOW_STATE_ACTIVE) {
+        m_active = true;
+    } else {
+        m_active = false;
+    }
+}
+
 void Window::activate()
 {
     desktop_shell_window_activate(m_window);

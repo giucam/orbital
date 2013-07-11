@@ -61,7 +61,7 @@ private:
     static void configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
     static void handlePrepareLockSurface(void *data, desktop_shell *desktop_shell);
     static void handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor);
-    static void handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title);
+    static void handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
 
     static const wl_registry_listener s_registryListener;
     static const desktop_shell_listener s_shellListener;
