@@ -107,9 +107,10 @@ static const struct weston_pointer_grab_interface busy_cursor_grab_interface = {
 void DesktopShell::setBusyCursor(ShellSurface *surface, struct weston_seat *seat)
 {
     ShellGrab *grab = new ShellGrab;
-    if (!grab)
+    if (!grab && grab->pointer)
         return;
 
+    grab->pointer = seat->pointer;
     grab->pointer->focus = surface->weston_surface();
     startGrab(grab, &busy_cursor_grab_interface, seat, DESKTOP_SHELL_CURSOR_BUSY);
 }
