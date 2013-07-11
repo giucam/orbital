@@ -46,6 +46,7 @@ Binding::~Binding()
 
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
+            , m_activeSurface(nullptr)
             , m_blackSurface(nullptr)
             , m_grabSurface(nullptr)
 {
@@ -367,6 +368,7 @@ ShellSurface *Shell::createShellSurface(struct weston_surface *surface, const st
     surface->configure = shell_surface_configure;
     surface->configure_private = shsurf;
     shsurf->m_client = client;
+
     return shsurf;
 }
 
@@ -404,6 +406,12 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
     shsurf->init(client, id, currentWorkspace());
     shsurf->pingTimeoutSignal.connect(this, &Shell::pingTimeout);
 
+    shsurf->setActive(true);
+    if (m_activeSurface) {
+        m_activeSurface->setActive(false);
+    }
+    m_activeSurface = shsurf;
+
     return shsurf;
 }
 
@@ -418,6 +426,9 @@ ShellSurface *Shell::getShellSurface(struct weston_surface *surf)
 
 void Shell::removeShellSurface(ShellSurface *surface)
 {
+    if (m_activeSurface == surface) {
+        m_activeSurface = nullptr;
+    }
     for (Effect *e: m_effects) {
         e->removeSurface(surface);
     }
@@ -440,6 +451,11 @@ void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)
 {
     weston_surface_activate(shsurf->m_surface, seat);
     shsurf->m_workspace->restack(shsurf);
+    if (m_activeSurface) {
+        m_activeSurface->setActive(false);
+    }
+    shsurf->setActive(true);
+    m_activeSurface = shsurf;
 }
 
 void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t button)

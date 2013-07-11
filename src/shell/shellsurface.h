@@ -74,12 +74,16 @@ public:
     inline Workspace *workspace() const { return m_workspace; }
     struct weston_surface *transformParent() const;
 
+    inline std::string title() const { return m_title; }
+
     void dragMove(struct weston_seat *ws);
     void dragResize(struct weston_seat *ws, uint32_t edges);
     void popupDone();
 
     void ping(uint32_t serial);
     bool isResponsive() const;
+
+    void setActive(bool active);
 
     Signal<ShellSurface *> moveStartSignal;
     Signal<ShellSurface *> moveEndSignal;
@@ -99,6 +103,7 @@ private:
     Shell *m_shell;
     Workspace *m_workspace;
     struct wl_resource *m_resource;
+    struct wl_resource *m_windowResource;
     struct weston_surface *m_surface;
     WlListener m_surfaceDestroyListener;
     Type m_type;
@@ -109,6 +114,7 @@ private:
     struct weston_output *m_output;
     int32_t m_savedX, m_savedY;
     bool m_unresponsive;
+    bool m_minimized;
 
     struct weston_surface *m_parent;
     struct {
@@ -176,6 +182,10 @@ private:
     static void resize_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
     static void resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
     static const struct weston_pointer_grab_interface m_resize_grab_interface;
+
+    static void activate(struct wl_client *client, struct wl_resource *resource);
+    static void minimize(struct wl_client *client, struct wl_resource *resource);
+    static const struct desktop_shell_window_interface m_window_implementation;
 
     friend class Shell;
     friend class Layer;

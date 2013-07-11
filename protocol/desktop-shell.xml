@@ -82,6 +82,11 @@
       <arg name="cursor" type="uint"/>
     </event>
 
+    <event name="window_added">
+        <arg name="id" type="new_id" interface="desktop_shell_window"/>
+        <arg name="title" type="string"/>
+    </event>
+
     <enum name="cursor">
       <entry name="none" value="0"/>
 
@@ -123,5 +128,17 @@
       <arg name="output" type="object" interface="wl_output"/>
     </request>
 
+  </interface>
+
+  <interface name="desktop_shell_window" version="1">
+      <request name="activate"/>
+      <request name="minimize"/>
+      <event name="set_title">
+          <arg name="title" type="string"/>
+      </event>
+      <event name="set_active">
+          <arg name="value" type="int"/>
+      </event>
+      <event name="removed"/>
   </interface>
 </protocol>

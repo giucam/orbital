@@ -22,6 +22,7 @@
 #include "shellsurface.h"
 #include "shell.h"
 #include "shellseat.h"
+#include "workspace.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -32,6 +33,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
             , m_unresponsive(false)
+            , m_minimized(false)
             , m_parent(nullptr)
             , m_pingTimer(nullptr)
 {
@@ -53,7 +55,38 @@ ShellSurface::~ShellSurface()
     if (m_fullscreen.blackSurface) {
         weston_surface_destroy(m_fullscreen.blackSurface);
     }
+    desktop_shell_window_send_removed(m_windowResource);
+    wl_resource_destroy(m_windowResource);
 }
+
+void ShellSurface::activate(struct wl_client *client, struct wl_resource *resource)
+{
+    ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
+    if (shsurf->m_minimized) {
+        shsurf->m_workspace->addSurface(shsurf);
+        shsurf->m_minimized = false;
+    }
+    shsurf->shell()->activateSurface(shsurf, container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link));
+}
+
+void ShellSurface::minimize(struct wl_client *client, struct wl_resource *resource)
+{
+    ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
+    if (shsurf->m_minimized) {
+        return;
+    }
+
+    shsurf->m_minimized = true;
+
+    wl_list_remove(&shsurf->m_surface->layer_link);
+    wl_list_init(&shsurf->m_surface->layer_link);
+    shsurf->setActive(false);
+}
+
+const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
+    activate,
+    ShellSurface::minimize
+};
 
 void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)
 {
@@ -66,6 +99,10 @@ void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *worksp
 //     m_resource.object.implementation = &m_shell_surface_implementation;
 //     m_resource.data = this;
 
+    m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
+    wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
+    desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str());
+
     m_workspace = workspace;
 }
 
@@ -76,6 +113,11 @@ void ShellSurface::surfaceDestroyed()
     } else {
         delete this;
     }
+}
+
+void ShellSurface::setActive(bool active)
+{
+    desktop_shell_window_send_set_active(m_windowResource, active);
 }
 
 bool ShellSurface::updateType()
@@ -601,6 +643,7 @@ void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *re
 void ShellSurface::setTitle(struct wl_client *client, struct wl_resource *resource, const char *title)
 {
     m_title = title;
+    desktop_shell_window_send_set_title(m_windowResource, title);
 }
 
 void ShellSurface::setClass(struct wl_client *client, struct wl_resource *resource, const char *className)

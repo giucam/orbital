@@ -107,6 +107,9 @@ public:
     void showAllWorkspaces();
     void resetWorkspaces();
 
+    struct wl_client *shellClient() { return m_child.client; }
+    struct wl_resource *shellClientResource() { return m_child.desktop_shell; }
+
 protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
@@ -152,6 +155,7 @@ private:
     Layer m_overlayLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
+    ShellSurface *m_activeSurface;
     std::vector<Workspace *> m_workspaces;
     uint32_t m_currentWorkspace;
 

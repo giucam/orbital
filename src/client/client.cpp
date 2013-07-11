@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QtQml>
+#include <QQuickItem>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -19,6 +20,7 @@
 #include "processlauncher.h"
 #include "shellitem.h"
 #include "iconimageprovider.h"
+#include "window.h"
 
 Binding::~Binding()
 {
@@ -43,6 +45,7 @@ Client::Client()
 
 
     qmlRegisterType<Binding>();
+    qmlRegisterType<Window>();
 }
 
 Client::~Client()
@@ -74,6 +77,7 @@ void Client::create()
 {
     m_launcher = new ProcessLauncher(this);
     m_grabWindow = new QWindow;
+    m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
     m_grabWindow->resize(1, 1);
     m_grabWindow->create();
     m_grabWindow->show();
@@ -100,11 +104,11 @@ void Client::create()
     if (!m_component->isReady())
         qFatal(qPrintable(m_component->errorString()));
 
-    QObject *rootObject = m_component->create();
-    if (!rootObject)
+    m_rootObject = m_component->create();
+    if (!m_rootObject)
         qFatal(qPrintable("Couldn't create component from " + path));
 
-    const QObjectList objects = rootObject->children();
+    const QObjectList objects = m_rootObject->children();
     for (int i = 0; i < objects.size(); i++) {
         ShellItem *window = qobject_cast<ShellItem *>(objects.at(i));
         if (!window)
@@ -132,6 +136,40 @@ void Client::create()
         }
 
     }
+
+    m_nextWindow = new Window(this);
+}
+
+void Client::createWindow()
+{
+    m_windows << m_nextWindow;
+    connect(m_nextWindow, &Window::destroyed, this, &Client::windowRemoved);
+    emit windowsChanged();
+
+    m_nextWindow = new Window(this);
+}
+
+void Client::windowRemoved(Window *w)
+{
+    m_windows.removeOne(w);
+    emit windowsChanged();
+}
+
+int Client::windowsCount(QQmlListProperty<Window> *prop)
+{
+    Client *c = static_cast<Client *>(prop->object);
+    return c->m_windows.count();
+}
+
+Window *Client::windowsAt(QQmlListProperty<Window> *prop, int index)
+{
+    Client *c = static_cast<Client *>(prop->object);
+    return c->m_windows.at(index);
+}
+
+QQmlListProperty<Window> Client::windows()
+{
+    return QQmlListProperty<Window>(this, 0, windowsCount, windowsAt);
 }
 
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
@@ -207,10 +245,20 @@ void Client::handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t
     object->m_grabWindow->setCursor(qcursor);
 }
 
+void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title)
+{
+    Client *c = static_cast<Client *>(data);
+    c->m_nextWindow->init(window);
+    c->m_nextWindow->setTitle(title);
+
+    QMetaObject::invokeMethod(c, "createWindow", Qt::QueuedConnection);
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     Client::configure,
     Client::handlePrepareLockSurface,
-    Client::handleGrabCursor
+    Client::handleGrabCursor,
+    Client::handleWindowAdded
 };
 
 #include "client.moc"

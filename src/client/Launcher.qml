@@ -1,14 +1,17 @@
 
 import QtQuick 2.1
+import QtQuick.Layouts 1.0
 import QtGraphicalEffects 1.0
 
 Item {
     id: launcher
-    height: parent.height
-    width: height
 
     property alias icon: image.source
     property string process
+
+    Layout.preferredWidth: 32
+    Layout.maximumWidth: 50
+    Layout.fillHeight: true
 
     Item {
         id: icon
@@ -17,7 +20,7 @@ Item {
         Image {
             id: image
             anchors.fill: parent
-            sourceSize: Qt.size(width, height)
+            sourceSize: Qt.size(32, 32)
             fillMode: Image.PreserveAspectFit
         }
 

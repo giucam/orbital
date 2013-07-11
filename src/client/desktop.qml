@@ -17,6 +17,12 @@ ShellUI {
             icon: "image://icon/utilities-terminal"
             process: "/home/giulio/projects/wayland/weston/clients/weston-terminal"
         }
+        Launcher {
+            icon: "image://icon/ark"
+            process: "/home/giulio/projects/wayland/weston/clients/gears"
+        }
+        TaskBar {}
+        Spacer {}
     }
 
     Overlay {}
