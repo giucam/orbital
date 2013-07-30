@@ -20,6 +20,8 @@
 
 #include "shell.h"
 
+class InputPanel;
+
 class DesktopShell : public Shell {
 public:
     DesktopShell(struct weston_compositor *ec);
@@ -55,6 +57,8 @@ private:
     static void desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     static const struct desktop_shell_interface m_desktop_shell_implementation;
     static void desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
+
+    InputPanel *m_inputPanel;
 };
 
 #define _this static_cast<DesktopShell *>(resource->data)

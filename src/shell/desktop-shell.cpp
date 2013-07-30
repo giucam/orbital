@@ -33,6 +33,7 @@
 #include "griddesktops.h"
 #include "fademovingeffect.h"
 #include "zoomeffect.h"
+#include "inputpanel.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -60,6 +61,8 @@ void DesktopShell::init()
     new GridDesktops(this);
     new FadeMovingEffect(this);
     new ZoomEffect(this);
+
+    m_inputPanel = new InputPanel(compositor()->wl_display);
 }
 
 void DesktopShell::setGrabCursor(uint32_t cursor)

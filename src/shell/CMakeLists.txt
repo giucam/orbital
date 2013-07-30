@@ -11,6 +11,7 @@ set(SOURCES
     transform.cpp
     animation.cpp
     desktop-shell.cpp
+    inputpanel.cpp
     effects/scaleeffect.cpp
     effects/griddesktops.cpp
     effects/zoomeffect.cpp
@@ -19,6 +20,11 @@ set(SOURCES
 wayland_add_protocol_server(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
     desktop-shell
+)
+
+wayland_add_protocol_server(SOURCES
+    ${CMAKE_SOURCE_DIR}/protocol/input-method.xml
+    input-method
 )
 
 add_library(orbital-shell SHARED ${SOURCES})
