@@ -202,9 +202,14 @@ void Client::handlePrepareLockSurface(void *data, desktop_shell *desktop_shell)
 void Client::handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor)
 {
     Client *object = static_cast<Client *>(data);
+    object->m_pendingGrabCursor = cursor;
+    QMetaObject::invokeMethod(object, "setGrabCursor", Qt::QueuedConnection);
+}
 
+void Client::setGrabCursor()
+{
     QCursor qcursor;
-    switch (cursor) {
+    switch (m_pendingGrabCursor) {
         case DESKTOP_SHELL_CURSOR_NONE:
             break;
         case DESKTOP_SHELL_CURSOR_BUSY:
@@ -242,7 +247,7 @@ void Client::handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t
             break;
     }
 
-    object->m_grabWindow->setCursor(qcursor);
+    m_grabWindow->setCursor(qcursor);
 }
 
 void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
