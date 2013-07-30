@@ -117,6 +117,7 @@ private:
     bool m_unresponsive;
     bool m_minimized;
     bool m_active;
+    bool m_windowAdvertized;
 
     struct weston_surface *m_parent;
     struct {

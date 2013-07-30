@@ -36,6 +36,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_unresponsive(false)
             , m_minimized(false)
             , m_active(false)
+            , m_windowAdvertized(false)
             , m_parent(nullptr)
             , m_pingTimer(nullptr)
 {
@@ -159,12 +160,15 @@ bool ShellSurface::updateType()
         }
 
         if (m_type == Type::TopLevel || m_type == Type::Maximized || m_type == Type::Fullscreen) {
-            m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
-            wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
-            int state = DESKTOP_SHELL_WINDOW_STATE_INACTIVE;
-            if (m_active) state = DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
-            if (m_minimized) state = DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
-            desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), state);
+            if (!m_windowAdvertized) {
+                m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
+                wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
+                int state = DESKTOP_SHELL_WINDOW_STATE_INACTIVE;
+                if (m_active) state = DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+                if (m_minimized) state = DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+                desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), state);
+                m_windowAdvertized = true;
+            }
         } else {
             destroyWindow();
         }
