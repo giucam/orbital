@@ -23,6 +23,7 @@ ShellUI {
         }
         TaskBar {}
         Spacer {}
+        Clock {}
     }
 
     Overlay {}
