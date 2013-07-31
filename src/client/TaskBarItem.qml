@@ -9,7 +9,6 @@ Rectangle {
 
     Layout.minimumWidth: 10
     Layout.preferredWidth: text.width + 20
-    Layout.maximumWidth: 250
     Layout.fillHeight: true
 
     Text {
