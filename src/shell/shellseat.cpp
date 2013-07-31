@@ -35,8 +35,10 @@ public:
             surface->destroyedSignal.disconnect(this, &FocusState::surfaceDestroyed);
             surface->setActive(false);
         }
-        surf->destroyedSignal.connect(this, &FocusState::surfaceDestroyed);
-        surf->setActive(true);
+        if (surf) {
+            surf->destroyedSignal.connect(this, &FocusState::surfaceDestroyed);
+            surf->setActive(true);
+        }
         surface = surf;
     }
 
@@ -96,9 +98,11 @@ ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
 
 void ShellSeat::activate(ShellSurface *shsurf)
 {
-    weston_surface_activate(shsurf->weston_surface(), m_seat);
+    if (shsurf) {
+        weston_surface_activate(shsurf->weston_surface(), m_seat);
+        shsurf->workspace()->restack(shsurf);
+    }
     m_focusState->setFocus(shsurf);
-    shsurf->workspace()->restack(shsurf);
 }
 
 void ShellSeat::seatDestroyed(struct wl_listener *listener, void *data)

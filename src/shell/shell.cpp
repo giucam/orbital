@@ -454,6 +454,9 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
         ShellSurface *shsurf = getShellSurface(focus);
         if (shsurf) {
             ShellSeat::shellSeat(seat)->activate(shsurf);
+        } else {
+            weston_surface_activate(focus, seat);
+            ShellSeat::shellSeat(seat)->activate(nullptr);
         }
 //         activate(shell, focus, (struct weston_seat *)seat)
     };
