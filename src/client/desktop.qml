@@ -19,7 +19,7 @@ ShellUI {
         }
         Launcher {
             icon: "image://icon/ark"
-            process: "/home/giulio/projects/wayland/weston/clients/gears"
+            process: "/home/giulio/projects/wayland/weston/clients/weston-gears"
         }
         TaskBar {}
         Spacer {}
