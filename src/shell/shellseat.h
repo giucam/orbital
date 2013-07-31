@@ -25,11 +25,14 @@
 #include "signal.h"
 
 class ShellSurface;
+class FocusState;
 
 class ShellSeat {
 public:
     ~ShellSeat();
     static ShellSeat *shellSeat(struct weston_seat *seat);
+
+    void activate(ShellSurface *shsurf);
 
     bool addPopupGrab(ShellSurface *surface, uint32_t serial);
     void removePopupGrab(ShellSurface *surface);
@@ -43,6 +46,7 @@ private:
     static void pointerFocus(struct wl_listener *listener, void *data);
 
     struct weston_seat *m_seat;
+    FocusState *m_focusState;
     struct Wrapper {
         ShellSeat *seat;
         struct wl_listener seatDestroy;

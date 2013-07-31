@@ -59,6 +59,7 @@ ShellSurface::~ShellSurface()
         weston_surface_destroy(m_fullscreen.blackSurface);
     }
     destroyWindow();
+    destroyedSignal();
 }
 
 void ShellSurface::activate(struct wl_client *client, struct wl_resource *resource)
@@ -68,7 +69,8 @@ void ShellSurface::activate(struct wl_client *client, struct wl_resource *resour
         shsurf->m_workspace->addSurface(shsurf);
         shsurf->m_minimized = false;
     }
-    shsurf->shell()->activateSurface(shsurf, container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link));
+    weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
+    ShellSeat::shellSeat(seat)->activate(shsurf);
 }
 
 void ShellSurface::minimize(struct wl_client *client, struct wl_resource *resource)

@@ -19,9 +19,46 @@
 
 #include "shellseat.h"
 #include "shellsurface.h"
+#include "workspace.h"
+#include "shell.h"
+
+class FocusState {
+public:
+    FocusState(ShellSeat *seat)
+        : seat(seat)
+        , surface(nullptr)
+    {
+    }
+
+    void setFocus(ShellSurface *surf) {
+        if (surface) {
+            surface->destroyedSignal.disconnect(this, &FocusState::surfaceDestroyed);
+            surface->setActive(false);
+        }
+        surf->destroyedSignal.connect(this, &FocusState::surfaceDestroyed);
+        surf->setActive(true);
+        surface = surf;
+    }
+
+    void surfaceDestroyed() {
+        for (const weston_surface *surf: surface->workspace()->layer()) {
+            if (surf != surface->weston_surface()) {
+                ShellSurface *shsurf = Shell::getShellSurface(surf);
+                if (shsurf) {
+                    seat->activate(shsurf);
+                    break;
+                }
+            }
+        }
+    }
+
+    ShellSeat *seat;
+    ShellSurface *surface;
+};
 
 ShellSeat::ShellSeat(struct weston_seat *seat)
          : m_seat(seat)
+         , m_focusState(new FocusState(this))
 {
     m_popupGrab.client = nullptr;
     m_popupGrab.seat = this;
@@ -55,6 +92,13 @@ ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
     }
 
     return static_cast<Wrapper *>(container_of(listener, Wrapper, seatDestroy))->seat;
+}
+
+void ShellSeat::activate(ShellSurface *shsurf)
+{
+    weston_surface_activate(shsurf->weston_surface(), m_seat);
+    m_focusState->setFocus(shsurf);
+    shsurf->workspace()->restack(shsurf);
 }
 
 void ShellSeat::seatDestroyed(struct wl_listener *listener, void *data)

@@ -22,6 +22,7 @@
 #include "shell.h"
 #include "animation.h"
 #include "animationcurve.h"
+#include "shellseat.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -237,7 +238,7 @@ void ScaleEffect::run(struct weston_seat *ws)
 
 void ScaleEffect::end(ShellSurface *surface)
 {
-    shell()->activateSurface(surface, m_seat);
+    ShellSeat::shellSeat(m_seat)->activate(surface);
     run(m_seat);
 }
 

@@ -43,6 +43,8 @@ public:
     void insert(struct weston_layer *layer);
     void remove();
 
+    inline const Layer &layer() const { return m_layer; }
+
 private:
     Shell *m_shell;
     int m_number;

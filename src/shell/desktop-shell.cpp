@@ -34,6 +34,7 @@
 #include "fademovingeffect.h"
 #include "zoomeffect.h"
 #include "inputpanel.h"
+#include "shellseat.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -93,10 +94,10 @@ static void busy_cursor_grab_button(struct weston_pointer_grab *base, uint32_t t
 
     ShellSurface *shsurf = Shell::getShellSurface(surface);
     if (shsurf && button == BTN_LEFT && state) {
-        grab->shell->activateSurface(shsurf, seat);
+        ShellSeat::shellSeat(seat)->activate(shsurf);
         shsurf->dragMove(seat);
     } else if (shsurf && button == BTN_RIGHT && state) {
-        grab->shell->activateSurface(shsurf, seat);
+        ShellSeat::shellSeat(seat)->activate(shsurf);
 //         surface_rotate(shsurf, &seat->seat);
     }
 }

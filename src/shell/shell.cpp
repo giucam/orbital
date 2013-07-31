@@ -46,7 +46,6 @@ Binding::~Binding()
 
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
-            , m_activeSurface(nullptr)
             , m_blackSurface(nullptr)
             , m_grabSurface(nullptr)
 {
@@ -202,7 +201,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
             case ShellSurface::Type::Maximized: {
                 struct weston_seat *seat;
                 wl_list_for_each(seat, &m_compositor->seat_list, link) {
-                    weston_surface_activate(surface->m_surface, seat);
+                    ShellSeat::shellSeat(seat)->activate(surface);
                 }
             } break;
             default:
@@ -406,16 +405,10 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
     shsurf->init(client, id, currentWorkspace());
     shsurf->pingTimeoutSignal.connect(this, &Shell::pingTimeout);
 
-    shsurf->setActive(true);
-    if (m_activeSurface) {
-        m_activeSurface->setActive(false);
-    }
-    m_activeSurface = shsurf;
-
     return shsurf;
 }
 
-ShellSurface *Shell::getShellSurface(struct weston_surface *surf)
+ShellSurface *Shell::getShellSurface(const struct weston_surface *surf)
 {
     if (surf->configure == shell_surface_configure) {
         return static_cast<ShellSurface *>(surf->configure_private);
@@ -426,9 +419,6 @@ ShellSurface *Shell::getShellSurface(struct weston_surface *surf)
 
 void Shell::removeShellSurface(ShellSurface *surface)
 {
-    if (m_activeSurface == surface) {
-        m_activeSurface = nullptr;
-    }
     for (Effect *e: m_effects) {
         e->removeSurface(surface);
     }
@@ -447,17 +437,6 @@ void Shell::registerEffect(Effect *effect)
     }
 }
 
-void Shell::activateSurface(ShellSurface *shsurf, struct weston_seat *seat)
-{
-    weston_surface_activate(shsurf->m_surface, seat);
-    shsurf->m_workspace->restack(shsurf);
-    if (m_activeSurface) {
-        m_activeSurface->setActive(false);
-    }
-    shsurf->setActive(true);
-    m_activeSurface = shsurf;
-}
-
 void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t button)
 {
     struct weston_surface *focus = (struct weston_surface *) seat->pointer->focus;
@@ -474,7 +453,7 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
     if (seat->pointer->grab == &seat->pointer->default_grab) {
         ShellSurface *shsurf = getShellSurface(focus);
         if (shsurf) {
-            activateSurface(shsurf, (struct weston_seat *)seat);
+            ShellSeat::shellSeat(seat)->activate(shsurf);
         }
 //         activate(shell, focus, (struct weston_seat *)seat)
     };

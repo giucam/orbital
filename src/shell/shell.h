@@ -64,7 +64,7 @@ public:
     ShellSurface *createShellSurface(struct weston_surface *surface, const struct weston_shell_client *client);
     ShellSurface *getShellSurface(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource);
     void removeShellSurface(ShellSurface *surface);
-    static ShellSurface *getShellSurface(struct weston_surface *surf);
+    static ShellSurface *getShellSurface(const struct weston_surface *surf);
     Binding *bindKey(uint32_t key, enum weston_keyboard_modifier modifier, weston_key_binding_handler_t handler, void *data);
     template<class T>
     Binding *bindKey(uint32_t key, enum weston_keyboard_modifier modifier,
@@ -79,7 +79,6 @@ public:
 
     void configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height);
 
-    void activateSurface(ShellSurface *shsurf, struct weston_seat *seat);
     void setBackgroundSurface(struct weston_surface *surface, struct weston_output *output);
     void setGrabSurface(struct weston_surface *surface);
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
@@ -155,7 +154,6 @@ private:
     Layer m_overlayLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
-    ShellSurface *m_activeSurface;
     std::vector<Workspace *> m_workspaces;
     uint32_t m_currentWorkspace;
 

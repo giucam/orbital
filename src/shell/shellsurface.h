@@ -85,6 +85,7 @@ public:
 
     void setActive(bool active);
 
+    Signal<> destroyedSignal;
     Signal<ShellSurface *> moveStartSignal;
     Signal<ShellSurface *> moveEndSignal;
     Signal<ShellSurface *> pingTimeoutSignal;
