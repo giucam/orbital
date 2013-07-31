@@ -21,6 +21,7 @@ struct desktop_shell_window;
 
 class ProcessLauncher;
 class Window;
+class ShellUI;
 
 class Binding : public QObject
 {
@@ -80,7 +81,7 @@ private:
 
     QQmlEngine *m_engine;
     QQmlComponent *m_component;
-    QObject *m_rootObject;
+    ShellUI *m_ui;
 
     Window *m_nextWindow;
     QList<Window *> m_windows;

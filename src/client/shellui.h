@@ -7,6 +7,8 @@
 
 #include "shellitem.h"
 
+class QXmlStreamReader;
+
 class ShellUI : public QObject
 {
     Q_OBJECT
@@ -18,10 +20,15 @@ public:
     ShellUI(QObject *p = nullptr);
     ~ShellUI();
 
+    void loadUI(QQmlEngine *engine, const QString &configFile, const QStringList &searchPath);
+
     QString iconTheme() const;
     void setIconTheme(const QString &theme);
 
     QQmlListProperty<ShellItem> items();
+
+private:
+    void loadElement(QQmlEngine *engine, QObject *parent, QXmlStreamReader &xml);
 };
 
 #endif

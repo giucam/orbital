@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QtQml>
 #include <QQuickItem>
+#include <QStandardPaths>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -21,6 +22,7 @@
 #include "shellitem.h"
 #include "iconimageprovider.h"
 #include "window.h"
+#include "shellui.h"
 
 Binding::~Binding()
 {
@@ -98,17 +100,13 @@ void Client::create()
     m_engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
     m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
-    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/desktop.qml"));
-    m_component = new QQmlComponent(m_engine, this);
-    m_component->loadUrl(path);
-    if (!m_component->isReady())
-        qFatal(qPrintable(m_component->errorString()));
+    m_ui = new ShellUI(this);
+    QStringList path;
+    path << QStandardPaths::standardLocations(QStandardPaths::ConfigLocation);
+    path << "../src/client/";
+    m_ui->loadUI(m_engine, "orbital.conf", path);
 
-    m_rootObject = m_component->create();
-    if (!m_rootObject)
-        qFatal(qPrintable("Couldn't create component from " + path));
-
-    const QObjectList objects = m_rootObject->children();
+    const QObjectList objects = m_ui->children();
     for (int i = 0; i < objects.size(); i++) {
         ShellItem *window = qobject_cast<ShellItem *>(objects.at(i));
         if (!window)

@@ -5,14 +5,16 @@ import QtQuick.Layouts 1.0
 import Orbital 1.0
 
 ShellItem {
+    id: panel
     type: ShellItem.Panel
     width: Screen.width
     height: 30
     color: "black"
 
-    default property alias items: layout.children
+    property Item content: layout
 
     Rectangle {
+        parent: panel.contentItem
         anchors.fill: parent
 
         gradient: Gradient {

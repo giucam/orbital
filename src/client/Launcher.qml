@@ -6,7 +6,7 @@ import QtGraphicalEffects 1.0
 Item {
     id: launcher
 
-    property alias icon: image.source
+    property string icon: ""
     property string process
 
     Layout.preferredWidth: 32
@@ -19,6 +19,7 @@ Item {
 
         Image {
             id: image
+            source: launcher.icon
             anchors.fill: parent
             sourceSize: Qt.size(32, 32)
             fillMode: Image.PreserveAspectFit
