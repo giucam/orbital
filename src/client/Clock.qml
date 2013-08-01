@@ -3,7 +3,8 @@ import QtQuick 2.1
 import QtQuick.Layouts 1.0
 
 Item {
-    Layout.minimumWidth: text.width
+    width: text.width
+    Layout.minimumWidth: width
     Layout.fillHeight: true
 
     Timer {

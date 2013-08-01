@@ -7,8 +7,11 @@ Rectangle {
     color: "transparent"
     border.color: "grey"
 
-    Layout.preferredWidth: parent ? parent.width : 0
-    Layout.preferredHeight: parent ? parent.height : 0
+    width: 200
+    height: 32
+
+    Layout.preferredWidth: height
+    Layout.preferredHeight: width
     Layout.fillWidth: true
     Layout.fillHeight: true
 

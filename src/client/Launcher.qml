@@ -9,7 +9,10 @@ Item {
     property string icon: ""
     property string process
 
-    Layout.preferredWidth: 32
+    width: 32
+    height: width
+
+    Layout.preferredWidth: width
     Layout.maximumWidth: 50
     Layout.fillHeight: true
 

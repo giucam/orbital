@@ -3,8 +3,11 @@ import QtQuick 2.1
 import QtQuick.Layouts 1.0
 
 Item {
+    width: 200
+    height: 32
+
     Layout.minimumWidth: 10
-    Layout.preferredWidth: 200
+    Layout.preferredWidth: width
     Layout.fillHeight: true
 
     Rectangle {
