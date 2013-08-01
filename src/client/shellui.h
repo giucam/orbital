@@ -8,6 +8,7 @@
 #include "shellitem.h"
 
 class QXmlStreamReader;
+class QXmlStreamWriter;
 
 class Client;
 
@@ -28,11 +29,27 @@ public:
 
 public slots:
     void requestFocus(QQuickItem *item);
+    void reloadConfig();
+    void saveConfig();
 
 private:
-    void loadElement(QQmlEngine *engine, QObject *parent, QXmlStreamReader &xml);
+    struct Element {
+        QObject *obj;
+        QString type;
+        int id;
+        QList<Element> children;
+        QStringList properties;
+    };
+
+    void loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml);
+    void reloadElement(QXmlStreamReader &xml);
+    void saveElement(Element *elm, QXmlStreamWriter &xml);
 
     Client *m_client;
+    QString m_configFile;
+
+    QHash<int, Element *> m_elements;
+    Element m_rootElement;
 };
 
 #endif
