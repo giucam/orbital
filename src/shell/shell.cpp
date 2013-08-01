@@ -451,6 +451,10 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
 //         return;
     if (seat->pointer->grab == &seat->pointer->default_grab) {
         ShellSurface *shsurf = getShellSurface(focus);
+        if (shsurf && shsurf->type() == ShellSurface::Type::Fullscreen) {
+            return;
+        }
+
         ShellSeat *shseat = ShellSeat::shellSeat(seat);
         if (shsurf) {
             shseat->activate(shsurf);
