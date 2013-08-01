@@ -9,15 +9,16 @@
 
 class QXmlStreamReader;
 
+class Client;
+
 class ShellUI : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
-    Q_PROPERTY(QQmlListProperty<ShellItem> items READ items)
     Q_CLASSINFO("DefaultProperty", "items")
 
 public:
-    ShellUI(QObject *p = nullptr);
+    ShellUI(Client *client);
     ~ShellUI();
 
     void loadUI(QQmlEngine *engine, const QString &configFile, const QStringList &searchPath);
@@ -25,10 +26,13 @@ public:
     QString iconTheme() const;
     void setIconTheme(const QString &theme);
 
-    QQmlListProperty<ShellItem> items();
+public slots:
+    void requestFocus(QQuickItem *item);
 
 private:
     void loadElement(QQmlEngine *engine, QObject *parent, QXmlStreamReader &xml);
+
+    Client *m_client;
 };
 
 #endif

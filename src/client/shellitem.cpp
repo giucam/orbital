@@ -1,5 +1,6 @@
 
 #include <QtQml>
+#include <QDebug>
 
 #include "shellitem.h"
 

@@ -106,6 +106,21 @@ void ShellSeat::activate(ShellSurface *shsurf)
     m_focusState->setFocus(shsurf);
 }
 
+void ShellSeat::activate(weston_surface *surf)
+{
+    weston_surface_activate(surf, m_seat);
+    ShellSurface *shsurf = Shell::getShellSurface(surf);
+    if (shsurf) {
+        shsurf->workspace()->restack(shsurf);
+    }
+    m_focusState->setFocus(shsurf);
+}
+
+ShellSurface *ShellSeat::currentFocus() const
+{
+    return  m_focusState->surface;
+}
+
 void ShellSeat::seatDestroyed(struct wl_listener *listener, void *data)
 {
     ShellSeat *shseat = static_cast<Wrapper *>(container_of(listener, Wrapper, seatDestroy))->seat;

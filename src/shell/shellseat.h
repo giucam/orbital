@@ -33,10 +33,13 @@ public:
     static ShellSeat *shellSeat(struct weston_seat *seat);
 
     void activate(ShellSurface *shsurf);
+    void activate(weston_surface *surf);
 
     bool addPopupGrab(ShellSurface *surface, uint32_t serial);
     void removePopupGrab(ShellSurface *surface);
     void endPopupGrab();
+
+    ShellSurface *currentFocus() const;
 
     Signal<ShellSeat *, struct weston_pointer *> pointerFocusSignal;
 

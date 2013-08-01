@@ -46,6 +46,7 @@ private:
     void setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
     void addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     void addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
+    void requestFocus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
 
     static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                                              struct wl_resource *surface_resource);
@@ -57,6 +58,7 @@ private:
     static void desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     static const struct desktop_shell_interface m_desktop_shell_implementation;
     static void desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
+    static void desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
 
     InputPanel *m_inputPanel;
 };
@@ -92,6 +94,10 @@ inline void DesktopShell::desktop_shell_add_key_binding(struct wl_client *client
 
 inline void DesktopShell::desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource) {
     _this->addOverlay(client, resource, output_resource, surface_resource);
+}
+
+inline void DesktopShell::desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource) {
+    _this->requestFocus(client, resource, surface_resource);
 }
 
 #endif

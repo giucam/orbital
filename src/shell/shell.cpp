@@ -449,14 +449,13 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
 
 //     if (get_shell_surface_type(focus) == SHELL_SURFACE_NONE)
 //         return;
-
     if (seat->pointer->grab == &seat->pointer->default_grab) {
         ShellSurface *shsurf = getShellSurface(focus);
+        ShellSeat *shseat = ShellSeat::shellSeat(seat);
         if (shsurf) {
-            ShellSeat::shellSeat(seat)->activate(shsurf);
-        } else {
-            weston_surface_activate(focus, seat);
-            ShellSeat::shellSeat(seat)->activate(nullptr);
+            shseat->activate(shsurf);
+        } else if (!shseat->currentFocus()) { //the focus may be a ShellItem (panel, background, ...)
+            weston_surface_activate(0, seat);
         }
 //         activate(shell, focus, (struct weston_seat *)seat)
     };

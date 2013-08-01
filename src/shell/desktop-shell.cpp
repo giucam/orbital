@@ -264,6 +264,14 @@ void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *reso
     pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
 }
 
+void DesktopShell::requestFocus(wl_client *client, wl_resource *resource, wl_resource *surface_resource)
+{
+    weston_surface *surf = static_cast<weston_surface *>(surface_resource->data);
+    weston_seat *seat;
+    wl_list_for_each(seat, &compositor()->seat_list, link)
+        ShellSeat::shellSeat(seat)->activate(surf);
+}
+
 static void
 desktop_shell_desktop_ready(struct wl_client *client,
                             struct wl_resource *resource)
@@ -278,5 +286,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     DesktopShell::desktop_shell_set_grab_surface,
     desktop_shell_desktop_ready,
     DesktopShell::desktop_shell_add_key_binding,
-    DesktopShell::desktop_shell_add_overlay
+    DesktopShell::desktop_shell_add_overlay,
+    desktop_shell_request_focus
 };

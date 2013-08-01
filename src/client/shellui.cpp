@@ -2,14 +2,18 @@
 #include "shellui.h"
 
 #include <QIcon>
-#include <QtQml>
 #include <QDebug>
 #include <QQuickItem>
+#include <QXmlStreamReader>
+#include <QQmlEngine>
+#include <QQmlContext>
+#include <QCoreApplication>
 
-static const int a = qmlRegisterType<ShellUI>("Orbital", 1, 0, "ShellUI");
+#include "client.h"
 
-ShellUI::ShellUI(QObject *p)
-       : QObject(p)
+ShellUI::ShellUI(Client *client)
+       : QObject(client)
+       , m_client(client)
 {
 }
 
@@ -34,6 +38,8 @@ void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile, const QStrin
         qDebug() << "Cannot find" << configFile;
         return;
     }
+
+    engine->rootContext()->setContextProperty("Ui", this);
 
     QXmlStreamReader xml(&file);
     while (!xml.atEnd()) {
@@ -114,11 +120,7 @@ void ShellUI::setIconTheme(const QString &theme)
     QIcon::setThemeName(theme);
 }
 
-static void appendItem(QQmlListProperty<ShellItem> *prop, ShellItem *o)
+void ShellUI::requestFocus(QQuickItem *item)
 {
-}
-
-QQmlListProperty<ShellItem> ShellUI::items()
-{
-    return QQmlListProperty<ShellItem>(this, 0, appendItem, 0, 0, 0);
+    m_client->requestFocus(item->window());
 }

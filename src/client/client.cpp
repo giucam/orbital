@@ -170,6 +170,12 @@ QQmlListProperty<Window> Client::windows()
     return QQmlListProperty<Window>(this, 0, windowsCount, windowsAt);
 }
 
+void Client::requestFocus(QWindow *window)
+{
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+    desktop_shell_request_focus(m_shell, wlSurface);
+}
+
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);

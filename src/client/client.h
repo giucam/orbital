@@ -49,6 +49,8 @@ public:
 
     QQmlListProperty<Window> windows();
 
+    void requestFocus(QWindow *window);
+
 signals:
     void windowsChanged();
 

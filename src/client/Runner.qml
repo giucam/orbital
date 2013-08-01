@@ -17,6 +17,7 @@ Item {
             anchors.fill: parent
             anchors.margins: 2
             verticalAlignment: TextInput.AlignVCenter
+            focus: true
 
             Keys.onPressed: {
                 if (event.key == Qt.Key_Return || event.key == Qt.Key_Enter) {
@@ -24,6 +25,11 @@ Item {
                     text.text = ""
                 }
             }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onPressed: Ui.requestFocus(text)
         }
     }
 }
