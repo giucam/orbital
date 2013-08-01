@@ -48,7 +48,7 @@ public:
                 ShellSurface *shsurf = Shell::getShellSurface(surf);
                 if (shsurf) {
                     seat->activate(shsurf);
-                    break;
+                    return;
                 }
             }
         }
