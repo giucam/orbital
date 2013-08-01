@@ -508,6 +508,10 @@ void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, 
 
 void ShellSurface::dragMove(struct weston_seat *ws)
 {
+    if (m_type == ShellSurface::Type::Fullscreen) {
+        return;
+    }
+
     MoveGrab *move = new MoveGrab;
     if (!move)
         return;
