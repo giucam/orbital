@@ -52,6 +52,7 @@ public:
                 }
             }
         }
+        surface = nullptr;
     }
 
     ShellSeat *seat;
