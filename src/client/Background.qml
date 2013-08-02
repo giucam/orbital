@@ -2,8 +2,7 @@
 import QtQuick 2.1
 import QtQuick.Window 2.1
 import Orbital 1.0
-import QtQuick.Dialogs 1.0
-import QtQuick.Controls 1.0 as Controls
+import QtGraphicalEffects 1.0
 
 ShellItem {
     id: bkg
@@ -22,69 +21,217 @@ ShellItem {
         smooth: true
     }
 
-    FileDialog {
-        id: fileDialog
-        title: "Please choose an image file"
-        nameFilters: [ "All files (*)" ]
-        selectedNameFilter: nameFilters[0]
-        onAccepted: {
-            bkg.imageSource = fileDialog.fileUrls[0];
-        }
-    }
 
     Rectangle {
         id: config
         y: bkg.height
         width: parent.width
-        height: 200
-        color: "dimgrey"
+        height: 300
+        color: "#E6404040"
 
         property bool open: false
+        property bool faded: false
+        opacity: faded ? 0.1 : 1
+
         states: [
             State {
                 name: "open"
                 when: config.open
                 PropertyChanges { target: config; y: bkg.height - config.height }
+                StateChangeScript { script: browser.path = bkg.imageSource }
             }
         ]
 
-        Row {
-            Text {
-                text: image.source
+        FileBrowser {
+            id: browser
+            nameFilters: [ "*.jpg", "*.png", "*.jpeg" ]
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            propagateComposedEvents: true
+            onEntered: parent.faded = false
+            onExited: parent.faded = true
+
+            Button {
+                id: goUp
+                width: parent.width
+                height: 20
+                icon: "image://icon/arrow-up"
+
+                onClicked: browser.cdUp()
+            }
+
+            Item {
+                id: browserPanel
+                anchors.top: goUp.bottom
+                width: parent.width
+                height: 150
+
+                Connections {
+                    target: browser
+                    onPathChanged: list.contentX = 0;
+                }
+
+                ListView {
+                    id: list
+                    spacing: 5
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: spacing
+                    anchors.rightMargin: spacing
+                    height: 100
+
+                    Behavior on contentX { PropertyAnimation { easing.type: Easing.OutQuad } }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        propagateComposedEvents: true
+                        onWheel: {
+                            var pos = list.contentX + wheel.angleDelta.y * 2;
+                            var max = list.contentWidth - parent.width;
+                            var min = 0;
+                            if (pos > max) pos = max;
+                            if (pos < min) pos = min
+                            list.contentX = pos;
+                        }
+                    }
+
+                    model: browser.dirContent
+                    orientation: ListView.Horizontal
+
+                    delegate: Rectangle {
+                        color: "black"
+                        height: list.height
+                        width: height
+
+                        Item {
+                            id: content
+                            anchors.fill: parent
+                            Image {
+                                id: thumb
+                                property int spacing: list.spacing
+                                x: 2 * spacing
+                                y: spacing
+                                width: parent.width - 4 * spacing
+                                height: width
+                                sourceSize: Qt.size(width, height)
+                                fillMode: Image.PreserveAspectFit
+                                asynchronous: true
+                                cache: modelData.isDir()
+
+                                source: modelData.isDir() ? "image://icon/folder" : modelData.path()
+                            }
+                            Text {
+                                anchors.top: thumb.bottom
+                                width: parent.width
+                                horizontalAlignment: Text.AlignHCenter
+                                text: modelData.name
+                                color: "white"
+                                elide: Text.ElideMiddle
+                            }
+                        }
+
+                        Glow {
+                            id: glow
+                            anchors.fill: content
+                            radius: 8
+                            samples: 16
+                            color: "white"
+                            source: content
+                            opacity: 0
+
+                            Behavior on opacity { PropertyAnimation {} }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+
+                            onEntered: glow.opacity = 0.5
+                            onExited: glow.opacity = 0
+
+                            onClicked: {
+                                if (modelData.isDir()) {
+                                    browser.cd(modelData.name);
+                                } else {
+                                    bkg.imageSource = modelData.path();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Item {
+                    id: scrollBar
+                    anchors.top: list.bottom
+                    anchors.left: list.left
+                    anchors.right: list.right
+                    anchors.topMargin: list.spacing
+                    height: 15
+
+                    Rectangle {
+                        height: parent.height
+                        width: 50
+                        color: "black"
+                        x: (parent.width - width) * list.contentX / (list.contentWidth - list.width)
+
+                        MouseArea {
+                            anchors.fill: parent
+                            property int startPoint
+
+                            onPressed: startPoint = mouse.x
+                            onPositionChanged: {
+                                var x = parent.x + mouse.x - startPoint;
+                                if (x < 0) x = 0;
+                                if (x > scrollBar.width - parent.width) x = scrollBar.width - parent.width;
+                                list.contentX = x * (list.contentWidth - list.width) / (scrollBar.width - parent.width);
+                            }
+                        }
+                    }
+                }
             }
 
             Button {
-                icon: "image://icon/configure"
-                onClicked: fileDialog.open()
+                anchors.bottom: parent.bottom
+                x: config.width - configButton.width - width * 1.5
+                width: configButton.width
+                icon: "image://icon/dialog-cancel"
+
+                onClicked: Ui.reloadConfig()
             }
-
         }
 
-        Button {
-            anchors.bottom: config.bottom
-            x: config.width - configButton.width - width
-            width: configButton.width
-            icon: "image://icon/dialog-cancel"
 
-            onClicked: Ui.reloadConfig()
-        }
-
+        Behavior on opacity { PropertyAnimation { } }
         Behavior on y { PropertyAnimation { } }
     }
 
-    Button {
-        id: configButton
-        width: 20
+    MouseArea {
         anchors.bottom: parent.bottom
         anchors.right: parent.right
+        width: 20
+        height:20
 
-        icon: "image://icon/configure"
+        hoverEnabled: true
+        propagateComposedEvents: true
+        onEntered: config.faded = false
+        onExited: config.faded = true
 
-        onClicked:  {
-            if (config.open) {
-                Ui.saveConfig();
+        Button {
+            id: configButton
+            anchors.fill: parent
+
+            icon: "image://icon/configure"
+
+            onClicked:  {
+                if (config.open) {
+                    Ui.saveConfig();
+                }
+                config.open = !config.open;
             }
-            config.open = !config.open;
         }
     }
 }

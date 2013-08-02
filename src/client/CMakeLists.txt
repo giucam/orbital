@@ -17,7 +17,8 @@ set(SOURCES
     shellitem.cpp
     iconimageprovider.cpp
     shellui.cpp
-    window.cpp)
+    window.cpp
+    filebrowser.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml

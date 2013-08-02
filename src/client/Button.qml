@@ -11,6 +11,7 @@ Item {
 
     signal clicked()
     property string icon: ""
+    property int iconFillMode: Image.PreserveAspectFit
 
     Item {
         id: icon
@@ -21,7 +22,7 @@ Item {
             source: button.icon
             anchors.fill: parent
             sourceSize: Qt.size(32, 32)
-            fillMode: Image.PreserveAspectFit
+            fillMode: button.iconFillMode
         }
 
         Glow {

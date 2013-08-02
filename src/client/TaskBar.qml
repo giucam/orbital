@@ -15,16 +15,6 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    Timer {
-        id:timer
-        interval:100
-        repeat:false
-
-        onTriggered: {
-            layout.update();
-        }
-    }
-
     RowLayout {
         id: layout
         spacing: 5
