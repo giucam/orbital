@@ -23,17 +23,29 @@ import QtGraphicalEffects 1.0
 
 Item {
     id: logout
-    width: 32
-    height: width
+    width: row.width
+    height: 32
 
-    Layout.preferredWidth: width
-    Layout.maximumWidth: 50
+    Layout.preferredWidth: row.width
+    Layout.maximumWidth: 100
     Layout.fillHeight: true
 
-    Button {
-        anchors.fill: parent
-        icon: "image://icon/system-log-out"
-        onClicked: Client.logOut()
+    Row {
+        height: parent.height
+        Button {
+            height: parent.height
+            icon: "image://icon/system-log-out"
+            onClicked: Client.logOut()
+        }
+        Button {
+            height: parent.height
+            icon: "image://icon/system-shutdown"
+            onClicked: Client.poweroff()
+        }
+        Button {
+            height: parent.height
+            icon: "image://icon/system-reboot"
+            onClicked: Client.reboot()
+        }
     }
-
 }

@@ -199,6 +199,18 @@ void Client::logOut()
     desktop_shell_quit(m_shell);
 }
 
+void Client::poweroff()
+{
+    logOut();
+    QProcess::startDetached("systemctl", QStringList() << "poweroff");
+}
+
+void Client::reboot()
+{
+    logOut();
+    QProcess::startDetached("systemctl", QStringList() << "reboot");
+}
+
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);

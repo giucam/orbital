@@ -70,6 +70,8 @@ public:
     void requestFocus(QWindow *window);
 
     Q_INVOKABLE void logOut();
+    Q_INVOKABLE void poweroff();
+    Q_INVOKABLE void reboot();
 
 signals:
     void windowsChanged();
