@@ -26,7 +26,7 @@ Item {
     Layout.fillHeight: true
 
     Timer {
-        interval: 1
+        interval: 200
         running: true
         repeat: true
         triggeredOnStart: true
