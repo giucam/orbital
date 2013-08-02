@@ -31,6 +31,7 @@ Item {
     Layout.fillHeight: true
 
     Row {
+        id: row
         height: parent.height
         Button {
             height: parent.height
