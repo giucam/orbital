@@ -69,6 +69,8 @@ public:
 
     void requestFocus(QWindow *window);
 
+    Q_INVOKABLE void logOut();
+
 signals:
     void windowsChanged();
 

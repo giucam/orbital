@@ -112,6 +112,7 @@ public:
 protected:
     Shell(struct weston_compositor *ec);
     virtual void init();
+    void quit();
     inline const ShellSurfaceList &surfaces() const { return m_surfaces; }
     virtual void setGrabCursor(uint32_t cursor) {}
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) {}

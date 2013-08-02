@@ -147,6 +147,11 @@ void Shell::init()
                                             static_cast<Shell *>(data)->selectNextWorkspace(); }, this);
 }
 
+void Shell::quit()
+{
+    wl_display_terminate(compositor()->wl_display);
+}
+
 void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height)
 {
     if (width == 0) {

@@ -272,6 +272,11 @@ void DesktopShell::requestFocus(wl_client *client, wl_resource *resource, wl_res
         ShellSeat::shellSeat(seat)->activate(surf);
 }
 
+void DesktopShell::quit(wl_client *client, wl_resource *resource)
+{
+    Shell::quit();
+}
+
 static void
 desktop_shell_desktop_ready(struct wl_client *client,
                             struct wl_resource *resource)
@@ -287,5 +292,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     desktop_shell_desktop_ready,
     DesktopShell::desktop_shell_add_key_binding,
     DesktopShell::desktop_shell_add_overlay,
-    desktop_shell_request_focus
+    desktop_shell_request_focus,
+    desktop_shell_quit
 };

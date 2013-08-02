@@ -194,6 +194,11 @@ void Client::requestFocus(QWindow *window)
     desktop_shell_request_focus(m_shell, wlSurface);
 }
 
+void Client::logOut()
+{
+    desktop_shell_quit(m_shell);
+}
+
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);
