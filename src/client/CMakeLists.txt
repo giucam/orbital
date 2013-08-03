@@ -7,7 +7,9 @@ find_package(Qt5Quick)
 
 set(CMAKE_AUTOMOC ON)
 
-include_directories(/opt/qt5/include/QtGui/5.1.0/QtGui/)
+foreach(dir ${Qt5Widgets_INCLUDE_DIRS})
+    include_directories(${dir}/${Qt5Gui_VERSION_STRING}/QtGui/)
+endforeach(dir)
 
 set(SOURCES
     main.cpp
