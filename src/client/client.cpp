@@ -119,10 +119,9 @@ void Client::create()
     m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
     m_ui = new ShellUI(this);
-    QStringList path;
-    path << QStandardPaths::standardLocations(QStandardPaths::ConfigLocation);
-    path << "../src/client/";
-    m_ui->loadUI(m_engine, "orbital.conf", path);
+    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configFile = path + "/orbital.conf";
+    m_ui->loadUI(m_engine, configFile);
 
     const QObjectList objects = m_ui->children();
     for (int i = 0; i < objects.size(); i++) {

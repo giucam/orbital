@@ -40,7 +40,7 @@ public:
     ShellUI(Client *client);
     ~ShellUI();
 
-    void loadUI(QQmlEngine *engine, const QString &configFile, const QStringList &searchPath);
+    void loadUI(QQmlEngine *engine, const QString &configFile);
 
     QString iconTheme() const;
     void setIconTheme(const QString &theme);

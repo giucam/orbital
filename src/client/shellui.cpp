@@ -12,6 +12,26 @@
 
 #include "client.h"
 
+static const char *defaultConfig =
+"<Ui>\n"
+"    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
+"    <element type=\"Background\" id=\"1\">\n"
+"        <property name=\"color\" value=\"black\"/>\n"
+"        <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
+"        <property name=\"imageFillMode\" value=\"3\"/>\n"
+"    </element>\n"
+"   <element type=\"Panel\" id=\"2\">\n"
+"        <element type=\"Launcher\" id=\"3\">\n"
+"            <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
+"            <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
+"        </element>\n"
+"        <element type=\"TaskBar\" id=\"4\"/>\n"
+"        <element type=\"Logout\" id=\"5\"/>\n"
+"        <element type=\"Clock\" id=\"6\"/>\n"
+"    </element>\n"
+"    <element type=\"Overlay\" id=\"7\"/>\n"
+"</Ui>\n";
+
 ShellUI::ShellUI(Client *client)
        : QObject(client)
        , m_client(client)
@@ -23,30 +43,24 @@ ShellUI::~ShellUI()
 
 }
 
-void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile, const QStringList &searchPath)
+void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
 {
-    QFile file;
-    bool open = false;
-    for (const QString &path: searchPath) {
-        file.setFileName(path + "/" + configFile);
-        if (file.open(QIODevice::ReadOnly)) {
-            open = true;
-            break;
-        }
-    }
+    QXmlStreamReader xml;
 
-    if (!open) {
+    QFile file(configFile);
+    if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "Cannot find" << configFile;
-        return;
+        xml.addData(defaultConfig);
+    } else {
+        xml.setDevice(&file);
     }
 
-    m_configFile = file.fileName();
+    m_configFile = configFile;
     engine->rootContext()->setContextProperty("Ui", this);
 
     m_rootElement.obj = this;
     m_rootElement.id = 0;
 
-    QXmlStreamReader xml(&file);
     while (!xml.atEnd()) {
         if (!xml.readNextStartElement()) {
             continue;
@@ -145,10 +159,15 @@ void ShellUI::requestFocus(QQuickItem *item)
 
 void ShellUI::reloadConfig()
 {
-    QFile file(m_configFile);
-    file.open(QIODevice::ReadOnly);
+    QXmlStreamReader xml;
 
-    QXmlStreamReader xml(&file);
+    QFile file(m_configFile);
+    if (!file.open(QIODevice::ReadOnly)) {
+        xml.addData(defaultConfig);
+    } else {
+        xml.setDevice(&file);
+    }
+
     while (!xml.atEnd()) {
         xml.readNextStartElement();
         if (xml.name() == "element") {
