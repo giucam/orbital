@@ -90,12 +90,8 @@ void Shell::init()
     m_destroyListener.listen(&m_compositor->destroy_signal);
     m_destroyListener.signal->connect(this, &Shell::destroy);
 
-    struct wl_global *global = wl_display_add_global(m_compositor->wl_display, &wl_shell_interface, this,
-                                                     [](struct wl_client *client, void *data, uint32_t version, uint32_t id) {
-                                                         static_cast<Shell *>(data)->bind(client, version, id);
-                                                     });
-
-    if (!global)
+    if (!wl_global_create(m_compositor->wl_display, &wl_shell_interface, 1, this,
+        [](struct wl_client *client, void *data, uint32_t version, uint32_t id) { static_cast<Shell *>(data)->bind(client, version, id); }))
         return;
 
     struct weston_seat *seat;
@@ -716,7 +712,7 @@ void Shell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 {
     struct wl_resource *resource = wl_resource_create(client, &wl_shell_interface, version, id);
     if (resource)
-        wl_resource_set_implementation(resource, &shell_implementation, this, NULL);
+        wl_resource_set_implementation(resource, &shell_implementation, this, nullptr);
 }
 
 void Shell::sigchld(int status)

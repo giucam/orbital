@@ -45,12 +45,8 @@ void DesktopShell::init()
 {
     Shell::init();
 
-    struct wl_global *global = wl_display_add_global(compositor()->wl_display, &desktop_shell_interface, this,
-                                                     [](struct wl_client *client, void *data, uint32_t version, uint32_t id) {
-                                                         static_cast<DesktopShell *>(data)->bind(client, version, id);
-                                                     });
-
-    if (!global)
+    if (!wl_global_create(compositor()->wl_display, &desktop_shell_interface, 1, this,
+        [](struct wl_client *client, void *data, uint32_t version, uint32_t id) { static_cast<DesktopShell *>(data)->bind(client, version, id); }))
         return;
 
     weston_compositor_add_button_binding(compositor(), BTN_LEFT, MODIFIER_SUPER,
