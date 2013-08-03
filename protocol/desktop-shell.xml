@@ -144,13 +144,13 @@
   </interface>
 
   <interface name="desktop_shell_window" version="1">
-      <request name="activate"/>
-      <request name="minimize"/>
-      <request name="unminimize"/>
+      <request name="set_state">
+          <arg name="state" type="int"/>
+      </request>
       <event name="set_title">
           <arg name="title" type="string"/>
       </event>
-      <event name="set_active">
+      <event name="state_changed">
           <arg name="value" type="int"/>
       </event>
       <event name="removed"/>

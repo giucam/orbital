@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import QtQuick.Layouts 1.0
+import Orbital 1.0
 
 Rectangle {
     id: item
@@ -39,7 +40,7 @@ Rectangle {
     states: [
         State {
             name: "active"
-            when: window.active
+            when: window.state == Window.Active
             PropertyChanges { target: item; color: "dimgrey" }
         }
     ]
@@ -47,9 +48,13 @@ Rectangle {
     MouseArea {
         anchors.fill: parent
         onClicked: {
-            if (window.active) {
+            print(window.isMinimized());
+            if (window.isMinimized()) {
+                window.unminimize();
+            } else if (window.isActive()) {
                 window.minimize();
-            } else {
+            }
+            if (!window.isActive()) {
                 window.activate();
             }
         }

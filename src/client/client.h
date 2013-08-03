@@ -23,6 +23,8 @@
 #include <QObject>
 #include <QQmlListProperty>
 
+#include "window.h"
+
 class QQmlEngine;
 class QQmlComponent;
 class QWindow;
@@ -113,7 +115,7 @@ private:
 
     Window *m_nextWindow;
     QList<Window *> m_windows;
-    QList<Window *> m_minimizedWindows;
+    QList<QPair<Window *, Window::States>> m_minimizedWindows;
 
     uint32_t m_pendingGrabCursor;
 };

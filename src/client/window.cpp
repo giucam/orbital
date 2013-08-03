@@ -22,16 +22,38 @@
 #include "window.h"
 #include "wayland-desktop-shell-client-protocol.h"
 
+static Window::States wlState2State(int32_t state)
+{
+    Window::States s = Window::Inactive;
+    if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE)
+        s |= Window::Active;
+    if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)
+        s |= Window::Minimized;
+
+    return s;
+}
+
+static int32_t state2WlState(Window::States state)
+{
+    int32_t s = DESKTOP_SHELL_WINDOW_STATE_INACTIVE;
+    if (state & Window::Active)
+        s |= DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+    if (state & Window::Minimized)
+        s |= DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+
+    return s;
+}
+
 #define _this static_cast<Window *>(data)
 static void set_title(void *data, desktop_shell_window *window, const char *title)
 {
     _this->setTitle(title);
 }
 
-void Window::set_active(void *data, desktop_shell_window *window, int32_t activated)
+void Window::state_changed(void *data, desktop_shell_window *window, int32_t state)
 {
-    _this->m_active = activated;
-    emit _this->activeChanged();
+    _this->m_state = wlState2State(state);
+    emit _this->stateChanged();
 }
 
 void Window::removed(void *data, desktop_shell_window *window)
@@ -42,14 +64,13 @@ void Window::removed(void *data, desktop_shell_window *window)
 
 const desktop_shell_window_listener Window::m_window_listener = {
     set_title,
-    Window::set_active,
+    state_changed,
     Window::removed
 };
 
 Window::Window(QObject *p)
       : QObject(p)
-      , m_active(false)
-      , m_minimized(false)
+      , m_state(Window::Inactive)
 {
 }
 
@@ -58,10 +79,11 @@ Window::~Window()
     desktop_shell_window_destroy(m_window);
 }
 
-void Window::init(desktop_shell_window *w)
+void Window::init(desktop_shell_window *w, int32_t state)
 {
     m_window = w;
     desktop_shell_window_add_listener(w, &m_window_listener, this);
+    m_state = wlState2State(state);
 }
 
 void Window::setTitle(const QString &t)
@@ -70,29 +92,39 @@ void Window::setTitle(const QString &t)
     emit titleChanged();
 }
 
-void Window::setState(int32_t state)
+void Window::setState(States state)
 {
-    if (state == DESKTOP_SHELL_WINDOW_STATE_ACTIVE) {
-        m_active = true;
-    } else {
-        m_active = false;
-    }
+    m_state = state;
+    desktop_shell_window_set_state(m_window, state2WlState(m_state));
+}
+
+bool Window::isActive() const
+{
+    return m_state & Active;
+}
+
+bool Window::isMinimized() const
+{
+    return m_state & Minimized;
 }
 
 void Window::activate()
 {
-    desktop_shell_window_activate(m_window);
-    m_minimized = false;
+    if (!(m_state & Window::Active)) {
+        setState(m_state | Window::Active);
+    }
 }
 
 void Window::minimize()
 {
-    desktop_shell_window_minimize(m_window);
-    m_minimized = true;
+    if (!(m_state & Window::Minimized)) {
+        setState(m_state | Window::Minimized);
+    }
 }
 
 void Window::unminimize()
 {
-    desktop_shell_window_unminimize(m_window);
-    m_minimized = false;
+    if (m_state & Window::Minimized) {
+        setState(m_state & ~Window::Minimized);
+    }
 }

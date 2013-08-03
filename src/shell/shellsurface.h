@@ -101,6 +101,7 @@ private:
     int pingTimeout();
     void destroyPingTimer();
     void destroyWindow();
+    void sendState();
 
     Shell *m_shell;
     Workspace *m_workspace;
@@ -116,8 +117,7 @@ private:
     struct weston_output *m_output;
     int32_t m_savedX, m_savedY;
     bool m_unresponsive;
-    bool m_minimized;
-    bool m_active;
+    int32_t m_state;
     bool m_windowAdvertized;
 
     struct weston_surface *m_parent;
@@ -187,9 +187,7 @@ private:
     static void resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
     static const struct weston_pointer_grab_interface m_resize_grab_interface;
 
-    static void activate(struct wl_client *client, struct wl_resource *resource);
-    static void minimize(struct wl_client *client, struct wl_resource *resource);
-    static void unminimize(struct wl_client *client, struct wl_resource *resource);
+    static void set_state(struct wl_client *client, struct wl_resource *resource, int32_t state);
     static const struct desktop_shell_window_interface m_window_implementation;
 
     friend class Shell;

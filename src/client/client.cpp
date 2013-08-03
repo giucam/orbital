@@ -65,7 +65,7 @@ Client::Client()
 
 
     qmlRegisterType<Binding>();
-    qmlRegisterType<Window>();
+    qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
 }
 
 Client::~Client()
@@ -215,16 +215,16 @@ void Client::minimizeWindows()
 {
     for (Window *s: m_windows) {
         if (!s->isMinimized()) {
+            m_minimizedWindows << qMakePair(s, s->state());
             s->minimize();
-            m_minimizedWindows << s;
         }
     }
 }
 
 void Client::restoreWindows()
 {
-    for (Window *w: m_minimizedWindows) {
-        w->unminimize();
+    for (const QPair<Window *, Window::States> pair: m_minimizedWindows) {
+        pair.first->setState(pair.second);
     }
     m_minimizedWindows.clear();
 }
@@ -310,9 +310,8 @@ void Client::setGrabCursor()
 void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
 {
     Client *c = static_cast<Client *>(data);
-    c->m_nextWindow->init(window);
+    c->m_nextWindow->init(window, state);
     c->m_nextWindow->setTitle(title);
-    c->m_nextWindow->setState(state);
 
     QMetaObject::invokeMethod(c, "createWindow", Qt::QueuedConnection);
 }

@@ -34,8 +34,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_type(Type::None)
             , m_pendingType(Type::None)
             , m_unresponsive(false)
-            , m_minimized(false)
-            , m_active(false)
+            , m_state(DESKTOP_SHELL_WINDOW_STATE_INACTIVE)
             , m_windowAdvertized(false)
             , m_parent(nullptr)
             , m_pingTimer(nullptr)
@@ -62,46 +61,28 @@ ShellSurface::~ShellSurface()
     destroyedSignal();
 }
 
-void ShellSurface::activate(struct wl_client *client, struct wl_resource *resource)
+void ShellSurface::set_state(struct wl_client *client, struct wl_resource *resource, int32_t state)
 {
     ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
-    if (shsurf->m_minimized) {
+    if (shsurf->m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         shsurf->m_workspace->addSurface(shsurf);
-        shsurf->m_minimized = false;
+    } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(shsurf->m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        wl_list_remove(&shsurf->m_surface->layer_link);
+        wl_list_init(&shsurf->m_surface->layer_link);
     }
-    weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
-    ShellSeat::shellSeat(seat)->activate(shsurf);
-}
-
-void ShellSurface::minimize(struct wl_client *client, struct wl_resource *resource)
-{
-    ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
-    if (shsurf->m_minimized) {
-        return;
+    printf("%p %d %d\n",shsurf,shsurf->m_state,state);
+    if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
+        printf("act %p\n",shsurf);
+        ShellSeat::shellSeat(seat)->activate(shsurf);
     }
 
-    shsurf->m_minimized = true;
-
-    wl_list_remove(&shsurf->m_surface->layer_link);
-    wl_list_init(&shsurf->m_surface->layer_link);
-    shsurf->setActive(false);
-}
-
-void ShellSurface::unminimize(struct wl_client *client, struct wl_resource *resource)
-{
-    ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
-    if (!shsurf->m_minimized) {
-        return;
-    }
-
-    shsurf->m_minimized = false;
-    shsurf->m_workspace->addSurface(shsurf);
+    shsurf->m_state = state;
+    shsurf->sendState();
 }
 
 const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
-    activate,
-    ShellSurface::minimize,
-    unminimize
+    set_state
 };
 
 void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)
@@ -138,9 +119,18 @@ void ShellSurface::surfaceDestroyed()
 
 void ShellSurface::setActive(bool active)
 {
-    m_active = active;
+    if (active) {
+        m_state |= DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+    } else {
+        m_state &= ~DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+    }
+    sendState();
+}
+
+void ShellSurface::sendState()
+{
     if (m_windowResource) {
-        desktop_shell_window_send_set_active(m_windowResource, active);
+        desktop_shell_window_send_state_changed(m_windowResource, m_state);
     }
 }
 
@@ -177,10 +167,7 @@ bool ShellSurface::updateType()
             if (!m_windowAdvertized) {
                 m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
                 wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
-                int state = DESKTOP_SHELL_WINDOW_STATE_INACTIVE;
-                if (m_active) state = DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
-                if (m_minimized) state = DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
-                desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), state);
+                desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), m_state);
                 m_windowAdvertized = true;
             }
         } else {

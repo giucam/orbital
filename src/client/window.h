@@ -29,19 +29,29 @@ class Window : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
-    Q_PROPERTY(bool active READ isActive NOTIFY activeChanged)
+    Q_PROPERTY(States state READ state WRITE setState NOTIFY stateChanged)
 public:
+    enum State {
+        Inactive = 0,
+        Active = 1,
+        Minimized = 2
+    };
+    Q_ENUMS(State);
+    Q_DECLARE_FLAGS(States, State)
+    Q_FLAGS(States)
+
     Window(QObject *p = nullptr);
     ~Window();
-    void init(desktop_shell_window *window);
+    void init(desktop_shell_window *window, int32_t state);
 
     inline QString title() const { return m_title; }
     void setTitle(const QString &title);
 
-    inline bool isActive() const { return m_active; }
-    inline bool isMinimized() const { return m_minimized; }
+    inline States state() const { return m_state; }
+    void setState(States state);
 
-    void setState(int32_t state);
+    Q_INVOKABLE bool isActive() const;
+    Q_INVOKABLE bool isMinimized() const;
 
 public slots:
     void activate();
@@ -51,17 +61,18 @@ public slots:
 signals:
     void destroyed(Window *w);
     void titleChanged();
-    void activeChanged();
+    void stateChanged();
 
 private:
     desktop_shell_window *m_window;
     QString m_title;
-    bool m_active;
-    bool m_minimized;
+    States m_state;
 
-    static void set_active(void *data, desktop_shell_window *window, int32_t activated);
+    static void state_changed(void *data, desktop_shell_window *window, int32_t state);
     static void removed(void *data, desktop_shell_window *window);
     static const desktop_shell_window_listener m_window_listener;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Window::States)
 
 #endif
