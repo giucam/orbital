@@ -18,7 +18,7 @@ static const char *defaultConfig =
 "    <element type=\"Background\" id=\"1\">\n"
 "        <property name=\"color\" value=\"black\"/>\n"
 "        <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
-"        <property name=\"imageFillMode\" value=\"3\"/>\n"
+"        <property name=\"imageFillMode\" value=\"4\"/>\n"
 "    </element>\n"
 "   <element type=\"Panel\" id=\"2\">\n"
 "        <element type=\"Launcher\" id=\"3\">\n"

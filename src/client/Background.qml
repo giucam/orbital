@@ -28,13 +28,19 @@ ShellItem {
     width: Screen.width
     height: Screen.height
 
+    property variant fillModes: [ { name: "Scaled", value: 0 },
+                                  { name: "Scaled, keep aspect", value: 1},
+                                  { name: "Scaled, cropped", value: 2 },
+                                  { name: "Centered", value: 6 },
+                                  { name: "Tiled", value: 3 } ]
+
     property string imageSource: ""
-    property int imageFillMode: Image.PreserveAspectFit
+    property int imageFillMode: 1
 
     Image {
         id: image
         source: bkg.imageSource
-        fillMode: bkg.imageFillMode
+        fillMode: bkg.fillModes[bkg.imageFillMode].value
         anchors.fill: parent
         smooth: true
     }
@@ -234,7 +240,7 @@ ShellItem {
                 ListView {
                     id: fillModeList
                     anchors.fill: parent
-                    model: [ "Scaled", "Scaled, keep aspect", "Scaled, cropped", "Centered", "Tiled" ]
+                    model: bkg.fillModes
                     orientation: ListView.Horizontal
                     spacing: 2
                     currentIndex: bkg.imageFillMode
@@ -246,7 +252,7 @@ ShellItem {
 
                         Behavior on color { ColorAnimation {} }
                         Text {
-                            text: modelData
+                            text: modelData.name
                             anchors.centerIn: parent
                         }
 
