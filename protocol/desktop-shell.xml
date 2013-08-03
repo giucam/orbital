@@ -146,6 +146,7 @@
   <interface name="desktop_shell_window" version="1">
       <request name="activate"/>
       <request name="minimize"/>
+      <request name="unminimize"/>
       <event name="set_title">
           <arg name="title" type="string"/>
       </event>

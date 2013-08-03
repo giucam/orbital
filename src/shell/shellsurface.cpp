@@ -87,9 +87,21 @@ void ShellSurface::minimize(struct wl_client *client, struct wl_resource *resour
     shsurf->setActive(false);
 }
 
+void ShellSurface::unminimize(struct wl_client *client, struct wl_resource *resource)
+{
+    ShellSurface *shsurf = static_cast<ShellSurface *>(resource->data);
+    if (!shsurf->m_minimized) {
+        return;
+    }
+
+    shsurf->m_minimized = false;
+    shsurf->m_workspace->addSurface(shsurf);
+}
+
 const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
     activate,
-    ShellSurface::minimize
+    ShellSurface::minimize,
+    unminimize
 };
 
 void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)

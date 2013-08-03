@@ -49,6 +49,7 @@ const desktop_shell_window_listener Window::m_window_listener = {
 Window::Window(QObject *p)
       : QObject(p)
       , m_active(false)
+      , m_minimized(false)
 {
 }
 
@@ -81,9 +82,17 @@ void Window::setState(int32_t state)
 void Window::activate()
 {
     desktop_shell_window_activate(m_window);
+    m_minimized = false;
 }
 
 void Window::minimize()
 {
     desktop_shell_window_minimize(m_window);
+    m_minimized = true;
+}
+
+void Window::unminimize()
+{
+    desktop_shell_window_unminimize(m_window);
+    m_minimized = false;
 }

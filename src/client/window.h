@@ -39,12 +39,14 @@ public:
     void setTitle(const QString &title);
 
     inline bool isActive() const { return m_active; }
+    inline bool isMinimized() const { return m_minimized; }
 
     void setState(int32_t state);
 
 public slots:
     void activate();
     void minimize();
+    void unminimize();
 
 signals:
     void destroyed(Window *w);
@@ -55,6 +57,7 @@ private:
     desktop_shell_window *m_window;
     QString m_title;
     bool m_active;
+    bool m_minimized;
 
     static void set_active(void *data, desktop_shell_window *window, int32_t activated);
     static void removed(void *data, desktop_shell_window *window);

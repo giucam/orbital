@@ -189,6 +189,7 @@ private:
 
     static void activate(struct wl_client *client, struct wl_resource *resource);
     static void minimize(struct wl_client *client, struct wl_resource *resource);
+    static void unminimize(struct wl_client *client, struct wl_resource *resource);
     static const struct desktop_shell_window_interface m_window_implementation;
 
     friend class Shell;

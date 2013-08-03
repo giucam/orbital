@@ -211,6 +211,24 @@ void Client::reboot()
     QProcess::startDetached("systemctl", QStringList() << "reboot");
 }
 
+void Client::minimizeWindows()
+{
+    for (Window *s: m_windows) {
+        if (!s->isMinimized()) {
+            s->minimize();
+            m_minimizedWindows << s;
+        }
+    }
+}
+
+void Client::restoreWindows()
+{
+    for (Window *w: m_minimizedWindows) {
+        w->unminimize();
+    }
+    m_minimizedWindows.clear();
+}
+
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);

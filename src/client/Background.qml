@@ -295,6 +295,9 @@ ShellItem {
             onClicked:  {
                 if (config.open) {
                     Ui.saveConfig();
+                    Client.restoreWindows();
+                } else {
+                    Client.minimizeWindows();
                 }
                 config.open = !config.open;
             }

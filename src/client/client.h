@@ -73,6 +73,10 @@ public:
     Q_INVOKABLE void poweroff();
     Q_INVOKABLE void reboot();
 
+public slots:
+    void minimizeWindows();
+    void restoreWindows();
+
 signals:
     void windowsChanged();
 
@@ -109,6 +113,7 @@ private:
 
     Window *m_nextWindow;
     QList<Window *> m_windows;
+    QList<Window *> m_minimizedWindows;
 
     uint32_t m_pendingGrabCursor;
 };
