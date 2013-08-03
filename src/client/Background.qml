@@ -85,8 +85,7 @@ ShellItem {
                 id: browserPanel
                 anchors.top: goUp.bottom
                 width: parent.width
-                height: 150
-
+                height: scrollBar.y + scrollBar.height
                 Connections {
                     target: browser
                     onPathChanged: list.contentX = 0;
@@ -206,6 +205,45 @@ ShellItem {
                                 if (x < 0) x = 0;
                                 if (x > scrollBar.width - parent.width) x = scrollBar.width - parent.width;
                                 list.contentX = x * (list.contentWidth - list.width) / (scrollBar.width - parent.width);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Item {
+                id: fillModeChooser
+                anchors.top: browserPanel.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.leftMargin: 5
+                anchors.rightMargin: 5
+                anchors.topMargin: 5
+                height: 20
+
+                ListView {
+                    id: fillModeList
+                    anchors.fill: parent
+                    model: [ "Scaled", "Scaled, keep aspect", "Scaled, cropped", "Centered", "Tiled" ]
+                    orientation: ListView.Horizontal
+                    spacing: 2
+                    currentIndex: bkg.imageFillMode
+
+                    delegate: Rectangle {
+                        width: fillModeList.width / fillModeList.count - fillModeList.spacing
+                        height: fillModeList.height
+                        color: ListView.isCurrentItem ? "#505050" : "dimgrey"
+
+                        Behavior on color { ColorAnimation {} }
+                        Text {
+                            text: modelData
+                            anchors.centerIn: parent
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                bkg.imageFillMode = index;
                             }
                         }
                     }
