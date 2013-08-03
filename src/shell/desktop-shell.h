@@ -47,6 +47,8 @@ private:
     void addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     void addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
     void requestFocus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
+    void minimizeWindows(wl_client *client, wl_resource *resource);
+    void restoreWindows(wl_client *client, wl_resource *resource);
     void quit(wl_client *client, wl_resource *resource);
 
     static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
@@ -60,6 +62,8 @@ private:
     static const struct desktop_shell_interface m_desktop_shell_implementation;
     static void desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
     static void desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
+    static void desktop_shell_minimize_windows(wl_client *client, wl_resource *resource);
+    static void desktop_shell_restore_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_quit(wl_client *client, wl_resource *resource);
 
     InputPanel *m_inputPanel;
@@ -100,6 +104,14 @@ inline void DesktopShell::desktop_shell_add_overlay(struct wl_client *client, st
 
 inline void DesktopShell::desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource) {
     _this->requestFocus(client, resource, surface_resource);
+}
+
+inline void DesktopShell::desktop_shell_minimize_windows(wl_client *client, wl_resource *resource) {
+    _this->minimizeWindows(client, resource);
+}
+
+inline void DesktopShell::desktop_shell_restore_windows(wl_client *client, wl_resource *resource) {
+    _this->restoreWindows(client, resource);
 }
 
 inline void DesktopShell::desktop_shell_quit(wl_client *client, wl_resource *resource) {

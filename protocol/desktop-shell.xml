@@ -59,6 +59,9 @@
         <arg name="surface" type="object" interface="wl_surface"/>
     </request>
 
+    <request name="minimize_windows"/>
+    <request name="restore_windows"/>
+
     <request name="quit"/>
 
     <!-- We'll fold most of wl_shell into this interface and then

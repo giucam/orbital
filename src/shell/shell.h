@@ -100,7 +100,7 @@ public:
     Workspace *workspace(uint32_t id) const;
     void selectPreviousWorkspace();
     void selectNextWorkspace();
-    void selectWorkspace(uint32_t id);
+    void selectWorkspace(int32_t id);
     uint32_t numWorkspaces() const;
 
     void showAllWorkspaces();

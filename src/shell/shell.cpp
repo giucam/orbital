@@ -611,13 +611,18 @@ void Shell::selectNextWorkspace()
     activateWorkspace(old);
 }
 
-void Shell::selectWorkspace(uint32_t id)
+void Shell::selectWorkspace(int32_t id)
 {
-    if (id >= m_workspaces.size()) {
+    if (id >= (int32_t)m_workspaces.size()) {
         return;
     }
 
     Workspace *old = currentWorkspace();
+
+    if (id < 0) {
+        old->remove();
+        return;
+    }
     m_currentWorkspace = id;
     activateWorkspace(old);
 }

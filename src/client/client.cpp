@@ -213,20 +213,12 @@ void Client::reboot()
 
 void Client::minimizeWindows()
 {
-    for (Window *s: m_windows) {
-        if (!s->isMinimized()) {
-            m_minimizedWindows << qMakePair(s, s->state());
-            s->minimize();
-        }
-    }
+    desktop_shell_minimize_windows(m_shell);
 }
 
 void Client::restoreWindows()
 {
-    for (const QPair<Window *, Window::States> pair: m_minimizedWindows) {
-        pair.first->setState(pair.second);
-    }
-    m_minimizedWindows.clear();
+    desktop_shell_restore_windows(m_shell);
 }
 
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)

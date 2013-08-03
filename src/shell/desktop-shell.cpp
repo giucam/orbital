@@ -35,6 +35,7 @@
 #include "zoomeffect.h"
 #include "inputpanel.h"
 #include "shellseat.h"
+#include "workspace.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -268,6 +269,16 @@ void DesktopShell::requestFocus(wl_client *client, wl_resource *resource, wl_res
         ShellSeat::shellSeat(seat)->activate(surf);
 }
 
+void DesktopShell::minimizeWindows(wl_client *client, wl_resource *resource)
+{
+    selectWorkspace(-1);
+}
+
+void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
+{
+    selectWorkspace(currentWorkspace()->number());
+}
+
 void DesktopShell::quit(wl_client *client, wl_resource *resource)
 {
     Shell::quit();
@@ -289,5 +300,7 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     DesktopShell::desktop_shell_add_key_binding,
     DesktopShell::desktop_shell_add_overlay,
     desktop_shell_request_focus,
+    desktop_shell_minimize_windows,
+    desktop_shell_restore_windows,
     desktop_shell_quit
 };
