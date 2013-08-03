@@ -76,7 +76,7 @@ ShellItem {
                 id: goUp
                 width: parent.width
                 height: 20
-                icon: "image://icon/arrow-up"
+                icon: "image://icon/go-up"
 
                 onClicked: browser.cdUp()
             }
@@ -216,7 +216,7 @@ ShellItem {
                 anchors.bottom: parent.bottom
                 x: config.width - configButton.width - width * 1.5
                 width: configButton.width
-                icon: "image://icon/dialog-cancel"
+                icon: "image://icon/document-revert"
 
                 onClicked: Ui.reloadConfig()
             }
@@ -242,7 +242,7 @@ ShellItem {
             id: configButton
             anchors.fill: parent
 
-            icon: "image://icon/configure"
+            icon: "image://icon/preferences-desktop-wallpaper"
 
             onClicked:  {
                 if (config.open) {
