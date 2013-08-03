@@ -61,6 +61,7 @@ public:
 public slots:
     void cdUp();
     void cd(const QString &dir);
+    void cdHome();
 
 signals:
     void pathChanged();

@@ -72,18 +72,28 @@ ShellItem {
             onEntered: parent.faded = false
             onExited: parent.faded = true
 
-            Button {
-                id: goUp
+            Row {
+                id: buttons
                 width: parent.width
-                height: 20
-                icon: "image://icon/go-up"
+                Button {
+                    id: home
+                    height: 20
+                    icon: "image://icon/user-home"
 
-                onClicked: browser.cdUp()
+                    onClicked: browser.cdHome()
+                }
+                Button {
+                    id: goUp
+                    height: 20
+                    icon: "image://icon/go-up"
+
+                    onClicked: browser.cdUp()
+                }
             }
 
             Item {
                 id: browserPanel
-                anchors.top: goUp.bottom
+                anchors.top: buttons.bottom
                 width: parent.width
                 height: scrollBar.y + scrollBar.height
                 Connections {

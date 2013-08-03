@@ -85,6 +85,11 @@ void FileBrowser::cd(const QString &dir)
     emit pathChanged();
 }
 
+void FileBrowser::cdHome()
+{
+    setPath(QDir::homePath());
+}
+
 QString FileBrowser::path() const
 {
     return m_dir.path();
