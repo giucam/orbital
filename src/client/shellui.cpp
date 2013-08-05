@@ -9,8 +9,10 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QCoreApplication>
+#include <QQuickWindow>
 
 #include "client.h"
+#include "element.h"
 
 static const char *defaultConfig =
 "<Ui>\n"
@@ -45,6 +47,7 @@ ShellUI::~ShellUI()
 
 void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
 {
+    m_engine = engine;
     QXmlStreamReader xml;
 
     QFile file(configFile);
@@ -58,88 +61,61 @@ void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
     m_configFile = configFile;
     engine->rootContext()->setContextProperty("Ui", this);
 
-    m_rootElement.obj = this;
-    m_rootElement.id = 0;
-
     while (!xml.atEnd()) {
         if (!xml.readNextStartElement()) {
             continue;
         }
         if (xml.name() == "element") {
-            loadElement(engine, &m_rootElement, xml);
+            Element *elm = loadElement(engine, nullptr, xml);
+            elm->setParent(this);
+            m_children << elm;
         } else if (xml.name() == "property") {
             QXmlStreamAttributes attribs = xml.attributes();
             QString name = attribs.value("name").toString();
             QString value = attribs.value("value").toString();
 
             setProperty(qPrintable(name), value);
-            m_rootElement.properties << name;
+            m_properties << name;
         }
     }
     file.close();
 }
 
-void ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml)
+Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
     QXmlStreamAttributes attribs = xml.attributes();
     if (!attribs.hasAttribute("type")) {
-        return;
+        return nullptr;
     }
 
-    QStringRef type = attribs.value("type");
-
-    QQmlComponent *c = new QQmlComponent(engine, this);
-    c->loadUrl(path + type.toString() + ".qml");
-    if (!c->isReady())
-        qFatal(qPrintable(c->errorString()));
-
-    QObject *obj = c->create();
+    QString type = attribs.value("type").toString();
     int id = attribs.value("id").toInt();
-    obj->setObjectName(QString("element_%1").arg(attribs.value("id").toString()));
 
-    QVariant v = parent->obj->property("content");
-    QQuickItem *content = parent->obj->property("content").value<QQuickItem *>();
-    if (!content && qobject_cast<ShellItem *>(parent->obj)) {
-        content = static_cast<ShellItem *>(parent->obj)->contentItem();
-    }
-    if (content) {
-        QQuickItem *item = qobject_cast<QQuickItem*>(obj);
-        if (item) {
-            item->setParentItem(content);
-        } else {
-            obj->setParent(content);
-        }
-    } else {
-        obj->setParent(parent->obj);
-    }
-
-    Element elm;
-    elm.obj = obj;
-    elm.type = type.toString();
-    elm.id = id;
+    Element *elm = Element::create(engine, type, parent);
+    elm->setId(id);
 
     while (!xml.atEnd()) {
         xml.readNext();
         if (xml.isStartElement()) {
             if (xml.name() == "element") {
-                loadElement(engine, &elm, xml);
+                loadElement(engine, elm, xml);
             } else if (xml.name() == "property") {
                 QXmlStreamAttributes attribs = xml.attributes();
                 QString name = attribs.value("name").toString();
                 QString value = attribs.value("value").toString();
 
-                obj->setProperty(qPrintable(name), value);
-                elm.properties << name;
+                elm->setProperty(qPrintable(name), value);
+                elm->addProperty(name);
             }
         }
         if (xml.isEndElement() && xml.name() == "element") {
             xml.readNext();
-            parent->children << elm;
-            m_elements.insert(id, &parent->children.last());
-            return;
+            m_elements.insert(id, elm);
+            return elm;
         }
     }
+    return elm;
 }
 
 QString ShellUI::iconTheme() const
@@ -150,6 +126,12 @@ QString ShellUI::iconTheme() const
 void ShellUI::setIconTheme(const QString &theme)
 {
     QIcon::setThemeName(theme);
+}
+
+Element *ShellUI::createElement(const QString &name, Element *parent)
+{
+    Element *elm = Element::create(m_engine, name, parent);
+    return elm;
 }
 
 void ShellUI::requestFocus(QQuickItem *item)
@@ -191,7 +173,7 @@ void ShellUI::reloadElement(QXmlStreamReader &xml)
     }
 
     int id = attribs.value("id").toInt();
-    QObject *obj = m_elements[id]->obj;
+    Element *elm = m_elements[id];
 
     while (!xml.atEnd()) {
         xml.readNext();
@@ -203,7 +185,7 @@ void ShellUI::reloadElement(QXmlStreamReader &xml)
                 QString name = attribs.value("name").toString();
                 QString value = attribs.value("value").toString();
 
-                obj->setProperty(qPrintable(name), value);
+                elm->setProperty(qPrintable(name), value);
             }
         }
         if (xml.isEndElement() && xml.name() == "element") {
@@ -224,7 +206,8 @@ void ShellUI::saveConfig()
     xml.writeStartDocument();
     xml.writeStartElement("Ui");
 
-    saveElement(&m_rootElement, xml);
+    saveProperties(this, m_properties, xml);
+    saveChildren(m_children, xml);
 
     xml.writeEndElement();
     file.close();
@@ -232,21 +215,30 @@ void ShellUI::saveConfig()
 
 void ShellUI::saveElement(Element *elm, QXmlStreamWriter &xml)
 {
-    QObject *obj = elm->obj;
-    for (const QString &prop: elm->properties) {
+    saveProperties(elm, elm->m_properties, xml);
+    saveChildren(elm->m_children, xml);
+}
+
+void ShellUI::saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml)
+{
+    for (const QString &prop: properties) {
         xml.writeStartElement("property");
         xml.writeAttribute("name", prop);
         xml.writeAttribute("value", obj->property(qPrintable(prop)).toString());
         xml.writeEndElement();
     }
+}
 
-    for (Element &child: elm->children) {
+void ShellUI::saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml)
+{
+    for (Element *child: children) {
         xml.writeStartElement("element");
-        xml.writeAttribute("type", child.type);
-        xml.writeAttribute("id", QString::number(child.id));
+        xml.writeAttribute("type", child->m_typeName);
+        xml.writeAttribute("id", QString::number(child->m_id));
 
-        saveElement(&child, xml);
+        saveElement(child, xml);
 
         xml.writeEndElement();
     }
+
 }

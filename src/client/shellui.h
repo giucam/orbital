@@ -22,12 +22,14 @@
 
 #include <QObject>
 #include <QQmlListProperty>
-
-#include "shellitem.h"
+#include <QStringList>
 
 class QXmlStreamReader;
 class QXmlStreamWriter;
+class QQmlEngine;
+class QQuickItem;
 
+class Element;
 class Client;
 
 class ShellUI : public QObject
@@ -45,29 +47,27 @@ public:
     QString iconTheme() const;
     void setIconTheme(const QString &theme);
 
+    Q_INVOKABLE Element *createElement(const QString &name, Element *parent);
+
 public slots:
     void requestFocus(QQuickItem *item);
     void reloadConfig();
     void saveConfig();
 
 private:
-    struct Element {
-        QObject *obj;
-        QString type;
-        int id;
-        QList<Element> children;
-        QStringList properties;
-    };
-
-    void loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml);
+    Element *loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml);
     void reloadElement(QXmlStreamReader &xml);
     void saveElement(Element *elm, QXmlStreamWriter &xml);
+    void saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml);
+    void saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml);
 
     Client *m_client;
+    QQmlEngine *m_engine;
     QString m_configFile;
 
     QHash<int, Element *> m_elements;
-    Element m_rootElement;
+    QList<Element *> m_children;
+    QStringList m_properties;
 };
 
 #endif

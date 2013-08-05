@@ -19,8 +19,9 @@
 
 import QtQuick 2.1
 import QtQuick.Layouts 1.0
+import Orbital 1.0
 
-Item {
+Element {
     id: spacer
     Layout.fillHeight: true
     Layout.fillWidth: true

@@ -17,30 +17,50 @@
  * along with Nome-Programma.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SHELLITEM_H
-#define SHELLITEM_H
+#ifndef ELEMENT_H
+#define ELEMENT_H
 
-#include <QQuickWindow>
+#include <QQuickItem>
+#include <QStringList>
 
-class ShellItem : public QQuickWindow
+class QQmlEngine;
+
+class Element : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(Type type READ type WRITE setType)
 public:
     enum Type {
-        None,
+        Item,
         Background,
         Panel,
         Overlay
     };
     Q_ENUMS(Type)
-    ShellItem(QWindow *parent = nullptr);
+    explicit Element(Element *parent = nullptr);
+
+    void addProperty(const QString &name);
 
     inline Type type() const { return m_type; }
     inline void setType(Type t) { m_type = t; }
 
+    static Element *create(QQmlEngine *engine, const QString &name, Element *parent);
+
+protected:
+    void setId(int id);
+
 private:
+    void setParentElement(Element *parent);
+
+    QString m_typeName;
     Type m_type;
+    int m_id;
+    QList<Element *> m_children;
+    QStringList m_properties;
+
+    static int s_id;
+
+    friend class ShellUI;
 };
 
 #endif

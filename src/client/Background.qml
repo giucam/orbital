@@ -22,9 +22,9 @@ import QtQuick.Window 2.1
 import Orbital 1.0
 import QtGraphicalEffects 1.0
 
-ShellItem {
+Element {
     id: bkg
-    type: ShellItem.Background
+    type: Element.Background
     width: Screen.width
     height: Screen.height
 
@@ -36,6 +36,12 @@ ShellItem {
 
     property string imageSource: ""
     property int imageFillMode: 1
+    property color color: "black"
+
+    Rectangle {
+        anchors.fill: parent
+        color: parent.color
+    }
 
     Image {
         id: image

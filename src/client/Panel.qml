@@ -22,17 +22,21 @@ import QtQuick.Window 2.1
 import QtQuick.Layouts 1.0
 import Orbital 1.0
 
-ShellItem {
+Element {
     id: panel
-    type: ShellItem.Panel
+    type: Element.Panel
     width: Screen.width
     height: 30
-    color: "black"
 
     property Item content: layout
 
     Rectangle {
-        parent: panel.contentItem
+        anchors.fill: parent
+        color: "black"
+    }
+
+    Rectangle {
+        parent: panel
         anchors.fill: parent
 
         gradient: Gradient {

@@ -19,8 +19,9 @@
 
 import QtQuick 2.1
 import QtQuick.Layouts 1.0
+import Orbital 1.0
 
-Item {
+Element {
     width: 200
     height: 32
 

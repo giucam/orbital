@@ -28,6 +28,7 @@
 #include <QtQml>
 #include <QQuickItem>
 #include <QStandardPaths>
+#include <QQuickWindow>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -37,10 +38,10 @@
 
 #include "client.h"
 #include "processlauncher.h"
-#include "shellitem.h"
 #include "iconimageprovider.h"
 #include "window.h"
 #include "shellui.h"
+#include "element.h"
 
 Binding::~Binding()
 {
@@ -125,10 +126,20 @@ void Client::create()
 
     const QObjectList objects = m_ui->children();
     for (int i = 0; i < objects.size(); i++) {
-        ShellItem *window = qobject_cast<ShellItem *>(objects.at(i));
-        if (!window)
+        Element *elm = qobject_cast<Element *>(objects.at(i));
+        if (!elm)
             continue;
 
+        if (elm->type() == Element::Item)
+            continue;
+
+
+        QQuickWindow *window = new QQuickWindow();
+        elm->setParentItem(window->contentItem());
+
+        window->setWidth(elm->width());
+        window->setHeight(elm->height());
+        window->setColor(Qt::transparent);
         window->setFormat(format);
         window->setFlags(Qt::BypassWindowManagerHint);
         window->setScreen(screen);
@@ -136,14 +147,14 @@ void Client::create()
         window->create();
         wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
 
-        switch (window->type()) {
-            case ShellItem::Background:
+        switch (elm->type()) {
+            case Element::Background:
                 desktop_shell_set_background(m_shell, output, wlSurface);
                 break;
-            case ShellItem::Panel:
+            case Element::Panel:
                 desktop_shell_set_panel(m_shell, output, wlSurface);
                 break;
-            case ShellItem::Overlay:
+            case Element::Overlay:
                 desktop_shell_add_overlay(m_shell, output, wlSurface);
                 break;
             default:

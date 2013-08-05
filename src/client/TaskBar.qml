@@ -19,12 +19,10 @@
 
 import QtQuick 2.1
 import QtQuick.Layouts 1.0
+import Orbital 1.0
 
-Rectangle {
+Element {
     id: taskbar
-    color: "transparent"
-    border.color: "grey"
-
     width: 200
     height: 32
 
@@ -33,26 +31,32 @@ Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    RowLayout {
-        id: layout
-        spacing: 5
+    Rectangle {
         anchors.fill: parent
-        anchors.margins: 2
+        color: "transparent"
+        border.color: "grey"
 
-        Repeater {
-            model: Client.windows
+        RowLayout {
+            id: layout
+            spacing: 5
+            anchors.fill: parent
+            anchors.margins: 2
 
-            TaskBarItem {
-                window: modelData
+            Repeater {
+                model: Client.windows
+
+                TaskBarItem {
+                    window: modelData
+                }
+
+                onItemAdded: {
+                    print(item.parent)
+                    spacer.parent = null;
+                    spacer.parent = layout;
+                }
             }
 
-            onItemAdded: {
-                print(item.parent)
-                spacer.parent = null;
-                spacer.parent = layout;
-            }
+            Spacer { id: spacer }
         }
-
-        Spacer { id: spacer }
     }
 }
