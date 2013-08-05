@@ -63,12 +63,12 @@ void Element::setParentElement(Element *parent)
 Element *Element::create(QQmlEngine *engine, const QString &name, Element *parent)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
-    QQmlComponent *c = new QQmlComponent(engine, 0);
-    c->loadUrl(path + name + ".qml");
-    if (!c->isReady())
-        qFatal(qPrintable(c->errorString()));
+    QQmlComponent c(engine);
+    c.loadUrl(path + name + ".qml");
+    if (!c.isReady())
+        qFatal(qPrintable(c.errorString()));
 
-    QObject *obj = c->create();
+    QObject *obj = c.create();
     Element *elm = qobject_cast<Element *>(obj);
     if (!elm) {
         qDebug()<<name<<"not an element type.";
