@@ -24,6 +24,9 @@
 #include <QStringList>
 
 class QQmlEngine;
+class QQuickWindow;
+
+struct wl_surface;
 
 class Element : public QQuickItem
 {
@@ -38,16 +41,30 @@ public:
     };
     Q_ENUMS(Type)
     explicit Element(Element *parent = nullptr);
+    ~Element();
 
-    void addProperty(const QString &name);
+    Q_INVOKABLE void addProperty(const QString &name);
 
     inline Type type() const { return m_type; }
     inline void setType(Type t) { m_type = t; }
 
-    static Element *create(QQmlEngine *engine, const QString &name, Element *parent);
+    static Element *create(QQmlEngine *engine, const QString &name, Element *parent, int id = -1);
+
+    Q_INVOKABLE void publish();
+
+signals:
+    void newElementAdded(Element *element);
+    void newElementEntered(Element *element);
+    void newElementExited(Element *element);
+
 
 protected:
     void setId(int id);
+
+private slots:
+    void focus(wl_surface *surface, int x, int y);
+    void motion(uint32_t time, int x, int y);
+    void button(uint32_t time, uint32_t button, uint32_t state);
 
 private:
     void setParentElement(Element *parent);
@@ -55,8 +72,11 @@ private:
     QString m_typeName;
     Type m_type;
     int m_id;
+    Element *m_parent;
     QList<Element *> m_children;
     QStringList m_properties;
+
+    Element *m_target;
 
     static int s_id;
 

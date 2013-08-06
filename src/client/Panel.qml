@@ -30,6 +30,11 @@ Element {
 
     property Item content: layout
 
+
+    onNewElementAdded: {
+        element.parent = layout
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "black"

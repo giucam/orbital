@@ -42,6 +42,9 @@
 #include "window.h"
 #include "shellui.h"
 #include "element.h"
+#include "grab.h"
+
+Client *Client::s_client = nullptr;
 
 Binding::~Binding()
 {
@@ -51,6 +54,8 @@ Binding::~Binding()
 Client::Client()
       : QObject()
 {
+    s_client = this;
+
     QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
     m_display = static_cast<wl_display *>(native->nativeResourceForIntegration("display"));
     Q_ASSERT(m_display);
@@ -63,7 +68,6 @@ Client::Client()
     Q_ASSERT(m_registry);
 
     wl_registry_add_listener(m_registry, &s_registryListener, this);
-
 
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
@@ -145,6 +149,7 @@ void Client::create()
         window->setScreen(screen);
         window->show();
         window->create();
+        m_uiWindows << window;
         wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
 
         switch (elm->type()) {
@@ -156,6 +161,7 @@ void Client::create()
                 break;
             case Element::Overlay:
                 desktop_shell_add_overlay(m_shell, output, wlSurface);
+                m_engine->rootContext()->setContextProperty("Overlay", elm);
                 break;
             default:
                 break;
@@ -229,6 +235,18 @@ void Client::minimizeWindows()
 void Client::restoreWindows()
 {
     desktop_shell_restore_windows(m_shell);
+}
+
+QQuickWindow *Client::findWindow(wl_surface *surface) const
+{
+    for (QQuickWindow *w: m_uiWindows) {
+        wl_surface *surf = static_cast<wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", w));
+        if (surf == surface) {
+            return w;
+        }
+    }
+
+    return nullptr;
 }
 
 void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
@@ -324,5 +342,11 @@ const desktop_shell_listener Client::s_shellListener = {
     Client::handleGrabCursor,
     Client::handleWindowAdded
 };
+
+Grab *Client::createGrab()
+{
+    desktop_shell_grab *grab = desktop_shell_start_grab(s_client->m_shell);
+    return new Grab(grab);
+}
 
 #include "client.moc"

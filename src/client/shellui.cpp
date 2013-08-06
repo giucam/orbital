@@ -92,8 +92,7 @@ Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamRea
     QString type = attribs.value("type").toString();
     int id = attribs.value("id").toInt();
 
-    Element *elm = Element::create(engine, type, parent);
-    elm->setId(id);
+    Element *elm = Element::create(engine, type, parent, id);
 
     while (!xml.atEnd()) {
         xml.readNext();

@@ -49,6 +49,7 @@ private:
     void requestFocus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
     void minimizeWindows(wl_client *client, wl_resource *resource);
     void restoreWindows(wl_client *client, wl_resource *resource);
+    void createGrab(wl_client *client, wl_resource *resource, uint32_t id);
     void quit(wl_client *client, wl_resource *resource);
 
     static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
@@ -64,6 +65,7 @@ private:
     static void desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
     static void desktop_shell_minimize_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_restore_windows(wl_client *client, wl_resource *resource);
+    static void desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id);
     static void desktop_shell_quit(wl_client *client, wl_resource *resource);
 
     InputPanel *m_inputPanel;
@@ -112,6 +114,10 @@ inline void DesktopShell::desktop_shell_minimize_windows(wl_client *client, wl_r
 
 inline void DesktopShell::desktop_shell_restore_windows(wl_client *client, wl_resource *resource) {
     _this->restoreWindows(client, resource);
+}
+
+inline void DesktopShell::desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id) {
+    _this->createGrab(client, resource, id);
 }
 
 inline void DesktopShell::desktop_shell_quit(wl_client *client, wl_resource *resource) {

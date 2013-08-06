@@ -26,6 +26,7 @@
 class QQmlEngine;
 class QQmlComponent;
 class QWindow;
+class QQuickWindow;
 
 struct wl_display;
 struct wl_registry;
@@ -40,6 +41,7 @@ struct desktop_shell_window;
 class ProcessLauncher;
 class Window;
 class ShellUI;
+class Grab;
 
 class Binding : public QObject
 {
@@ -72,6 +74,12 @@ public:
     Q_INVOKABLE void logOut();
     Q_INVOKABLE void poweroff();
     Q_INVOKABLE void reboot();
+
+    static Grab *createGrab();
+
+    static Client *client() { return s_client; }
+
+    QQuickWindow *findWindow(wl_surface *surface) const;
 
 public slots:
     void minimizeWindows();
@@ -106,6 +114,7 @@ private:
     ProcessLauncher *m_launcher;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
+    QList<QQuickWindow *> m_uiWindows;
 
     QQmlEngine *m_engine;
     QQmlComponent *m_component;
@@ -115,6 +124,8 @@ private:
     QList<Window *> m_windows;
 
     uint32_t m_pendingGrabCursor;
+
+    static Client *s_client;
 };
 
 #endif

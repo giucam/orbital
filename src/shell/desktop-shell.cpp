@@ -279,6 +279,99 @@ void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
     selectWorkspace(currentWorkspace()->number());
 }
 
+class ClientGrab : public ShellGrab {
+public:
+    wl_resource *resource;
+};
+
+static void client_grab_focus(struct weston_pointer_grab *base)
+{
+    ShellGrab *grab = container_of(base, ShellGrab, grab);
+    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
+
+    wl_fixed_t sx, sy;
+    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
+                                                                    grab->pointer->x, grab->pointer->y,
+                                                                    &sx, &sy);
+    if (grab->pointer->focus != surface) {
+        weston_pointer_set_focus(grab->pointer, surface, sx, sy);
+        desktop_shell_grab_send_focus(cgrab->resource, surface->resource, sx, sy);
+    }
+}
+
+static void client_grab_motion(struct weston_pointer_grab *base, uint32_t time)
+{
+    ShellGrab *grab = container_of(base, ShellGrab, grab);
+    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
+
+    wl_fixed_t sx, sy;
+    if (cgrab->pointer->focus_resource) {
+        weston_surface_from_global_fixed(cgrab->pointer->focus, cgrab->pointer->x, cgrab->pointer->y, &sx, &sy);
+        wl_pointer_send_motion(cgrab->pointer->focus_resource, time, sx, sy);
+    }
+
+    desktop_shell_grab_send_motion(cgrab->resource, time, sx, sy);
+}
+
+static void client_grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
+{
+    ShellGrab *grab = container_of(base, ShellGrab, grab);
+    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
+
+    if (grab->pointer->focus_resource) {
+        wl_display *display = wl_client_get_display(wl_resource_get_client(grab->pointer->focus_resource));
+        uint32_t serial = wl_display_next_serial(display);
+        wl_pointer_send_button(grab->pointer->focus_resource, serial, time, button, state);
+    }
+
+    desktop_shell_grab_send_button(cgrab->resource, time, button, state);
+}
+
+static const struct weston_pointer_grab_interface client_grab_interface = {
+    client_grab_focus,
+    client_grab_motion,
+    client_grab_button,
+};
+
+void client_grab_end(wl_client *client, wl_resource *resource)
+{
+    ClientGrab *cg = static_cast<ClientGrab *>(resource->data);
+    Shell::endGrab(cg);
+    weston_output_schedule_repaint(cg->pointer->focus->output);
+}
+
+static const struct desktop_shell_grab_interface desktop_shell_grab_implementation = {
+    client_grab_end
+};
+
+void DesktopShell::createGrab(wl_client *client, wl_resource *resource, uint32_t id)
+{
+    wl_resource *res = wl_resource_create(client, &desktop_shell_grab_interface, wl_resource_get_version(resource), id);
+
+    ClientGrab *grab = new ClientGrab;
+    wl_resource_set_implementation(res, &desktop_shell_grab_implementation, grab, [](wl_resource *) {});
+
+    if (!grab)
+        return;
+
+    weston_seat *seat = container_of(compositor()->seat_list.next, weston_seat, link);
+    grab->pointer = seat->pointer;
+    grab->resource = res;
+    grab->shell = this;
+
+    ShellSeat::shellSeat(seat)->endPopupGrab();
+
+    wl_fixed_t sx, sy;
+    struct weston_surface *surface = weston_compositor_pick_surface(compositor(),
+                                                                    grab->pointer->x, grab->pointer->y,
+                                                                    &sx, &sy);
+    weston_pointer_set_focus(grab->pointer, surface, sx, sy);
+    desktop_shell_grab_send_focus(grab->resource, surface->resource, sx, sy);
+
+    grab->grab.interface = &client_grab_interface;
+    weston_pointer_start_grab(grab->pointer, &grab->grab);
+}
+
 void DesktopShell::quit(wl_client *client, wl_resource *resource)
 {
     Shell::quit();
@@ -302,5 +395,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     desktop_shell_request_focus,
     desktop_shell_minimize_windows,
     desktop_shell_restore_windows,
+    desktop_shell_create_grab,
     desktop_shell_quit
 };

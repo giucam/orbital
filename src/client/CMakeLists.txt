@@ -20,7 +20,8 @@ set(SOURCES
     shellui.cpp
     window.cpp
     filebrowser.cpp
-    element.cpp)
+    element.cpp
+    grab.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml

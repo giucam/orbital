@@ -38,6 +38,19 @@ Element {
     property int imageFillMode: 1
     property color color: "black"
 
+    onNewElementAdded: {
+        element.parent = bkg
+        element.addProperty("x");
+        element.addProperty("y");
+        config.faded--;
+    }
+    onNewElementEntered: {
+        config.faded++;
+    }
+    onNewElementExited: {
+        config.faded--;
+    }
+
     Rectangle {
         anchors.fill: parent
         color: parent.color
@@ -60,7 +73,7 @@ Element {
         color: "#E6404040"
 
         property bool open: false
-        property bool faded: false
+        property int faded: 1
         opacity: faded ? 0.1 : 1
 
         states: [
@@ -81,8 +94,8 @@ Element {
             anchors.fill: parent
             hoverEnabled: true
             propagateComposedEvents: true
-            onEntered: parent.faded = false
-            onExited: parent.faded = true
+            onEntered: parent.faded--
+            onExited: parent.faded++
 
             Row {
                 id: buttons
@@ -272,6 +285,13 @@ Element {
                 }
             }
 
+            ElementsChooser {
+                anchors.top: fillModeChooser.bottom
+                anchors.topMargin: 10
+                width: parent.width
+                height: 50
+            }
+
             Button {
                 anchors.bottom: parent.bottom
                 x: config.width - configButton.width - width * 1.5
@@ -295,8 +315,8 @@ Element {
 
         hoverEnabled: true
         propagateComposedEvents: true
-        onEntered: config.faded = false
-        onExited: config.faded = true
+        onEntered: config.faded--
+        onExited: config.faded++
 
         Button {
             id: configButton

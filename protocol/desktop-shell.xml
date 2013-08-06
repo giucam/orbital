@@ -62,6 +62,10 @@
     <request name="minimize_windows"/>
     <request name="restore_windows"/>
 
+    <request name="start_grab">
+        <arg name="id" type="new_id" interface="desktop_shell_grab"/>
+    </request>
+
     <request name="quit"/>
 
     <!-- We'll fold most of wl_shell into this interface and then
@@ -157,5 +161,25 @@
           <arg name="value" type="int"/>
       </event>
       <event name="removed"/>
+  </interface>
+
+  <interface name="desktop_shell_grab" version="1">
+      <request name="end"/>
+
+      <event name="focus">
+          <arg name="surface" type="object" interface="wl_surface"/>
+          <arg name="sx" type="fixed"/>
+          <arg name="sy" type="fixed"/>
+      </event>
+      <event name="motion">
+          <arg name="time" type="uint"/>
+          <arg name="sx" type="fixed"/>
+          <arg name="sy" type="fixed"/>
+      </event>
+      <event name="button">
+          <arg name="time" type="uint"/>
+          <arg name="button" type="uint"/>
+          <arg name="state" type="uint"/>
+      </event>
   </interface>
 </protocol>
