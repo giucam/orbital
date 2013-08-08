@@ -25,7 +25,7 @@ import Orbital 1.0
 Element {
     id: launcher
 
-    property string icon: ""
+    property string icon: "image://icon/image-missing"
     property string process
 
     width: 32
