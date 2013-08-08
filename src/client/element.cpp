@@ -116,7 +116,7 @@ void Element::button(uint32_t time, uint32_t button, uint32_t state)
 
 void Element::setParentElement(Element *parent)
 {
-    if (!parent) {
+    if (parent == m_parent) {
         return;
     }
 
@@ -124,12 +124,14 @@ void Element::setParentElement(Element *parent)
         m_parent->m_children.removeOne(this);
     }
 
-    QQuickItem *content = parent->property("content").value<QQuickItem *>();
+    QQuickItem *content = (parent ? parent->property("content").value<QQuickItem *>() : nullptr);
     if (!content) {
         content = parent;
     }
     setParentItem(content);
-    parent->m_children << this;
+    if (parent) {
+        parent->m_children << this;
+    }
     m_parent = parent;
 }
 
@@ -151,7 +153,7 @@ void Element::sortChildren()
     qSort(m_children.begin(), m_children.end(), sorter);
 }
 
-Element *Element::create(QQmlEngine *engine, const QString &name, Element *parent, int id)
+Element *Element::create(QQmlEngine *engine, const QString &name, int id)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
     QQmlComponent c(engine);
@@ -166,7 +168,6 @@ Element *Element::create(QQmlEngine *engine, const QString &name, Element *paren
         return nullptr;
     }
 
-    elm->setParentElement(parent);
     if (id < 0) {
         elm->m_id = s_id++;
     } else {

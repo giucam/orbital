@@ -55,8 +55,7 @@ public slots:
     void saveConfig();
 
 private:
-    Element *loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml);
-    void reloadElement(QXmlStreamReader &xml);
+    Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
     void saveElement(Element *elm, QXmlStreamWriter &xml);
     void saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml);
     void saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml);

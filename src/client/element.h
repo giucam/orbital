@@ -58,7 +58,7 @@ public:
     inline QString sortProperty() const { return m_sortProperty; }
     inline void setSortProperty(const QString &p) { m_sortProperty = p; }
 
-    static Element *create(QQmlEngine *engine, const QString &name, Element *parent, int id = -1);
+    static Element *create(QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish();
 

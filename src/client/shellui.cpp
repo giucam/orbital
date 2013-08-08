@@ -50,40 +50,13 @@ ShellUI::~ShellUI()
 void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
 {
     m_engine = engine;
-    QXmlStreamReader xml;
-
-    QFile file(configFile);
-    if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Cannot find" << configFile;
-        xml.addData(defaultConfig);
-    } else {
-        xml.setDevice(&file);
-    }
-
     m_configFile = configFile;
     engine->rootContext()->setContextProperty("Ui", this);
 
-    while (!xml.atEnd()) {
-        if (!xml.readNextStartElement()) {
-            continue;
-        }
-        if (xml.name() == "element") {
-            Element *elm = loadElement(engine, nullptr, xml);
-            elm->setParent(this);
-            m_children << elm;
-        } else if (xml.name() == "property") {
-            QXmlStreamAttributes attribs = xml.attributes();
-            QString name = attribs.value("name").toString();
-            QString value = attribs.value("value").toString();
-
-            setProperty(qPrintable(name), value);
-            m_properties << name;
-        }
-    }
-    file.close();
+    reloadConfig();
 }
 
-Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamReader &xml)
+Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
     QXmlStreamAttributes attribs = xml.attributes();
@@ -91,16 +64,24 @@ Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamRea
         return nullptr;
     }
 
-    QString type = attribs.value("type").toString();
+    bool created = false;
     int id = attribs.value("id").toInt();
-
-    Element *elm = Element::create(engine, type, parent, id);
+    Element *elm = (elements ? elements->take(id) : nullptr);
+    if (!elm) {
+        QString type = attribs.value("type").toString();
+        elm = Element::create(m_engine, type, id);
+        created = true;
+    }
+    if (parent) {
+        elm->setParentElement(parent);
+    }
+    elm->m_properties.clear();
 
     while (!xml.atEnd()) {
         xml.readNext();
         if (xml.isStartElement()) {
             if (xml.name() == "element") {
-                loadElement(engine, elm, xml);
+                loadElement(elm, xml, elements);
             } else if (xml.name() == "property") {
                 QXmlStreamAttributes attribs = xml.attributes();
                 QString name = attribs.value("name").toString();
@@ -113,10 +94,10 @@ Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamRea
         if (xml.isEndElement() && xml.name() == "element") {
             xml.readNext();
             m_elements.insert(id, elm);
-            return elm;
+            return (created ? elm : nullptr);
         }
     }
-    return elm;
+    return (created ? elm : nullptr);
 }
 
 QString ShellUI::iconTheme() const
@@ -131,7 +112,8 @@ void ShellUI::setIconTheme(const QString &theme)
 
 Element *ShellUI::createElement(const QString &name, Element *parent)
 {
-    Element *elm = Element::create(m_engine, name, parent);
+    Element *elm = Element::create(m_engine, name);
+    elm->setParentElement(parent);
     return elm;
 }
 
@@ -151,48 +133,40 @@ void ShellUI::reloadConfig()
         xml.setDevice(&file);
     }
 
+    for (Element *elm: m_elements) {
+        if (elm->m_parent) {
+            elm->setParentElement(nullptr);
+        }
+    }
+
+    QHash<int, Element *> oldElements = m_elements;
+    m_elements.clear();
+    m_properties.clear();
+
     while (!xml.atEnd()) {
-        xml.readNextStartElement();
+        if (!xml.readNextStartElement()) {
+            continue;
+        }
         if (xml.name() == "element") {
-            reloadElement(xml);
+            Element *elm = loadElement(nullptr, xml, &oldElements);
+            if (elm) {
+                elm->setParent(this);
+                m_children << elm;
+            }
         } else if (xml.name() == "property") {
             QXmlStreamAttributes attribs = xml.attributes();
             QString name = attribs.value("name").toString();
             QString value = attribs.value("value").toString();
 
             setProperty(qPrintable(name), value);
+            m_properties << name;
         }
     }
     file.close();
-}
 
-void ShellUI::reloadElement(QXmlStreamReader &xml)
-{
-    QXmlStreamAttributes attribs = xml.attributes();
-    if (!attribs.hasAttribute("type")) {
-        return;
-    }
-
-    int id = attribs.value("id").toInt();
-    Element *elm = m_elements[id];
-
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "element") {
-                reloadElement(xml);
-            } else if (xml.name() == "property") {
-                QXmlStreamAttributes attribs = xml.attributes();
-                QString name = attribs.value("name").toString();
-                QString value = attribs.value("value").toString();
-
-                QQmlProperty::write(elm, name, value);
-            }
-        }
-        if (xml.isEndElement() && xml.name() == "element") {
-            xml.readNext();
-            return;
-        }
+    for (Element *e: oldElements) {
+        delete e;
+        m_children.removeOne(e);
     }
 }
 
