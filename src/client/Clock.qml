@@ -21,10 +21,12 @@ import QtQuick 2.1
 import Orbital 1.0
 
 Element {
-    width: text.width
-    Layout.minimumWidth: width
-    Layout.preferredWidth: width
+    Layout.minimumWidth: text.width
+    Layout.preferredWidth: text.width
     Layout.fillHeight: true
+
+    width: Layout.preferredWidth
+    height: 20
 
     Timer {
         interval: 200

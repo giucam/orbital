@@ -23,10 +23,13 @@ import Orbital 1.0
 Element {
     id: taskbar
 
-    Layout.preferredWidth: 32
-    Layout.preferredHeight: 200
+    Layout.preferredWidth: 200
+    Layout.preferredHeight: 32
     Layout.fillWidth: true
     Layout.fillHeight: true
+
+    width: Layout.preferredWidth
+    height: Layout.preferredHeight
 
     Rectangle {
         anchors.fill: parent
