@@ -22,11 +22,9 @@ import Orbital 1.0
 
 Element {
     id: taskbar
-    width: 200
-    height: 32
 
-    Layout.preferredWidth: height
-    Layout.preferredHeight: width
+    Layout.preferredWidth: 32
+    Layout.preferredHeight: 200
     Layout.fillWidth: true
     Layout.fillHeight: true
 
