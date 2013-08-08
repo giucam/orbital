@@ -99,7 +99,6 @@ void LayoutAttached::setFillHeight(bool fill)
 
 void LayoutAttached::setIndex(int index)
 {
-    qDebug()<<index;
     if (Layout *l = parentLayout()) {
         l->insertAt(m_item, index);
     }
@@ -224,6 +223,12 @@ void Layout::insertAfter(QQuickItem *item, QQuickItem *after)
 
 void Layout::invalidate()
 {
+    for (int i = 0; i < m_items.size(); ++i) {
+        QQuickItem *item = m_items.at(i);
+        LayoutAttached *la = attachedLayoutObject(item);
+        la->m_index = i;
+    }
+
     if (m_dirty)
         return;
 
@@ -265,7 +270,6 @@ void Layout::relayout()
         if (la->fillWidth()) {
             ++expandables;
         }
-        la->m_index = i;
 
         x += w + m_spacing;
     }
