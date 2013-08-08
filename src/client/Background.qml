@@ -42,17 +42,19 @@ Element {
         element.parent = bkg
         element.addProperty("x");
         element.addProperty("y");
-        config.faded--;
+
+        var pos = mapToItem(config, x, y);
+        if (pos.x >= 0 && pos.y >= 0 && pos.x <= config.width && pos.y <= config.height)
+            config.faded = false;
     }
     onNewElementEntered: {
-        config.faded++;
+        config.faded = true;
     }
     onNewElementMoved: {
         element.x = x;
         element.y = y;
     }
     onNewElementExited: {
-        config.faded--;
     }
 
     Rectangle {
@@ -78,7 +80,7 @@ Element {
         z: 100
 
         property bool open: false
-        property int faded: 1
+        property bool faded: false
         opacity: faded ? 0.1 : 1
 
         states: [
@@ -99,8 +101,8 @@ Element {
             anchors.fill: parent
             hoverEnabled: true
             propagateComposedEvents: true
-            onEntered: parent.faded--
-            onExited: parent.faded++
+            onEntered: parent.faded = false
+            onExited: parent.faded = true
 
             Row {
                 id: buttons
@@ -321,8 +323,8 @@ Element {
 
         hoverEnabled: true
         propagateComposedEvents: true
-        onEntered: config.faded--
-        onExited: config.faded++
+        onEntered: config.faded = false
+        onExited: config.faded = true
 
         Button {
             id: configButton

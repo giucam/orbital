@@ -294,7 +294,7 @@ static void client_grab_focus(struct weston_pointer_grab *base)
                                                                     grab->pointer->x, grab->pointer->y,
                                                                     &sx, &sy);
     if (grab->pointer->focus != surface) {
-        weston_pointer_set_focus(grab->pointer, surface, sx, sy);
+        grab->pointer->focus = surface;
         desktop_shell_grab_send_focus(cgrab->resource, surface->resource, sx, sy);
     }
 }
@@ -304,10 +304,10 @@ static void client_grab_motion(struct weston_pointer_grab *base, uint32_t time)
     ShellGrab *grab = container_of(base, ShellGrab, grab);
     ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
 
-    wl_fixed_t sx, sy;
-    if (cgrab->pointer->focus_resource) {
+    wl_fixed_t sx = cgrab->pointer->x;
+    wl_fixed_t sy = cgrab->pointer->y;
+    if (cgrab->pointer->focus) {
         weston_surface_from_global_fixed(cgrab->pointer->focus, cgrab->pointer->x, cgrab->pointer->y, &sx, &sy);
-        wl_pointer_send_motion(cgrab->pointer->focus_resource, time, sx, sy);
     }
 
     desktop_shell_grab_send_motion(cgrab->resource, time, sx, sy);

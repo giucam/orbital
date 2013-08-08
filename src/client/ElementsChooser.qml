@@ -44,7 +44,6 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     onPressed: {
-                        mouse.accepted = false;
                         var objParent = Overlay;
                         var pos = parent.mapToItem(objParent, mouse.x, mouse.y);
                         var newElem = Ui.createElement(modelData, objParent);
