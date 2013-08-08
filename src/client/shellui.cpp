@@ -8,6 +8,8 @@
 #include <QXmlStreamWriter>
 #include <QQmlEngine>
 #include <QQmlContext>
+#include <QQmlExpression>
+#include <QQmlProperty>
 #include <QCoreApplication>
 #include <QQuickWindow>
 
@@ -104,7 +106,7 @@ Element *ShellUI::loadElement(QQmlEngine *engine, Element *parent, QXmlStreamRea
                 QString name = attribs.value("name").toString();
                 QString value = attribs.value("value").toString();
 
-                elm->setProperty(qPrintable(name), value);
+                QQmlProperty::write(elm, name, value);
                 elm->addProperty(name);
             }
         }
@@ -184,7 +186,7 @@ void ShellUI::reloadElement(QXmlStreamReader &xml)
                 QString name = attribs.value("name").toString();
                 QString value = attribs.value("value").toString();
 
-                elm->setProperty(qPrintable(name), value);
+                QQmlProperty::write(elm, name, value);
             }
         }
         if (xml.isEndElement() && xml.name() == "element") {
@@ -215,6 +217,7 @@ void ShellUI::saveConfig()
 void ShellUI::saveElement(Element *elm, QXmlStreamWriter &xml)
 {
     saveProperties(elm, elm->m_properties, xml);
+    elm->sortChildren();
     saveChildren(elm->m_children, xml);
 }
 

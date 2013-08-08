@@ -47,6 +47,10 @@ Element {
     onNewElementEntered: {
         config.faded++;
     }
+    onNewElementMoved: {
+        element.x = x;
+        element.y = y;
+    }
     onNewElementExited: {
         config.faded--;
     }

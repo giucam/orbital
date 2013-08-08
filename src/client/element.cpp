@@ -34,6 +34,7 @@ Element::Element(Element *parent)
        : QQuickItem(parent)
        , m_type(Item)
        , m_parent(nullptr)
+       , m_layout(nullptr)
 {
     setParentElement(parent);
 }
@@ -85,24 +86,27 @@ void Element::focus(wl_surface *surface, int x, int y)
     }
 
     if (m_target) {
-        emit m_target->newElementEntered(this);
+        setParentItem(m_target);
+        emit m_target->newElementEntered(this, x, y);
     }
 
-    setX(x);
-    setY(y);
+    m_pos = QPointF(x, y);
 }
 
 void Element::motion(uint32_t time, int x, int y)
 {
-    setX(x);
-    setY(y);
+    if (m_target) {
+        emit m_target->newElementMoved(this, x, y);
+    }
+
+    m_pos = QPointF(x, y);
 }
 
 void Element::button(uint32_t time, uint32_t button, uint32_t state)
 {
     if (m_target) {
         setParentElement(m_target);
-        emit m_target->newElementAdded(this);
+        emit m_target->newElementAdded(this, m_pos.x(), m_pos.y());
     } else {
         delete this;
     }
@@ -127,6 +131,24 @@ void Element::setParentElement(Element *parent)
     setParentItem(content);
     parent->m_children << this;
     m_parent = parent;
+}
+
+void Element::sortChildren()
+{
+    if (m_sortProperty.isNull()) {
+        return;
+    }
+
+    struct Sorter {
+         QString property;
+
+        bool operator()(Element *a, Element *b) {
+            return QQmlProperty::read(a, property).toInt() < QQmlProperty::read(b, property).toInt();
+        }
+    };
+
+    Sorter sorter = { m_sortProperty };
+    qSort(m_children.begin(), m_children.end(), sorter);
 }
 
 Element *Element::create(QQmlEngine *engine, const QString &name, Element *parent, int id)

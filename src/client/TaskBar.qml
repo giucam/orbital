@@ -18,7 +18,6 @@
  */
 
 import QtQuick 2.1
-import QtQuick.Layouts 1.0
 import Orbital 1.0
 
 Element {
@@ -36,8 +35,7 @@ Element {
         color: "transparent"
         border.color: "grey"
 
-        RowLayout {
-            id: layout
+        Layout {
             spacing: 5
             anchors.fill: parent
             anchors.margins: 2
@@ -48,15 +46,7 @@ Element {
                 TaskBarItem {
                     window: modelData
                 }
-
-                onItemAdded: {
-                    print(item.parent)
-                    spacer.parent = null;
-                    spacer.parent = layout;
-                }
             }
-
-            Spacer { id: spacer }
         }
     }
 }

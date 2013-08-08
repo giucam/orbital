@@ -19,7 +19,6 @@
 
 import QtQuick 2.1
 import QtQuick.Window 2.1
-import QtQuick.Layouts 1.0
 import Orbital 1.0
 
 Element {
@@ -28,11 +27,35 @@ Element {
     width: Screen.width
     height: 30
 
-    property Item content: layout
+    sortProperty: "layoutItem.index"
 
+    property Item content: layout
 
     onNewElementAdded: {
         element.parent = layout
+    }
+    onNewElementEntered: {
+        var item = layout.childAt(x, 15);
+        if (item) {
+            layout.insertAt(element, item.Layout.index);
+            layout.relayout();
+        } else {
+            element.parent = layout;
+        }
+    }
+    onNewElementMoved: {
+        var item = layout.childAt(x, 15);
+        if (item) {
+            if (item != element) {
+                var index = item.Layout.index;
+                if (x < item.x + item.width - element.width)
+                    index--;
+                layout.insertAt(element, index);
+            }
+        }
+    }
+    onNewElementExited: {
+
     }
 
     Rectangle {
@@ -49,7 +72,7 @@ Element {
             GradientStop { position: 0.0; color: "dimgrey" }
         }
 
-        RowLayout {
+        Layout {
             id: layout
             anchors.fill: parent
             anchors.margins: 2

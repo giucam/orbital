@@ -18,12 +18,12 @@
  */
 
 import QtQuick 2.1
-import QtQuick.Layouts 1.0
 import Orbital 1.0
 
 Element {
     width: text.width
     Layout.minimumWidth: width
+    Layout.preferredWidth: width
     Layout.fillHeight: true
 
     Timer {
