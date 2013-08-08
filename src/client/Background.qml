@@ -75,6 +75,7 @@ Element {
         width: parent.width
         height: 300
         color: "#E6404040"
+        z: 100
 
         property bool open: false
         property int faded: 1
@@ -316,6 +317,7 @@ Element {
         anchors.right: parent.right
         width: 20
         height:20
+        z: 101
 
         hoverEnabled: true
         propagateComposedEvents: true
