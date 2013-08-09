@@ -42,10 +42,6 @@ ElementConfig {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
-        hoverEnabled: true
-
-        onEntered: content.opacity = 1
-        onExited: content.opacity = 0
 
         onPressed: {
             element.publish(Qt.point(mouse.x, mouse.y));
@@ -61,19 +57,31 @@ ElementConfig {
             id: content
             anchors.fill: parent
 
-            Behavior on opacity { PropertyAnimation { } }
-
             Button {
-                anchors.centerIn: parent
-                width: 30
-                height: 30
+                id: deleteButton
+                anchors.top: parent.top
+                anchors.left: parent.left
+
+                width: 17
+                height: width
                 icon: "image://icon/edit-delete"
-                visible: opacity != 0
 
                 onClicked: element.destroyElement()
+            }
+            Button {
+                id: configureButton
+                anchors.top: parent.top
+                anchors.left: deleteButton.right
+                anchors.leftMargin: 1
+
+                width: 15
+                height: width
+                icon: "image://icon/preferences-other"
+
+                onClicked: element.configure()
             }
         }
     }
 
-    Component.onCompleted: content.opacity = Ui.configMode //trick that works as long as you can't add new elements while the configMode is on
+    Component.onCompleted: configureButton.visible = element.settingsItem != null
 }

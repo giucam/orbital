@@ -89,7 +89,7 @@ Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int,
     Element *elm = (elements ? elements->take(id) : nullptr);
     if (!elm) {
         QString type = attribs.value("type").toString();
-        elm = Element::create(m_engine, type, id);
+        elm = Element::create(this, m_engine, type, id);
         connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
         created = true;
     }
@@ -136,7 +136,7 @@ void ShellUI::setIconTheme(const QString &theme)
 
 Element *ShellUI::createElement(const QString &name, Element *parent)
 {
-    Element *elm = Element::create(m_engine, name);
+    Element *elm = Element::create(this, m_engine, name);
     elm->setParentElement(parent);
     connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
     return elm;

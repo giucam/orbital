@@ -71,6 +71,10 @@ Client::Client()
 
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
+
+    m_surfaceFormat.setDepthBufferSize(24);
+    m_surfaceFormat.setAlphaBufferSize(8);
+    m_surfaceFormat.setStencilBufferSize(2);
 }
 
 Client::~Client()
@@ -113,11 +117,6 @@ void Client::create()
     QScreen *screen = QGuiApplication::screens().first();
     wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 
-    QSurfaceFormat format;
-    format.setDepthBufferSize(24);
-    format.setAlphaBufferSize(8);
-    format.setStencilBufferSize(2);
-
     m_engine = new QQmlEngine(this);
     m_engine->rootContext()->setContextProperty("Client", this);
     m_engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
@@ -144,7 +143,7 @@ void Client::create()
         window->setWidth(elm->width());
         window->setHeight(elm->height());
         window->setColor(Qt::transparent);
-        window->setFormat(format);
+        window->setFormat(m_surfaceFormat);
         window->setFlags(Qt::BypassWindowManagerHint);
         window->setScreen(screen);
         window->show();
@@ -347,6 +346,17 @@ Grab *Client::createGrab()
 {
     desktop_shell_grab *grab = desktop_shell_start_grab(s_client->m_shell);
     return new Grab(grab);
+}
+
+QQuickWindow *Client::createUiWindow()
+{
+    QQuickWindow *window = new QQuickWindow();
+
+    window->setColor(Qt::transparent);
+    window->setFormat(s_client->m_surfaceFormat);
+    window->create();
+
+    return window;
 }
 
 #include "client.moc"

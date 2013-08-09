@@ -25,6 +25,7 @@
 #include "element.h"
 #include "client.h"
 #include "grab.h"
+#include "shellui.h"
 
 static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
@@ -34,9 +35,12 @@ int Element::s_id = 0;
 Element::Element(Element *parent)
        : QQuickItem(parent)
        , m_type(Item)
+       , m_shell(nullptr)
        , m_parent(nullptr)
        , m_layout(nullptr)
        , m_configureItem(nullptr)
+       , m_settingsItem(nullptr)
+       , m_settingsWindow(nullptr)
        , m_childrenConfig(nullptr)
 {
     setParentElement(parent);
@@ -50,6 +54,7 @@ Element::~Element()
     for (Element *elm: m_children) {
         elm->m_parent = nullptr;
     }
+    delete m_settingsWindow;
 }
 
 void Element::setId(int id)
@@ -68,6 +73,28 @@ void Element::addProperty(const QString &name)
 void Element::destroyElement()
 {
     delete this;
+}
+
+void Element::configure()
+{
+    if (!m_settingsItem) {
+        return;
+    }
+
+    if (!m_settingsWindow) {
+        m_settingsWindow = Client::createUiWindow();
+        m_settingsItem->setParentItem(m_settingsWindow->contentItem());
+
+        m_settingsWindow->setWidth(m_settingsItem->width());
+        m_settingsWindow->setHeight(m_settingsItem->height());
+        m_settingsWindow->setTitle(m_typeName + " Settings");
+
+        connect(m_settingsWindow, &QWindow::visibleChanged, this, &Element::settingsVisibleChanged);
+    } else if (m_settingsWindow->isVisible()) {
+        m_settingsWindow->hide();
+        return;
+    }
+    m_settingsWindow->show();
 }
 
 void Element::publish(const QPointF &offset)
@@ -184,7 +211,14 @@ void Element::createConfig(Element *child)
     }
 }
 
-Element *Element::create(QQmlEngine *engine, const QString &name, int id)
+void Element::settingsVisibleChanged(bool visible)
+{
+    if (!visible) {
+        m_shell->saveConfig();
+    }
+}
+
+Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
     QQmlComponent c(engine);
@@ -205,6 +239,7 @@ Element *Element::create(QQmlEngine *engine, const QString &name, int id)
         elm->setId(id);
     }
     elm->m_typeName = name;
+    elm->m_shell = shell;
 
     return elm;
 }

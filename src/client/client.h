@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QQmlListProperty>
+#include <QSurfaceFormat>
 
 class QQmlEngine;
 class QQmlComponent;
@@ -76,6 +77,7 @@ public:
     Q_INVOKABLE void reboot();
 
     static Grab *createGrab();
+    static QQuickWindow *createUiWindow();
 
     static Client *client() { return s_client; }
     static QQmlEngine *qmlEngine() { return s_client->m_engine; }
@@ -113,6 +115,7 @@ private:
     int m_fd;
     desktop_shell *m_shell;
     ProcessLauncher *m_launcher;
+    QSurfaceFormat m_surfaceFormat;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;

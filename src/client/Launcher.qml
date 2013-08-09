@@ -18,7 +18,7 @@
  */
 
 import QtQuick 2.1
-import QtQuick.Layouts 1.0
+import QtQuick.Controls 1.0 as Controls
 import QtGraphicalEffects 1.0
 import Orbital 1.0
 
@@ -40,5 +40,58 @@ Element {
         icon: launcher.icon
 
         onClicked: {print("Click"); ProcessLauncher.launch(process)}
+    }
+
+    settingsItem: Rectangle {
+        id: config
+        width: 500
+        height: 150
+
+        Column {
+            id: content
+            anchors.fill: parent
+            anchors.margins: 5
+            property int middle: 60
+            spacing: 3
+            Item {
+                width: parent.width
+                height: 25
+
+                Controls.Label {
+                    width: content.middle - content.anchors.margins
+                    height: parent.height
+                    text: "Icon:"
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignRight
+                }
+                Controls.TextField {
+                    x: content.middle + content.spacing
+                    width: content.width - content.anchors.margins - x
+                    height: parent.height
+                    text: launcher.icon
+                    onAccepted: launcher.icon = text
+                }
+            }
+
+            Item {
+                width: parent.width
+                height: 25
+
+                Controls.Label {
+                    width: content.middle - content.anchors.margins
+                    height: parent.height
+                    text: "Process:"
+                    verticalAlignment: Text.AlignVCenter
+                    horizontalAlignment: Text.AlignRight
+                }
+                Controls.TextField {
+                    x: content.middle + content.spacing
+                    width: content.width - content.anchors.margins - x
+                    height: parent.height
+                    text: launcher.process
+                    onAccepted: launcher.process = text
+                }
+            }
+        }
     }
 }

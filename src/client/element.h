@@ -30,6 +30,7 @@ struct wl_surface;
 
 class LayoutAttached;
 class ElementConfig;
+class ShellUI;
 
 class Element : public QQuickItem
 {
@@ -38,6 +39,7 @@ class Element : public QQuickItem
     Q_PROPERTY(LayoutAttached *layoutItem READ layout WRITE setLayout)
     Q_PROPERTY(QString sortProperty READ sortProperty WRITE setSortProperty)
     Q_PROPERTY(ElementConfig *configureItem READ configureItem)
+    Q_PROPERTY(QQuickItem *settingsItem READ settingsItem WRITE setSettingsItem)
     Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
 public:
@@ -53,6 +55,7 @@ public:
 
     Q_INVOKABLE void addProperty(const QString &name);
     Q_INVOKABLE void destroyElement();
+    Q_INVOKABLE void configure();
 
     inline Type type() const { return m_type; }
     inline void setType(Type t) { m_type = t; }
@@ -65,13 +68,16 @@ public:
 
     inline ElementConfig *configureItem() const { return m_configureItem; }
 
+    QQuickItem *settingsItem() const { return m_settingsItem; }
+    void setSettingsItem(QQuickItem *item) { m_settingsItem = item; }
+
     QQmlComponent *childrenConfig() const { return m_childrenConfig; }
     void setChildrenConfig(QQmlComponent *component) { m_childrenConfig = component; }
 
     QPointF dragOffset() const { return m_offset; }
     void setDragOffset(const QPointF &pos) { m_offset = pos; }
 
-    static Element *create(QQmlEngine *engine, const QString &name, int id = -1);
+    static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
 
@@ -93,16 +99,20 @@ private:
     void setParentElement(Element *parent);
     void sortChildren();
     void createConfig(Element *child);
+    void settingsVisibleChanged(bool visible);
 
     QString m_typeName;
     Type m_type;
     int m_id;
+    ShellUI *m_shell;
     Element *m_parent;
     QList<Element *> m_children;
     QStringList m_properties;
     LayoutAttached *m_layout;
     QString m_sortProperty;
     ElementConfig *m_configureItem;
+    QQuickItem *m_settingsItem;
+    QQuickWindow *m_settingsWindow;
     QQmlComponent *m_childrenConfig;
 
     Element *m_target;
