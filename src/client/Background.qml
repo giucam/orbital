@@ -42,6 +42,82 @@ Element {
         id: elementConfig
 
         ElementConfiguration {
+            property int margin: 5
+            property int resizeEdge: 0
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                property bool resizing: false
+                property point resizeStart
+
+                onPositionChanged: {
+                    if (resizing) {
+                        var mx = mouse.x;
+                        var my = mouse.y;
+
+                        if (resizeEdge & Qt.LeftEdge) {
+                            var diff = mouse.x - resizeStart.x;
+                            element.width -= diff;
+                            element.x += diff;
+                            mx -= diff;
+                        }
+                        if (resizeEdge & Qt.RightEdge)
+                            element.width += mouse.x - resizeStart.x;
+                        if (resizeEdge & Qt.TopEdge) {
+                            var diff = mouse.y - resizeStart.y;
+                            element.height -= diff;
+                            element.y += diff;
+                            my -= diff;
+                        }
+                        if (resizeEdge & Qt.BottomEdge)
+                            element.height += mouse.y - resizeStart.y;
+
+                        resizeStart = Qt.point(mx, my);
+
+                        return;
+                    }
+
+                    resizeEdge = 0;
+                    if (mouse.x < margin) resizeEdge |= Qt.LeftEdge;
+                    if (mouse.y < margin) resizeEdge |= Qt.TopEdge;
+                    if (mouse.x > width - margin) resizeEdge |= Qt.RightEdge;
+                    if (mouse.y > height - margin) resizeEdge |= Qt.BottomEdge;
+
+                    switch (resizeEdge) {
+                        case Qt.RightEdge:
+                        case Qt.LeftEdge:
+                            Ui.cursorShape = Qt.SizeHorCursor; break;
+                        case Qt.BottomEdge:
+                        case Qt.TopEdge:
+                            Ui.cursorShape = Qt.SizeVerCursor; break;
+                        case Qt.LeftEdge | Qt.TopEdge:
+                        case Qt.BottomEdge | Qt.RightEdge:
+                            Ui.cursorShape = Qt.SizeFDiagCursor; break;
+                        case Qt.LeftEdge | Qt.BottomEdge:
+                        case Qt.RightEdge | Qt.TopEdge:
+                            Ui.cursorShape = Qt.SizeBDiagCursor; break;
+                        default:
+                            Ui.cursorShape = Qt.ArrowCursor;
+                    }
+                }
+                onExited: {
+                    if (!resizing)
+                        Ui.cursorShape = Qt.ArrowCursor;
+                }
+
+                onPressed: {
+                    mouse.accepted = mouse.button == Qt.LeftButton && resizeEdge != 0;
+                    resizing = mouse.accepted;
+                    if (resizing) {
+                        resizeStart = Qt.point(mouse.x, mouse.y);
+                    }
+                }
+                onReleased: {
+                    resizing = false;
+                    if (!containsMouse)
+                        Ui.cursorShape = Qt.ArrowCursor;
+                }
+            }
         }
     }
 
@@ -49,6 +125,8 @@ Element {
         element.parent = bkg
         element.addProperty("x");
         element.addProperty("y");
+        element.addProperty("width");
+        element.addProperty("height");
 
         var pos = mapToItem(config, pos.x, pos.y);
         if (pos.x >= 0 && pos.y >= 0 && pos.x <= config.width && pos.y <= config.height)

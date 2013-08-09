@@ -40,6 +40,7 @@ ShellUI::ShellUI(Client *client)
        : QObject(client)
        , m_client(client)
        , m_configMode(false)
+       , m_cursorShape(Qt::ArrowCursor)
 {
 }
 
@@ -129,6 +130,14 @@ void ShellUI::setConfigMode(bool mode)
     emit configModeChanged();
     if (!m_configMode) {
         saveConfig();
+    }
+}
+
+void ShellUI::setCursorShape(Qt::CursorShape shape)
+{
+    m_cursorShape = shape;
+    for (Element *elm: m_children) {
+        elm->window()->setCursor(QCursor(shape));
     }
 }
 

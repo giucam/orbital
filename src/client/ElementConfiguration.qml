@@ -30,6 +30,15 @@ ElementConfig {
 
     Behavior on opacity { PropertyAnimation { } }
 
+    onChildrenChanged: {
+        for (var i = 0; i < children.length; ++i) {
+            var c = children[i];
+            if (c != mouseArea) {
+                c.parent = mouseArea;
+            }
+        }
+    }
+
     MouseArea {
         id: mouseArea
         anchors.fill: parent
