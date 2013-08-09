@@ -1,4 +1,3 @@
-
 Orbital is a shell for Wayland's Weston.
 It is composed of a Weston shell plugin and a shell client, made in Qt5,
 with the interface in QtQuick 2.
