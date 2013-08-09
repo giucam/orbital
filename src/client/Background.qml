@@ -45,7 +45,7 @@ Element {
         }
     }
 
-    onNewElementAdded: {
+    onElementAdded: {
         element.parent = bkg
         element.addProperty("x");
         element.addProperty("y");
@@ -54,15 +54,15 @@ Element {
         if (pos.x >= 0 && pos.y >= 0 && pos.x <= config.width && pos.y <= config.height)
             config.faded = false;
     }
-    onNewElementEntered: {
+    onElementEntered: {
         config.faded = true;
         element.parent = bkg;
     }
-    onNewElementMoved: {
+    onElementMoved: {
         element.x = pos.x - offset.x;
         element.y = pos.y - offset.y;
     }
-    onNewElementExited: {
+    onElementExited: {
     }
 
     Rectangle {

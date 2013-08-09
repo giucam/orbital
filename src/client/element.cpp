@@ -79,7 +79,7 @@ void Element::publish(const QPointF &offset)
 void Element::focus(wl_surface *surface, int x, int y)
 {
     if (m_target) {
-        emit m_target->newElementExited(this, m_pos, m_offset);
+        emit m_target->elementExited(this, m_pos, m_offset);
         m_target->window()->unsetCursor();
     }
 
@@ -94,7 +94,7 @@ void Element::focus(wl_surface *surface, int x, int y)
 
     m_pos = QPointF(x, y);
     if (m_target) {
-        emit m_target->newElementEntered(this, m_pos, m_offset);
+        emit m_target->elementEntered(this, m_pos, m_offset);
     }
 }
 
@@ -103,7 +103,7 @@ void Element::motion(uint32_t time, int x, int y)
     m_pos = QPointF(x, y);
 
     if (m_target) {
-        emit m_target->newElementMoved(this, m_pos, m_offset);
+        emit m_target->elementMoved(this, m_pos, m_offset);
     }
 }
 
@@ -112,7 +112,7 @@ void Element::button(uint32_t time, uint32_t button, uint32_t state)
     if (m_target) {
         setParentElement(m_target);
         m_target->createConfig(this);
-        emit m_target->newElementAdded(this, m_pos, m_offset);
+        emit m_target->elementAdded(this, m_pos, m_offset);
     } else {
         delete this;
     }

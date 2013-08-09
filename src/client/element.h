@@ -75,10 +75,10 @@ public:
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
 
 signals:
-    void newElementAdded(Element *element, const QPointF &pos, const QPointF &offset);
-    void newElementEntered(Element *element, const QPointF &pos, const QPointF &offset);
-    void newElementMoved(Element *element, const QPointF &pos, const QPointF &offset);
-    void newElementExited(Element *element, const QPointF &pos, const QPointF &offset);
+    void elementAdded(Element *element, const QPointF &pos, const QPointF &offset);
+    void elementEntered(Element *element, const QPointF &pos, const QPointF &offset);
+    void elementMoved(Element *element, const QPointF &pos, const QPointF &offset);
+    void elementExited(Element *element, const QPointF &pos, const QPointF &offset);
 
 protected:
     void setId(int id);

@@ -38,10 +38,10 @@ Element {
 
     property Item content: layout
 
-    onNewElementAdded: {
+    onElementAdded: {
         element.parent = layout
     }
-    onNewElementEntered: {
+    onElementEntered: {
         var item = layout.childAt(pos.x, 15);
         if (item) {
             layout.insertAt(element, item.Layout.index);
@@ -50,7 +50,7 @@ Element {
             element.parent = layout;
         }
     }
-    onNewElementMoved: {
+    onElementMoved: {
         var item = layout.childAt(pos.x, 15);
         if (item) {
             if (item != element) {
@@ -61,7 +61,7 @@ Element {
             }
         }
     }
-    onNewElementExited: {
+    onElementExited: {
         var offset = mapToItem(element, pos.x, pos.y);
         element.dragOffset = Qt.point(offset.x, offset.y);
     }
