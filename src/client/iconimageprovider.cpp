@@ -33,6 +33,9 @@ QPixmap IconImageProvider::requestPixmap(const QString &id, QSize *realSize, con
     if (size.width() < 1) size.setWidth(1);
     if (size.height() < 1) size.setHeight(1);
     QIcon icon = QIcon::fromTheme(id);
+    if (icon.isNull()) {
+        icon = QIcon::fromTheme("image-missing");
+    }
     *realSize = size;
 
     return icon.pixmap(size);
