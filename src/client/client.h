@@ -78,6 +78,7 @@ public:
     static Grab *createGrab();
 
     static Client *client() { return s_client; }
+    static QQmlEngine *qmlEngine() { return s_client->m_engine; }
 
     QQuickWindow *findWindow(wl_surface *surface) const;
 

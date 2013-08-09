@@ -29,6 +29,7 @@ class QQuickWindow;
 struct wl_surface;
 
 class LayoutAttached;
+class ElementConfig;
 
 class Element : public QQuickItem
 {
@@ -36,6 +37,9 @@ class Element : public QQuickItem
     Q_PROPERTY(Type type READ type WRITE setType)
     Q_PROPERTY(LayoutAttached *layoutItem READ layout WRITE setLayout)
     Q_PROPERTY(QString sortProperty READ sortProperty WRITE setSortProperty)
+    Q_PROPERTY(ElementConfig *configureItem READ configureItem)
+    Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
+    Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
 public:
     enum Type {
         Item,
@@ -58,14 +62,22 @@ public:
     inline QString sortProperty() const { return m_sortProperty; }
     inline void setSortProperty(const QString &p) { m_sortProperty = p; }
 
+    inline ElementConfig *configureItem() const { return m_configureItem; }
+
+    QQmlComponent *childrenConfig() const { return m_childrenConfig; }
+    void setChildrenConfig(QQmlComponent *component) { m_childrenConfig = component; }
+
+    QPointF dragOffset() const { return m_offset; }
+    void setDragOffset(const QPointF &pos) { m_offset = pos; }
+
     static Element *create(QQmlEngine *engine, const QString &name, int id = -1);
 
-    Q_INVOKABLE void publish();
+    Q_INVOKABLE void publish(const QPointF &offset = QPointF());
 
 signals:
-    void newElementAdded(Element *element, float x, float y);
-    void newElementEntered(Element *element, float x, float y);
-    void newElementMoved(Element *element, float x, float y);
+    void newElementAdded(Element *element, const QPointF &pos, const QPointF &offset);
+    void newElementEntered(Element *element, const QPointF &pos, const QPointF &offset);
+    void newElementMoved(Element *element, const QPointF &pos, const QPointF &offset);
     void newElementExited(Element *element);
 
 protected:
@@ -79,6 +91,7 @@ private slots:
 private:
     void setParentElement(Element *parent);
     void sortChildren();
+    void createConfig(Element *child);
 
     QString m_typeName;
     Type m_type;
@@ -88,13 +101,31 @@ private:
     QStringList m_properties;
     LayoutAttached *m_layout;
     QString m_sortProperty;
+    ElementConfig *m_configureItem;
+    QQmlComponent *m_childrenConfig;
 
     Element *m_target;
     QPointF m_pos;
+    QPointF m_offset;
 
     static int s_id;
 
     friend class ShellUI;
+};
+
+class ElementConfig : public QQuickItem
+{
+    Q_OBJECT
+    Q_PROPERTY(Element *element READ element)
+public:
+    ElementConfig(QQuickItem *parent = nullptr);
+
+    Element *element() const { return m_element; }
+
+private:
+    Element *m_element;
+
+    friend class Element;
 };
 
 #endif

@@ -282,6 +282,7 @@ void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
 class ClientGrab : public ShellGrab {
 public:
     wl_resource *resource;
+    weston_surface *focus;
 };
 
 static void client_grab_focus(struct weston_pointer_grab *base)
@@ -293,8 +294,8 @@ static void client_grab_focus(struct weston_pointer_grab *base)
     struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
                                                                     grab->pointer->x, grab->pointer->y,
                                                                     &sx, &sy);
-    if (grab->pointer->focus != surface) {
-        grab->pointer->focus = surface;
+    if (cgrab->focus != surface) {
+        cgrab->focus = surface;
         desktop_shell_grab_send_focus(cgrab->resource, surface->resource, sx, sy);
     }
 }
@@ -306,8 +307,8 @@ static void client_grab_motion(struct weston_pointer_grab *base, uint32_t time)
 
     wl_fixed_t sx = cgrab->pointer->x;
     wl_fixed_t sy = cgrab->pointer->y;
-    if (cgrab->pointer->focus) {
-        weston_surface_from_global_fixed(cgrab->pointer->focus, cgrab->pointer->x, cgrab->pointer->y, &sx, &sy);
+    if (cgrab->focus) {
+        weston_surface_from_global_fixed(cgrab->focus, cgrab->pointer->x, cgrab->pointer->y, &sx, &sy);
     }
 
     desktop_shell_grab_send_motion(cgrab->resource, time, sx, sy);
@@ -366,6 +367,7 @@ void DesktopShell::createGrab(wl_client *client, wl_resource *resource, uint32_t
                                                                     grab->pointer->x, grab->pointer->y,
                                                                     &sx, &sy);
     weston_pointer_set_focus(grab->pointer, surface, sx, sy);
+    grab->focus = surface;
     desktop_shell_grab_send_focus(grab->resource, surface->resource, sx, sy);
 
     grab->grab.interface = &client_grab_interface;

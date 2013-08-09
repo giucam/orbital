@@ -27,6 +27,7 @@
 #include "grab.h"
 
 static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
+static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
 
 int Element::s_id = 0;
 
@@ -35,6 +36,8 @@ Element::Element(Element *parent)
        , m_type(Item)
        , m_parent(nullptr)
        , m_layout(nullptr)
+       , m_configureItem(nullptr)
+       , m_childrenConfig(nullptr)
 {
     setParentElement(parent);
 }
@@ -62,13 +65,15 @@ void Element::addProperty(const QString &name)
     m_properties << name;
 }
 
-void Element::publish()
+void Element::publish(const QPointF &offset)
 {
     m_target = nullptr;
+    m_offset = offset;
     Grab *grab = Client::createGrab();
     connect(grab, SIGNAL(focus(wl_surface *, int, int)), this, SLOT(focus(wl_surface *, int, int)));
     connect(grab, &Grab::motion, this, &Element::motion);
     connect(grab, &Grab::button, this, &Element::button);
+    m_properties.clear();
 }
 
 void Element::focus(wl_surface *surface, int x, int y)
@@ -85,28 +90,27 @@ void Element::focus(wl_surface *surface, int x, int y)
         item = item->parentItem();
     }
 
-    if (m_target) {
-        setParentItem(m_target);
-        emit m_target->newElementEntered(this, x, y);
-    }
-
     m_pos = QPointF(x, y);
+    if (m_target) {
+        emit m_target->newElementEntered(this, m_pos, m_offset);
+    }
 }
 
 void Element::motion(uint32_t time, int x, int y)
 {
-    if (m_target) {
-        emit m_target->newElementMoved(this, x, y);
-    }
-
     m_pos = QPointF(x, y);
+
+    if (m_target) {
+        emit m_target->newElementMoved(this, m_pos, m_offset);
+    }
 }
 
 void Element::button(uint32_t time, uint32_t button, uint32_t state)
 {
     if (m_target) {
         setParentElement(m_target);
-        emit m_target->newElementAdded(this, m_pos.x(), m_pos.y());
+        m_target->createConfig(this);
+        emit m_target->newElementAdded(this, m_pos, m_offset);
     } else {
         delete this;
     }
@@ -153,6 +157,25 @@ void Element::sortChildren()
     qSort(m_children.begin(), m_children.end(), sorter);
 }
 
+void Element::createConfig(Element *child)
+{
+    if (child->m_configureItem) {
+        delete child->m_configureItem;
+    }
+    if (m_childrenConfig) {
+        QObject *obj = m_childrenConfig->beginCreate(Client::qmlEngine()->rootContext());
+        if (ElementConfig *e = qobject_cast<ElementConfig *>(obj)) {
+            e->setParentItem(child);
+            e->m_element = child;
+            child->m_configureItem = e;
+            m_childrenConfig->completeCreate();
+        } else {
+            qWarning("childrenConfig must be a ElementConfig!");
+            delete obj;
+        }
+    }
+}
+
 Element *Element::create(QQmlEngine *engine, const QString &name, int id)
 {
     QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
@@ -176,4 +199,11 @@ Element *Element::create(QQmlEngine *engine, const QString &name, int id)
     elm->m_typeName = name;
 
     return elm;
+}
+
+
+ElementConfig::ElementConfig(QQuickItem *parent)
+             : QQuickItem(parent)
+             , m_element(nullptr)
+{
 }

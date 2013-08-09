@@ -38,21 +38,29 @@ Element {
     property int imageFillMode: 1
     property color color: "black"
 
+    childrenConfig: Component {
+        id: elementConfig
+
+        ElementConfiguration {
+        }
+    }
+
     onNewElementAdded: {
         element.parent = bkg
         element.addProperty("x");
         element.addProperty("y");
 
-        var pos = mapToItem(config, x, y);
+        var pos = mapToItem(config, pos.x, pos.y);
         if (pos.x >= 0 && pos.y >= 0 && pos.x <= config.width && pos.y <= config.height)
             config.faded = false;
     }
     onNewElementEntered: {
         config.faded = true;
+        element.parent = bkg;
     }
     onNewElementMoved: {
-        element.x = x;
-        element.y = y;
+        element.x = pos.x - offset.x;
+        element.y = pos.y - offset.y;
     }
     onNewElementExited: {
     }
@@ -315,6 +323,7 @@ Element {
     }
 
     MouseArea {
+        id: configButton
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         width: 20
@@ -327,7 +336,6 @@ Element {
         onExited: config.faded = true
 
         Button {
-            id: configButton
             anchors.fill: parent
 
             icon: "image://icon/preferences-desktop-wallpaper"
@@ -341,6 +349,20 @@ Element {
                 }
                 config.open = !config.open;
             }
+        }
+    }
+
+    Button {
+        anchors.bottom: configButton.top
+        anchors.right: parent.right
+        anchors.bottomMargin: 10
+        width: 20
+        height: 20
+
+        icon: "image://icon/preferences-desktop"
+
+        onClicked: {
+            Ui.toggleConfigMode();
         }
     }
 }

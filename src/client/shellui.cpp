@@ -39,6 +39,7 @@ static const char *defaultConfig =
 ShellUI::ShellUI(Client *client)
        : QObject(client)
        , m_client(client)
+       , m_configMode(false)
 {
 }
 
@@ -94,6 +95,9 @@ Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int,
         if (xml.isEndElement() && xml.name() == "element") {
             xml.readNext();
             m_elements.insert(id, elm);
+            if (created && parent) {
+                parent->createConfig(elm);
+            }
             return (created ? elm : nullptr);
         }
     }
@@ -115,6 +119,15 @@ Element *ShellUI::createElement(const QString &name, Element *parent)
     Element *elm = Element::create(m_engine, name);
     elm->setParentElement(parent);
     return elm;
+}
+
+void ShellUI::toggleConfigMode()
+{
+    m_configMode = !m_configMode;
+    emit configModeChanged();
+    if (!m_configMode) {
+        saveConfig();
+    }
 }
 
 void ShellUI::requestFocus(QQuickItem *item)

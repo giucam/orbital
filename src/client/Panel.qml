@@ -27,6 +27,13 @@ Element {
     width: Screen.width
     height: 30
 
+    childrenConfig: Component {
+        id: elementConfig
+
+        ElementConfiguration {
+        }
+    }
+
     sortProperty: "layoutItem.index"
 
     property Item content: layout
@@ -35,7 +42,7 @@ Element {
         element.parent = layout
     }
     onNewElementEntered: {
-        var item = layout.childAt(x, 15);
+        var item = layout.childAt(pos.x, 15);
         if (item) {
             layout.insertAt(element, item.Layout.index);
             layout.relayout();
@@ -44,18 +51,18 @@ Element {
         }
     }
     onNewElementMoved: {
-        var item = layout.childAt(x, 15);
+        var item = layout.childAt(pos.x, 15);
         if (item) {
             if (item != element) {
                 var index = item.Layout.index;
-                if (x < item.x + item.width - element.width)
+                if (pos.x < item.x + item.width - element.width)
                     index--;
                 layout.insertAt(element, index);
             }
         }
     }
     onNewElementExited: {
-
+        element.dragOffset = Qt.point(0, 0);
     }
 
     Rectangle {

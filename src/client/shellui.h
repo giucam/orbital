@@ -36,8 +36,7 @@ class ShellUI : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
-    Q_CLASSINFO("DefaultProperty", "items")
-
+    Q_PROPERTY(bool configMode READ configMode NOTIFY configModeChanged)
 public:
     ShellUI(Client *client);
     ~ShellUI();
@@ -47,12 +46,18 @@ public:
     QString iconTheme() const;
     void setIconTheme(const QString &theme);
 
+    bool configMode() const { return m_configMode; }
+
     Q_INVOKABLE Element *createElement(const QString &name, Element *parent);
+    Q_INVOKABLE void toggleConfigMode();
 
 public slots:
     void requestFocus(QQuickItem *item);
     void reloadConfig();
     void saveConfig();
+
+signals:
+    void configModeChanged();
 
 private:
     Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
@@ -63,6 +68,7 @@ private:
     Client *m_client;
     QQmlEngine *m_engine;
     QString m_configFile;
+    bool m_configMode;
 
     QHash<int, Element *> m_elements;
     QList<Element *> m_children;
