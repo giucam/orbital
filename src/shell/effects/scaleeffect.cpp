@@ -31,6 +31,7 @@ const int ALPHA_ANIM_DURATION = 200;
 
 struct Grab : public ShellGrab {
     ScaleEffect *effect;
+    weston_surface *surface;
 };
 
 struct SurfaceTransform {
@@ -59,11 +60,11 @@ void ScaleEffect::grab_focus(struct weston_pointer_grab *base)
                                                                     grab->pointer->x, grab->pointer->y,
                                                                     &sx, &sy);
 
-    if (grab->pointer->focus == surface) {
+    if (grab->surface == surface) {
         return;
     }
 
-    grab->pointer->focus = surface;
+    grab->surface = surface;
 
     printf("focus %p\n", surface);
     for (SurfaceTransform *tr: grab->effect->m_surfaces) {
@@ -89,8 +90,7 @@ static void grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_
     ShellGrab *shgrab = container_of(base, ShellGrab, grab);
     Grab *grab = static_cast<Grab *>(shgrab);
     if (state_w == WL_POINTER_BUTTON_STATE_PRESSED) {
-        struct weston_surface *surface = base->pointer->focus;
-        ShellSurface *shsurf = grab->shell->getShellSurface(surface);
+        ShellSurface *shsurf = grab->shell->getShellSurface(grab->surface);
         if (shsurf) {
             grab->effect->end(shsurf);
         }
@@ -214,6 +214,7 @@ void ScaleEffect::run(struct weston_seat *ws)
         m_seat = ws;
         shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
         shell()->hidePanels();
+        m_grab->surface = nullptr;
         if (ws->pointer->focus) {
             ShellSurface *s = Shell::getShellSurface(ws->pointer->focus);
             if (!s) {
