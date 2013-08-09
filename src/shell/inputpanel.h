@@ -18,8 +18,6 @@
 #ifndef INPUTPANEL_H
 #define INPUTPANEL_H
 
-#include <wayland-client.h>
-
 struct wl_client;
 struct wl_resource;
 struct wl_input_panel_surface_interface;
