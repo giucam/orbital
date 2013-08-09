@@ -79,7 +79,7 @@ void Element::publish(const QPointF &offset)
 void Element::focus(wl_surface *surface, int x, int y)
 {
     if (m_target) {
-        emit m_target->newElementExited(this);
+        emit m_target->newElementExited(this, m_pos, m_offset);
         m_target->window()->unsetCursor();
     }
 

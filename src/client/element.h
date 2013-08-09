@@ -78,7 +78,7 @@ signals:
     void newElementAdded(Element *element, const QPointF &pos, const QPointF &offset);
     void newElementEntered(Element *element, const QPointF &pos, const QPointF &offset);
     void newElementMoved(Element *element, const QPointF &pos, const QPointF &offset);
-    void newElementExited(Element *element);
+    void newElementExited(Element *element, const QPointF &pos, const QPointF &offset);
 
 protected:
     void setId(int id);

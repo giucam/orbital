@@ -62,7 +62,8 @@ Element {
         }
     }
     onNewElementExited: {
-        element.dragOffset = Qt.point(0, 0);
+        var offset = mapToItem(element, pos.x, pos.y);
+        element.dragOffset = Qt.point(offset.x, offset.y);
     }
 
     Rectangle {
