@@ -71,6 +71,7 @@ Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int,
     if (!elm) {
         QString type = attribs.value("type").toString();
         elm = Element::create(m_engine, type, id);
+        connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
         created = true;
     }
     if (parent) {
@@ -118,6 +119,7 @@ Element *ShellUI::createElement(const QString &name, Element *parent)
 {
     Element *elm = Element::create(m_engine, name);
     elm->setParentElement(parent);
+    connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
     return elm;
 }
 
@@ -230,4 +232,11 @@ void ShellUI::saveChildren(const QList<Element *> &children, QXmlStreamWriter &x
         xml.writeEndElement();
     }
 
+}
+
+void ShellUI::elementDestroyed(QObject *obj)
+{
+    Element *elm = static_cast<Element *>(obj);
+    m_children.removeOne(elm);
+    m_elements.remove(elm->m_id);
 }

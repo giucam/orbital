@@ -65,6 +65,11 @@ void Element::addProperty(const QString &name)
     m_properties << name;
 }
 
+void Element::destroyElement()
+{
+    delete this;
+}
+
 void Element::publish(const QPointF &offset)
 {
     m_target = nullptr;

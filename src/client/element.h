@@ -52,6 +52,7 @@ public:
     ~Element();
 
     Q_INVOKABLE void addProperty(const QString &name);
+    Q_INVOKABLE void destroyElement();
 
     inline Type type() const { return m_type; }
     inline void setType(Type t) { m_type = t; }

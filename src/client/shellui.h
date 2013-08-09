@@ -64,6 +64,7 @@ private:
     void saveElement(Element *elm, QXmlStreamWriter &xml);
     void saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml);
     void saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml);
+    void elementDestroyed(QObject *obj);
 
     Client *m_client;
     QQmlEngine *m_engine;
