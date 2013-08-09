@@ -384,15 +384,6 @@ Element {
                 width: parent.width
                 height: 50
             }
-
-            Button {
-                anchors.bottom: parent.bottom
-                x: config.width - configButton.width - width * 1.5
-                width: configButton.width
-                icon: "image://icon/document-revert"
-
-                onClicked: Ui.reloadConfig()
-            }
         }
 
 
@@ -401,10 +392,10 @@ Element {
     }
 
     MouseArea {
-        id: configButton
+        id: configButtons
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        width: 20
+        width: 50
         height:20
         z: 101
 
@@ -414,7 +405,10 @@ Element {
         onExited: config.faded = true
 
         Button {
-            anchors.fill: parent
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 20
 
             icon: "image://icon/preferences-desktop-wallpaper"
 
@@ -429,10 +423,21 @@ Element {
                 Ui.configMode = false;
             }
         }
+
+        Button {
+            id: revertButton
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: 20
+            icon: "image://icon/document-revert"
+
+            onClicked: Ui.reloadConfig()
+        }
     }
 
     Button {
-        anchors.bottom: configButton.top
+        anchors.bottom: configButtons.top
         anchors.right: parent.right
         anchors.bottomMargin: 10
         width: 20
