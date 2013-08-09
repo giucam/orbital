@@ -123,13 +123,18 @@ Element *ShellUI::createElement(const QString &name, Element *parent)
     return elm;
 }
 
-void ShellUI::toggleConfigMode()
+void ShellUI::setConfigMode(bool mode)
 {
-    m_configMode = !m_configMode;
+    m_configMode = mode;
     emit configModeChanged();
     if (!m_configMode) {
         saveConfig();
     }
+}
+
+void ShellUI::toggleConfigMode()
+{
+    setConfigMode(!m_configMode);
 }
 
 void ShellUI::requestFocus(QQuickItem *item)

@@ -348,6 +348,7 @@ Element {
                     Client.minimizeWindows();
                 }
                 config.open = !config.open;
+                Ui.configMode = false;
             }
         }
     }
