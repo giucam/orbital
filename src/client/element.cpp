@@ -80,6 +80,7 @@ void Element::focus(wl_surface *surface, int x, int y)
 {
     if (m_target) {
         emit m_target->newElementExited(this);
+        m_target->window()->unsetCursor();
     }
 
     QQuickWindow *window = Client::client()->findWindow(surface);
@@ -89,6 +90,7 @@ void Element::focus(wl_surface *surface, int x, int y)
         m_target = qobject_cast<Element *>(item);
         item = item->parentItem();
     }
+    window->setCursor(QCursor(Qt::DragMoveCursor));
 
     m_pos = QPointF(x, y);
     if (m_target) {
@@ -114,6 +116,7 @@ void Element::button(uint32_t time, uint32_t button, uint32_t state)
     } else {
         delete this;
     }
+    m_target->window()->unsetCursor();
 
     static_cast<Grab *>(sender())->end();
 }
