@@ -146,10 +146,8 @@ void ShellSeat::popup_grab_focus(struct weston_pointer_grab *grab)
 
     if (surface && surface->resource->client == shseat->m_popupGrab.client) {
         weston_pointer_set_focus(pointer, surface, sx, sy);
-        grab->pointer->focus = surface;
     } else {
         weston_pointer_set_focus(pointer, NULL, wl_fixed_from_int(0), wl_fixed_from_int(0));
-        grab->pointer->focus = NULL;
     }
 }
 
