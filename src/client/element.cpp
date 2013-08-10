@@ -220,7 +220,7 @@ void Element::settingsVisibleChanged(bool visible)
 
 Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
-    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
+    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/"));
     QQmlComponent c(engine);
     c.loadUrl(path + name + ".qml");
     if (!c.isReady())
