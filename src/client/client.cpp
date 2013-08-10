@@ -76,6 +76,8 @@ Client::Client()
     m_surfaceFormat.setDepthBufferSize(24);
     m_surfaceFormat.setAlphaBufferSize(8);
     m_surfaceFormat.setStencilBufferSize(2);
+
+    QCoreApplication::setApplicationName("orbital");
 }
 
 Client::~Client()

@@ -79,7 +79,6 @@ void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
 
 Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
 {
-    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/"));
     QXmlStreamAttributes attribs = xml.attributes();
     if (!attribs.hasAttribute("type")) {
         return nullptr;
@@ -91,6 +90,16 @@ Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int,
     if (!elm) {
         QString type = attribs.value("type").toString();
         elm = Element::create(this, m_engine, type, id);
+        if (!elm) {
+            while (!xml.atEnd()) {
+                xml.readNext();
+                if (xml.isEndElement() && xml.name() == "element") {
+                    xml.readNext();
+                    return nullptr;
+                }
+            }
+            return nullptr;
+        }
         connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
         created = true;
     }

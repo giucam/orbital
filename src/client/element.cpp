@@ -220,16 +220,22 @@ void Element::settingsVisibleChanged(bool visible)
 
 Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
-    QString path(QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/"));
+    QString path(elementPath(name));
+    if (path.isEmpty()) {
+        qWarning() << QString("Could not find the element \'%1.qml\'. Check your configuration or your setup.").arg(name);
+        return nullptr;
+    }
+
     QQmlComponent c(engine);
-    c.loadUrl(path + name + ".qml");
+    c.loadUrl(path);
     if (!c.isReady())
         qFatal(qPrintable(c.errorString()));
 
     QObject *obj = c.create();
     Element *elm = qobject_cast<Element *>(obj);
     if (!elm) {
-        qDebug()<<name<<"not an element type.";
+        qWarning() << QString("\'%1.qml\' is not an element type.").arg(name);
+        delete obj;
         return nullptr;
     }
 
@@ -242,6 +248,19 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     elm->m_shell = shell;
 
     return elm;
+}
+
+QString Element::elementPath(const QString &typeName)
+{
+    QString path = QStandardPaths::locate(QStandardPaths::DataLocation, "elements/" + typeName + ".qml");
+    if (path.isEmpty()) {
+        path = QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/") + typeName + ".qml";
+        if (!QFile::exists(path)) {
+            return QString();
+        }
+    }
+
+    return path;
 }
 
 

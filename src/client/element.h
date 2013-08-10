@@ -101,6 +101,8 @@ private:
     void createConfig(Element *child);
     void settingsVisibleChanged(bool visible);
 
+    static QString elementPath(const QString &typeName);
+
     QString m_typeName;
     Type m_type;
     int m_id;
