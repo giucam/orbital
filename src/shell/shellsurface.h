@@ -37,15 +37,21 @@ public:
         Maximized,
         Transient,
         Popup,
-        Fullscreen
+        Fullscreen,
+        XWayland
     };
     ShellSurface(Shell *shell, struct weston_surface *surface);
     ~ShellSurface();
 
-    void init(struct wl_client *client, uint32_t id, Workspace *workspace);
+    void init(struct wl_client *client, uint32_t id);
     bool updateType();
     void map(int32_t x, int32_t y, int32_t width, int32_t height);
     void unmapped();
+
+    void setTopLevel();
+    void setTransient(weston_surface *parent, int x, int y, uint32_t flags);
+    void setFullscreen(uint32_t method, uint32_t framerate, weston_output *output);
+    void setXWayland(int x, int y, uint32_t flags);
 
     void addTransform(struct weston_transform *transform);
     void removeTransform(struct weston_transform *transform);
@@ -92,7 +98,6 @@ public:
     Signal<ShellSurface *> pongSignal;
 
 private:
-    void setFullscreen(uint32_t method, uint32_t framerate, struct weston_output *output);
     void unsetFullscreen();
     void unsetMaximized();
     void mapPopup();

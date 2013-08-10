@@ -80,15 +80,19 @@ black_surface_configure(struct weston_surface *es, int32_t sx, int32_t sy, int32
 
 void Shell::init()
 {
+#define _this reinterpret_cast<ShellSurface *>(shsurf)
     m_compositor->shell_interface.shell = this;
-    m_compositor->shell_interface.create_shell_surface = [](void *shell, struct weston_surface *surface, const struct weston_shell_client *client) {
-        return (struct shell_surface *)static_cast<Shell *>(shell)->createShellSurface(surface, client);
+    m_compositor->shell_interface.create_shell_surface = [](void *shell, weston_surface *surface, const weston_shell_client *client) {
+        return (shell_surface *)static_cast<Shell *>(shell)->createShellSurface(surface, client);
     };
-    //     ec->shell_interface.set_toplevel = set_toplevel;
-    //     ec->shell_interface.set_transient = set_transient;
-    //     ec->shell_interface.set_fullscreen = set_fullscreen;
-    //     ec->shell_interface.move = surface_move;
-    //     ec->shell_interface.resize = surface_resize;
+    m_compositor->shell_interface.set_toplevel = [](shell_surface *shsurf) { _this->setTopLevel(); };
+    m_compositor->shell_interface.set_transient = [](shell_surface *shsurf, weston_surface *parent, int x, int y, uint32_t flags) { _this->setTransient(parent, x, y, flags); };
+    m_compositor->shell_interface.set_fullscreen = [](shell_surface *shsurf, uint32_t method, uint32_t framerate, weston_output *output) { _this->setFullscreen(method, framerate, output);};
+    m_compositor->shell_interface.resize = [](shell_surface *shsurf, weston_seat *ws, uint32_t edges) { _this->dragResize(ws, edges); return 0; };
+    m_compositor->shell_interface.move = [](shell_surface *shsurf, weston_seat *ws) { _this->dragMove(ws); return 0; };
+    m_compositor->shell_interface.set_xwayland = [](shell_surface *shsurf, int x, int y, uint32_t flags) { _this->setXWayland(x, y, flags); };
+#undef _this
+
     m_destroyListener.listen(&m_compositor->destroy_signal);
     m_destroyListener.signal->connect(this, &Shell::destroy);
 
@@ -204,6 +208,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         }
 
         switch (surface->m_type) {
+            case ShellSurface::Type::XWayland:
             case ShellSurface::Type::Transient:
                 if (surface->m_transient.flags == WL_SHELL_SURFACE_TRANSIENT_INACTIVE) {
                     break;
@@ -378,7 +383,7 @@ ShellSurface *Shell::createShellSurface(struct weston_surface *surface, const st
     surface->configure = shell_surface_configure;
     surface->configure_private = shsurf;
     shsurf->m_client = client;
-
+    shsurf->m_workspace = currentWorkspace();
     return shsurf;
 }
 
@@ -413,7 +418,7 @@ ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resourc
         return nullptr;
     }
 
-    shsurf->init(client, id, currentWorkspace());
+    shsurf->init(client, id);
     shsurf->pingTimeoutSignal.connect(this, &Shell::pingTimeout);
 
     return shsurf;

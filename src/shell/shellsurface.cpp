@@ -29,6 +29,7 @@
 ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             : m_shell(shell)
             , m_workspace(nullptr)
+            , m_resource(nullptr)
             , m_windowResource(nullptr)
             , m_surface(surface)
             , m_type(Type::None)
@@ -86,7 +87,7 @@ const struct desktop_shell_window_interface ShellSurface::m_window_implementatio
     set_state
 };
 
-void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *workspace)
+void ShellSurface::init(struct wl_client *client, uint32_t id)
 {
     m_resource = wl_resource_create(client, &wl_shell_surface_interface, 1, id);
     wl_resource_set_implementation(m_resource, &m_shell_surface_implementation, this, [](struct wl_resource *resource) { delete _this; });
@@ -96,8 +97,6 @@ void ShellSurface::init(struct wl_client *client, uint32_t id, Workspace *worksp
 //     m_resource.object.interface = &wl_shell_surface_interface;
 //     m_resource.object.implementation = &m_shell_surface_implementation;
 //     m_resource.data = this;
-
-    m_workspace = workspace;
 }
 
 void ShellSurface::destroyWindow()
@@ -111,7 +110,7 @@ void ShellSurface::destroyWindow()
 
 void ShellSurface::surfaceDestroyed()
 {
-    if (wl_resource_get_client(m_resource)) {
+    if (m_resource && wl_resource_get_client(m_resource)) {
         wl_resource_destroy(m_resource);
     } else {
         delete this;
@@ -160,6 +159,8 @@ bool ShellSurface::updateType()
             case Type::Transient:
                 weston_surface_set_position(m_surface, m_parent->geometry.x + m_transient.x, m_parent->geometry.y + m_transient.y);
                 break;
+            case Type::XWayland:
+                weston_surface_set_position(m_surface, m_transient.x, m_transient.y);
             default:
                 break;
         }
@@ -223,6 +224,31 @@ void ShellSurface::unmapped()
     }
 }
 
+void ShellSurface::setTopLevel()
+{
+    m_pendingType = Type::TopLevel;
+}
+
+void ShellSurface::setTransient(struct weston_surface *parent, int x, int y, uint32_t flags)
+{
+    m_parent = parent;
+    m_transient.x = x;
+    m_transient.y = y;
+    m_transient.flags = flags;
+
+    m_pendingType = Type::Transient;
+}
+
+void ShellSurface::setXWayland(int x, int y, uint32_t flags)
+{
+    // reuse the transient fields for XWayland
+    m_transient.x = x;
+    m_transient.y = y;
+    m_transient.flags = flags;
+
+    m_pendingType = Type::XWayland;
+}
+
 void ShellSurface::mapPopup()
 {
     m_surface->output = m_parent->output;
@@ -270,7 +296,9 @@ void ShellSurface::setAlpha(float alpha)
 
 void ShellSurface::popupDone()
 {
-    wl_shell_surface_send_popup_done(m_resource);
+    if (m_resource) {
+        wl_shell_surface_send_popup_done(m_resource);
+    }
     m_popup.seat = nullptr;
 }
 
@@ -400,7 +428,7 @@ void ShellSurface::ping(uint32_t serial)
 {
     const int ping_timeout = 200;
 
-    if (!wl_resource_get_client(m_resource))
+    if (!m_resource || !wl_resource_get_client(m_resource))
         return;
 
     if (!m_pingTimer) {
@@ -616,20 +644,13 @@ void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
 
 void ShellSurface::setToplevel(struct wl_client *, struct wl_resource *)
 {
-printf("top\n");
-    m_pendingType = Type::TopLevel;
+    setTopLevel();
 }
 
 void ShellSurface::setTransient(struct wl_client *client, struct wl_resource *resource,
                   struct wl_resource *parent_resource, int x, int y, uint32_t flags)
 {
-    m_parent = static_cast<struct weston_surface *>(wl_resource_get_user_data(parent_resource));
-    m_transient.x = x;
-    m_transient.y = y;
-    m_transient.flags = flags;
-
-    m_pendingType = Type::Transient;
-
+    setTransient(static_cast<struct weston_surface *>(wl_resource_get_user_data(parent_resource)), x, y, flags);
 }
 
 void ShellSurface::setFullscreen(struct wl_client *client, struct wl_resource *resource, uint32_t method,
