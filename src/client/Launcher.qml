@@ -39,7 +39,7 @@ Element {
         anchors.fill: parent
         icon: launcher.icon
 
-        onClicked: {print("Click"); ProcessLauncher.launch(process)}
+        onClicked: ProcessLauncher.launch(process)
     }
 
     settingsItem: Rectangle {

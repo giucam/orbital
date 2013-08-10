@@ -170,8 +170,6 @@ Element {
         property bool faded: false
         opacity: faded ? 0.1 : 1
 
-        Component.onCompleted: print(config.y+" "+bkg.height)
-
         states: [
             State {
                 name: "open"
