@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QQmlListProperty>
 #include <QSurfaceFormat>
+#include <QElapsedTimer>
 
 class QQmlEngine;
 class QQmlComponent;
@@ -120,6 +121,7 @@ private:
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;
+    QElapsedTimer m_elapsedTimer;
 
     QQmlEngine *m_engine;
     QQmlComponent *m_component;

@@ -54,6 +54,7 @@ Binding::~Binding()
 Client::Client()
       : QObject()
 {
+    m_elapsedTimer.start();
     s_client = this;
 
     QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
@@ -180,6 +181,7 @@ void Client::create()
 void Client::ready()
 {
     desktop_shell_desktop_ready(m_shell);
+    qDebug() << "Orbital-client startup time:" << m_elapsedTimer.elapsed() << "ms";
 }
 
 void Client::createWindow()
