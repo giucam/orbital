@@ -30,6 +30,7 @@
 #include <QQmlProperty>
 #include <QCoreApplication>
 #include <QQuickWindow>
+#include <QGuiApplication>
 
 #include "client.h"
 #include "element.h"
@@ -58,7 +59,7 @@ ShellUI::ShellUI(Client *client)
        : QObject(client)
        , m_client(client)
        , m_configMode(false)
-       , m_cursorShape(Qt::ArrowCursor)
+       , m_cursorShape(-1)
 {
 }
 
@@ -151,12 +152,21 @@ void ShellUI::setConfigMode(bool mode)
     }
 }
 
-void ShellUI::setCursorShape(Qt::CursorShape shape)
+void ShellUI::setOverrideCursorShape(Qt::CursorShape shape)
 {
-    m_cursorShape = shape;
-    for (Element *elm: m_children) {
-        elm->window()->setCursor(QCursor(shape));
+    if (m_cursorShape == (int)shape) {
+        return;
     }
+
+    QGuiApplication::restoreOverrideCursor();
+    QGuiApplication::setOverrideCursor(QCursor(shape));
+    m_cursorShape = (int)shape;
+}
+
+void ShellUI::restoreOverrideCursorShape()
+{
+    QGuiApplication::restoreOverrideCursor();
+    m_cursorShape = -1;
 }
 
 void ShellUI::toggleConfigMode()

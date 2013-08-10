@@ -37,7 +37,6 @@ class ShellUI : public QObject
     Q_OBJECT
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
     Q_PROPERTY(bool configMode READ configMode WRITE setConfigMode NOTIFY configModeChanged)
-    Q_PROPERTY(Qt::CursorShape cursorShape READ cursorShape WRITE setCursorShape);
 public:
     ShellUI(Client *client);
     ~ShellUI();
@@ -50,8 +49,8 @@ public:
     bool configMode() const { return m_configMode; }
     void setConfigMode(bool mode);
 
-    Qt::CursorShape cursorShape() const { return m_cursorShape; }
-    void setCursorShape(Qt::CursorShape shape);
+    Q_INVOKABLE void setOverrideCursorShape(Qt::CursorShape shape);
+    Q_INVOKABLE void restoreOverrideCursorShape();
 
     Q_INVOKABLE Element *createElement(const QString &name, Element *parent);
     Q_INVOKABLE void toggleConfigMode();
@@ -75,7 +74,7 @@ private:
     QQmlEngine *m_engine;
     QString m_configFile;
     bool m_configMode;
-    Qt::CursorShape m_cursorShape;
+    int m_cursorShape;
 
     QHash<int, Element *> m_elements;
     QList<Element *> m_children;

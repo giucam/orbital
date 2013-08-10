@@ -83,26 +83,29 @@ Element {
                     if (mouse.x > width - margin) resizeEdge |= Qt.RightEdge;
                     if (mouse.y > height - margin) resizeEdge |= Qt.BottomEdge;
 
+                    var cursorShape;
                     switch (resizeEdge) {
                         case Qt.RightEdge:
                         case Qt.LeftEdge:
-                            Ui.cursorShape = Qt.SizeHorCursor; break;
+                            cursorShape = Qt.SizeHorCursor; break;
                         case Qt.BottomEdge:
                         case Qt.TopEdge:
-                            Ui.cursorShape = Qt.SizeVerCursor; break;
+                            cursorShape = Qt.SizeVerCursor; break;
                         case Qt.LeftEdge | Qt.TopEdge:
                         case Qt.BottomEdge | Qt.RightEdge:
-                            Ui.cursorShape = Qt.SizeFDiagCursor; break;
+                            cursorShape = Qt.SizeFDiagCursor; break;
                         case Qt.LeftEdge | Qt.BottomEdge:
                         case Qt.RightEdge | Qt.TopEdge:
-                            Ui.cursorShape = Qt.SizeBDiagCursor; break;
+                            cursorShape = Qt.SizeBDiagCursor; break;
                         default:
-                            Ui.cursorShape = Qt.ArrowCursor;
+                            Ui.restoreOverrideCursorShape();
+                            return;
                     }
+                    Ui.setOverrideCursorShape(cursorShape);
                 }
                 onExited: {
                     if (!resizing)
-                        Ui.cursorShape = Qt.ArrowCursor;
+                        Ui.restoreOverrideCursorShape();
                 }
 
                 onPressed: {
@@ -115,7 +118,7 @@ Element {
                 onReleased: {
                     resizing = false;
                     if (!containsMouse)
-                        Ui.cursorShape = Qt.ArrowCursor;
+                        Ui.restoreOverrideCursorShape();
                 }
             }
         }
