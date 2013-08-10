@@ -9,6 +9,8 @@ Orbital depends on two things: Weston 1.2 and Qt 5.1.
 Since it uses QtQuick 2 to draw the interface it will make use of OpenGL,
 so it is advisable to use a decent graphics driver, otherwise the performance
 will not be good.
+You also need QtWayland, as Qt does not provide a Wayland backend by default.
+You do not need QtCompositor, the platform plugin is enough.
 
 2. COMPILING ORBITAL
 To compile Orbital run this commands from the repository root directory:
