@@ -47,6 +47,7 @@ Element {
 
         MouseArea {
             anchors.fill: parent
+            cursorShape: Qt.IBeamCursor
             onPressed: {
                 Ui.requestFocus(text)
                 mouse.accepted = false;
