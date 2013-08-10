@@ -96,6 +96,7 @@ private slots:
     void createWindow();
     void windowRemoved(Window *w);
     void setGrabCursor();
+    void ready();
 
 private:
     static void handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);

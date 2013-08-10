@@ -236,6 +236,11 @@ void DesktopShell::setGrabSurface(struct wl_client *client, struct wl_resource *
     this->Shell::setGrabSurface(static_cast<struct weston_surface *>(surface_resource->data));
 }
 
+void DesktopShell::desktopReady(struct wl_client *client, struct wl_resource *resource)
+{
+    fadeSplash();
+}
+
 void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers)
 {
     wl_resource *res = wl_resource_create(client, &desktop_shell_binding_interface, wl_resource_get_version(resource), id);
@@ -379,12 +384,6 @@ void DesktopShell::createGrab(wl_client *client, wl_resource *resource, uint32_t
 void DesktopShell::quit(wl_client *client, wl_resource *resource)
 {
     Shell::quit();
-}
-
-static void
-desktop_shell_desktop_ready(struct wl_client *client,
-                            struct wl_resource *resource)
-{
 }
 
 const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementation = {

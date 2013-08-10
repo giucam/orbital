@@ -28,6 +28,7 @@ struct ShellGrab;
 class Effect;
 class Workspace;
 class ShellSeat;
+class Animation;
 
 typedef std::vector<ShellSurface *> ShellSurfaceList;
 
@@ -117,6 +118,7 @@ protected:
     virtual void setGrabCursor(uint32_t cursor) {}
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) {}
     virtual void endBusyCursor(struct weston_seat *seat) {}
+    void fadeSplash();
 
     struct Child {
         Shell *shell;
@@ -145,6 +147,8 @@ private:
     void pointerFocus(ShellSeat *shseat, struct weston_pointer *pointer);
     void pingTimeout(ShellSurface *shsurf);
     void pong(ShellSurface *shsurf);
+    weston_surface *createBlackSurface(int w, int h);
+    void setSplashAlpha(float alpha);
 
     struct weston_compositor *m_compositor;
     WlListener m_destroyListener;
@@ -153,13 +157,16 @@ private:
     Layer m_panelsLayer;
     Layer m_fullscreenLayer;
     Layer m_overlayLayer;
+    Layer m_splashLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;
     std::vector<Workspace *> m_workspaces;
     uint32_t m_currentWorkspace;
 
     struct weston_surface *m_blackSurface;
+    struct weston_surface *m_splashSurface;
     struct weston_surface *m_grabSurface;
+    Animation *m_fadeAnimation;
 
     static const struct wl_shell_interface shell_implementation;
     static const struct weston_shell_client shell_client;

@@ -169,6 +169,17 @@ void Client::create()
     }
 
     m_nextWindow = new Window(this);
+
+    // wait until all the objects have finished what they're doing before sending the ready event
+    while (QCoreApplication::hasPendingEvents()) {
+        QCoreApplication::processEvents();
+    }
+    ready();
+}
+
+void Client::ready()
+{
+    desktop_shell_desktop_ready(m_shell);
 }
 
 void Client::createWindow()

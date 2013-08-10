@@ -31,6 +31,7 @@
 #include "workspace.h"
 #include "effect.h"
 #include "desktop-shell.h"
+#include "animation.h"
 
 Binding::Binding(struct weston_binding *binding)
        : m_binding(binding)
@@ -48,6 +49,7 @@ Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
             , m_blackSurface(nullptr)
             , m_grabSurface(nullptr)
+            , m_fadeAnimation(nullptr)
 {
     srandom(weston_compositor_get_time());
     m_child.shell = this;
@@ -104,7 +106,8 @@ void Shell::init()
         m_workspaces.push_back(new Workspace(this, i));
     }
 
-    m_overlayLayer.insert(&m_compositor->cursor_layer);
+    m_splashLayer.insert(&m_compositor->cursor_layer);
+    m_overlayLayer.insert(&m_splashLayer);
     m_fullscreenLayer.insert(&m_overlayLayer);
     m_panelsLayer.insert(&m_fullscreenLayer);
     m_backgroundLayer.insert(&m_panelsLayer);
@@ -112,23 +115,14 @@ void Shell::init()
     m_currentWorkspace = 0;
     activateWorkspace(nullptr);
 
-    m_blackSurface = weston_surface_create(m_compositor);
-
     struct weston_output *out = container_of(m_compositor->output_list.next, struct weston_output, link);
-
-    int x = 0, y = 0;
     int w = out->width, h = out->height;
 
-    m_blackSurface->configure = black_surface_configure;
-    m_blackSurface->configure_private = 0;
-    weston_surface_configure(m_blackSurface, x, y, w, h);
-    weston_surface_set_color(m_blackSurface, 0.0, 0.0, 0.0, 1);
-    pixman_region32_fini(&m_blackSurface->opaque);
-    pixman_region32_init_rect(&m_blackSurface->opaque, 0, 0, w, h);
-    pixman_region32_fini(&m_blackSurface->input);
-    pixman_region32_init_rect(&m_blackSurface->input, 0, 0, w, h);
-
+    m_blackSurface = createBlackSurface(w, h);
     m_backgroundLayer.addSurface(m_blackSurface);
+
+    m_splashSurface = createBlackSurface(w, h);
+    m_splashLayer.addSurface(m_splashSurface);
 
     struct wl_event_loop *loop = wl_display_get_event_loop(m_compositor->wl_display);
     wl_event_loop_add_idle(loop, [](void *data) { static_cast<Shell *>(data)->launchShellProcess(); }, this);
@@ -141,6 +135,22 @@ void Shell::init()
                                             static_cast<Shell *>(data)->selectPreviousWorkspace(); }, this);
     bindKey(KEY_RIGHT, MODIFIER_CTRL, [](struct weston_seat *seat, uint32_t time, uint32_t key, void *data) {
                                             static_cast<Shell *>(data)->selectNextWorkspace(); }, this);
+}
+
+weston_surface *Shell::createBlackSurface(int w, int h)
+{
+    weston_surface *surface = weston_surface_create(m_compositor);
+
+    surface->configure = black_surface_configure;
+    surface->configure_private = 0;
+    weston_surface_configure(surface, 0, 0, w, h);
+    weston_surface_set_color(surface, 0.0, 0.0, 0.0, 1);
+    pixman_region32_fini(&surface->opaque);
+    pixman_region32_init_rect(&surface->opaque, 0, 0, w, h);
+    pixman_region32_fini(&surface->input);
+    pixman_region32_init_rect(&surface->input, 0, 0, 0, 0);
+
+    return surface;
 }
 
 void Shell::quit()
@@ -705,6 +715,24 @@ void Shell::pong(ShellSurface *shsurf)
             }
         }
     }
+}
+
+void Shell::fadeSplash()
+{
+    if (!m_fadeAnimation) {
+        m_fadeAnimation = new Animation;
+        m_fadeAnimation->updateSignal.connect(this, &Shell::setSplashAlpha);
+    }
+    m_fadeAnimation->setStart(1.f);
+    m_fadeAnimation->setTarget(0.f);
+    m_fadeAnimation->run(m_splashSurface->output, 200);
+}
+
+void Shell::setSplashAlpha(float alpha)
+{
+    m_splashSurface->alpha = alpha;
+    weston_surface_geometry_dirty(m_splashSurface);
+    weston_surface_damage(m_splashSurface);
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {
