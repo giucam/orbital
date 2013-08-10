@@ -144,7 +144,7 @@ void ShellSeat::popup_grab_focus(struct weston_pointer_grab *grab)
                                                                     pointer->x, pointer->y,
                                                                     &sx, &sy);
 
-    if (surface && surface->resource->client == shseat->m_popupGrab.client) {
+    if (surface && wl_resource_get_client(surface->resource) == shseat->m_popupGrab.client) {
         weston_pointer_set_focus(pointer, surface, sx, sy);
     } else {
         weston_pointer_set_focus(pointer, NULL, wl_fixed_from_int(0), wl_fixed_from_int(0));
@@ -167,7 +167,7 @@ void ShellSeat::popup_grab_button(struct weston_pointer_grab *grab, uint32_t tim
 
     struct wl_resource *resource = grab->pointer->focus_resource;
     if (resource) {
-        struct wl_display *display = wl_client_get_display(resource->client);
+        struct wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
         uint32_t serial = wl_display_get_serial(display);
         wl_pointer_send_button(resource, serial, time, button, state_w);
     } else if (state_w == WL_POINTER_BUTTON_STATE_RELEASED &&

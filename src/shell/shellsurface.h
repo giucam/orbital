@@ -55,7 +55,7 @@ public:
     inline Shell *shell() const { return m_shell; }
     inline struct wl_resource *wl_resource() { return m_resource; }
     inline const struct wl_resource *wl_resource() const { return m_resource; }
-    inline struct wl_client *client() const { return m_surface->resource->client; }
+    inline struct wl_client *client() const { return wl_resource_get_client(m_surface->resource); }
     inline struct weston_surface *weston_surface() const { return m_surface; }
 
     inline Type type() const { return m_type; }
@@ -195,50 +195,52 @@ private:
     friend class Workspace;
 };
 
+#define _this static_cast<ShellSurface *>(wl_resource_get_user_data(resource))
 inline void ShellSurface::shell_surface_pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial) {
-    static_cast<ShellSurface *>(resource->data)->pong(client, resource, serial);
+    _this->pong(client, resource, serial);
 }
 
 inline void ShellSurface::shell_surface_move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
                                              uint32_t serial) {
-    static_cast<ShellSurface *>(resource->data)->move(client, resource, seat_resource, serial);
+    _this->move(client, resource, seat_resource, serial);
 }
 
 inline void ShellSurface::shell_surface_resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
                                  uint32_t serial, uint32_t edges) {
-    static_cast<ShellSurface *>(resource->data)->resize(client, resource, seat_resource, serial, edges);
+    _this->resize(client, resource, seat_resource, serial, edges);
 }
 
 inline void ShellSurface::shell_surface_set_toplevel(struct wl_client *client, struct wl_resource *resource) {
-    static_cast<ShellSurface *>(resource->data)->setToplevel(client, resource);
+    _this->setToplevel(client, resource);
 }
 
 inline void ShellSurface::shell_surface_set_transient(struct wl_client *client, struct wl_resource *resource,
                                         struct wl_resource *parent_resource, int x, int y, uint32_t flags) {
-    static_cast<ShellSurface *>(resource->data)->setTransient(client, resource, parent_resource, x, y, flags);
+    _this->setTransient(client, resource, parent_resource, x, y, flags);
 }
 
 inline void ShellSurface::shell_surface_set_fullscreen(struct wl_client *client, struct wl_resource *resource, uint32_t method,
                                          uint32_t framerate, struct wl_resource *output_resource) {
-    static_cast<ShellSurface *>(resource->data)->setFullscreen(client, resource, method, framerate, output_resource);
+    _this->setFullscreen(client, resource, method, framerate, output_resource);
 }
 
 inline void ShellSurface::shell_surface_set_popup(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
                                     uint32_t serial, struct wl_resource *parent_resource, int32_t x, int32_t y, uint32_t flags) {
-    static_cast<ShellSurface *>(resource->data)->setPopup(client, resource, seat_resource, serial, parent_resource, x, y, flags);
+    _this->setPopup(client, resource, seat_resource, serial, parent_resource, x, y, flags);
 }
 
 inline void ShellSurface::shell_surface_set_maximized(struct wl_client *client, struct wl_resource *resource,
                                                       struct wl_resource *output_resource) {
-    static_cast<ShellSurface *>(resource->data)->setMaximized(client, resource, output_resource);
+    _this->setMaximized(client, resource, output_resource);
 }
 
 inline void ShellSurface::shell_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title) {
-    static_cast<ShellSurface *>(resource->data)->setTitle(client, resource, title);
+    _this->setTitle(client, resource, title);
 }
 
 inline void ShellSurface::shell_surface_set_class(struct wl_client *client, struct wl_resource *resource, const char *className) {
-    static_cast<ShellSurface *>(resource->data)->setClass(client, resource, className);
+    _this->setClass(client, resource, className);
 }
+#undef _this
 
 #endif

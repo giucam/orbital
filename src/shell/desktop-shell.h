@@ -73,7 +73,7 @@ private:
     InputPanel *m_inputPanel;
 };
 
-#define _this static_cast<DesktopShell *>(resource->data)
+#define _this static_cast<DesktopShell *>(wl_resource_get_user_data(resource))
 inline void DesktopShell::desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource,
                                                        struct wl_resource *output_resource, struct wl_resource *surface_resource) {
     _this->setBackground(client, resource, output_resource, surface_resource);
@@ -129,5 +129,6 @@ inline void DesktopShell::desktop_shell_create_grab(wl_client *client, wl_resour
 inline void DesktopShell::desktop_shell_quit(wl_client *client, wl_resource *resource) {
     _this->quit(client, resource);
 }
+#undef _this
 
 #endif
