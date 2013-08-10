@@ -164,10 +164,13 @@ Element {
         height: 300
         color: "#E6404040"
         z: 100
+        visible: false
 
         property bool open: false
         property bool faded: false
         opacity: faded ? 0.1 : 1
+
+        Component.onCompleted: print(config.y+" "+bkg.height)
 
         states: [
             State {
@@ -421,6 +424,7 @@ Element {
                 }
                 config.open = !config.open;
                 Ui.configMode = false;
+                config.visible = true;
             }
         }
 
