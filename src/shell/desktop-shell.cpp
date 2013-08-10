@@ -68,15 +68,19 @@ void DesktopShell::setGrabCursor(uint32_t cursor)
     desktop_shell_send_grab_cursor(m_child.desktop_shell, cursor);
 }
 
+struct BusyGrab : public ShellGrab {
+    ShellSurface *surface;
+};
+
 static void busy_cursor_grab_focus(struct weston_pointer_grab *base)
 {
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
+    BusyGrab *grab = static_cast<BusyGrab *>(container_of(base, ShellGrab, grab));
     wl_fixed_t sx, sy;
     struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
                                                                     grab->pointer->x, grab->pointer->y,
                                                                     &sx, &sy);
 
-    if (grab->pointer->focus != surface) {
+    if (grab->surface->weston_surface() != surface) {
         Shell::endGrab(grab);
         delete grab;
     }
@@ -84,18 +88,16 @@ static void busy_cursor_grab_focus(struct weston_pointer_grab *base)
 
 static void busy_cursor_grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
 {
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
+    BusyGrab *grab = static_cast<BusyGrab *>(container_of(base, ShellGrab, grab));
 
-    struct weston_surface *surface = grab->pointer->focus;
     struct weston_seat *seat = grab->pointer->seat;
 
-    ShellSurface *shsurf = Shell::getShellSurface(surface);
-    if (shsurf && button == BTN_LEFT && state) {
-        ShellSeat::shellSeat(seat)->activate(shsurf);
-        shsurf->dragMove(seat);
-    } else if (shsurf && button == BTN_RIGHT && state) {
-        ShellSeat::shellSeat(seat)->activate(shsurf);
-//         surface_rotate(shsurf, &seat->seat);
+    if (grab->surface && button == BTN_LEFT && state) {
+        ShellSeat::shellSeat(seat)->activate(grab->surface);
+        grab->surface->dragMove(seat);
+    } else if (grab->surface && button == BTN_RIGHT && state) {
+        ShellSeat::shellSeat(seat)->activate(grab->surface);
+//         surface_rotate(grab->surface, &seat->seat);
     }
 }
 
@@ -107,12 +109,12 @@ static const struct weston_pointer_grab_interface busy_cursor_grab_interface = {
 
 void DesktopShell::setBusyCursor(ShellSurface *surface, struct weston_seat *seat)
 {
-    ShellGrab *grab = new ShellGrab;
+    BusyGrab *grab = new BusyGrab;
     if (!grab && grab->pointer)
         return;
 
     grab->pointer = seat->pointer;
-    grab->pointer->focus = surface->weston_surface();
+    grab->surface = surface;
     startGrab(grab, &busy_cursor_grab_interface, seat, DESKTOP_SHELL_CURSOR_BUSY);
 }
 
