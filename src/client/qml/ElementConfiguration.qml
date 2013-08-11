@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import QtGraphicalEffects 1.0
 
 ElementConfig {
     id: config
@@ -39,6 +40,8 @@ ElementConfig {
         }
     }
 
+
+
     MouseArea {
         id: mouseArea
         anchors.fill: parent
@@ -47,10 +50,19 @@ ElementConfig {
             element.publish(Qt.point(mouse.x, mouse.y));
         }
 
+        GaussianBlur {
+            id: glow
+            anchors.fill: parent
+            radius: 8
+            samples: 16
+            source: element.content
+            transparentBorder: true
+        }
+
         Rectangle {
             anchors.fill: parent
             color: "black"
-            opacity: 0.6
+            opacity: 0.2
         }
 
         Item {
