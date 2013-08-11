@@ -106,10 +106,6 @@ void Shell::init()
         shseat->pointerFocusSignal.connect(this, &Shell::pointerFocus);
     }
 
-    for (int i = 0; i < 4; ++i) {
-        m_workspaces.push_back(new Workspace(this, i));
-    }
-
     m_splashLayer.insert(&m_compositor->cursor_layer);
     m_overlayLayer.insert(&m_splashLayer);
     m_fullscreenLayer.insert(&m_overlayLayer);
@@ -117,7 +113,6 @@ void Shell::init()
     m_backgroundLayer.insert(&m_panelsLayer);
 
     m_currentWorkspace = 0;
-    activateWorkspace(nullptr);
 
     struct weston_output *out = container_of(m_compositor->output_list.next, struct weston_output, link);
     int w = out->width, h = out->height;
@@ -139,6 +134,14 @@ void Shell::init()
                                             static_cast<Shell *>(data)->selectPreviousWorkspace(); }, this);
     bindKey(KEY_RIGHT, MODIFIER_CTRL, [](struct weston_seat *seat, uint32_t time, uint32_t key, void *data) {
                                             static_cast<Shell *>(data)->selectNextWorkspace(); }, this);
+}
+
+void Shell::addWorkspace(Workspace *ws)
+{
+    m_workspaces.push_back(ws);
+    if (ws->number() == 0) {
+        activateWorkspace(nullptr);
+    }
 }
 
 weston_surface *Shell::createBlackSurface(int w, int h)
@@ -611,9 +614,11 @@ Workspace *Shell::workspace(uint32_t id) const
 void Shell::selectPreviousWorkspace()
 {
     Workspace *old = currentWorkspace();
-    if (--m_currentWorkspace < 0) {
-        m_currentWorkspace = m_workspaces.size() - 1;
+    int i = m_currentWorkspace;
+    if (--i < 0) {
+        i = m_workspaces.size() - 1;
     }
+    m_currentWorkspace = i;
     activateWorkspace(old);
 }
 

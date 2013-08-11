@@ -18,11 +18,15 @@
 #include "workspace.h"
 #include "shell.h"
 #include "shellsurface.h"
+#include "wayland-desktop-shell-server-protocol.h"
 
-Workspace::Workspace(Shell *shell, int number)
+Workspace::Workspace(Shell *shell, int number, wl_client *client, int id)
          : m_shell(shell)
          , m_number(number)
 {
+    m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
+    wl_resource_set_user_data(m_resource, this);
+
     int x = 0, y = 0;
     int w = 0, h = 0;
 
@@ -101,4 +105,9 @@ void Workspace::insert(struct weston_layer *layer)
 void Workspace::remove()
 {
     m_layer.remove();
+}
+
+Workspace *Workspace::fromResource(wl_resource *res)
+{
+    return static_cast<Workspace *>(wl_resource_get_user_data(res));
 }

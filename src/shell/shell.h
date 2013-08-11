@@ -119,6 +119,7 @@ protected:
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) {}
     virtual void endBusyCursor(struct weston_seat *seat) {}
     void fadeSplash();
+    void addWorkspace(Workspace *ws);
 
     struct Child {
         Shell *shell;

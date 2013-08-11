@@ -51,6 +51,8 @@ private:
     void minimizeWindows(wl_client *client, wl_resource *resource);
     void restoreWindows(wl_client *client, wl_resource *resource);
     void createGrab(wl_client *client, wl_resource *resource, uint32_t id);
+    void addWorkspace(wl_client *client, wl_resource *resource, uint32_t id);
+    void selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     void quit(wl_client *client, wl_resource *resource);
 
     static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
@@ -68,6 +70,8 @@ private:
     static void desktop_shell_minimize_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_restore_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id);
+    static void desktop_shell_add_workspace(wl_client *client, wl_resource *resource, uint32_t id);
+    static void desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     static void desktop_shell_quit(wl_client *client, wl_resource *resource);
 
     InputPanel *m_inputPanel;
@@ -124,6 +128,16 @@ inline void DesktopShell::desktop_shell_restore_windows(wl_client *client, wl_re
 
 inline void DesktopShell::desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id) {
     _this->createGrab(client, resource, id);
+}
+
+inline void DesktopShell::desktop_shell_add_workspace(wl_client *client, wl_resource *resource, uint32_t id)
+{
+    _this->addWorkspace(client, resource, id);
+}
+
+inline void DesktopShell::desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource)
+{
+    _this->selectWorkspace(client, resource, workspace_resource);
 }
 
 inline void DesktopShell::desktop_shell_quit(wl_client *client, wl_resource *resource) {

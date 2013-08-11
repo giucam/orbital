@@ -25,7 +25,7 @@ class Shell;
 
 class Workspace {
 public:
-    Workspace(Shell *shell, int number);
+    Workspace(Shell *shell, int number, wl_client *client, int id);
     ~Workspace();
 
     void addSurface(ShellSurface *surface);
@@ -45,9 +45,12 @@ public:
 
     inline const Layer &layer() const { return m_layer; }
 
+    static Workspace *fromResource(wl_resource *res);
+
 private:
     Shell *m_shell;
     int m_number;
+    wl_resource *m_resource;
     struct weston_surface *m_rootSurface;
     Transform m_transform;
     Layer m_layer;

@@ -107,6 +107,8 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
+    desktop_shell_add_workspace(m_shell);
+
     m_launcher = new ProcessLauncher(this);
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);

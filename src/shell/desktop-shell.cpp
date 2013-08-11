@@ -278,12 +278,23 @@ void DesktopShell::requestFocus(wl_client *client, wl_resource *resource, wl_res
 
 void DesktopShell::minimizeWindows(wl_client *client, wl_resource *resource)
 {
-    selectWorkspace(-1);
+    Shell::selectWorkspace(-1);
 }
 
 void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
 {
-    selectWorkspace(currentWorkspace()->number());
+    Shell::selectWorkspace(currentWorkspace()->number());
+}
+
+void DesktopShell::addWorkspace(wl_client *client, wl_resource *resource, uint32_t id)
+{
+    Workspace *ws = new Workspace(this, numWorkspaces(), client, id);
+    Shell::addWorkspace(ws);
+}
+
+void DesktopShell::selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource)
+{
+    Shell::selectWorkspace(Workspace::fromResource(workspace_resource)->number());
 }
 
 class ClientGrab : public ShellGrab {
@@ -399,5 +410,7 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     desktop_shell_minimize_windows,
     desktop_shell_restore_windows,
     desktop_shell_create_grab,
+    desktop_shell_add_workspace,
+    desktop_shell_select_workspace,
     desktop_shell_quit
 };

@@ -66,6 +66,13 @@
         <arg name="id" type="new_id" interface="desktop_shell_grab"/>
     </request>
 
+    <request name="add_workspace">
+        <arg name="id" type="new_id" interface="desktop_shell_workspace"/>
+    </request>
+    <request name="select_workspace">
+        <arg name="workspace" type="object" interface="desktop_shell_workspace"/>
+    </request>
+
     <request name="quit"/>
 
     <!-- We'll fold most of wl_shell into this interface and then
@@ -181,5 +188,10 @@
           <arg name="button" type="uint"/>
           <arg name="state" type="uint"/>
       </event>
+  </interface>
+
+  <interface name="desktop_shell_workspace" version="1">
+      <event name="activated"/>
+      <event name="deactivated"/>
   </interface>
 </protocol>
