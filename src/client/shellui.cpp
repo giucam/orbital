@@ -257,6 +257,7 @@ void ShellUI::saveConfig()
 
 void ShellUI::saveElement(Element *elm, QXmlStreamWriter &xml)
 {
+    saveProperties(elm, elm->m_ownProperties, xml);
     saveProperties(elm, elm->m_properties, xml);
     elm->sortChildren();
     saveChildren(elm->m_children, xml);

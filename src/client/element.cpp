@@ -83,7 +83,9 @@ void Element::setChildrenParent(QQuickItem *item)
 
 void Element::addProperty(const QString &name)
 {
-    m_properties << name;
+    if (!m_ownProperties.contains(name) && !m_properties.contains(name)) {
+        m_properties << name;
+    }
 }
 
 void Element::destroyElement()

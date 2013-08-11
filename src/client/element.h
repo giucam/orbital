@@ -36,6 +36,7 @@ class Element : public QQuickItem
 {
     Q_OBJECT
     Q_PROPERTY(Type type READ type WRITE setType)
+    Q_PROPERTY(QStringList saveProperties READ saveProperties WRITE setSaveProperties)
     Q_PROPERTY(LayoutAttached *layoutItem READ layout WRITE setLayout)
     Q_PROPERTY(QString sortProperty READ sortProperty WRITE setSortProperty)
     Q_PROPERTY(ElementConfig *configureItem READ configureItem)
@@ -62,6 +63,9 @@ public:
 
     inline Type type() const { return m_type; }
     inline void setType(Type t) { m_type = t; }
+
+    QStringList saveProperties() const { return m_ownProperties; }
+    void setSaveProperties(const QStringList &list) { m_ownProperties = list; }
 
     inline LayoutAttached *layout() const { return m_layout; }
     inline void setLayout(LayoutAttached *l) { m_layout = l; }
@@ -119,6 +123,7 @@ private:
     Element *m_parent;
     QList<Element *> m_children;
     QStringList m_properties;
+    QStringList m_ownProperties;
     LayoutAttached *m_layout;
     QString m_sortProperty;
     QQuickItem *m_content;

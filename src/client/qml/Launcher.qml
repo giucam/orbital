@@ -28,6 +28,8 @@ Element {
     property string icon: "image://icon/image-missing"
     property string process
 
+    saveProperties: [ "icon", "process" ]
+
     width: 32
     height: width
 
