@@ -45,6 +45,7 @@ class Element : public QQuickItem
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
     Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
+    Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
     enum Type {
@@ -90,6 +91,9 @@ public:
     QQuickItem *childrenParent() const { return m_childrenParent; }
     void setChildrenParent(QQuickItem *item);
 
+    QQmlComponent *background() const { return m_childrenBackground; }
+    void setBackground(QQmlComponent *c) { m_childrenBackground = c; }
+
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
@@ -112,6 +116,7 @@ private:
     void setParentElement(Element *parent);
     void sortChildren();
     void createConfig(Element *child);
+    void createBackground(Element *child);
     void settingsVisibleChanged(bool visible);
 
     static QString elementPath(const QString &typeName);
@@ -132,6 +137,9 @@ private:
     QQuickItem *m_settingsItem;
     QQuickWindow *m_settingsWindow;
     QQmlComponent *m_childrenConfig;
+
+    QQmlComponent *m_childrenBackground;
+    QQuickItem *m_background;
 
     Element *m_target;
     QPointF m_pos;

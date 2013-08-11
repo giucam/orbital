@@ -44,6 +44,8 @@ Element::Element(Element *parent)
        , m_settingsItem(nullptr)
        , m_settingsWindow(nullptr)
        , m_childrenConfig(nullptr)
+       , m_childrenBackground(nullptr)
+       , m_background(nullptr)
 {
     setParentElement(parent);
 }
@@ -144,6 +146,7 @@ void Element::focus(wl_surface *surface, int x, int y)
 
     m_pos = QPointF(x, y);
     if (m_target) {
+        m_target->createBackground(this);
         emit m_target->elementEntered(this, m_pos, m_offset);
     }
 }
@@ -213,9 +216,8 @@ void Element::sortChildren()
 
 void Element::createConfig(Element *child)
 {
-    if (child->m_configureItem) {
-        delete child->m_configureItem;
-    }
+    delete child->m_configureItem;
+    child->m_configureItem = nullptr;
     if (m_childrenConfig) {
         QObject *obj = m_childrenConfig->beginCreate(Client::qmlEngine()->rootContext());
         if (ElementConfig *e = qobject_cast<ElementConfig *>(obj)) {
@@ -225,6 +227,24 @@ void Element::createConfig(Element *child)
             m_childrenConfig->completeCreate();
         } else {
             qWarning("childrenConfig must be a ElementConfig!");
+            delete obj;
+        }
+    }
+}
+
+void Element::createBackground(Element *child)
+{
+    delete child->m_background;
+    child->m_background = nullptr;
+    if (m_childrenBackground) {
+        QObject *obj = m_childrenBackground->beginCreate(Client::qmlEngine()->rootContext());
+        if (QQuickItem *e = qobject_cast<QQuickItem *>(obj)) {
+            e->setParentItem(child);
+            e->setZ(-1);
+            child->m_background = e;
+            m_childrenBackground->completeCreate();
+        } else {
+            qWarning("childrenBackground must be a QQuickItem!");
             delete obj;
         }
     }

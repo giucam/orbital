@@ -124,6 +124,14 @@ Element {
         }
     }
 
+    childrenBackground: Component {
+        Rectangle {
+            anchors.fill: parent
+            color: "#60606060"
+            border.color: "dimgrey"
+        }
+    }
+
     onElementAdded: {
         element.parent = bkg
         element.addProperty("x");

@@ -128,6 +128,7 @@ Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int,
             m_elements.insert(id, elm);
             if (created && parent) {
                 parent->createConfig(elm);
+                parent->createBackground(elm);
             }
             return (created ? elm : nullptr);
         }
