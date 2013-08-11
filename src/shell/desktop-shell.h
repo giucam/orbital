@@ -31,6 +31,7 @@ protected:
     virtual void setGrabCursor(uint32_t);
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) override;
     virtual void endBusyCursor(struct weston_seat *seat) override;
+    virtual void workspaceAdded(Workspace *ws) override;
 
 private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
@@ -51,7 +52,7 @@ private:
     void minimizeWindows(wl_client *client, wl_resource *resource);
     void restoreWindows(wl_client *client, wl_resource *resource);
     void createGrab(wl_client *client, wl_resource *resource, uint32_t id);
-    void addWorkspace(wl_client *client, wl_resource *resource, uint32_t id);
+    void addWorkspace(wl_client *client, wl_resource *resource);
     void selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     void quit(wl_client *client, wl_resource *resource);
 
@@ -70,7 +71,7 @@ private:
     static void desktop_shell_minimize_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_restore_windows(wl_client *client, wl_resource *resource);
     static void desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id);
-    static void desktop_shell_add_workspace(wl_client *client, wl_resource *resource, uint32_t id);
+    static void desktop_shell_add_workspace(wl_client *client, wl_resource *resource);
     static void desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     static void desktop_shell_quit(wl_client *client, wl_resource *resource);
 
@@ -130,9 +131,9 @@ inline void DesktopShell::desktop_shell_create_grab(wl_client *client, wl_resour
     _this->createGrab(client, resource, id);
 }
 
-inline void DesktopShell::desktop_shell_add_workspace(wl_client *client, wl_resource *resource, uint32_t id)
+inline void DesktopShell::desktop_shell_add_workspace(wl_client *client, wl_resource *resource)
 {
-    _this->addWorkspace(client, resource, id);
+    _this->addWorkspace(client, resource);
 }
 
 inline void DesktopShell::desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource)

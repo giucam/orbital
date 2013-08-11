@@ -25,8 +25,10 @@ class Shell;
 
 class Workspace {
 public:
-    Workspace(Shell *shell, int number, wl_client *client, int id);
+    Workspace(Shell *shell, int number);
     ~Workspace();
+
+    void init(wl_client *client);
 
     void addSurface(ShellSurface *surface);
     void restack(ShellSurface *surface);
@@ -37,6 +39,7 @@ public:
     inline int number() const { return m_number; }
     int numberOfSurfaces() const;
     struct weston_output *output() const;
+    wl_resource *resource() const { return m_resource; }
 
     void insert(Workspace *ws);
     void insert(Layer *layer);
@@ -44,6 +47,7 @@ public:
     void remove();
 
     void setActive(bool active);
+    bool active() const { return m_active; }
 
     inline const Layer &layer() const { return m_layer; }
 
@@ -56,6 +60,7 @@ private:
     struct weston_surface *m_rootSurface;
     Transform m_transform;
     Layer m_layer;
+    bool m_active;
 };
 
 #endif

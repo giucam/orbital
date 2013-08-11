@@ -88,6 +88,7 @@ Client::~Client()
     delete m_engine;
     delete m_grabWindow;
     qDeleteAll(m_bindings);
+    qDeleteAll(m_workspaces);
 }
 
 static const desktop_shell_binding_listener binding_listener = {
@@ -276,8 +277,7 @@ void Client::restoreWindows()
 
 void Client::addWorkspace()
 {
-    m_workspaces << new Workspace(desktop_shell_add_workspace(m_shell), this);
-    emit workspacesChanged();
+    desktop_shell_add_workspace(m_shell);
 }
 
 void Client::selectWorkspace(Workspace *ws)
@@ -384,11 +384,23 @@ void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop
     QMetaObject::invokeMethod(c, "createWindow", Qt::QueuedConnection);
 }
 
+void Client::handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)
+{
+    Workspace *ws = new Workspace(workspace);
+    ws->m_active = active;
+
+    Client *c = static_cast<Client *>(data);
+    c->m_workspaces << ws;
+    ws->moveToThread(QCoreApplication::instance()->thread());
+    emit c->workspacesChanged();
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     Client::configure,
     Client::handlePrepareLockSurface,
     Client::handleGrabCursor,
-    Client::handleWindowAdded
+    Client::handleWindowAdded,
+    Client::handleWorkspaceAdded
 };
 
 Grab *Client::createGrab()

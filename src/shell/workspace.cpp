@@ -20,13 +20,11 @@
 #include "shellsurface.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
-Workspace::Workspace(Shell *shell, int number, wl_client *client, int id)
+Workspace::Workspace(Shell *shell, int number)
          : m_shell(shell)
          , m_number(number)
+         , m_active(false)
 {
-    m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
-    wl_resource_set_user_data(m_resource, this);
-
     int x = 0, y = 0;
     int w = 0, h = 0;
 
@@ -46,6 +44,12 @@ Workspace::Workspace(Shell *shell, int number, wl_client *client, int id)
 Workspace::~Workspace()
 {
 
+}
+
+void Workspace::init(wl_client *client)
+{
+    m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, 0);
+    wl_resource_set_user_data(m_resource, this);
 }
 
 void Workspace::addSurface(ShellSurface *surface)
@@ -109,6 +113,7 @@ void Workspace::remove()
 
 void Workspace::setActive(bool active)
 {
+    m_active = active;
     if (active) {
         desktop_shell_workspace_send_activated(m_resource);
     } else {

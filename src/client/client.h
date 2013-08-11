@@ -39,6 +39,7 @@ struct desktop_shell;
 struct desktop_shell_listener;
 struct desktop_shell_binding;
 struct desktop_shell_window;
+struct desktop_shell_workspace;
 
 class ProcessLauncher;
 class Window;
@@ -111,6 +112,7 @@ private:
     static void handlePrepareLockSurface(void *data, desktop_shell *desktop_shell);
     static void handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor);
     static void handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
+    static void handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desktop_shell_workspace *ws, int active);
 
     static const wl_registry_listener s_registryListener;
     static const desktop_shell_listener s_shellListener;

@@ -128,6 +128,11 @@ void DesktopShell::endBusyCursor(struct weston_seat *seat)
     }
 }
 
+void DesktopShell::workspaceAdded(Workspace *ws)
+{
+    desktop_shell_send_workspace_added(m_child.desktop_shell, ws->resource(), ws->active());
+}
+
 void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 {
     struct wl_resource *resource = wl_resource_create(client, &desktop_shell_interface, version, id);
@@ -286,10 +291,12 @@ void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
     Shell::selectWorkspace(currentWorkspace()->number());
 }
 
-void DesktopShell::addWorkspace(wl_client *client, wl_resource *resource, uint32_t id)
+void DesktopShell::addWorkspace(wl_client *client, wl_resource *resource)
 {
-    Workspace *ws = new Workspace(this, numWorkspaces(), client, id);
+    Workspace *ws = new Workspace(this, numWorkspaces());
+    ws->init(client);
     Shell::addWorkspace(ws);
+    workspaceAdded(ws);
 }
 
 void DesktopShell::selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource)
