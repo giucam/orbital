@@ -202,7 +202,6 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
             case ShellSurface::Type::None:
                 break;
             default:
-                printf("add %p\n",surface);
                 surface->m_workspace->addSurface(surface);
                 m_surfaces.push_back(surface);
                 for (Effect *e: m_effects) {
@@ -793,8 +792,6 @@ void Shell::launchShellProcess()
                                               Child *child = container_of(process, Child, process);
                                               child->shell->sigchld(status);
                                           });
-
-    printf("launch\n");
 
     if (!m_child.client)
         weston_log("not able to start %s\n", m_clientPath);

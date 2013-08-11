@@ -66,7 +66,6 @@ void ScaleEffect::grab_focus(struct weston_pointer_grab *base)
 
     grab->surface = surface;
 
-    printf("focus %p\n", surface);
     for (SurfaceTransform *tr: grab->effect->m_surfaces) {
         if (tr->surface->workspace() != currWs) {
             continue;
@@ -77,7 +76,6 @@ void ScaleEffect::grab_focus(struct weston_pointer_grab *base)
         if (alpha == curr) {
             continue;
         }
-        printf("%p %f %f\n",tr->surface->weston_surface(),alpha,curr);
 
         tr->alphaAnim.setStart(curr);
         tr->alphaAnim.setTarget(alpha);

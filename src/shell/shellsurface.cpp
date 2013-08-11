@@ -72,10 +72,9 @@ void ShellSurface::set_state(struct wl_client *client, struct wl_resource *resou
         wl_list_remove(&shsurf->m_surface->layer_link);
         wl_list_init(&shsurf->m_surface->layer_link);
     }
-    printf("%p %d %d\n",shsurf,shsurf->m_state,state);
+
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
-        printf("act %p\n",shsurf);
         ShellSeat::shellSeat(seat)->activate(shsurf);
     }
 
@@ -209,9 +208,6 @@ void ShellSurface::map(int32_t x, int32_t y, int32_t width, int32_t height)
         default:
             break;
     }
-
-    printf("map %d %d %d %d - %d\n",x,y,width,height,m_type);
-
 
     if (m_type != Type::None) {
         weston_surface_update_transform(m_surface);
