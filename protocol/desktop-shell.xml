@@ -73,6 +73,8 @@
 
     <request name="quit"/>
 
+    <event name="load"/>
+
     <!-- We'll fold most of wl_shell into this interface and then
          they'll share the configure event.  -->
     <event name="configure">

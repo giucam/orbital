@@ -110,7 +110,7 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    for (int i = 0; i < 4; ++i) {
+    for (int i = m_workspaces.size(); i < 4; ++i) {
         addWorkspace();
     }
 
@@ -178,8 +178,6 @@ void Client::create()
 
     }
 
-    m_nextWindow = new Window(this);
-
     // wait until all the objects have finished what they're doing before sending the ready event
     while (QCoreApplication::hasPendingEvents()) {
         QCoreApplication::processEvents();
@@ -191,15 +189,6 @@ void Client::ready()
 {
     desktop_shell_desktop_ready(m_shell);
     qDebug() << "Orbital-client startup time:" << m_elapsedTimer.elapsed() << "ms";
-}
-
-void Client::createWindow()
-{
-    m_windows << m_nextWindow;
-    connect(m_nextWindow, &Window::destroyed, this, &Client::windowRemoved);
-    emit windowsChanged();
-
-    m_nextWindow = new Window(this);
 }
 
 void Client::windowRemoved(Window *w)
@@ -307,14 +296,17 @@ void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const 
         // Bind interface and register listener
         object->m_shell = static_cast<desktop_shell *>(wl_registry_bind(registry, id, &desktop_shell_interface, version));
         desktop_shell_add_listener(object->m_shell, &s_shellListener, data);
-
-        QMetaObject::invokeMethod(object, "create");
     }
 }
 
 const wl_registry_listener Client::s_registryListener = {
     Client::handleGlobal
 };
+
+void Client::handleLoad(void *data, desktop_shell *shell)
+{
+    QMetaObject::invokeMethod(static_cast<Client *>(data), "create");
+}
 
 void Client::configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height)
 {
@@ -377,11 +369,17 @@ void Client::setGrabCursor()
 
 void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
 {
-    Client *c = static_cast<Client *>(data);
-    c->m_nextWindow->init(window, state);
-    c->m_nextWindow->setTitle(title);
+    Window *w = new Window();
+    w->init(window, state);
+    w->setTitle(title);
 
-    QMetaObject::invokeMethod(c, "createWindow", Qt::QueuedConnection);
+    Client *c = static_cast<Client *>(data);
+    c->m_windows << w;
+    w->moveToThread(QCoreApplication::instance()->thread());
+
+    connect(w, &Window::destroyed, c, &Client::windowRemoved);
+
+    emit c->windowsChanged();
 }
 
 void Client::handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)
@@ -396,6 +394,7 @@ void Client::handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desk
 }
 
 const desktop_shell_listener Client::s_shellListener = {
+    Client::handleLoad,
     Client::configure,
     Client::handlePrepareLockSurface,
     Client::handleGrabCursor,

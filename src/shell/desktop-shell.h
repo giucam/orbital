@@ -31,9 +31,10 @@ protected:
     virtual void setGrabCursor(uint32_t);
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) override;
     virtual void endBusyCursor(struct weston_seat *seat) override;
-    virtual void workspaceAdded(Workspace *ws) override;
 
 private:
+    void sendInitEvents();
+    void workspaceAdded(Workspace *ws);
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
     void unbind(struct wl_resource *resource);
     void moveBinding(struct weston_seat *seat, uint32_t time, uint32_t button);

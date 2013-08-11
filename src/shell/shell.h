@@ -120,7 +120,6 @@ protected:
     virtual void endBusyCursor(struct weston_seat *seat) {}
     void fadeSplash();
     void addWorkspace(Workspace *ws);
-    virtual void workspaceAdded(Workspace *ws) {}
 
     struct Child {
         Shell *shell;

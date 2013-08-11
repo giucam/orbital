@@ -134,6 +134,14 @@ void ShellSurface::sendState()
     }
 }
 
+void ShellSurface::advertize()
+{
+    m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
+    wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
+    desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), m_state);
+    m_windowAdvertized = true;
+}
+
 bool ShellSurface::updateType()
 {
     if (m_type != m_pendingType && m_pendingType != Type::None) {
@@ -167,10 +175,7 @@ bool ShellSurface::updateType()
 
         if (m_type == Type::TopLevel || m_type == Type::Maximized || m_type == Type::Fullscreen) {
             if (!m_windowAdvertized) {
-                m_windowResource = wl_resource_create(m_shell->shellClient(), &desktop_shell_window_interface, 1, 0);
-                wl_resource_set_implementation(m_windowResource, &m_window_implementation, this, 0);
-                desktop_shell_send_window_added(m_shell->shellClientResource(), m_windowResource, m_title.c_str(), m_state);
-                m_windowAdvertized = true;
+                advertize();
             }
         } else {
             destroyWindow();

@@ -101,13 +101,13 @@ signals:
 
 private slots:
     void create();
-    void createWindow();
     void windowRemoved(Window *w);
     void setGrabCursor();
     void ready();
 
 private:
     static void handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
+    static void handleLoad(void *data, desktop_shell *shell);
     static void configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
     static void handlePrepareLockSurface(void *data, desktop_shell *desktop_shell);
     static void handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor);
@@ -137,7 +137,6 @@ private:
     QQmlComponent *m_component;
     ShellUI *m_ui;
 
-    Window *m_nextWindow;
     QList<Window *> m_windows;
     QList<Workspace *> m_workspaces;
 

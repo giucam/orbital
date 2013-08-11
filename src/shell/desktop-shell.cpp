@@ -128,6 +128,22 @@ void DesktopShell::endBusyCursor(struct weston_seat *seat)
     }
 }
 
+void DesktopShell::sendInitEvents()
+{
+    for (uint i = 0; i < numWorkspaces(); ++i) {
+        workspace(i)->init(m_child.client);
+        workspaceAdded(workspace(i));
+    }
+
+    struct weston_surface *surface;
+    wl_list_for_each(surface, &compositor()->surface_list, link) {
+        ShellSurface *shsurf = Shell::getShellSurface(surface);
+        if (shsurf) {
+            shsurf->advertize();
+        }
+    }
+}
+
 void DesktopShell::workspaceAdded(Workspace *ws)
 {
     desktop_shell_send_workspace_added(m_child.desktop_shell, ws->resource(), ws->active());
@@ -141,6 +157,9 @@ void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
         wl_resource_set_implementation(resource, &m_desktop_shell_implementation, this,
                                        [](struct wl_resource *resource) { static_cast<DesktopShell *>(resource->data)->unbind(resource); });
         m_child.desktop_shell = resource;
+
+        sendInitEvents();
+        desktop_shell_send_load(resource);
         return;
     }
 
