@@ -56,7 +56,7 @@ ElementConfig {
             radius: 8
             samples: 16
             source: element.content
-            transparentBorder: true
+            cached: true
         }
 
         Rectangle {
