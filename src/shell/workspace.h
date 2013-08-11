@@ -43,6 +43,8 @@ public:
     void insert(struct weston_layer *layer);
     void remove();
 
+    void setActive(bool active);
+
     inline const Layer &layer() const { return m_layer; }
 
     static Workspace *fromResource(wl_resource *res);

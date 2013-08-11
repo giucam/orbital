@@ -107,6 +107,15 @@ void Workspace::remove()
     m_layer.remove();
 }
 
+void Workspace::setActive(bool active)
+{
+    if (active) {
+        desktop_shell_workspace_send_activated(m_resource);
+    } else {
+        desktop_shell_workspace_send_deactivated(m_resource);
+    }
+}
+
 Workspace *Workspace::fromResource(wl_resource *res)
 {
     return static_cast<Workspace *>(wl_resource_get_user_data(res));

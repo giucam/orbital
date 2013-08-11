@@ -650,9 +650,11 @@ void Shell::selectWorkspace(int32_t id)
 void Shell::activateWorkspace(Workspace *old)
 {
     if (old) {
+        old->setActive(false);
         old->remove();
     }
 
+    currentWorkspace()->setActive(true);
     currentWorkspace()->insert(&m_fullscreenLayer);
 }
 
