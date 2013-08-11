@@ -42,6 +42,9 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *settingsItem READ settingsItem WRITE setSettingsItem)
     Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
+    Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
+    Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
+    Q_CLASSINFO("DefaultProperty", "resources")
 public:
     enum Type {
         Item,
@@ -76,6 +79,12 @@ public:
 
     QPointF dragOffset() const { return m_offset; }
     void setDragOffset(const QPointF &pos) { m_offset = pos; }
+
+    QQuickItem *content() const { return m_content; }
+    void setContent(QQuickItem *item);
+
+    QQuickItem *childrenParent() const { return m_childrenParent; }
+    void setChildrenParent(QQuickItem *item);
 
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
@@ -112,6 +121,8 @@ private:
     QStringList m_properties;
     LayoutAttached *m_layout;
     QString m_sortProperty;
+    QQuickItem *m_content;
+    QQuickItem *m_childrenParent;
     ElementConfig *m_configureItem;
     QQuickItem *m_settingsItem;
     QQuickWindow *m_settingsWindow;

@@ -35,7 +35,7 @@ Element {
     Layout.maximumWidth: 50
     Layout.fillHeight: true
 
-    Button {
+    content: Button {
         anchors.fill: parent
         icon: launcher.icon
 

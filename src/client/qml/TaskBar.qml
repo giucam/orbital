@@ -31,7 +31,7 @@ Element {
     width: Layout.preferredWidth
     height: Layout.preferredHeight
 
-    Rectangle {
+    content: Rectangle {
         anchors.fill: parent
         color: "transparent"
         border.color: "grey"

@@ -28,7 +28,7 @@ Element {
     Layout.preferredWidth: width
     Layout.fillHeight: true
 
-    Rectangle {
+    content: Rectangle {
         color: "white"
         anchors.fill: parent
         anchors.margins: 2

@@ -31,7 +31,7 @@ Element {
     Layout.maximumWidth: 100
     Layout.fillHeight: true
 
-    Row {
+    content: Row {
         id: row
         height: parent.height
         Button {

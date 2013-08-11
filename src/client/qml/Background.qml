@@ -146,167 +146,196 @@ Element {
     onElementExited: {
     }
 
-    Rectangle {
+    content: Rectangle {
         anchors.fill: parent
-        color: parent.color
-    }
+        color: bkg.color
 
-    Image {
-        id: image
-        source: bkg.imageSource
-        fillMode: bkg.fillModes[bkg.imageFillMode].value
-        anchors.fill: parent
-        smooth: true
-    }
-
-
-    Rectangle {
-        id: config
-        y: bkg.height
-        width: parent.width
-        height: 300
-        color: "#E6404040"
-        z: 100
-        visible: false
-
-        property bool open: false
-        property bool faded: false
-        opacity: faded ? 0.1 : 1
-
-        states: [
-            State {
-                name: "open"
-                when: config.open
-                PropertyChanges { target: config; y: bkg.height - config.height }
-                StateChangeScript { script: browser.path = bkg.imageSource }
-            }
-        ]
-
-        FileBrowser {
-            id: browser
-            nameFilters: [ "*.jpg", "*.png", "*.jpeg" ]
+        Image {
+            id: image
+            source: bkg.imageSource
+            fillMode: bkg.fillModes[bkg.imageFillMode].value
+            anchors.fill: parent
+            smooth: true
         }
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            propagateComposedEvents: true
-            onEntered: parent.faded = false
-            onExited: parent.faded = true
 
-            Row {
-                id: buttons
-                width: parent.width
-                Button {
-                    id: home
-                    height: 20
-                    icon: "image://icon/user-home"
+        Rectangle {
+            id: config
+            y: bkg.height
+            width: parent.width
+            height: 300
+            color: "#E6404040"
+            z: 100
+            visible: false
 
-                    onClicked: browser.cdHome()
+            property bool open: false
+            property bool faded: false
+            opacity: faded ? 0.1 : 1
+
+            states: [
+                State {
+                    name: "open"
+                    when: config.open
+                    PropertyChanges { target: config; y: bkg.height - config.height }
+                    StateChangeScript { script: browser.path = bkg.imageSource }
                 }
-                Button {
-                    id: goUp
-                    height: 20
-                    icon: "image://icon/go-up"
+            ]
 
-                    onClicked: browser.cdUp()
-                }
+            FileBrowser {
+                id: browser
+                nameFilters: [ "*.jpg", "*.png", "*.jpeg" ]
             }
 
-            Item {
-                id: browserPanel
-                anchors.top: buttons.bottom
-                width: parent.width
-                height: scrollBar.y + scrollBar.height
-                Connections {
-                    target: browser
-                    onPathChanged: list.contentX = 0;
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                propagateComposedEvents: true
+                onEntered: parent.faded = false
+                onExited: parent.faded = true
+
+                Row {
+                    id: buttons
+                    width: parent.width
+                    Button {
+                        id: home
+                        height: 20
+                        icon: "image://icon/user-home"
+
+                        onClicked: browser.cdHome()
+                    }
+                    Button {
+                        id: goUp
+                        height: 20
+                        icon: "image://icon/go-up"
+
+                        onClicked: browser.cdUp()
+                    }
                 }
 
-                ListView {
-                    id: list
-                    spacing: 5
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: spacing
-                    anchors.rightMargin: spacing
-                    height: 100
-
-                    Behavior on contentX { PropertyAnimation { easing.type: Easing.OutQuad } }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        propagateComposedEvents: true
-                        onWheel: {
-                            var pos = list.contentX + wheel.angleDelta.y * 2;
-                            var max = list.contentWidth - parent.width;
-                            var min = 0;
-                            if (pos > max) pos = max;
-                            if (pos < min) pos = min
-                            list.contentX = pos;
-                        }
+                Item {
+                    id: browserPanel
+                    anchors.top: buttons.bottom
+                    width: parent.width
+                    height: scrollBar.y + scrollBar.height
+                    Connections {
+                        target: browser
+                        onPathChanged: list.contentX = 0;
                     }
 
-                    model: browser.dirContent
-                    orientation: ListView.Horizontal
+                    ListView {
+                        id: list
+                        spacing: 5
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.leftMargin: spacing
+                        anchors.rightMargin: spacing
+                        height: 100
 
-                    delegate: Rectangle {
-                        color: "black"
-                        height: list.height
-                        width: height
-
-                        Item {
-                            id: content
-                            anchors.fill: parent
-                            Image {
-                                id: thumb
-                                property int spacing: list.spacing
-                                x: 2 * spacing
-                                y: spacing
-                                width: parent.width - 4 * spacing
-                                height: width
-                                sourceSize: Qt.size(width, height)
-                                fillMode: Image.PreserveAspectFit
-                                asynchronous: true
-                                cache: modelData.isDir()
-
-                                source: modelData.isDir() ? "image://icon/folder" : modelData.path()
-                            }
-                            Text {
-                                anchors.top: thumb.bottom
-                                width: parent.width
-                                horizontalAlignment: Text.AlignHCenter
-                                text: modelData.name
-                                color: "white"
-                                elide: Text.ElideMiddle
-                            }
-                        }
-
-                        Glow {
-                            id: glow
-                            anchors.fill: content
-                            radius: 8
-                            samples: 16
-                            color: "white"
-                            source: content
-                            opacity: 0
-
-                            Behavior on opacity { PropertyAnimation {} }
-                        }
+                        Behavior on contentX { PropertyAnimation { easing.type: Easing.OutQuad } }
 
                         MouseArea {
                             anchors.fill: parent
-                            hoverEnabled: true
+                            propagateComposedEvents: true
+                            onWheel: {
+                                var pos = list.contentX + wheel.angleDelta.y * 2;
+                                var max = list.contentWidth - parent.width;
+                                var min = 0;
+                                if (pos > max) pos = max;
+                                if (pos < min) pos = min
+                                list.contentX = pos;
+                            }
+                        }
 
-                            onEntered: glow.opacity = 0.5
-                            onExited: glow.opacity = 0
+                        model: browser.dirContent
+                        orientation: ListView.Horizontal
 
-                            onClicked: {
-                                if (modelData.isDir()) {
-                                    browser.cd(modelData.name);
-                                } else {
-                                    bkg.imageSource = modelData.path();
+                        delegate: Rectangle {
+                            color: "black"
+                            height: list.height
+                            width: height
+
+                            Item {
+                                id: content
+                                anchors.fill: parent
+                                Image {
+                                    id: thumb
+                                    property int spacing: list.spacing
+                                    x: 2 * spacing
+                                    y: spacing
+                                    width: parent.width - 4 * spacing
+                                    height: width
+                                    sourceSize: Qt.size(width, height)
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                    cache: modelData.isDir()
+
+                                    source: modelData.isDir() ? "image://icon/folder" : modelData.path()
+                                }
+                                Text {
+                                    anchors.top: thumb.bottom
+                                    width: parent.width
+                                    horizontalAlignment: Text.AlignHCenter
+                                    text: modelData.name
+                                    color: "white"
+                                    elide: Text.ElideMiddle
+                                }
+                            }
+
+                            Glow {
+                                id: glow
+                                anchors.fill: content
+                                radius: 8
+                                samples: 16
+                                color: "white"
+                                source: content
+                                opacity: 0
+
+                                Behavior on opacity { PropertyAnimation {} }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                hoverEnabled: true
+
+                                onEntered: glow.opacity = 0.5
+                                onExited: glow.opacity = 0
+
+                                onClicked: {
+                                    if (modelData.isDir()) {
+                                        browser.cd(modelData.name);
+                                    } else {
+                                        bkg.imageSource = modelData.path();
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Item {
+                        id: scrollBar
+                        anchors.top: list.bottom
+                        anchors.left: list.left
+                        anchors.right: list.right
+                        anchors.topMargin: list.spacing
+                        height: 15
+
+                        Rectangle {
+                            height: parent.height
+                            width: 50
+                            color: "black"
+                            x: (parent.width - width) * list.contentX / (list.contentWidth - list.width)
+
+                            MouseArea {
+                                anchors.fill: parent
+                                property int startPoint
+
+                                onPressed: startPoint = mouse.x
+                                onPositionChanged: {
+                                    var x = parent.x + mouse.x - startPoint;
+                                    if (x < 0) x = 0;
+                                    if (x > scrollBar.width - parent.width) x = scrollBar.width - parent.width;
+                                    list.contentX = x * (list.contentWidth - list.width) / (scrollBar.width - parent.width);
                                 }
                             }
                         }
@@ -314,144 +343,115 @@ Element {
                 }
 
                 Item {
-                    id: scrollBar
-                    anchors.top: list.bottom
-                    anchors.left: list.left
-                    anchors.right: list.right
-                    anchors.topMargin: list.spacing
-                    height: 15
+                    id: fillModeChooser
+                    anchors.top: browserPanel.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: 5
+                    anchors.rightMargin: 5
+                    anchors.topMargin: 5
+                    height: 20
 
-                    Rectangle {
-                        height: parent.height
-                        width: 50
-                        color: "black"
-                        x: (parent.width - width) * list.contentX / (list.contentWidth - list.width)
+                    ListView {
+                        id: fillModeList
+                        anchors.fill: parent
+                        model: bkg.fillModes
+                        orientation: ListView.Horizontal
+                        spacing: 2
+                        currentIndex: bkg.imageFillMode
 
-                        MouseArea {
-                            anchors.fill: parent
-                            property int startPoint
+                        delegate: Rectangle {
+                            width: fillModeList.width / fillModeList.count - fillModeList.spacing
+                            height: fillModeList.height
+                            color: ListView.isCurrentItem ? "#505050" : "dimgrey"
 
-                            onPressed: startPoint = mouse.x
-                            onPositionChanged: {
-                                var x = parent.x + mouse.x - startPoint;
-                                if (x < 0) x = 0;
-                                if (x > scrollBar.width - parent.width) x = scrollBar.width - parent.width;
-                                list.contentX = x * (list.contentWidth - list.width) / (scrollBar.width - parent.width);
+                            Behavior on color { ColorAnimation {} }
+                            Text {
+                                text: modelData.name
+                                anchors.centerIn: parent
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    bkg.imageFillMode = index;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Item {
-                id: fillModeChooser
-                anchors.top: browserPanel.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.leftMargin: 5
-                anchors.rightMargin: 5
-                anchors.topMargin: 5
-                height: 20
-
-                ListView {
-                    id: fillModeList
-                    anchors.fill: parent
-                    model: bkg.fillModes
-                    orientation: ListView.Horizontal
-                    spacing: 2
-                    currentIndex: bkg.imageFillMode
-
-                    delegate: Rectangle {
-                        width: fillModeList.width / fillModeList.count - fillModeList.spacing
-                        height: fillModeList.height
-                        color: ListView.isCurrentItem ? "#505050" : "dimgrey"
-
-                        Behavior on color { ColorAnimation {} }
-                        Text {
-                            text: modelData.name
-                            anchors.centerIn: parent
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                bkg.imageFillMode = index;
-                            }
-                        }
-                    }
+                ElementsChooser {
+                    anchors.top: fillModeChooser.bottom
+                    anchors.topMargin: 10
+                    width: parent.width
+                    height: 50
                 }
             }
 
-            ElementsChooser {
-                anchors.top: fillModeChooser.bottom
-                anchors.topMargin: 10
-                width: parent.width
-                height: 50
-            }
+
+            Behavior on opacity { PropertyAnimation { } }
+            Behavior on y { PropertyAnimation { } }
         }
 
-
-        Behavior on opacity { PropertyAnimation { } }
-        Behavior on y { PropertyAnimation { } }
-    }
-
-    MouseArea {
-        id: configButtons
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        width: 50
-        height:20
-        z: 101
-
-        hoverEnabled: true
-        propagateComposedEvents: true
-        onEntered: config.faded = false
-        onExited: config.faded = true
-
-        Button {
+        MouseArea {
+            id: configButtons
+            anchors.bottom: parent.bottom
             anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            width: 20
+            width: 50
+            height:20
+            z: 101
 
-            icon: "image://icon/preferences-desktop-wallpaper"
+            hoverEnabled: true
+            propagateComposedEvents: true
+            onEntered: config.faded = false
+            onExited: config.faded = true
 
-            onClicked:  {
-                if (config.open) {
-                    Ui.saveConfig();
-                    Client.restoreWindows();
-                } else {
-                    Client.minimizeWindows();
+            Button {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 20
+
+                icon: "image://icon/preferences-desktop-wallpaper"
+
+                onClicked:  {
+                    if (config.open) {
+                        Ui.saveConfig();
+                        Client.restoreWindows();
+                    } else {
+                        Client.minimizeWindows();
+                    }
+                    config.open = !config.open;
+                    Ui.configMode = false;
+                    config.visible = true;
                 }
-                config.open = !config.open;
-                Ui.configMode = false;
-                config.visible = true;
+            }
+
+            Button {
+                id: revertButton
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                width: 20
+                icon: "image://icon/document-revert"
+
+                onClicked: Ui.reloadConfig()
             }
         }
 
         Button {
-            id: revertButton
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
+            anchors.bottom: configButtons.top
+            anchors.right: parent.right
+            anchors.bottomMargin: 10
             width: 20
-            icon: "image://icon/document-revert"
+            height: 20
 
-            onClicked: Ui.reloadConfig()
-        }
-    }
+            icon: "image://icon/preferences-desktop"
 
-    Button {
-        anchors.bottom: configButtons.top
-        anchors.right: parent.right
-        anchors.bottomMargin: 10
-        width: 20
-        height: 20
-
-        icon: "image://icon/preferences-desktop"
-
-        onClicked: {
-            Ui.toggleConfigMode();
+            onClicked: {
+                Ui.toggleConfigMode();
+            }
         }
     }
 }

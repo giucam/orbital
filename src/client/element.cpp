@@ -38,6 +38,8 @@ Element::Element(Element *parent)
        , m_shell(nullptr)
        , m_parent(nullptr)
        , m_layout(nullptr)
+       , m_content(nullptr)
+       , m_childrenParent(nullptr)
        , m_configureItem(nullptr)
        , m_settingsItem(nullptr)
        , m_settingsWindow(nullptr)
@@ -62,6 +64,20 @@ void Element::setId(int id)
     m_id = id;
     if (id > s_id) {
         s_id = id + 1;
+    }
+}
+
+void Element::setContent(QQuickItem *item)
+{
+    m_content = item;
+    item->setParentItem(this);
+}
+
+void Element::setChildrenParent(QQuickItem *item)
+{
+    m_childrenParent = item;
+    for (Element *elm: m_children) {
+        elm->setParentItem(m_childrenParent);
     }
 }
 
@@ -163,11 +179,12 @@ void Element::setParentElement(Element *parent)
         m_parent->m_children.removeOne(this);
     }
 
-    QQuickItem *content = (parent ? parent->property("content").value<QQuickItem *>() : nullptr);
-    if (!content) {
-        content = parent;
+    QQuickItem *parentItem = parent->m_childrenParent;
+    if (!parentItem) {
+        parentItem = parent;
     }
-    setParentItem(content);
+    setParentItem(parentItem);
+
     if (parent) {
         parent->m_children << this;
     }

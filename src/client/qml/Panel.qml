@@ -35,8 +35,7 @@ Element {
     }
 
     sortProperty: "layoutItem.index"
-
-    property Item content: layout
+    childrenParent: layout
 
     onElementAdded: {
         element.parent = layout
@@ -66,13 +65,7 @@ Element {
         element.dragOffset = Qt.point(offset.x, offset.y);
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-    }
-
-    Rectangle {
-        parent: panel
+    content: Rectangle {
         anchors.fill: parent
 
         gradient: Gradient {
@@ -86,5 +79,4 @@ Element {
             anchors.margins: 2
         }
     }
-
 }
