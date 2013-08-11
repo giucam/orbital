@@ -33,7 +33,7 @@ Element {
         id: grid
         spacing: 2
         height: parent.height
-        rows: Client.workspaces.length > 0 ? Client.workspaces.length / 2 : 1
+        rows: Client.workspaces.length > 2 ? 2 : 1
 
         Repeater {
             model: Client.workspaces
