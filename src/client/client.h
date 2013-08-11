@@ -44,6 +44,7 @@ class ProcessLauncher;
 class Window;
 class ShellUI;
 class Grab;
+class Workspace;
 
 class Binding : public QObject
 {
@@ -63,6 +64,7 @@ class Client : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlListProperty<Window> windows READ windows NOTIFY windowsChanged)
+    Q_PROPERTY(QQmlListProperty<Workspace> workspaces READ workspaces NOTIFY workspacesChanged)
 public:
     Client();
     ~Client();
@@ -70,6 +72,7 @@ public:
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
 
     QQmlListProperty<Window> windows();
+    QQmlListProperty<Workspace> workspaces();
 
     void requestFocus(QWindow *window);
 
@@ -88,9 +91,12 @@ public:
 public slots:
     void minimizeWindows();
     void restoreWindows();
+    void addWorkspace();
+    void selectWorkspace(Workspace *ws);
 
 signals:
     void windowsChanged();
+    void workspacesChanged();
 
 private slots:
     void create();
@@ -111,6 +117,8 @@ private:
 
     static int windowsCount(QQmlListProperty<Window> *prop);
     static Window *windowsAt(QQmlListProperty<Window> *prop, int index);
+    static int workspacesCount(QQmlListProperty<Workspace> *prop);
+    static Workspace *workspacesAt(QQmlListProperty<Workspace> *prop, int index);
 
     wl_display *m_display;
     wl_registry *m_registry;
@@ -129,6 +137,7 @@ private:
 
     Window *m_nextWindow;
     QList<Window *> m_windows;
+    QList<Workspace *> m_workspaces;
 
     uint32_t m_pendingGrabCursor;
 

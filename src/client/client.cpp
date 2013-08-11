@@ -43,6 +43,7 @@
 #include "shellui.h"
 #include "element.h"
 #include "grab.h"
+#include "workspace.h"
 
 Client *Client::s_client = nullptr;
 
@@ -72,6 +73,7 @@ Client::Client()
 
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
+    qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
 
     m_surfaceFormat.setDepthBufferSize(24);
     m_surfaceFormat.setAlphaBufferSize(8);
@@ -107,7 +109,9 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    desktop_shell_add_workspace(m_shell);
+    for (int i = 0; i < 4; ++i) {
+        addWorkspace();
+    }
 
     m_launcher = new ProcessLauncher(this);
     m_grabWindow = new QWindow;
@@ -220,6 +224,23 @@ QQmlListProperty<Window> Client::windows()
     return QQmlListProperty<Window>(this, 0, windowsCount, windowsAt);
 }
 
+int Client::workspacesCount(QQmlListProperty<Workspace> *prop)
+{
+    Client *c = static_cast<Client *>(prop->object);
+    return c->m_workspaces.count();
+}
+
+Workspace *Client::workspacesAt(QQmlListProperty<Workspace> *prop, int index)
+{
+    Client *c = static_cast<Client *>(prop->object);
+    return c->m_workspaces.at(index);
+}
+
+QQmlListProperty<Workspace> Client::workspaces()
+{
+    return QQmlListProperty<Workspace>(this, 0, workspacesCount, workspacesAt);
+}
+
 void Client::requestFocus(QWindow *window)
 {
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
@@ -251,6 +272,17 @@ void Client::minimizeWindows()
 void Client::restoreWindows()
 {
     desktop_shell_restore_windows(m_shell);
+}
+
+void Client::addWorkspace()
+{
+    m_workspaces << new Workspace(desktop_shell_add_workspace(m_shell), this);
+    emit workspacesChanged();
+}
+
+void Client::selectWorkspace(Workspace *ws)
+{
+    desktop_shell_select_workspace(m_shell, ws->m_workspace);
 }
 
 QQuickWindow *Client::findWindow(wl_surface *surface) const

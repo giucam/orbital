@@ -48,11 +48,12 @@ static const char *defaultConfig =
 "            <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
 "            <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
 "        </element>\n"
-"        <element type=\"TaskBar\" id=\"4\"/>\n"
-"        <element type=\"Logout\" id=\"5\"/>\n"
-"        <element type=\"Clock\" id=\"6\"/>\n"
+"        <element type=\"Pager\" id=\"4\"/>\n"
+"        <element type=\"TaskBar\" id=\"5\"/>\n"
+"        <element type=\"Logout\" id=\"6\"/>\n"
+"        <element type=\"Clock\" id=\"7\"/>\n"
 "    </element>\n"
-"    <element type=\"Overlay\" id=\"7\"/>\n"
+"    <element type=\"Overlay\" id=\"8\"/>\n"
 "</Ui>\n";
 
 ShellUI::ShellUI(Client *client)

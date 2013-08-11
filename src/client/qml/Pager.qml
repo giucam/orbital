@@ -18,40 +18,40 @@
  */
 
 import QtQuick 2.1
+import QtQuick.Window 2.1
 import Orbital 1.0
 
-Item {
-    id: elementsChooser
+Element {
+    Layout.preferredWidth: grid.width + 5
+    Layout.maximumWidth: 1000
+    Layout.fillHeight: true
 
-    Row {
-        id: elementsList
-        anchors.fill: parent
+    width: Layout.preferredWidth
+    height: 50
+
+    Grid {
+        id: grid
         spacing: 2
+        height: parent.height
+        rows: Client.workspaces.length > 0 ? Client.workspaces.length / 2 : 1
 
         Repeater {
-            model: [ "Logout", "Clock", "Runner", "TaskBar", "Launcher", "Pager" ]
+            model: Client.workspaces
 
-            Rectangle {
-                width: 100
-                height: elementsList.height
-                color: "dimgrey"
+            Item {
+                height: grid.height / grid.rows - 1
+                width: height * Screen.width / Screen.height
 
-                Text {
-                    text: modelData
-                    anchors.centerIn: parent
+                Rectangle {
+                    id: rect
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.color: modelData.active ? "white" : "grey"
                 }
 
                 MouseArea {
                     anchors.fill: parent
-                    onPressed: {
-                        var objParent = Overlay;
-                        var pos = parent.mapToItem(objParent, mouse.x, mouse.y);
-                        var newElem = Ui.createElement(modelData, objParent);
-                        newElem.x = pos.x;
-                        newElem.y = pos.y;
-
-                        newElem.publish();
-                    }
+                    onClicked: Client.selectWorkspace(modelData)
                 }
             }
         }

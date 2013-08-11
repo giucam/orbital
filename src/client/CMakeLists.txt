@@ -22,7 +22,8 @@ set(SOURCES
     filebrowser.cpp
     element.cpp
     grab.cpp
-    layout.cpp)
+    layout.cpp
+    workspace.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
