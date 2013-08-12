@@ -75,11 +75,8 @@ Client::Client()
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
 
-    m_surfaceFormat.setDepthBufferSize(24);
-    m_surfaceFormat.setAlphaBufferSize(8);
-    m_surfaceFormat.setStencilBufferSize(2);
-
     QCoreApplication::setApplicationName("orbital");
+    QQuickWindow::setDefaultAlphaBuffer(true);
 }
 
 Client::~Client()
@@ -153,7 +150,6 @@ void Client::create()
         window->setWidth(elm->width());
         window->setHeight(elm->height());
         window->setColor(Qt::transparent);
-        window->setFormat(m_surfaceFormat);
         window->setFlags(Qt::BypassWindowManagerHint);
         window->setScreen(screen);
         window->show();
@@ -413,7 +409,6 @@ QQuickWindow *Client::createUiWindow()
     QQuickWindow *window = new QQuickWindow();
 
     window->setColor(Qt::transparent);
-    window->setFormat(s_client->m_surfaceFormat);
     window->create();
 
     return window;
