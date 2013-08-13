@@ -34,9 +34,9 @@ class ShellUI;
 
 class ElementInfo : public QObject {
     Q_OBJECT
-    Q_PROPERTY(QString name READ name)
-    Q_PROPERTY(QString prettyName READ prettyName NOTIFY prettyNameChanged)
-    Q_PROPERTY(Type type READ type)
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(QString prettyName READ prettyName CONSTANT)
+    Q_PROPERTY(Type type READ type CONSTANT)
 public:
     enum class Type {
         Item,
@@ -50,9 +50,6 @@ public:
     QString name() const { return m_name; }
     QString prettyName() const { return m_prettyName; }
     Type type() const { return m_type; }
-
-signals:
-    void prettyNameChanged();
 
 private:
     QString m_name;
