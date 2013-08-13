@@ -109,7 +109,7 @@ void ShellSeat::activate(ShellSurface *shsurf)
 void ShellSeat::activate(weston_surface *surf)
 {
     weston_surface_activate(surf, m_seat);
-    ShellSurface *shsurf = Shell::getShellSurface(surf);
+    ShellSurface *shsurf = surf ? Shell::getShellSurface(surf) : nullptr;
     if (shsurf) {
         shsurf->workspace()->restack(shsurf);
     }

@@ -632,7 +632,7 @@ void Shell::selectNextWorkspace()
 
 void Shell::selectWorkspace(int32_t id)
 {
-    if (id >= (int32_t)m_workspaces.size()) {
+    if (id == (int32_t)m_currentWorkspace || id >= (int32_t)m_workspaces.size()) {
         return;
     }
 
@@ -655,6 +655,21 @@ void Shell::activateWorkspace(Workspace *old)
 
     currentWorkspace()->setActive(true);
     currentWorkspace()->insert(&m_fullscreenLayer);
+
+    for (const weston_surface *surf: currentWorkspace()->layer()) {
+        ShellSurface *shsurf = getShellSurface(surf);
+        if (shsurf) {
+            weston_seat *seat;
+            wl_list_for_each(seat, &m_compositor->seat_list, link) {
+                ShellSeat::shellSeat(seat)->activate(shsurf);
+            }
+            return;
+        }
+    }
+    weston_seat *seat;
+    wl_list_for_each(seat, &m_compositor->seat_list, link) {
+        ShellSeat::shellSeat(seat)->activate((weston_surface *)nullptr);
+    }
 }
 
 uint32_t Shell::numWorkspaces() const
