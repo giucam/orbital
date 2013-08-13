@@ -138,7 +138,6 @@ private:
     QDBusInterface *m_loginServiceInterface;
 
     QQmlEngine *m_engine;
-    QQmlComponent *m_component;
     ShellUI *m_ui;
 
     QList<Window *> m_windows;

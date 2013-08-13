@@ -94,7 +94,6 @@ Client::Client()
 
 Client::~Client()
 {
-    delete m_component;
     delete m_engine;
     delete m_grabWindow;
     qDeleteAll(m_bindings);
