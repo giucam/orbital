@@ -29,6 +29,7 @@
 #include <QQuickItem>
 #include <QStandardPaths>
 #include <QQuickWindow>
+#include <QDBusInterface>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -74,6 +75,9 @@ Client::Client()
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
+
+    m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
+                                                 "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
 
     QCoreApplication::setApplicationName("orbital");
     QQuickWindow::setDefaultAlphaBuffer(true);
@@ -241,13 +245,13 @@ void Client::logOut()
 void Client::poweroff()
 {
     logOut();
-    QProcess::startDetached("systemctl", QStringList() << "poweroff");
+    m_loginServiceInterface->call("PowerOff", true);
 }
 
 void Client::reboot()
 {
     logOut();
-    QProcess::startDetached("systemctl", QStringList() << "reboot");
+    m_loginServiceInterface->call("Reboot", true);
 }
 
 void Client::minimizeWindows()

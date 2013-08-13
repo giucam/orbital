@@ -4,6 +4,7 @@ find_package(Qt5Gui)
 find_package(Qt5Widgets)
 find_package(Qt5Qml)
 find_package(Qt5Quick)
+find_package(Qt5DBus)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -31,5 +32,5 @@ wayland_add_protocol_client(SOURCES
 )
 
 add_executable(orbital-client ${SOURCES})
-qt5_use_modules(orbital-client Widgets Qml Quick)
+qt5_use_modules(orbital-client Widgets Qml Quick DBus)
 target_link_libraries(orbital-client wayland-client asound)

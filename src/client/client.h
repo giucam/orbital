@@ -22,13 +22,13 @@
 
 #include <QObject>
 #include <QQmlListProperty>
-#include <QSurfaceFormat>
 #include <QElapsedTimer>
 
 class QQmlEngine;
 class QQmlComponent;
 class QWindow;
 class QQuickWindow;
+class QDBusInterface;
 
 struct wl_display;
 struct wl_registry;
@@ -127,11 +127,11 @@ private:
     int m_fd;
     desktop_shell *m_shell;
     ProcessLauncher *m_launcher;
-    QSurfaceFormat m_surfaceFormat;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;
     QElapsedTimer m_elapsedTimer;
+    QDBusInterface *m_loginServiceInterface;
 
     QQmlEngine *m_engine;
     QQmlComponent *m_component;
