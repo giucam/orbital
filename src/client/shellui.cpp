@@ -151,6 +151,10 @@ Element *ShellUI::createElement(const QString &name, Element *parent)
     Element *elm = Element::create(this, m_engine, name);
     elm->setParentElement(parent);
     connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
+    m_elements.insert(elm->m_id, elm);
+    if (!parent) {
+        m_children << elm;
+    }
     return elm;
 }
 
