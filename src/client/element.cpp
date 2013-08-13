@@ -31,7 +31,7 @@ static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
 
 int Element::s_id = 0;
-QHash<QString, Element::ElementInfo> Element::s_elements;
+QHash<QString, ElementInfo *> Element::s_elements;
 
 Element::Element(Element *parent)
        : QQuickItem(parent)
@@ -260,15 +260,14 @@ void Element::settingsVisibleChanged(bool visible)
 
 Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
-    const ElementInfo &info = s_elements.value(name);
-    QString path(info.qml);
-    if (path.isEmpty()) {
+    if (!s_elements.contains(name)) {
         qWarning() << QString("Could not find the element \'%1\'. Check your configuration or your setup.").arg(name);
         return nullptr;
     }
 
+    ElementInfo *info = s_elements.value(name);
     QQmlComponent c(engine);
-    c.loadUrl(path);
+    c.loadUrl(info->m_qml);
     if (!c.isReady()) {
         qWarning() << "Could not load the element" << name;
         qWarning() << qPrintable(c.errorString());
@@ -314,6 +313,13 @@ void Element::loadElementsList()
     }
 }
 
+void Element::cleanupElementsList()
+{
+    for (ElementInfo *info: s_elements) {
+        delete info;
+    }
+}
+
 void Element::loadElementInfo(const QString &name, const QString &path)
 {
     QString filePath(path + "/element");
@@ -323,10 +329,10 @@ void Element::loadElementInfo(const QString &name, const QString &path)
         return;
     }
 
-    ElementInfo info;
-    info.name = name;
-    info.path = path;
-    info.prettyName = name;
+    ElementInfo *info = new ElementInfo;
+    info->m_name = name;
+    info->m_path = path;
+    info->m_prettyName = name;
 
     QTextStream stream(&file);
     while (!stream.atEnd()) {
@@ -339,15 +345,16 @@ void Element::loadElementInfo(const QString &name, const QString &path)
         const QString &key = parts.at(0);
         const QString &value = parts.at(1);
         if (key == "prettyName") {
-            info.prettyName = value;
+            info->m_prettyName = value;
         } else if (key == "qmlFile") {
-            info.qml = path + "/" + value;
+            info->m_qml = path + "/" + value;
         }
     };
     file.close();
 
-    if (info.qml.isEmpty()) {
+    if (info->m_qml.isEmpty()) {
         qWarning() << QString("Failed to load the element '%1'. Missing 'qmlFile' field.").arg(path);
+        delete info;
         return;
     }
 

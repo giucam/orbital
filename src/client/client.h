@@ -46,6 +46,7 @@ class Window;
 class ShellUI;
 class Grab;
 class Workspace;
+class ElementInfo;
 
 class Binding : public QObject
 {
@@ -66,6 +67,7 @@ class Client : public QObject
     Q_OBJECT
     Q_PROPERTY(QQmlListProperty<Window> windows READ windows NOTIFY windowsChanged)
     Q_PROPERTY(QQmlListProperty<Workspace> workspaces READ workspaces NOTIFY workspacesChanged)
+    Q_PROPERTY(QQmlListProperty<ElementInfo> elementsInfo READ elementsInfo NOTIFY elementsInfoChanged)
 public:
     Client();
     ~Client();
@@ -74,6 +76,7 @@ public:
 
     QQmlListProperty<Window> windows();
     QQmlListProperty<Workspace> workspaces();
+    QQmlListProperty<ElementInfo> elementsInfo();
 
     void requestFocus(QWindow *window);
 
@@ -98,6 +101,7 @@ public slots:
 signals:
     void windowsChanged();
     void workspacesChanged();
+    void elementsInfoChanged();
 
 private slots:
     void create();

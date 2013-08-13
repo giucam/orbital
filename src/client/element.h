@@ -32,6 +32,28 @@ class LayoutAttached;
 class ElementConfig;
 class ShellUI;
 
+class ElementInfo : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString name READ name)
+    Q_PROPERTY(QString prettyName READ prettyName NOTIFY prettyNameChanged)
+public:
+    ElementInfo() {}
+
+    QString name() const { return m_name; }
+    QString prettyName() const { return m_prettyName; }
+
+signals:
+    void prettyNameChanged();
+
+private:
+    QString m_name;
+    QString m_prettyName;
+    QString m_path;
+    QString m_qml;
+
+    friend class Element;
+};
+
 class Element : public QQuickItem
 {
     Q_OBJECT
@@ -95,6 +117,8 @@ public:
     void setBackground(QQmlComponent *c) { m_childrenBackground = c; }
 
     static void loadElementsList();
+    static void cleanupElementsList();
+    static const QHash<QString, ElementInfo *> &elementsInfo() { return s_elements; }
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
@@ -148,13 +172,7 @@ private:
 
     static int s_id;
 
-    struct ElementInfo {
-        QString name;
-        QString path;
-        QString prettyName;
-        QString qml;
-    };
-    static QHash<QString, ElementInfo> s_elements;
+    static QHash<QString, ElementInfo *> s_elements;
 
     friend class ShellUI;
 };

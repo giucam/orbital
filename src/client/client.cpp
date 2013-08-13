@@ -75,6 +75,7 @@ Client::Client()
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
+    qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
     QString path = QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/");
 #define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(path + type + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Button");
@@ -98,6 +99,8 @@ Client::~Client()
     delete m_grabWindow;
     qDeleteAll(m_bindings);
     qDeleteAll(m_workspaces);
+
+    Element::cleanupElementsList();
 }
 
 static const desktop_shell_binding_listener binding_listener = {
@@ -237,6 +240,22 @@ Workspace *Client::workspacesAt(QQmlListProperty<Workspace> *prop, int index)
 QQmlListProperty<Workspace> Client::workspaces()
 {
     return QQmlListProperty<Workspace>(this, 0, workspacesCount, workspacesAt);
+}
+
+static int elementsInfoCount(QQmlListProperty<ElementInfo> *prop)
+{
+    return Element::elementsInfo().count();
+}
+
+static ElementInfo *elementsInfoAt(QQmlListProperty<ElementInfo> *prop, int index)
+{
+    const QString &name = Element::elementsInfo().keys().at(index);
+    return Element::elementsInfo().value(name);
+}
+
+QQmlListProperty<ElementInfo> Client::elementsInfo()
+{
+    return QQmlListProperty<ElementInfo>(this, 0, elementsInfoCount, elementsInfoAt);
 }
 
 void Client::requestFocus(QWindow *window)

@@ -29,7 +29,7 @@ Item {
         spacing: 2
 
         Repeater {
-            model: [ "Logout", "Clock", "Runner", "TaskBar", "Launcher", "Pager" ]
+            model: Client.elementsInfo
 
             Rectangle {
                 width: 100
@@ -37,7 +37,7 @@ Item {
                 color: "dimgrey"
 
                 Text {
-                    text: modelData
+                    text: modelData.prettyName
                     anchors.centerIn: parent
                 }
 
@@ -46,7 +46,7 @@ Item {
                     onPressed: {
                         var objParent = Overlay;
                         var pos = parent.mapToItem(objParent, mouse.x, mouse.y);
-                        var newElem = Ui.createElement(modelData, objParent);
+                        var newElem = Ui.createElement(modelData.name, objParent);
                         newElem.x = pos.x;
                         newElem.y = pos.y;
 
