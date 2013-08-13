@@ -54,6 +54,8 @@ void Animation::run(struct weston_output *output, uint32_t duration, Animation::
 
     wl_list_insert(&output->animation_list, &m_animation.ani.link);
     weston_compositor_schedule_repaint(output->compositor);
+
+    updateSignal(m_start);
 }
 
 void Animation::stop()
