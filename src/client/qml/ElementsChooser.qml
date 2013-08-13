@@ -35,6 +35,7 @@ Item {
                 width: 100
                 height: elementsList.height
                 color: "dimgrey"
+                visible: modelData.type == ElementInfo.Item
 
                 Text {
                     text: modelData.prettyName
