@@ -22,7 +22,6 @@ import QtQuick.Window 2.1
 import Orbital 1.0
 
 Element {
-    type: Element.Overlay
     width: Screen.width
     height: Screen.height
 

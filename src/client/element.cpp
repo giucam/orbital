@@ -35,7 +35,6 @@ QHash<QString, ElementInfo *> Element::s_elements;
 
 Element::Element(Element *parent)
        : QQuickItem(parent)
-       , m_type(Item)
        , m_shell(nullptr)
        , m_parent(nullptr)
        , m_layout(nullptr)
@@ -289,6 +288,7 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     }
     elm->m_typeName = name;
     elm->m_shell = shell;
+    elm->m_info = info;
 
     return elm;
 }
@@ -333,6 +333,7 @@ void Element::loadElementInfo(const QString &name, const QString &path)
     info->m_name = name;
     info->m_path = path;
     info->m_prettyName = name;
+    info->m_type = ElementInfo::Type::Item;
 
     QTextStream stream(&file);
     while (!stream.atEnd()) {
@@ -348,6 +349,14 @@ void Element::loadElementInfo(const QString &name, const QString &path)
             info->m_prettyName = value;
         } else if (key == "qmlFile") {
             info->m_qml = path + "/" + value;
+        } else if (key == "type") {
+            if (value == "background") {
+                info->m_type = ElementInfo::Type::Background;
+            } else if (value == "panel") {
+                info->m_type = ElementInfo::Type::Panel;
+            } else if (value == "overlay") {
+                info->m_type = ElementInfo::Type::Overlay;
+            }
         }
     };
     file.close();

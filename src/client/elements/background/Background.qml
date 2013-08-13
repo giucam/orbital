@@ -24,7 +24,6 @@ import QtGraphicalEffects 1.0
 
 Element {
     id: bkg
-    type: Element.Background
     width: Screen.width
     height: Screen.height
 

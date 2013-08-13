@@ -36,11 +36,20 @@ class ElementInfo : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString name READ name)
     Q_PROPERTY(QString prettyName READ prettyName NOTIFY prettyNameChanged)
+    Q_PROPERTY(Type type READ type)
 public:
+    enum class Type {
+        Item,
+        Background,
+        Panel,
+        Overlay
+    };
+    Q_ENUMS(Type)
     ElementInfo() {}
 
     QString name() const { return m_name; }
     QString prettyName() const { return m_prettyName; }
+    Type type() const { return m_type; }
 
 signals:
     void prettyNameChanged();
@@ -50,6 +59,7 @@ private:
     QString m_prettyName;
     QString m_path;
     QString m_qml;
+    Type m_type;
 
     friend class Element;
 };
@@ -57,7 +67,6 @@ private:
 class Element : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(Type type READ type WRITE setType)
     Q_PROPERTY(QStringList saveProperties READ saveProperties WRITE setSaveProperties)
     Q_PROPERTY(LayoutAttached *layoutItem READ layout WRITE setLayout)
     Q_PROPERTY(QString sortProperty READ sortProperty WRITE setSortProperty)
@@ -70,22 +79,14 @@ class Element : public QQuickItem
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
-    enum Type {
-        Item,
-        Background,
-        Panel,
-        Overlay
-    };
-    Q_ENUMS(Type)
     explicit Element(Element *parent = nullptr);
     ~Element();
+
+    inline ElementInfo::Type type() const { return m_info->type(); }
 
     Q_INVOKABLE void addProperty(const QString &name);
     Q_INVOKABLE void destroyElement();
     Q_INVOKABLE void configure();
-
-    inline Type type() const { return m_type; }
-    inline void setType(Type t) { m_type = t; }
 
     QStringList saveProperties() const { return m_ownProperties; }
     void setSaveProperties(const QStringList &list) { m_ownProperties = list; }
@@ -147,7 +148,7 @@ private:
     static void loadElementInfo(const QString &name, const QString &path);
 
     QString m_typeName;
-    Type m_type;
+    ElementInfo *m_info;
     int m_id;
     ShellUI *m_shell;
     Element *m_parent;

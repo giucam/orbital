@@ -23,7 +23,6 @@ import Orbital 1.0
 
 Element {
     id: panel
-    type: Element.Panel
     width: Screen.width
     height: 30
 

@@ -154,7 +154,7 @@ void Client::create()
         if (!elm)
             continue;
 
-        if (elm->type() == Element::Item)
+        if (elm->type() == ElementInfo::Type::Item)
             continue;
 
 
@@ -172,13 +172,13 @@ void Client::create()
         wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
 
         switch (elm->type()) {
-            case Element::Background:
+            case ElementInfo::Type::Background:
                 desktop_shell_set_background(m_shell, output, wlSurface);
                 break;
-            case Element::Panel:
+            case ElementInfo::Type::Panel:
                 desktop_shell_set_panel(m_shell, output, wlSurface);
                 break;
-            case Element::Overlay:
+            case ElementInfo::Type::Overlay:
                 desktop_shell_add_overlay(m_shell, output, wlSurface);
                 m_engine->rootContext()->setContextProperty("Overlay", elm);
                 break;
