@@ -75,6 +75,7 @@ void ShellSurface::set_state(struct wl_client *client, struct wl_resource *resou
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
+        shsurf->m_shell->selectWorkspace(shsurf->m_workspace->number());
         ShellSeat::shellSeat(seat)->activate(shsurf);
     }
 
