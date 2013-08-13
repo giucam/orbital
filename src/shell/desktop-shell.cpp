@@ -33,6 +33,7 @@
 #include "griddesktops.h"
 #include "fademovingeffect.h"
 #include "zoomeffect.h"
+#include "inoutsurfaceeffect.h"
 #include "inputpanel.h"
 #include "shellseat.h"
 #include "workspace.h"
@@ -59,6 +60,7 @@ void DesktopShell::init()
     new GridDesktops(this);
     new FadeMovingEffect(this);
     new ZoomEffect(this);
+    new InOutSurfaceEffect(this);
 
     m_inputPanel = new InputPanel(compositor()->wl_display);
 }
