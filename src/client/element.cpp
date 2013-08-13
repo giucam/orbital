@@ -184,14 +184,15 @@ void Element::setParentElement(Element *parent)
         m_parent->m_children.removeOne(this);
     }
 
-    QQuickItem *parentItem = parent->m_childrenParent;
-    if (!parentItem) {
-        parentItem = parent;
-    }
-    setParentItem(parentItem);
-
     if (parent) {
+        QQuickItem *parentItem = parent->m_childrenParent;
+        if (!parentItem) {
+            parentItem = parent;
+        }
+        setParentItem(parentItem);
         parent->m_children << this;
+    } else {
+        setParentItem(nullptr);
     }
     m_parent = parent;
 }
