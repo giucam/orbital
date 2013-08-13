@@ -75,12 +75,20 @@ Client::Client()
     qmlRegisterType<Binding>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
+    QString path = QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/");
+#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(path + type + ".qml"), "Orbital", 1, 0, type)
+    REGISTER_QMLFILE("Button");
+    REGISTER_QMLFILE("ElementConfiguration");
+    REGISTER_QMLFILE("ElementsChooser");
+    REGISTER_QMLFILE("Spacer");
 
     m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                                  "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
 
     QCoreApplication::setApplicationName("orbital");
     QQuickWindow::setDefaultAlphaBuffer(true);
+
+    Element::loadElementsList();
 }
 
 Client::~Client()

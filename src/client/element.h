@@ -94,6 +94,7 @@ public:
     QQmlComponent *background() const { return m_childrenBackground; }
     void setBackground(QQmlComponent *c) { m_childrenBackground = c; }
 
+    static void loadElementsList();
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
@@ -119,7 +120,7 @@ private:
     void createBackground(Element *child);
     void settingsVisibleChanged(bool visible);
 
-    static QString elementPath(const QString &typeName);
+    static void loadElementInfo(const QString &name, const QString &path);
 
     QString m_typeName;
     Type m_type;
@@ -146,6 +147,14 @@ private:
     QPointF m_offset;
 
     static int s_id;
+
+    struct ElementInfo {
+        QString name;
+        QString path;
+        QString prettyName;
+        QString qml;
+    };
+    static QHash<QString, ElementInfo> s_elements;
 
     friend class ShellUI;
 };

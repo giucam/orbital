@@ -31,6 +31,7 @@ static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
 
 int Element::s_id = 0;
+QHash<QString, Element::ElementInfo> Element::s_elements;
 
 Element::Element(Element *parent)
        : QQuickItem(parent)
@@ -259,9 +260,10 @@ void Element::settingsVisibleChanged(bool visible)
 
 Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
-    QString path(elementPath(name));
+    const ElementInfo &info = s_elements.value(name);
+    QString path(info.qml);
     if (path.isEmpty()) {
-        qWarning() << QString("Could not find the element \'%1.qml\'. Check your configuration or your setup.").arg(name);
+        qWarning() << QString("Could not find the element \'%1\'. Check your configuration or your setup.").arg(name);
         return nullptr;
     }
 
@@ -273,7 +275,7 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     QObject *obj = c.create();
     Element *elm = qobject_cast<Element *>(obj);
     if (!elm) {
-        qWarning() << QString("\'%1.qml\' is not an element type.").arg(name);
+        qWarning() << QString("\'%1\' is not an element type.").arg(name);
         delete obj;
         return nullptr;
     }
@@ -289,19 +291,65 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     return elm;
 }
 
-QString Element::elementPath(const QString &typeName)
+void Element::loadElementsList()
 {
-    QString path = QStandardPaths::locate(QStandardPaths::DataLocation, "elements/" + typeName + ".qml");
-    if (path.isEmpty()) {
-        path = QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/") + typeName + ".qml";
-        if (!QFile::exists(path)) {
-            return QString();
+    QStringList dirs = QStandardPaths::locateAll(QStandardPaths::DataLocation, "elements", QStandardPaths::LocateDirectory);
+    dirs << QCoreApplication::applicationDirPath() + "/../src/client/elements";
+
+    for (const QString &path: dirs) {
+        QDir dir(path);
+        QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString &subdir: subdirs) {
+            dir.cd(subdir);
+            if (dir.exists("element")) {
+                if (!s_elements.contains(subdir)) {
+                    loadElementInfo(subdir, dir.absolutePath());
+                }
+            }
+            dir.cdUp();
         }
     }
-
-    return path;
 }
 
+void Element::loadElementInfo(const QString &name, const QString &path)
+{
+    QString filePath(path + "/element");
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << QString("Failed to load the element '%1'. Could not open %1 for reading.").arg(filePath);
+        return;
+    }
+
+    ElementInfo info;
+    info.name = name;
+    info.path = path;
+    info.prettyName = name;
+
+    QTextStream stream(&file);
+    while (!stream.atEnd()) {
+        QString line = stream.readLine();
+
+        QStringList parts = line.split('=');
+        if (parts.size() < 2) {
+            continue;
+        }
+        const QString &key = parts.at(0);
+        const QString &value = parts.at(1);
+        if (key == "prettyName") {
+            info.prettyName = value;
+        } else if (key == "qmlFile") {
+            info.qml = path + "/" + value;
+        }
+    };
+    file.close();
+
+    if (info.qml.isEmpty()) {
+        qWarning() << QString("Failed to load the element '%1'. Missing 'qmlFile' field.").arg(path);
+        return;
+    }
+
+    s_elements.insert(name, info);
+}
 
 ElementConfig::ElementConfig(QQuickItem *parent)
              : QQuickItem(parent)
