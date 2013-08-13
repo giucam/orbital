@@ -269,8 +269,11 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
 
     QQmlComponent c(engine);
     c.loadUrl(path);
-    if (!c.isReady())
-        qFatal(qPrintable(c.errorString()));
+    if (!c.isReady()) {
+        qWarning() << "Could not load the element" << name;
+        qWarning() << qPrintable(c.errorString());
+        return nullptr;
+    }
 
     QObject *obj = c.create();
     Element *elm = qobject_cast<Element *>(obj);
