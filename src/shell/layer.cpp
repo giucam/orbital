@@ -129,20 +129,30 @@ int Layer::numberOfSurfaces() const
 
 Layer::iterator Layer::begin()
 {
-    return iterator(&m_layer.surface_list, m_layer.surface_list.next);
+    return iterator(&m_layer.surface_list, m_layer.surface_list.next, false);
 }
 
 Layer::const_iterator Layer::begin() const
 {
-    return const_iterator(&m_layer.surface_list, m_layer.surface_list.next);
+    return const_iterator(&m_layer.surface_list, m_layer.surface_list.next, false);
+}
+
+Layer::iterator Layer::rbegin()
+{
+    return iterator(&m_layer.surface_list, m_layer.surface_list.prev, true);
+}
+
+Layer::const_iterator Layer::rbegin() const
+{
+    return const_iterator(&m_layer.surface_list, m_layer.surface_list.prev, true);
 }
 
 Layer::iterator Layer::end()
 {
-    return iterator(&m_layer.surface_list, &m_layer.surface_list);
+    return iterator(&m_layer.surface_list, &m_layer.surface_list, false);
 }
 
 Layer::const_iterator Layer::end() const
 {
-    return const_iterator(&m_layer.surface_list, &m_layer.surface_list);
+    return const_iterator(&m_layer.surface_list, &m_layer.surface_list, false);
 }
