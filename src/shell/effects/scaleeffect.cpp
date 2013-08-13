@@ -243,23 +243,25 @@ void ScaleEffect::end(ShellSurface *surface)
 
 void ScaleEffect::addedSurface(ShellSurface *surface)
 {
-    SurfaceTransform *tr = new SurfaceTransform;
-    tr->surface = surface;
-    tr->animation.updateSignal.connect(tr, &SurfaceTransform::updateAnimation);
-    tr->animation.doneSignal.connect(tr, &SurfaceTransform::doneAnimation);
-    tr->alphaAnim.updateSignal.connect(surface, &ShellSurface::setAlpha);
-    tr->animation.setCurve(OutElasticCurve());
+    if (surface->type() == ShellSurface::Type::TopLevel || surface->type() == ShellSurface::Type::Maximized) {
+        SurfaceTransform *tr = new SurfaceTransform;
+        tr->surface = surface;
+        tr->animation.updateSignal.connect(tr, &SurfaceTransform::updateAnimation);
+        tr->animation.doneSignal.connect(tr, &SurfaceTransform::doneAnimation);
+        tr->alphaAnim.updateSignal.connect(surface, &ShellSurface::setAlpha);
+        tr->animation.setCurve(OutElasticCurve());
 
-    wl_list_init(&tr->transform.link);
+        wl_list_init(&tr->transform.link);
 
-    tr->cx = tr->cy = 0;
-    tr->cs = 1.f;
+        tr->cx = tr->cy = 0;
+        tr->cs = 1.f;
 
-    m_surfaces.push_back(tr);
+        m_surfaces.push_back(tr);
 
-    if (m_scaled) {
-        m_scaled = false;
-        run(m_seat);
+        if (m_scaled) {
+            m_scaled = false;
+            run(m_seat);
+        }
     }
 }
 

@@ -189,6 +189,10 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 surface->map(surface->m_surface->geometry.x + sx, surface->m_surface->geometry.y + sy, width, height);
         }
 
+        for (Effect *e: m_effects) {
+            e->addSurface(surface);
+        }
+
         switch (surface->m_type) {
             case ShellSurface::Type::Transient:
             case ShellSurface::Type::Popup:
@@ -204,9 +208,6 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
             default:
                 surface->m_workspace->addSurface(surface);
                 m_surfaces.push_back(surface);
-                for (Effect *e: m_effects) {
-                    e->addSurface(surface);
-                }
         }
 
         switch (surface->m_type) {
