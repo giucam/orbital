@@ -64,7 +64,7 @@ Element::~Element()
 void Element::setId(int id)
 {
     m_id = id;
-    if (id > s_id) {
+    if (id >= s_id) {
         s_id = id + 1;
     }
 }
