@@ -24,27 +24,32 @@ import Orbital 1.0
 
 Element {
     id: logout
-    width: row.width
+    width: 100
     height: 32
 
-    Layout.preferredWidth: row.width
-    Layout.maximumWidth: 100
+    Layout.preferredWidth: height * 3 + 10
     Layout.fillHeight: true
 
-    content: Row {
+    content: Layout {
         id: row
-        height: parent.height
+        anchors.fill: parent
         Button {
+            Layout.preferredWidth: 32
+            Layout.fillWidth: true
             height: parent.height
             icon: "image://icon/system-log-out"
             onClicked: Client.logOut()
         }
         Button {
+            Layout.preferredWidth: 32
+            Layout.fillWidth: true
             height: parent.height
             icon: "image://icon/system-shutdown"
             onClicked: Client.poweroff()
         }
         Button {
+            Layout.preferredWidth: 32
+            Layout.fillWidth: true
             height: parent.height
             icon: "image://icon/system-reboot"
             onClicked: Client.reboot()
