@@ -54,6 +54,7 @@ void Animation::run(struct weston_output *output, uint32_t duration, Animation::
     stop();
 
     if (!output) {
+        (*updateSignal)(m_target);
         if ((int)flags & (int)Flags::SendDone) {
             (*doneSignal)();
         }
