@@ -748,7 +748,7 @@ void Shell::fadeSplash()
 {
     if (!m_fadeAnimation) {
         m_fadeAnimation = new Animation;
-        m_fadeAnimation->updateSignal.connect(this, &Shell::setSplashAlpha);
+        m_fadeAnimation->updateSignal->connect(this, &Shell::setSplashAlpha);
     }
     m_fadeAnimation->setStart(m_splashSurface->alpha);
     m_fadeAnimation->setTarget(0.f);

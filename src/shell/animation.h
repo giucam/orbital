@@ -33,6 +33,7 @@ public:
     };
     Animation();
     ~Animation();
+    void destroy();
 
     void setStart(float value);
     void setTarget(float value);
@@ -42,8 +43,8 @@ public:
     template<class T>
     void setCurve(const T &curve) { delete m_curve; m_curve = new T; *static_cast<T *>(m_curve) = curve; }
 
-    Signal<float> updateSignal;
-    Signal<> doneSignal;
+    Signal<float> *updateSignal;
+    Signal<> *doneSignal;
 
 private:
     void update(struct weston_output *output, uint32_t msecs);

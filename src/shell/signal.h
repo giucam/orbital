@@ -26,7 +26,7 @@ class Functor;
 template<class... Args>
 class Signal {
 public:
-    Signal() : m_startAgain(false), m_flush(false) { }
+    Signal() : m_startAgain(false), m_flush(false), m_calling(false) { }
 
     template<class T> void connect(T *obj, void (T::*func)(Args...));
     template<class T> void disconnect(T *obj, void (T::*func)(Args...));
@@ -34,7 +34,7 @@ public:
 
     void operator()(Args... args);
 
-    void flush() { m_flush = true; }
+    void flush() { m_flush = true; if (!m_calling) delete this;}
 
 private:
     void call(Args... args);
@@ -42,6 +42,7 @@ private:
     std::list<Functor<Args...> *> m_listeners;
     bool m_startAgain;
     bool m_flush;
+    bool m_calling;
 };
 
 // -- End of API --
@@ -103,6 +104,7 @@ bool Signal<Args...>::isConnected(T *obj, void (T::*func)(Args...)) {
 
 template<class... Args>
 void Signal<Args...>::operator()(Args... args) {
+    m_calling = true;
     for (Functor<Args...> *f: m_listeners) {
         f->m_called = false;
     }
@@ -111,6 +113,7 @@ void Signal<Args...>::operator()(Args... args) {
     if (m_flush) {
         delete this;
     }
+    m_calling = false;
 }
 
 template<class... Args>

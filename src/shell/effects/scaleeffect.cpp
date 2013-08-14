@@ -246,9 +246,9 @@ void ScaleEffect::addedSurface(ShellSurface *surface)
     if (surface->type() == ShellSurface::Type::TopLevel || surface->type() == ShellSurface::Type::Maximized) {
         SurfaceTransform *tr = new SurfaceTransform;
         tr->surface = surface;
-        tr->animation.updateSignal.connect(tr, &SurfaceTransform::updateAnimation);
-        tr->animation.doneSignal.connect(tr, &SurfaceTransform::doneAnimation);
-        tr->alphaAnim.updateSignal.connect(surface, &ShellSurface::setAlpha);
+        tr->animation.updateSignal->connect(tr, &SurfaceTransform::updateAnimation);
+        tr->animation.doneSignal->connect(tr, &SurfaceTransform::doneAnimation);
+        tr->alphaAnim.updateSignal->connect(surface, &ShellSurface::setAlpha);
         tr->animation.setCurve(OutElasticCurve());
 
         wl_list_init(&tr->transform.link);

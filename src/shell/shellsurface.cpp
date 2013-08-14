@@ -58,6 +58,7 @@ ShellSurface::~ShellSurface()
     if (m_fullscreen.blackSurface) {
         weston_surface_destroy(m_fullscreen.blackSurface);
     }
+    m_surface->configure = nullptr;
     destroyWindow();
     destroyedSignal();
 }

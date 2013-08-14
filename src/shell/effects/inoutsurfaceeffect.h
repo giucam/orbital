@@ -30,13 +30,14 @@ public:
 
 protected:
     virtual void addedSurface(ShellSurface *surf);
-    virtual void removedSurface(ShellSurface *surf);
 
 private:
     struct Surface;
     Surface *findSurface(ShellSurface *surf);
 
     std::list<Surface *> m_surfaces;
+
+    friend Surface;
 };
 
 #endif
