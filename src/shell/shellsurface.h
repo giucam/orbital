@@ -174,21 +174,6 @@ private:
     void setTitle(struct wl_client *client, struct wl_resource *resource, const char *title);
     void setClass(struct wl_client *client, struct wl_resource *resource, const char *className);
 
-    static void shell_surface_pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial);
-    static void shell_surface_move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                   uint32_t serial);
-    static void shell_surface_resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                     uint32_t serial, uint32_t edges);
-    static void shell_surface_set_toplevel(struct wl_client *client, struct wl_resource *resource);
-    static void shell_surface_set_transient(struct wl_client *client, struct wl_resource *resource,
-                                            struct wl_resource *parent_resource, int x, int y, uint32_t flags);
-    static void shell_surface_set_fullscreen(struct wl_client *client, struct wl_resource *resource, uint32_t method,
-                                             uint32_t framerate, struct wl_resource *output_resource);
-    static void shell_surface_set_popup(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                        uint32_t serial, struct wl_resource *parent_resource, int32_t x, int32_t y, uint32_t flags);
-    static void shell_surface_set_maximized(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource);
-    static void shell_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title);
-    static void shell_surface_set_class(struct wl_client *client, struct wl_resource *resource, const char *className);
     static const struct wl_shell_surface_interface m_shell_surface_implementation;
 
     static void move_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
@@ -206,53 +191,5 @@ private:
     friend class Layer;
     friend class Workspace;
 };
-
-#define _this static_cast<ShellSurface *>(wl_resource_get_user_data(resource))
-inline void ShellSurface::shell_surface_pong(struct wl_client *client, struct wl_resource *resource, uint32_t serial) {
-    _this->pong(client, resource, serial);
-}
-
-inline void ShellSurface::shell_surface_move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                             uint32_t serial) {
-    _this->move(client, resource, seat_resource, serial);
-}
-
-inline void ShellSurface::shell_surface_resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                 uint32_t serial, uint32_t edges) {
-    _this->resize(client, resource, seat_resource, serial, edges);
-}
-
-inline void ShellSurface::shell_surface_set_toplevel(struct wl_client *client, struct wl_resource *resource) {
-    _this->setToplevel(client, resource);
-}
-
-inline void ShellSurface::shell_surface_set_transient(struct wl_client *client, struct wl_resource *resource,
-                                        struct wl_resource *parent_resource, int x, int y, uint32_t flags) {
-    _this->setTransient(client, resource, parent_resource, x, y, flags);
-}
-
-inline void ShellSurface::shell_surface_set_fullscreen(struct wl_client *client, struct wl_resource *resource, uint32_t method,
-                                         uint32_t framerate, struct wl_resource *output_resource) {
-    _this->setFullscreen(client, resource, method, framerate, output_resource);
-}
-
-inline void ShellSurface::shell_surface_set_popup(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
-                                    uint32_t serial, struct wl_resource *parent_resource, int32_t x, int32_t y, uint32_t flags) {
-    _this->setPopup(client, resource, seat_resource, serial, parent_resource, x, y, flags);
-}
-
-inline void ShellSurface::shell_surface_set_maximized(struct wl_client *client, struct wl_resource *resource,
-                                                      struct wl_resource *output_resource) {
-    _this->setMaximized(client, resource, output_resource);
-}
-
-inline void ShellSurface::shell_surface_set_title(struct wl_client *client, struct wl_resource *resource, const char *title) {
-    _this->setTitle(client, resource, title);
-}
-
-inline void ShellSurface::shell_surface_set_class(struct wl_client *client, struct wl_resource *resource, const char *className) {
-    _this->setClass(client, resource, className);
-}
-#undef _this
 
 #endif

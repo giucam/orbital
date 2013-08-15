@@ -735,14 +735,14 @@ void ShellSurface::setClass(struct wl_client *client, struct wl_resource *resour
 }
 
 const struct wl_shell_surface_interface ShellSurface::m_shell_surface_implementation = {
-    ShellSurface::shell_surface_pong,
-    ShellSurface::shell_surface_move,
-    ShellSurface::shell_surface_resize,
-    ShellSurface::shell_surface_set_toplevel,
-    ShellSurface::shell_surface_set_transient,
-    ShellSurface::shell_surface_set_fullscreen,
-    ShellSurface::shell_surface_set_popup,
-    ShellSurface::shell_surface_set_maximized,
-    ShellSurface::shell_surface_set_title,
-    ShellSurface::shell_surface_set_class
+    wrapInterface(ShellSurface, pong),
+    wrapInterface(ShellSurface, move),
+    wrapInterface(ShellSurface, resize),
+    wrapInterface(ShellSurface, setToplevel),
+    wrapInterface(ShellSurface, setTransient),
+    wrapInterface(ShellSurface, setFullscreen),
+    wrapInterface(ShellSurface, setPopup),
+    wrapInterface(ShellSurface, setMaximized),
+    wrapInterface(ShellSurface, setTitle),
+    wrapInterface(ShellSurface, setClass)
 };

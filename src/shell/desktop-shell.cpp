@@ -426,19 +426,19 @@ void DesktopShell::quit(wl_client *client, wl_resource *resource)
 }
 
 const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementation = {
-    DesktopShell::desktop_shell_set_background,
-    DesktopShell::desktop_shell_set_panel,
-    DesktopShell::desktop_shell_set_lock_surface,
-    DesktopShell::desktop_shell_unlock,
-    DesktopShell::desktop_shell_set_grab_surface,
-    desktop_shell_desktop_ready,
-    DesktopShell::desktop_shell_add_key_binding,
-    DesktopShell::desktop_shell_add_overlay,
-    desktop_shell_request_focus,
-    desktop_shell_minimize_windows,
-    desktop_shell_restore_windows,
-    desktop_shell_create_grab,
-    desktop_shell_add_workspace,
-    desktop_shell_select_workspace,
-    desktop_shell_quit
+    wrapInterface(DesktopShell, setBackground),
+    wrapInterface(DesktopShell, setPanel),
+    wrapInterface(DesktopShell, setLockSurface),
+    wrapInterface(DesktopShell, unlock),
+    wrapInterface(DesktopShell, setGrabSurface),
+    wrapInterface(DesktopShell, desktopReady),
+    wrapInterface(DesktopShell, addKeyBinding),
+    wrapInterface(DesktopShell, addOverlay),
+    wrapInterface(DesktopShell, requestFocus),
+    wrapInterface(DesktopShell, minimizeWindows),
+    wrapInterface(DesktopShell, restoreWindows),
+    wrapInterface(DesktopShell, createGrab),
+    wrapInterface(DesktopShell, addWorkspace),
+    wrapInterface(DesktopShell, selectWorkspace),
+    wrapInterface(DesktopShell, quit)
 };

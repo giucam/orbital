@@ -57,94 +57,9 @@ private:
     void selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     void quit(wl_client *client, wl_resource *resource);
 
-    static void desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
-                                             struct wl_resource *surface_resource);
-    static void desktop_shell_set_panel(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
-                                        struct wl_resource *surface_resource);
-    static void desktop_shell_set_lock_surface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
-    static void desktop_shell_unlock(struct wl_client *client, struct wl_resource *resource);
-    static void desktop_shell_set_grab_surface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
-    static void desktop_shell_desktop_ready(struct wl_client *client, struct wl_resource *resource);
-    static void desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     static const struct desktop_shell_interface m_desktop_shell_implementation;
-    static void desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
-    static void desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource);
-    static void desktop_shell_minimize_windows(wl_client *client, wl_resource *resource);
-    static void desktop_shell_restore_windows(wl_client *client, wl_resource *resource);
-    static void desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id);
-    static void desktop_shell_add_workspace(wl_client *client, wl_resource *resource);
-    static void desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
-    static void desktop_shell_quit(wl_client *client, wl_resource *resource);
 
     InputPanel *m_inputPanel;
 };
-
-#define _this static_cast<DesktopShell *>(wl_resource_get_user_data(resource))
-inline void DesktopShell::desktop_shell_set_background(struct wl_client *client, struct wl_resource *resource,
-                                                       struct wl_resource *output_resource, struct wl_resource *surface_resource) {
-    _this->setBackground(client, resource, output_resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_set_panel(struct wl_client *client, struct wl_resource *resource,
-                                                  struct wl_resource *output_resource, struct wl_resource *surface_resource) {
-    _this->setPanel(client, resource, output_resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_set_lock_surface(struct wl_client *client, struct wl_resource *resource,
-                                                         struct wl_resource *surface_resource) {
-    _this->setLockSurface(client, resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_unlock(struct wl_client *client, struct wl_resource *resource) {
-    _this->unlock(client, resource);
-}
-
-inline void DesktopShell::desktop_shell_set_grab_surface(struct wl_client *client, struct wl_resource *resource,
-                                                         struct wl_resource *surface_resource) {
-    _this->setGrabSurface(client, resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_desktop_ready(wl_client *client, wl_resource *resource) {
-    _this->desktopReady(client, resource);
-}
-
-inline void DesktopShell::desktop_shell_add_key_binding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers) {
-    _this->addKeyBinding(client, resource, id, key, modifiers);
-}
-
-inline void DesktopShell::desktop_shell_add_overlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource) {
-    _this->addOverlay(client, resource, output_resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_request_focus(wl_client *client, wl_resource *resource, wl_resource *surface_resource) {
-    _this->requestFocus(client, resource, surface_resource);
-}
-
-inline void DesktopShell::desktop_shell_minimize_windows(wl_client *client, wl_resource *resource) {
-    _this->minimizeWindows(client, resource);
-}
-
-inline void DesktopShell::desktop_shell_restore_windows(wl_client *client, wl_resource *resource) {
-    _this->restoreWindows(client, resource);
-}
-
-inline void DesktopShell::desktop_shell_create_grab(wl_client *client, wl_resource *resource, uint32_t id) {
-    _this->createGrab(client, resource, id);
-}
-
-inline void DesktopShell::desktop_shell_add_workspace(wl_client *client, wl_resource *resource)
-{
-    _this->addWorkspace(client, resource);
-}
-
-inline void DesktopShell::desktop_shell_select_workspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource)
-{
-    _this->selectWorkspace(client, resource, workspace_resource);
-}
-
-inline void DesktopShell::desktop_shell_quit(wl_client *client, wl_resource *resource) {
-    _this->quit(client, resource);
-}
-#undef _this
 
 #endif
