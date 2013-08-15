@@ -126,6 +126,7 @@ Element {
     childrenBackground: Component {
         Rectangle {
             anchors.fill: parent
+            anchors.margins: -5
             color: "#60606060"
             border.color: "dimgrey"
         }
