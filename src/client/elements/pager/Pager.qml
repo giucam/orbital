@@ -22,6 +22,7 @@ import QtQuick.Window 2.1
 import Orbital 1.0
 
 Element {
+    id: pager
     Layout.preferredWidth: grid.width + 5
     Layout.maximumWidth: 1000
     Layout.fillHeight: true
@@ -32,15 +33,21 @@ Element {
     content: Grid {
         id: grid
         spacing: 2
-        height: parent.height
+
         rows: Client.workspaces.length > 2 ? 2 : 1
+        x: (pager.width - grid.width) / 2
+        y: (pager.height - grid.height) / 2
+        readonly property int cols: Client.workspaces.length > 0 ? Client.workspaces.length / rows : 1
+
+        readonly property real ratio: Screen.height > 0 ? Screen.width / Screen.height : 1
+        readonly property bool fitWidth: pager.width >= pager.height * ratio
 
         Repeater {
             model: Client.workspaces
 
             Item {
-                height: grid.height / grid.rows - 1
-                width: height * Screen.width / Screen.height
+                height: grid.fitWidth ? pager.height / grid.rows : (pager.width / grid.cols) / grid.ratio
+                width: height * grid.ratio
 
                 Rectangle {
                     id: rect
