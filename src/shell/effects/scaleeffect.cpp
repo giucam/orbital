@@ -42,6 +42,8 @@ struct SurfaceTransform {
     struct weston_transform transform;
     Animation animation;
     Animation alphaAnim;
+    bool wasMinimized;
+    bool minimize;
 
     float ss, ts, cs;
     int sx, tx, cx;
@@ -151,6 +153,8 @@ void ScaleEffect::run(struct weston_seat *ws)
         }
 
         if (m_scaled) {
+            surf->minimize = surf->wasMinimized && surf->surface != m_chosenSurface;
+
             surf->ss = surf->cs;
             surf->ts = 1.f;
 
@@ -163,9 +167,14 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->animation.run(surf->surface->output(), ANIM_DURATION, Animation::Flags::SendDone);
 
             surf->alphaAnim.setStart(surf->surface->alpha());
-            surf->alphaAnim.setTarget(1.f);
+            surf->alphaAnim.setTarget(surf->minimize ? 0.f : 1.f);
             surf->alphaAnim.run(surf->surface->output(), ALPHA_ANIM_DURATION);
         } else {
+            surf->wasMinimized = surf->surface->isMinimized();
+            if (surf->wasMinimized) {
+                surf->surface->unminimize();
+            }
+
             int cellW = surf->surface->output()->width / numCols;
             int cellH = surf->surface->output()->height / numRows;
 
@@ -210,6 +219,7 @@ void ScaleEffect::run(struct weston_seat *ws)
     m_scaled = !m_scaled;
     if (m_scaled) {
         m_seat = ws;
+        m_chosenSurface = nullptr;
         shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
         shell()->hidePanels();
         m_grab->surface = nullptr;
@@ -237,6 +247,7 @@ void ScaleEffect::run(struct weston_seat *ws)
 
 void ScaleEffect::end(ShellSurface *surface)
 {
+    m_chosenSurface = surface;
     ShellSeat::shellSeat(m_seat)->activate(surface);
     run(m_seat);
 }
@@ -299,4 +310,8 @@ void SurfaceTransform::updateAnimation(float value)
 void SurfaceTransform::doneAnimation()
 {
     surface->removeTransform(&transform);
+
+    if (minimize) {
+        surface->minimize();
+    }
 }

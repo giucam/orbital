@@ -67,21 +67,7 @@ ShellSurface::~ShellSurface()
 void ShellSurface::set_state(struct wl_client *client, struct wl_resource *resource, int32_t state)
 {
     ShellSurface *shsurf = _this;
-    if (shsurf->m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        shsurf->m_workspace->addSurface(shsurf);
-    } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(shsurf->m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        wl_list_remove(&shsurf->m_surface->layer_link);
-        wl_list_init(&shsurf->m_surface->layer_link);
-    }
-
-    if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        weston_seat *seat = container_of(shsurf->weston_surface()->compositor->seat_list.next, weston_seat, link);
-        shsurf->m_shell->selectWorkspace(shsurf->m_workspace->number());
-        ShellSeat::shellSeat(seat)->activate(shsurf);
-    }
-
-    shsurf->m_state = state;
-    shsurf->sendState();
+    shsurf->setState(state);
 }
 
 const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
@@ -118,6 +104,24 @@ void ShellSurface::surfaceDestroyed()
     }
 }
 
+void ShellSurface::setState(int state)
+{
+    if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        unminimize();
+    } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        minimize();
+    }
+
+    if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        weston_seat *seat = container_of(weston_surface()->compositor->seat_list.next, weston_seat, link);
+        m_shell->selectWorkspace(m_workspace->number());
+        ShellSeat::shellSeat(seat)->activate(this);
+    }
+
+    m_state = state;
+    sendState();
+}
+
 void ShellSurface::setActive(bool active)
 {
     if (active) {
@@ -126,6 +130,29 @@ void ShellSurface::setActive(bool active)
         m_state &= ~DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
     }
     sendState();
+}
+
+bool ShellSurface::isActive() const
+{
+    return m_state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+}
+
+bool ShellSurface::isMinimized() const
+{
+    return m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+}
+
+void ShellSurface::minimize()
+{
+    wl_list_remove(&m_surface->layer_link);
+    wl_list_init(&m_surface->layer_link);
+    m_state |= DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+}
+
+void ShellSurface::unminimize()
+{
+    m_workspace->addSurface(this);
+    m_state &= ~DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
 }
 
 void ShellSurface::sendState()

@@ -90,7 +90,13 @@ public:
     void ping(uint32_t serial);
     bool isResponsive() const;
 
+    void setState(int state);
     void setActive(bool active);
+    bool isActive() const;
+    bool isMinimized() const;
+
+    void minimize();
+    void unminimize();
 
     Signal<> destroyedSignal;
     Signal<ShellSurface *> moveStartSignal;
