@@ -64,7 +64,7 @@ Element {
         element.dragOffset = Qt.point(offset.x, offset.y);
     }
 
-    content: Rectangle {
+    contentItem: Rectangle {
         anchors.fill: parent
 
         gradient: Gradient {

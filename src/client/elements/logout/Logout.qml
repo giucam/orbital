@@ -30,7 +30,7 @@ Element {
     Layout.preferredWidth: height * 3 + 10
     Layout.fillHeight: true
 
-    content: Layout {
+    contentItem: Layout {
         id: row
         anchors.fill: parent
         Button {

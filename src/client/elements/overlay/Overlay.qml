@@ -25,5 +25,5 @@ Element {
     width: Screen.width
     height: Screen.height
 
-    content: Volume {}
+    contentItem: Volume {}
 }

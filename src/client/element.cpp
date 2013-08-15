@@ -38,7 +38,8 @@ Element::Element(Element *parent)
        , m_shell(nullptr)
        , m_parent(nullptr)
        , m_layout(nullptr)
-       , m_content(nullptr)
+       , m_contentItem(nullptr)
+       , m_content(new QQuickItem(this))
        , m_childrenParent(nullptr)
        , m_configureItem(nullptr)
        , m_settingsItem(nullptr)
@@ -69,10 +70,18 @@ void Element::setId(int id)
     }
 }
 
-void Element::setContent(QQuickItem *item)
+void Element::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
-    m_content = item;
-    item->setParentItem(this);
+    m_content->setWidth(newGeometry.width());
+    m_content->setHeight(newGeometry.height());
+
+    QQuickItem::geometryChanged(newGeometry, oldGeometry);
+}
+
+void Element::setContentItem(QQuickItem *item)
+{
+    m_contentItem = item;
+    item->setParentItem(m_content);
 }
 
 void Element::setChildrenParent(QQuickItem *item)

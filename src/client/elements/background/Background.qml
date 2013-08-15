@@ -154,7 +154,7 @@ Element {
     onElementExited: {
     }
 
-    content: Rectangle {
+    contentItem: Rectangle {
         anchors.fill: parent
         color: bkg.color
 

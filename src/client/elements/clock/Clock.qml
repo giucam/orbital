@@ -36,7 +36,7 @@ Element {
         onTriggered: text.text = Qt.formatDateTime(new Date(), "h:mm:ss")
     }
 
-    content: Text {
+    contentItem: Text {
         id: text
         anchors.centerIn: parent
         color: "white"

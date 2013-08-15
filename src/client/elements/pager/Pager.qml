@@ -30,7 +30,7 @@ Element {
     width: Layout.preferredWidth
     height: 50
 
-    content: Grid {
+    contentItem: Grid {
         id: grid
         spacing: 2
 

@@ -71,7 +71,8 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *settingsItem READ settingsItem WRITE setSettingsItem)
     Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
-    Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
+    Q_PROPERTY(QQuickItem *content READ content CONSTANT)
+    Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem)
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_CLASSINFO("DefaultProperty", "resources")
@@ -106,7 +107,9 @@ public:
     void setDragOffset(const QPointF &pos) { m_offset = pos; }
 
     QQuickItem *content() const { return m_content; }
-    void setContent(QQuickItem *item);
+
+    QQuickItem *contentItem() const { return m_contentItem; }
+    void setContentItem(QQuickItem *item);
 
     QQuickItem *childrenParent() const { return m_childrenParent; }
     void setChildrenParent(QQuickItem *item);
@@ -129,6 +132,7 @@ signals:
 
 protected:
     void setId(int id);
+    virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
 private slots:
     void focus(wl_surface *surface, int x, int y);
@@ -154,6 +158,7 @@ private:
     QStringList m_ownProperties;
     LayoutAttached *m_layout;
     QString m_sortProperty;
+    QQuickItem *m_contentItem;
     QQuickItem *m_content;
     QQuickItem *m_childrenParent;
     ElementConfig *m_configureItem;
@@ -178,7 +183,7 @@ private:
 class ElementConfig : public QQuickItem
 {
     Q_OBJECT
-    Q_PROPERTY(Element *element READ element)
+    Q_PROPERTY(Element *element READ element CONSTANT)
 public:
     ElementConfig(QQuickItem *parent = nullptr);
 
