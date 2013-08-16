@@ -426,19 +426,19 @@ void DesktopShell::quit(wl_client *client, wl_resource *resource)
 }
 
 const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementation = {
-    wrapInterface(DesktopShell, setBackground),
-    wrapInterface(DesktopShell, setPanel),
-    wrapInterface(DesktopShell, setLockSurface),
-    wrapInterface(DesktopShell, unlock),
-    wrapInterface(DesktopShell, setGrabSurface),
-    wrapInterface(DesktopShell, desktopReady),
-    wrapInterface(DesktopShell, addKeyBinding),
-    wrapInterface(DesktopShell, addOverlay),
-    wrapInterface(DesktopShell, requestFocus),
-    wrapInterface(DesktopShell, minimizeWindows),
-    wrapInterface(DesktopShell, restoreWindows),
-    wrapInterface(DesktopShell, createGrab),
-    wrapInterface(DesktopShell, addWorkspace),
-    wrapInterface(DesktopShell, selectWorkspace),
-    wrapInterface(DesktopShell, quit)
+    wrapInterface(&DesktopShell::setBackground),
+    wrapInterface(&DesktopShell::setPanel),
+    wrapInterface(&DesktopShell::setLockSurface),
+    wrapInterface(&DesktopShell::unlock),
+    wrapInterface(&DesktopShell::setGrabSurface),
+    wrapInterface(&DesktopShell::desktopReady),
+    wrapInterface(&DesktopShell::addKeyBinding),
+    wrapInterface(&DesktopShell::addOverlay),
+    wrapInterface(&DesktopShell::requestFocus),
+    wrapInterface(&DesktopShell::minimizeWindows),
+    wrapInterface(&DesktopShell::restoreWindows),
+    wrapInterface(&DesktopShell::createGrab),
+    wrapInterface(&DesktopShell::addWorkspace),
+    wrapInterface(&DesktopShell::selectWorkspace),
+    wrapInterface(&DesktopShell::quit)
 };

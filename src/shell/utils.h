@@ -63,18 +63,19 @@ private:
     Wrapper m_listener;
 };
 
-#define wrapInterface(type, method) createWrapper(&type::method).forward<type, &type::method>
-template<class... Args>
+template<class T, class... Args>
 struct Wrapper {
-    template<class T, void (T::*F)(wl_client *, wl_resource *, Args...)>
+    template<void (T::*F)(wl_client *, wl_resource *, Args...)>
     static void forward(wl_client *client, wl_resource *resource, Args... args) {
         (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(client,resource, args...);
     }
 };
 
 template<class T, class... Args>
-constexpr static auto createWrapper(void (T::*func)(wl_client *client, wl_resource *resource, Args...)) -> Wrapper<Args...> {
-    return Wrapper<Args...>();
+constexpr static auto createWrapper(void (T::*func)(wl_client *client, wl_resource *resource, Args...)) -> Wrapper<T, Args...> {
+    return Wrapper<T, Args...>();
 }
+
+#define wrapInterface(method) createWrapper(method).forward<method>
 
 #endif
