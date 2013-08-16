@@ -37,6 +37,7 @@
 #include "inputpanel.h"
 #include "shellseat.h"
 #include "workspace.h"
+#include "minimizeeffect.h"
 
 DesktopShell::DesktopShell(struct weston_compositor *ec)
             : Shell(ec)
@@ -61,6 +62,7 @@ void DesktopShell::init()
     new FadeMovingEffect(this);
     new ZoomEffect(this);
     new InOutSurfaceEffect(this);
+    new MinimizeEffect(this);
 
     m_inputPanel = new InputPanel(compositor()->wl_display);
 }

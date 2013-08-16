@@ -103,6 +103,8 @@ public:
     Signal<ShellSurface *> moveEndSignal;
     Signal<ShellSurface *> pingTimeoutSignal;
     Signal<ShellSurface *> pongSignal;
+    Signal<ShellSurface *> minimizedSignal;
+    Signal<ShellSurface *> unminimizedSignal;
 
 private:
     void unsetFullscreen();

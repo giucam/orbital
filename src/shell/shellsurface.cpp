@@ -108,8 +108,10 @@ void ShellSurface::setState(int state)
 {
     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         unminimize();
+        unminimizedSignal(this);
     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         minimize();
+        minimizedSignal(this);
     }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
@@ -315,6 +317,7 @@ void ShellSurface::removeTransform(struct weston_transform *transform)
 void ShellSurface::damage()
 {
     weston_surface_geometry_dirty(m_surface);
+    weston_surface_update_transform(m_surface);
     weston_surface_damage(m_surface);
 }
 

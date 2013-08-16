@@ -16,7 +16,8 @@ set(SOURCES
     effects/griddesktops.cpp
     effects/zoomeffect.cpp
     effects/fademovingeffect.cpp
-    effects/inoutsurfaceeffect.cpp)
+    effects/inoutsurfaceeffect.cpp
+    effects/minimizeeffect.cpp)
 
 wayland_add_protocol_server(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
