@@ -34,106 +34,57 @@
 
 #include "client.h"
 #include "element.h"
+#include "uiscreen.h"
 
 static const char *defaultConfig =
 "<Ui>\n"
 "    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
-"    <element type=\"background\" id=\"1\">\n"
-"        <property name=\"color\" value=\"black\"/>\n"
-"        <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
-"        <property name=\"imageFillMode\" value=\"4\"/>\n"
-"    </element>\n"
-"   <element type=\"panel\" id=\"2\">\n"
-"        <element type=\"launcher\" id=\"3\">\n"
-"            <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
-"            <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
+"    <Screen>\n"
+"        <element type=\"background\" id=\"1\">\n"
+"            <property name=\"color\" value=\"black\"/>\n"
+"            <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
+"            <property name=\"imageFillMode\" value=\"4\"/>\n"
 "        </element>\n"
-"        <element type=\"pager\" id=\"4\"/>\n"
-"        <element type=\"taskbar\" id=\"5\"/>\n"
-"        <element type=\"logout\" id=\"6\"/>\n"
-"        <element type=\"clock\" id=\"7\"/>\n"
-"    </element>\n"
-"    <element type=\"overlay\" id=\"8\"/>\n"
+"        <element type=\"panel\" id=\"2\">\n"
+"            <element type=\"launcher\" id=\"3\">\n"
+"                <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
+"                <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
+"            </element>\n"
+"            <element type=\"pager\" id=\"4\"/>\n"
+"            <element type=\"taskbar\" id=\"5\"/>\n"
+"            <element type=\"logout\" id=\"6\"/>\n"
+"            <element type=\"clock\" id=\"7\"/>\n"
+"        </element>\n"
+"        <element type=\"overlay\" id=\"8\"/>\n"
+"    </Screen>\n"
 "</Ui>\n";
 
-ShellUI::ShellUI(Client *client)
+ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        : QObject(client)
        , m_client(client)
+       , m_configFile(configFile)
        , m_configMode(false)
        , m_cursorShape(-1)
+       , m_engine(engine)
 {
+    reloadConfig();
 }
 
 ShellUI::~ShellUI()
 {
-    delete m_engine;
 }
 
-void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)
+UiScreen *ShellUI::loadScreen(int s)
 {
-    m_engine = engine;
-    m_configFile = configFile;
-    engine->rootContext()->setContextProperty("Ui", this);
+    m_engine->rootContext()->setContextProperty("Ui", this);
 
-    reloadConfig();
-}
+    qDebug()<<"screen"<<s;
 
-Element *ShellUI::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
-{
-    QXmlStreamAttributes attribs = xml.attributes();
-    if (!attribs.hasAttribute("type")) {
-        return nullptr;
-    }
+    UiScreen *screen = new UiScreen(this, m_client, s);
+    loadScreen(screen);
 
-    bool created = false;
-    int id = attribs.value("id").toInt();
-    Element *elm = (elements ? elements->take(id) : nullptr);
-    if (!elm) {
-        QString type = attribs.value("type").toString();
-        elm = Element::create(this, m_engine, type, id);
-        if (!elm) {
-            while (!xml.atEnd()) {
-                xml.readNext();
-                if (xml.isEndElement() && xml.name() == "element") {
-                    xml.readNext();
-                    return nullptr;
-                }
-            }
-            return nullptr;
-        }
-        connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
-        created = true;
-    }
-    if (parent) {
-        elm->setParentElement(parent);
-    }
-    elm->m_properties.clear();
-
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "element") {
-                loadElement(elm, xml, elements);
-            } else if (xml.name() == "property") {
-                QXmlStreamAttributes attribs = xml.attributes();
-                QString name = attribs.value("name").toString();
-                QString value = attribs.value("value").toString();
-
-                QQmlProperty::write(elm, name, value);
-                elm->addProperty(name);
-            }
-        }
-        if (xml.isEndElement() && xml.name() == "element") {
-            xml.readNext();
-            m_elements.insert(id, elm);
-            if (created && parent) {
-                parent->createConfig(elm);
-                parent->createBackground(elm);
-            }
-            return (created ? elm : nullptr);
-        }
-    }
-    return (created ? elm : nullptr);
+    m_screens << screen;
+    return screen;
 }
 
 QString ShellUI::iconTheme() const
@@ -146,15 +97,9 @@ void ShellUI::setIconTheme(const QString &theme)
     QIcon::setThemeName(theme);
 }
 
-Element *ShellUI::createElement(const QString &name, Element *parent)
+Element *ShellUI::createElement(const QString &name)
 {
     Element *elm = Element::create(this, m_engine, name);
-    elm->setParentElement(parent);
-    connect(elm, &QObject::destroyed, this, &ShellUI::elementDestroyed);
-    m_elements.insert(elm->m_id, elm);
-    if (!parent) {
-        m_children << elm;
-    }
     return elm;
 }
 
@@ -194,51 +139,50 @@ void ShellUI::requestFocus(QQuickItem *item)
     m_client->requestFocus(item->window());
 }
 
+static void goToEndElement(QXmlStreamReader &xml)
+{
+    QString name = xml.name().toString();
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.isStartElement() && name == xml.name()) {
+            goToEndElement(xml);
+        } else if (name == xml.name()) {
+            break;
+        }
+    }
+}
+
 void ShellUI::reloadConfig()
 {
-    QXmlStreamReader xml;
-
-    QFile file(m_configFile);
-    if (!file.open(QIODevice::ReadOnly)) {
-        xml.addData(defaultConfig);
-    } else {
-        xml.setDevice(&file);
-    }
-
-    for (Element *elm: m_elements) {
-        if (elm->m_parent) {
-            elm->setParentElement(nullptr);
-        }
-    }
-
-    QHash<int, Element *> oldElements = m_elements;
-    m_elements.clear();
     m_properties.clear();
 
-    while (!xml.atEnd()) {
-        if (!xml.readNextStartElement()) {
-            continue;
-        }
-        if (xml.name() == "element") {
-            Element *elm = loadElement(nullptr, xml, &oldElements);
-            if (elm) {
-                elm->setParent(this);
-                m_children << elm;
-            }
-        } else if (xml.name() == "property") {
-            QXmlStreamAttributes attribs = xml.attributes();
-            QString name = attribs.value("name").toString();
-            QString value = attribs.value("value").toString();
+    QFile file(m_configFile);
+    if (file.open(QIODevice::ReadOnly)) {
+        m_configData = file.readAll();
+        file.close();
+    } else {
+        m_configData = defaultConfig;
+    }
 
-            setProperty(qPrintable(name), value);
-            m_properties << name;
+    QXmlStreamReader xml(m_configData);
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.isStartElement()) {
+            if (xml.name() == "property") {
+                QXmlStreamAttributes attribs = xml.attributes();
+                QString name = attribs.value("name").toString();
+                QString value = attribs.value("value").toString();
+
+                setProperty(qPrintable(name), value);
+                m_properties << name;
+            } else if (xml.name() != "Ui") {
+                goToEndElement(xml);
+            }
         }
     }
-    file.close();
 
-    for (Element *e: oldElements) {
-        delete e;
-        m_children.removeOne(e);
+    for (UiScreen *screen: m_screens) {
+        loadScreen(screen);
     }
 }
 
@@ -253,48 +197,53 @@ void ShellUI::saveConfig()
     xml.writeStartDocument();
     xml.writeStartElement("Ui");
 
-    saveProperties(this, m_properties, xml);
-    saveChildren(m_children, xml);
+    for (const QString &prop: m_properties) {
+        xml.writeStartElement("property");
+        xml.writeAttribute("name", prop);
+        xml.writeAttribute("value", property(qPrintable(prop)).toString());
+        xml.writeEndElement();
+    }
+
+    for (UiScreen *screen: m_screens) {
+        screen->saveConfig(xml);
+    }
 
     xml.writeEndElement();
     file.close();
 }
 
-void ShellUI::saveElement(Element *elm, QXmlStreamWriter &xml)
+void ShellUI::loadScreen(UiScreen *screen)
 {
-    saveProperties(elm, elm->m_ownProperties, xml);
-    saveProperties(elm, elm->m_properties, xml);
-    elm->sortChildren();
-    saveChildren(elm->m_children, xml);
-}
+    QXmlStreamReader xml(m_configData);
 
-void ShellUI::saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml)
-{
-    for (const QString &prop: properties) {
-        xml.writeStartElement("property");
-        xml.writeAttribute("name", prop);
-        xml.writeAttribute("value", obj->property(qPrintable(prop)).toString());
-        xml.writeEndElement();
-    }
-}
-
-void ShellUI::saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml)
-{
-    for (Element *child: children) {
-        xml.writeStartElement("element");
-        xml.writeAttribute("type", child->m_typeName);
-        xml.writeAttribute("id", QString::number(child->m_id));
-
-        saveElement(child, xml);
-
-        xml.writeEndElement();
+    bool loaded = false;
+    while (!xml.atEnd()) {
+        if (!xml.readNextStartElement()) {
+            continue;
+        }
+        if (xml.name() == "Screen") {
+            QXmlStreamAttributes attribs = xml.attributes();
+            if (attribs.hasAttribute("output")) {
+                int num = attribs.value("output").toInt();
+                if (num == screen->screen()) {
+                    screen->loadConfig(xml);
+                    loaded = true;
+                    break;
+                }
+            }
+        }
     }
 
-}
-
-void ShellUI::elementDestroyed(QObject *obj)
-{
-    Element *elm = static_cast<Element *>(obj);
-    m_children.removeOne(elm);
-    m_elements.remove(elm->m_id);
+    if (!loaded) {
+        QXmlStreamReader xml(defaultConfig);
+        while (!xml.atEnd()) {
+            if (!xml.readNextStartElement()) {
+                continue;
+            }
+            if (xml.name() == "Screen") {
+                screen->loadConfig(xml);
+                return;
+            }
+        }
+    }
 }

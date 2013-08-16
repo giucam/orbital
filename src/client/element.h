@@ -31,6 +31,7 @@ struct wl_surface;
 class LayoutAttached;
 class ElementConfig;
 class ShellUI;
+class UiScreen;
 
 class ElementInfo : public QObject {
     Q_OBJECT
@@ -165,6 +166,7 @@ private:
     QQuickItem *m_settingsItem;
     QQuickWindow *m_settingsWindow;
     QQmlComponent *m_childrenConfig;
+    UiScreen *m_screen;
 
     QQmlComponent *m_childrenBackground;
     QQuickItem *m_background;
@@ -177,7 +179,7 @@ private:
 
     static QHash<QString, ElementInfo *> s_elements;
 
-    friend class ShellUI;
+    friend class UiScreen;
 };
 
 class ElementConfig : public QQuickItem

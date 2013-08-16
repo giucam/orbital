@@ -46,6 +46,7 @@
 #include "grab.h"
 #include "workspace.h"
 #include "utils.h"
+#include "uiscreen.h"
 
 Client *Client::s_client = nullptr;
 
@@ -135,21 +136,23 @@ void Client::create()
     wl_surface *grabSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_grabWindow));
     desktop_shell_set_grab_surface(m_shell, grabSurface);
 
-    for (QScreen *screen: QGuiApplication::screens()) {
+    QQmlEngine *engine = new QQmlEngine(this);
+    engine->rootContext()->setContextProperty("Client", this);
+    engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
+    engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+
+    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configFile = path + "/orbital.conf";
+    m_ui = new ShellUI(this, engine, configFile);
+
+    for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
+        QScreen *screen = QGuiApplication::screens().at(i);
         wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 
-        QQmlEngine *engine = new QQmlEngine();
-        engine->rootContext()->setContextProperty("Client", this);
-        engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
-        engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+        UiScreen *sc = m_ui->loadScreen(i);
+        qDebug() << "Elements for screen" << i << "loaded after" << m_elapsedTimer.elapsed() << "ms";
 
-        ShellUI *ui = new ShellUI(this);
-        QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-        QString configFile = path + "/orbital.conf";
-        ui->loadUI(engine, configFile);
-        qDebug() << "Elements loaded after" << m_elapsedTimer.elapsed() << "ms";
-
-        const QObjectList objects = ui->children();
+        const QObjectList objects = sc->children();
         for (int i = 0; i < objects.size(); i++) {
             Element *elm = qobject_cast<Element *>(objects.at(i));
             if (!elm)

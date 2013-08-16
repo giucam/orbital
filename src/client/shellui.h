@@ -21,16 +21,16 @@
 #define SHELLUI_H
 
 #include <QObject>
-#include <QQmlListProperty>
 #include <QStringList>
 
 class QXmlStreamReader;
 class QXmlStreamWriter;
-class QQmlEngine;
 class QQuickItem;
+class QQmlEngine;
 
 class Element;
 class Client;
+class UiScreen;
 
 class ShellUI : public QObject
 {
@@ -38,10 +38,10 @@ class ShellUI : public QObject
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
     Q_PROPERTY(bool configMode READ configMode WRITE setConfigMode NOTIFY configModeChanged)
 public:
-    ShellUI(Client *client);
+    ShellUI(Client *client, QQmlEngine *engine, const QString &configFile);
     ~ShellUI();
 
-    void loadUI(QQmlEngine *engine, const QString &configFile);
+    UiScreen *loadScreen(int screen);
     QQmlEngine *qmlEngine() const { return m_engine; }
 
     QString iconTheme() const;
@@ -53,7 +53,7 @@ public:
     Q_INVOKABLE void setOverrideCursorShape(Qt::CursorShape shape);
     Q_INVOKABLE void restoreOverrideCursorShape();
 
-    Q_INVOKABLE Element *createElement(const QString &name, Element *parent);
+    Q_INVOKABLE Element *createElement(const QString &name);
     Q_INVOKABLE void toggleConfigMode();
 
 public slots:
@@ -65,20 +65,16 @@ signals:
     void configModeChanged();
 
 private:
-    Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
-    void saveElement(Element *elm, QXmlStreamWriter &xml);
-    void saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml);
-    void saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml);
-    void elementDestroyed(QObject *obj);
+    void loadScreen(UiScreen *s);
 
     Client *m_client;
-    QQmlEngine *m_engine;
     QString m_configFile;
+    QByteArray m_configData;
     bool m_configMode;
     int m_cursorShape;
+    QQmlEngine *m_engine;
+    QList<UiScreen *> m_screens;
 
-    QHash<int, Element *> m_elements;
-    QList<Element *> m_children;
     QStringList m_properties;
 };
 

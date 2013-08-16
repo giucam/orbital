@@ -26,6 +26,7 @@
 #include "client.h"
 #include "grab.h"
 #include "shellui.h"
+#include "uiscreen.h"
 
 static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
@@ -45,6 +46,7 @@ Element::Element(Element *parent)
        , m_settingsItem(nullptr)
        , m_settingsWindow(nullptr)
        , m_childrenConfig(nullptr)
+       , m_screen(nullptr)
        , m_childrenBackground(nullptr)
        , m_background(nullptr)
 {
@@ -174,6 +176,7 @@ void Element::button(uint32_t time, uint32_t button, uint32_t state)
 {
     if (m_target) {
         setParentElement(m_target);
+        m_target->m_screen->addElement(this);
         m_target->createConfig(this);
         emit m_target->elementAdded(this, m_pos, m_offset);
     } else {

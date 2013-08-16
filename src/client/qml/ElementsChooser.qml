@@ -45,7 +45,7 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     onPressed: {
-                        var newElem = Ui.createElement(modelData.name, null);
+                        var newElem = Ui.createElement(modelData.name);
                         newElem.publish();
                     }
                 }

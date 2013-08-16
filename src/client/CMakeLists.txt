@@ -19,6 +19,7 @@ set(SOURCES
     volumecontrol.cpp
     iconimageprovider.cpp
     shellui.cpp
+    uiscreen.cpp
     window.cpp
     filebrowser.cpp
     element.cpp

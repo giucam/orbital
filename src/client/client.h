@@ -136,6 +136,8 @@ private:
     QElapsedTimer m_elapsedTimer;
     QDBusInterface *m_loginServiceInterface;
 
+    ShellUI *m_ui;
+
     QList<Window *> m_windows;
     QList<Workspace *> m_workspaces;
 
