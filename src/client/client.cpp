@@ -95,7 +95,6 @@ Client::Client()
 
 Client::~Client()
 {
-    delete m_engine;
     delete m_grabWindow;
     qDeleteAll(m_bindings);
     qDeleteAll(m_workspaces);
@@ -136,58 +135,58 @@ void Client::create()
     wl_surface *grabSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_grabWindow));
     desktop_shell_set_grab_surface(m_shell, grabSurface);
 
-    QScreen *screen = QGuiApplication::screens().first();
-    wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+    for (QScreen *screen: QGuiApplication::screens()) {
+        wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 
-    m_engine = new QQmlEngine(this);
-    m_engine->rootContext()->setContextProperty("Client", this);
-    m_engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
-    m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+        QQmlEngine *engine = new QQmlEngine();
+        engine->rootContext()->setContextProperty("Client", this);
+        engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
+        engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
-    m_ui = new ShellUI(this);
-    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QString configFile = path + "/orbital.conf";
-    m_ui->loadUI(m_engine, configFile);
-    qDebug() << "Elements loaded after" << m_elapsedTimer.elapsed() << "ms";
+        ShellUI *ui = new ShellUI(this);
+        QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+        QString configFile = path + "/orbital.conf";
+        ui->loadUI(engine, configFile);
+        qDebug() << "Elements loaded after" << m_elapsedTimer.elapsed() << "ms";
 
-    const QObjectList objects = m_ui->children();
-    for (int i = 0; i < objects.size(); i++) {
-        Element *elm = qobject_cast<Element *>(objects.at(i));
-        if (!elm)
-            continue;
+        const QObjectList objects = ui->children();
+        for (int i = 0; i < objects.size(); i++) {
+            Element *elm = qobject_cast<Element *>(objects.at(i));
+            if (!elm)
+                continue;
 
-        if (elm->type() == ElementInfo::Type::Item)
-            continue;
+            if (elm->type() == ElementInfo::Type::Item)
+                continue;
 
 
-        QQuickWindow *window = new QQuickWindow();
-        elm->setParentItem(window->contentItem());
+            QQuickWindow *window = new QQuickWindow();
+            elm->setParentItem(window->contentItem());
 
-        window->setWidth(elm->width());
-        window->setHeight(elm->height());
-        window->setColor(Qt::transparent);
-        window->setFlags(Qt::BypassWindowManagerHint);
-        window->setScreen(screen);
-        window->show();
-        window->create();
-        m_uiWindows << window;
-        wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+            window->setWidth(elm->width());
+            window->setHeight(elm->height());
+            window->setColor(Qt::transparent);
+            window->setFlags(Qt::BypassWindowManagerHint);
+            window->setScreen(screen);
+            window->show();
+            window->create();
+            m_uiWindows << window;
+            wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
 
-        switch (elm->type()) {
-            case ElementInfo::Type::Background:
-                desktop_shell_set_background(m_shell, output, wlSurface);
-                break;
-            case ElementInfo::Type::Panel:
-                desktop_shell_set_panel(m_shell, output, wlSurface);
-                break;
-            case ElementInfo::Type::Overlay:
-                desktop_shell_add_overlay(m_shell, output, wlSurface);
-                m_engine->rootContext()->setContextProperty("Overlay", elm);
-                break;
-            default:
-                break;
+            switch (elm->type()) {
+                case ElementInfo::Type::Background:
+                    desktop_shell_set_background(m_shell, output, wlSurface);
+                    break;
+                case ElementInfo::Type::Panel:
+                    desktop_shell_set_panel(m_shell, output, wlSurface);
+                    break;
+                case ElementInfo::Type::Overlay:
+                    desktop_shell_add_overlay(m_shell, output, wlSurface);
+                    break;
+                default:
+                    break;
+            }
+
         }
-
     }
 
     // wait until all the objects have finished what they're doing before sending the ready event

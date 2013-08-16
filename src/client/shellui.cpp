@@ -66,7 +66,7 @@ ShellUI::ShellUI(Client *client)
 
 ShellUI::~ShellUI()
 {
-
+    delete m_engine;
 }
 
 void ShellUI::loadUI(QQmlEngine *engine, const QString &configFile)

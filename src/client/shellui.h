@@ -42,6 +42,7 @@ public:
     ~ShellUI();
 
     void loadUI(QQmlEngine *engine, const QString &configFile);
+    QQmlEngine *qmlEngine() const { return m_engine; }
 
     QString iconTheme() const;
     void setIconTheme(const QString &theme);

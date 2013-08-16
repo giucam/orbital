@@ -157,6 +157,7 @@ void Element::focus(wl_surface *surface, int x, int y)
     if (m_target) {
         m_target->createBackground(this);
         emit m_target->elementEntered(this, m_pos, m_offset);
+        emit m_target->elementMoved(this, m_pos, m_offset);
     }
 }
 
@@ -229,7 +230,7 @@ void Element::createConfig(Element *child)
     delete child->m_configureItem;
     child->m_configureItem = nullptr;
     if (m_childrenConfig) {
-        QObject *obj = m_childrenConfig->beginCreate(Client::qmlEngine()->rootContext());
+        QObject *obj = m_childrenConfig->beginCreate(m_shell->qmlEngine()->rootContext());
         if (ElementConfig *e = qobject_cast<ElementConfig *>(obj)) {
             e->setParentItem(child);
             e->m_element = child;
@@ -247,7 +248,7 @@ void Element::createBackground(Element *child)
     delete child->m_background;
     child->m_background = nullptr;
     if (m_childrenBackground) {
-        QObject *obj = m_childrenBackground->beginCreate(Client::qmlEngine()->rootContext());
+        QObject *obj = m_childrenBackground->beginCreate(m_shell->qmlEngine()->rootContext());
         if (QQuickItem *e = qobject_cast<QQuickItem *>(obj)) {
             e->setParentItem(child);
             e->setZ(-1);

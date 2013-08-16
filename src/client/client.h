@@ -88,7 +88,6 @@ public:
     static QQuickWindow *createUiWindow();
 
     static Client *client() { return s_client; }
-    static QQmlEngine *qmlEngine() { return s_client->m_engine; }
 
     QQuickWindow *findWindow(wl_surface *surface) const;
 
@@ -136,9 +135,6 @@ private:
     QList<QQuickWindow *> m_uiWindows;
     QElapsedTimer m_elapsedTimer;
     QDBusInterface *m_loginServiceInterface;
-
-    QQmlEngine *m_engine;
-    ShellUI *m_ui;
 
     QList<Window *> m_windows;
     QList<Workspace *> m_workspaces;
