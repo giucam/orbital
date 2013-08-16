@@ -205,7 +205,7 @@ void ScaleEffect::run(struct weston_seat *ws)
             surf->animation.setTarget(1.f);
             surf->animation.run(surf->surface->output(), ANIM_DURATION);
 
-            surf->alphaAnim.setStart(surf->surface->alpha());
+            surf->alphaAnim.setStart(surf->wasMinimized ? 0 : surf->surface->alpha());
             surf->alphaAnim.setTarget(INACTIVE_ALPHA);
             surf->alphaAnim.run(surf->surface->output(), ALPHA_ANIM_DURATION);
 
@@ -313,5 +313,6 @@ void SurfaceTransform::doneAnimation()
 
     if (minimize) {
         surface->minimize();
+        surface->setAlpha(1);
     }
 }
