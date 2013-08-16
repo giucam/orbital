@@ -70,7 +70,6 @@ struct Wrapper {
     static void forward(wl_client *client, wl_resource *resource, Args... args) {
         (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(client,resource, args...);
     }
-    static void foo(int) {}
 };
 
 template<class T, class... Args>
