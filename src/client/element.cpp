@@ -269,6 +269,9 @@ void Element::settingsVisibleChanged(bool visible)
 
 Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     if (!s_elements.contains(name)) {
         qWarning() << QString("Could not find the element \'%1\'. Check your configuration or your setup.").arg(name);
         return nullptr;
@@ -299,6 +302,8 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     elm->m_typeName = name;
     elm->m_shell = shell;
     elm->m_info = info;
+
+    qDebug() <<"Creating" << name << "in" << timer.elapsed() << "ms.";
 
     return elm;
 }

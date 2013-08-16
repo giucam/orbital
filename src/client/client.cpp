@@ -148,6 +148,7 @@ void Client::create()
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + "/orbital.conf";
     m_ui->loadUI(m_engine, configFile);
+    qDebug() << "Elements loaded after" << m_elapsedTimer.elapsed() << "ms";
 
     const QObjectList objects = m_ui->children();
     for (int i = 0; i < objects.size(); i++) {
