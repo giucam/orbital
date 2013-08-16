@@ -30,6 +30,7 @@ public:
 
     template<class T> void connect(T *obj, void (T::*func)(Args...));
     template<class T> void disconnect(T *obj, void (T::*func)(Args...));
+    template<class T> void disconnect(T *obj);
     template<class T> bool isConnected(T *obj, void (T::*func)(Args...));
 
     void operator()(Args... args);
@@ -83,6 +84,19 @@ void Signal<Args...>::disconnect(T *obj, void (T::*func)(Args...)) {
     for (auto i = m_listeners.begin(); i != m_listeners.end(); ++i) {
         MemberFunctor<T, Args...> *f = static_cast<MemberFunctor<T, Args...> *>(*i);
         if (f->m_obj == obj && f->m_func == func) {
+            delete f;
+            m_listeners.erase(i);
+            m_startAgain = true;
+            return;
+        }
+    }
+}
+
+template<class... Args> template<class T>
+void Signal<Args...>::disconnect(T *obj) {
+    for (auto i = m_listeners.begin(); i != m_listeners.end(); ++i) {
+        MemberFunctor<T, Args...> *f = static_cast<MemberFunctor<T, Args...> *>(*i);
+        if (f->m_obj == obj) {
             delete f;
             m_listeners.erase(i);
             m_startAgain = true;
