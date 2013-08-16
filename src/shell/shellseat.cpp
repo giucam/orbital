@@ -99,8 +99,8 @@ ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
 
 void ShellSeat::activate(ShellSurface *shsurf)
 {
+    weston_surface_activate(shsurf ? shsurf->weston_surface() : nullptr, m_seat);
     if (shsurf) {
-        weston_surface_activate(shsurf->weston_surface(), m_seat);
         shsurf->workspace()->restack(shsurf);
     }
     m_focusState->setFocus(shsurf);

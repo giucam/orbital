@@ -111,13 +111,14 @@ void ShellSurface::setState(int state)
         unminimizedSignal(this);
     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         minimize();
+        if (isActive()) {
+            deactivate();
+        }
         minimizedSignal(this);
     }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        weston_seat *seat = container_of(weston_surface()->compositor->seat_list.next, weston_seat, link);
-        m_shell->selectWorkspace(m_workspace->number());
-        ShellSeat::shellSeat(seat)->activate(this);
+        activate();
     }
 
     m_state = state;
@@ -149,6 +150,19 @@ void ShellSurface::minimize()
     wl_list_remove(&m_surface->layer_link);
     wl_list_init(&m_surface->layer_link);
     m_state |= DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+}
+
+void ShellSurface::activate()
+{
+    weston_seat *seat = container_of(weston_surface()->compositor->seat_list.next, weston_seat, link);
+    m_shell->selectWorkspace(m_workspace->number());
+    ShellSeat::shellSeat(seat)->activate(this);
+}
+
+void ShellSurface::deactivate()
+{
+    weston_seat *seat = container_of(weston_surface()->compositor->seat_list.next, weston_seat, link);
+    ShellSeat::shellSeat(seat)->activate((ShellSurface*)nullptr);
 }
 
 void ShellSurface::unminimize()

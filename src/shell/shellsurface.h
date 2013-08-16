@@ -95,6 +95,8 @@ public:
     bool isActive() const;
     bool isMinimized() const;
 
+    void activate();
+    void deactivate();
     void minimize();
     void unminimize();
 
