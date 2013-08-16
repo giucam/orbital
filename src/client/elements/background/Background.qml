@@ -37,6 +37,7 @@ Element {
     property int imageFillMode: 1
     property color color: "black"
 
+    childrenParent: contentItem
     childrenConfig: Component {
         id: elementConfig
 
@@ -133,7 +134,6 @@ Element {
     }
 
     onElementAdded: {
-        element.parent = bkg
         element.addProperty("x");
         element.addProperty("y");
         element.addProperty("width");
@@ -164,6 +164,7 @@ Element {
             fillMode: bkg.fillModes[bkg.imageFillMode].value
             anchors.fill: parent
             smooth: true
+            asynchronous: true
         }
 
 
