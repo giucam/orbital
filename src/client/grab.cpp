@@ -22,6 +22,7 @@
 #include "wayland-desktop-shell-client-protocol.h"
 
 #include "grab.h"
+#include "utils.h"
 
 Grab::Grab(desktop_shell_grab *g)
     : QObject()
@@ -35,23 +36,23 @@ void Grab::end()
     desktop_shell_grab_end(m_grab);
 }
 
-void Grab::desktop_shell_grab_focus(void *data, desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
+void Grab::handleFocus(desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {
-    emit static_cast<Grab *>(data)->focus(surface, wl_fixed_to_int(x), wl_fixed_to_int(y));
+    emit focus(surface, wl_fixed_to_int(x), wl_fixed_to_int(y));
 }
 
-void Grab::desktop_shell_grab_motion(void *data, desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
+void Grab::handleMotion(desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)
 {
-    emit static_cast<Grab *>(data)->motion(time, wl_fixed_to_int(x), wl_fixed_to_int(y));
+    emit motion(time, wl_fixed_to_int(x), wl_fixed_to_int(y));
 }
 
-void Grab::desktop_shell_grab_button(void *data, desktop_shell_grab *grab, uint32_t time , uint32_t button, uint32_t state)
+void Grab::handleButton(desktop_shell_grab *grab, uint32_t time , uint32_t btn, uint32_t state)
 {
-    emit static_cast<Grab *>(data)->button(time, button, state);
+    emit button(time, btn, state);
 }
 
 const struct desktop_shell_grab_listener Grab::s_desktop_shell_grab_listener = {
-    desktop_shell_grab_focus,
-    desktop_shell_grab_motion,
-    desktop_shell_grab_button
+    wrapInterface(Grab, handleFocus),
+    wrapInterface(Grab, handleMotion),
+    wrapInterface(Grab, handleButton)
 };

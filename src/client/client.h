@@ -110,13 +110,13 @@ private slots:
     void ready();
 
 private:
-    static void handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
-    static void handleLoad(void *data, desktop_shell *shell);
-    static void configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
-    static void handlePrepareLockSurface(void *data, desktop_shell *desktop_shell);
-    static void handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor);
-    static void handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
-    static void handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desktop_shell_workspace *ws, int active);
+    void handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
+    void handleLoad(desktop_shell *shell);
+    void handleConfigure(desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
+    void handlePrepareLockSurface(desktop_shell *desktop_shell);
+    void handleGrabCursor(desktop_shell *desktop_shell, uint32_t cursor);
+    void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
+    void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws, int active);
 
     static const wl_registry_listener s_registryListener;
     static const desktop_shell_listener s_shellListener;

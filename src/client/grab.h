@@ -41,9 +41,9 @@ signals:
     void button(uint32_t time, uint32_t button, uint32_t state);
 
 private:
-    static void desktop_shell_grab_focus(void *data, desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
-    static void desktop_shell_grab_motion(void *data, desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
-    static void desktop_shell_grab_button(void *data, desktop_shell_grab *grab, uint32_t time , uint32_t button, uint32_t state);
+    void handleFocus(desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
+    void handleMotion(desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
+    void handleButton(desktop_shell_grab *grab, uint32_t time , uint32_t button, uint32_t state);
     static const desktop_shell_grab_listener s_desktop_shell_grab_listener;
 
     desktop_shell_grab *m_grab;

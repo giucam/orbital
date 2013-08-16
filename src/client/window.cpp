@@ -21,6 +21,7 @@
 
 #include "window.h"
 #include "wayland-desktop-shell-client-protocol.h"
+#include "utils.h"
 
 static Window::States wlState2State(int32_t state)
 {
@@ -44,28 +45,27 @@ static int32_t state2WlState(Window::States state)
     return s;
 }
 
-#define _this static_cast<Window *>(data)
-static void set_title(void *data, desktop_shell_window *window, const char *title)
+void Window::handleSetTitle(desktop_shell_window *window, const char *title)
 {
-    _this->setTitle(title);
+    setTitle(title);
 }
 
-void Window::state_changed(void *data, desktop_shell_window *window, int32_t state)
+void Window::handleSetState(desktop_shell_window *window, int32_t state)
 {
-    _this->m_state = wlState2State(state);
-    emit _this->stateChanged();
+    m_state = wlState2State(state);
+    emit stateChanged();
 }
 
-void Window::removed(void *data, desktop_shell_window *window)
+void Window::handleRemoved(desktop_shell_window *window)
 {
-    emit _this->destroyed(_this);
-    _this->deleteLater();
+    emit destroyed(this);
+    deleteLater();
 }
 
 const desktop_shell_window_listener Window::m_window_listener = {
-    set_title,
-    state_changed,
-    Window::removed
+    wrapInterface(Window, handleSetTitle),
+    wrapInterface(Window, handleSetState),
+    wrapInterface(Window, handleRemoved)
 };
 
 Window::Window(QObject *p)

@@ -19,6 +19,7 @@
 
 #include "workspace.h"
 #include "wayland-desktop-shell-client-protocol.h"
+#include "utils.h"
 
 Workspace::Workspace(desktop_shell_workspace *ws, QObject *p)
          : QObject(p)
@@ -28,21 +29,19 @@ Workspace::Workspace(desktop_shell_workspace *ws, QObject *p)
     desktop_shell_workspace_add_listener(ws, &m_workspace_listener, this);
 }
 
-#define _this static_cast<Workspace *>(data)
-void Workspace::activated(void *data, desktop_shell_workspace *ws)
+void Workspace::handleActivated(desktop_shell_workspace *ws)
 {
-    _this->m_active = true;
-    emit _this->activeChanged();
+    m_active = true;
+    emit activeChanged();
 }
 
-void Workspace::deactivated(void *data, desktop_shell_workspace *ws)
+void Workspace::handleDeactivated(desktop_shell_workspace *ws)
 {
-    _this->m_active = false;
-    emit _this->activeChanged();
+    m_active = false;
+    emit activeChanged();
 }
-#undef _this
 
 const desktop_shell_workspace_listener Workspace::m_workspace_listener = {
-    activated,
-    deactivated
+    wrapInterface(Workspace, handleActivated),
+    wrapInterface(Workspace, handleDeactivated)
 };

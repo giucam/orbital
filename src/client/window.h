@@ -64,12 +64,14 @@ signals:
     void stateChanged();
 
 private:
+    void handleSetTitle(desktop_shell_window *window, const char *title);
+    void handleSetState(desktop_shell_window *window, int32_t state);
+    void handleRemoved(desktop_shell_window *window);
+
     desktop_shell_window *m_window;
     QString m_title;
     States m_state;
 
-    static void state_changed(void *data, desktop_shell_window *window, int32_t state);
-    static void removed(void *data, desktop_shell_window *window);
     static const desktop_shell_window_listener m_window_listener;
 };
 

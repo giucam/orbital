@@ -45,6 +45,7 @@
 #include "element.h"
 #include "grab.h"
 #include "workspace.h"
+#include "utils.h"
 
 Client *Client::s_client = nullptr;
 
@@ -312,41 +313,38 @@ QQuickWindow *Client::findWindow(wl_surface *surface) const
     return nullptr;
 }
 
-void Client::handleGlobal(void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
+void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);
 
-    Client *object = static_cast<Client *>(data);
-
     if (strcmp(interface, "desktop_shell") == 0) {
         // Bind interface and register listener
-        object->m_shell = static_cast<desktop_shell *>(wl_registry_bind(registry, id, &desktop_shell_interface, version));
-        desktop_shell_add_listener(object->m_shell, &s_shellListener, data);
+        m_shell = static_cast<desktop_shell *>(wl_registry_bind(registry, id, &desktop_shell_interface, version));
+        desktop_shell_add_listener(m_shell, &s_shellListener, this);
     }
 }
 
 const wl_registry_listener Client::s_registryListener = {
-    Client::handleGlobal
+    wrapInterface(Client, handleGlobal)
 };
 
-void Client::handleLoad(void *data, desktop_shell *shell)
+void Client::handleLoad(desktop_shell *shell)
 {
-    QMetaObject::invokeMethod(static_cast<Client *>(data), "create");
+    QMetaObject::invokeMethod(this, "create");
 }
 
-void Client::configure(void *data, desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height)
-{
-}
-
-void Client::handlePrepareLockSurface(void *data, desktop_shell *desktop_shell)
+void Client::handleConfigure(desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height)
 {
 }
 
-void Client::handleGrabCursor(void *data, desktop_shell *desktop_shell, uint32_t cursor)
+void Client::handlePrepareLockSurface(desktop_shell *desktop_shell)
 {
-    Client *object = static_cast<Client *>(data);
-    object->m_pendingGrabCursor = cursor;
-    QMetaObject::invokeMethod(object, "setGrabCursor", Qt::QueuedConnection);
+}
+
+void Client::handleGrabCursor(desktop_shell *desktop_shell, uint32_t cursor)
+{
+    m_pendingGrabCursor = cursor;
+    QMetaObject::invokeMethod(this, "setGrabCursor", Qt::QueuedConnection);
 }
 
 void Client::setGrabCursor()
@@ -393,39 +391,37 @@ void Client::setGrabCursor()
     m_grabWindow->setCursor(qcursor);
 }
 
-void Client::handleWindowAdded(void *data, desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
+void Client::handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state)
 {
     Window *w = new Window();
     w->init(window, state);
     w->setTitle(title);
 
-    Client *c = static_cast<Client *>(data);
-    c->m_windows << w;
+    m_windows << w;
     w->moveToThread(QCoreApplication::instance()->thread());
 
-    connect(w, &Window::destroyed, c, &Client::windowRemoved);
+    connect(w, &Window::destroyed, this, &Client::windowRemoved);
 
-    emit c->windowsChanged();
+    emit windowsChanged();
 }
 
-void Client::handleWorkspaceAdded(void *data, desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)
+void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)
 {
     Workspace *ws = new Workspace(workspace);
     ws->m_active = active;
 
-    Client *c = static_cast<Client *>(data);
-    c->m_workspaces << ws;
+    m_workspaces << ws;
     ws->moveToThread(QCoreApplication::instance()->thread());
-    emit c->workspacesChanged();
+    emit workspacesChanged();
 }
 
 const desktop_shell_listener Client::s_shellListener = {
-    Client::handleLoad,
-    Client::configure,
-    Client::handlePrepareLockSurface,
-    Client::handleGrabCursor,
-    Client::handleWindowAdded,
-    Client::handleWorkspaceAdded
+    wrapInterface(Client, handleLoad),
+    wrapInterface(Client, handleConfigure),
+    wrapInterface(Client, handlePrepareLockSurface),
+    wrapInterface(Client, handleGrabCursor),
+    wrapInterface(Client, handleWindowAdded),
+    wrapInterface(Client, handleWorkspaceAdded)
 };
 
 Grab *Client::createGrab()

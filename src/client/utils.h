@@ -17,36 +17,22 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WORKSPACE_H
-#define WORKSPACE_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#include <QObject>
-
-struct desktop_shell_workspace;
-struct desktop_shell_workspace_listener;
-
-class Workspace : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(bool active READ active NOTIFY activeChanged)
-public:
-    Workspace(desktop_shell_workspace *ws, QObject *p = nullptr);
-
-    bool active() const { return m_active; }
-
-signals:
-    void activeChanged();
-
-private:
-    void handleActivated(desktop_shell_workspace *ws);
-    void handleDeactivated(desktop_shell_workspace *ws);
-
-    desktop_shell_workspace *m_workspace;
-    bool m_active;
-
-    static const desktop_shell_workspace_listener m_workspace_listener;
-
-    friend class Client;
+template<class... Args>
+struct Wrapper {
+    template<class T, void (T::*F)(Args...)>
+    static void forward(void *data, Args... args) {
+        (static_cast<T *>(data)->*F)(args...);
+    }
 };
+
+template<class T, class... Args>
+constexpr static auto createWrapper(void (T::*func)(Args...)) -> Wrapper<Args...> {
+    return Wrapper<Args...>();
+}
+
+#define wrapInterface(type, method) createWrapper(&type::method).forward<type, &type::method>
 
 #endif
