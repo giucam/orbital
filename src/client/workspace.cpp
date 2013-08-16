@@ -42,6 +42,6 @@ void Workspace::handleDeactivated(desktop_shell_workspace *ws)
 }
 
 const desktop_shell_workspace_listener Workspace::m_workspace_listener = {
-    wrapInterface(Workspace, handleActivated),
-    wrapInterface(Workspace, handleDeactivated)
+    wrapInterface(&Workspace::handleActivated),
+    wrapInterface(&Workspace::handleDeactivated)
 };

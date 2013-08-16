@@ -20,19 +20,19 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-template<class... Args>
+template<class T, class... Args>
 struct Wrapper {
-    template<class T, void (T::*F)(Args...)>
+    template<void (T::*F)(Args...)>
     static void forward(void *data, Args... args) {
         (static_cast<T *>(data)->*F)(args...);
     }
 };
 
 template<class T, class... Args>
-constexpr static auto createWrapper(void (T::*func)(Args...)) -> Wrapper<Args...> {
-    return Wrapper<Args...>();
+constexpr static auto createWrapper(void (T::*func)(Args...)) -> Wrapper<T, Args...> {
+    return Wrapper<T, Args...>();
 }
 
-#define wrapInterface(type, method) createWrapper(&type::method).forward<type, &type::method>
+#define wrapInterface(method) createWrapper(method).forward<method>
 
 #endif

@@ -325,7 +325,7 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
 }
 
 const wl_registry_listener Client::s_registryListener = {
-    wrapInterface(Client, handleGlobal)
+    wrapInterface(&Client::handleGlobal)
 };
 
 void Client::handleLoad(desktop_shell *shell)
@@ -416,12 +416,12 @@ void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_wo
 }
 
 const desktop_shell_listener Client::s_shellListener = {
-    wrapInterface(Client, handleLoad),
-    wrapInterface(Client, handleConfigure),
-    wrapInterface(Client, handlePrepareLockSurface),
-    wrapInterface(Client, handleGrabCursor),
-    wrapInterface(Client, handleWindowAdded),
-    wrapInterface(Client, handleWorkspaceAdded)
+    wrapInterface(&Client::handleLoad),
+    wrapInterface(&Client::handleConfigure),
+    wrapInterface(&Client::handlePrepareLockSurface),
+    wrapInterface(&Client::handleGrabCursor),
+    wrapInterface(&Client::handleWindowAdded),
+    wrapInterface(&Client::handleWorkspaceAdded)
 };
 
 Grab *Client::createGrab()

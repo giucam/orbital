@@ -52,7 +52,7 @@ void Grab::handleButton(desktop_shell_grab *grab, uint32_t time , uint32_t btn, 
 }
 
 const struct desktop_shell_grab_listener Grab::s_desktop_shell_grab_listener = {
-    wrapInterface(Grab, handleFocus),
-    wrapInterface(Grab, handleMotion),
-    wrapInterface(Grab, handleButton)
+    wrapInterface(&Grab::handleFocus),
+    wrapInterface(&Grab::handleMotion),
+    wrapInterface(&Grab::handleButton)
 };

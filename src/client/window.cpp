@@ -63,9 +63,9 @@ void Window::handleRemoved(desktop_shell_window *window)
 }
 
 const desktop_shell_window_listener Window::m_window_listener = {
-    wrapInterface(Window, handleSetTitle),
-    wrapInterface(Window, handleSetState),
-    wrapInterface(Window, handleRemoved)
+    wrapInterface(&Window::handleSetTitle),
+    wrapInterface(&Window::handleSetState),
+    wrapInterface(&Window::handleRemoved)
 };
 
 Window::Window(QObject *p)
