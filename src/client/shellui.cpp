@@ -69,6 +69,7 @@ ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        , m_engine(engine)
        , m_numWorkspaces(1)
 {
+    client->addWorkspace(0);
     reloadConfig();
 }
 
@@ -97,6 +98,20 @@ QString ShellUI::iconTheme() const
 void ShellUI::setIconTheme(const QString &theme)
 {
     QIcon::setThemeName(theme);
+}
+
+void ShellUI::setNumWorkspaces(int n)
+{
+    if (n > 0) {
+        for (;m_numWorkspaces < n; ++m_numWorkspaces) {
+            m_client->addWorkspace(m_numWorkspaces);
+
+        }
+        while (m_numWorkspaces > n) {
+            --m_numWorkspaces;
+            m_client->removeWorkspace(m_numWorkspaces);
+        }
+    }
 }
 
 Element *ShellUI::createElement(const QString &name)

@@ -49,7 +49,7 @@ public:
     void setIconTheme(const QString &theme);
 
     int numWorkspaces() const { return m_numWorkspaces; }
-    void setNumWorkspaces(int n) { m_numWorkspaces = n; }
+    void setNumWorkspaces(int n);
 
     bool configMode() const { return m_configMode; }
     void setConfigMode(bool mode);

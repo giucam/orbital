@@ -141,13 +141,6 @@ void Client::create()
     QString configFile = path + "/orbital.conf";
     m_ui = new ShellUI(this, engine, configFile);
 
-    for (int i = m_workspaces.size(); i < m_ui->numWorkspaces(); ++i) {
-        addWorkspace();
-    }
-    while (m_workspaces.size() > m_ui->numWorkspaces()) {
-        delete m_workspaces.takeLast();
-    }
-
     for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
         QScreen *screen = QGuiApplication::screens().at(i);
         wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
@@ -297,9 +290,20 @@ void Client::restoreWindows()
     desktop_shell_restore_windows(m_shell);
 }
 
-void Client::addWorkspace()
+void Client::addWorkspace(int n)
 {
-    desktop_shell_add_workspace(m_shell);
+    if (m_workspaces.size() <= n) {
+        desktop_shell_add_workspace(m_shell);
+    }
+}
+
+void Client::removeWorkspace(int n)
+{
+    Workspace *ws = m_workspaces.takeAt(n);
+    if (ws) {
+        emit workspacesChanged();
+        delete ws;
+    }
 }
 
 void Client::selectWorkspace(Workspace *ws)

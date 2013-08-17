@@ -94,7 +94,8 @@ public:
 public slots:
     void minimizeWindows();
     void restoreWindows();
-    void addWorkspace();
+    void addWorkspace(int n);
+    void removeWorkspace(int n);
     void selectWorkspace(Workspace *ws);
 
 signals:
