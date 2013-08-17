@@ -148,8 +148,7 @@ private:
     void pointerFocus(ShellSeat *shseat, struct weston_pointer *pointer);
     void pingTimeout(ShellSurface *shsurf);
     void pong(ShellSurface *shsurf);
-    weston_surface *createBlackSurface(int w, int h);
-    void setSplashAlpha(float alpha);
+    weston_surface *createBlackSurface(int x, int y, int w, int h);
 
     struct weston_compositor *m_compositor;
     WlListener m_destroyListener;
@@ -164,10 +163,9 @@ private:
     std::vector<Workspace *> m_workspaces;
     uint32_t m_currentWorkspace;
 
-    struct weston_surface *m_blackSurface;
-    struct weston_surface *m_splashSurface;
+    std::list<weston_surface *> m_blackSurfaces;
+    class Splash *m_splash;
     struct weston_surface *m_grabSurface;
-    Animation *m_fadeAnimation;
 
     static const struct wl_shell_interface shell_implementation;
     static const struct weston_shell_client shell_client;
