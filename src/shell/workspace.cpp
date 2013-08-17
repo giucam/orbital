@@ -19,6 +19,7 @@
 #include "shell.h"
 #include "shellsurface.h"
 #include "wayland-desktop-shell-server-protocol.h"
+#include "utils.h"
 
 Workspace::Workspace(Shell *shell, int number)
          : m_shell(shell)
@@ -43,13 +44,25 @@ Workspace::Workspace(Shell *shell, int number)
 
 Workspace::~Workspace()
 {
+    for (weston_surface *s: m_layer) {
+        ShellSurface *shsurf = Shell::getShellSurface(s);
+        if (!shsurf)
+            continue;
 
+        if (shsurf->transformParent() == m_rootSurface) {
+            weston_surface_set_transform_parent(s, nullptr);
+        }
+    }
+
+    remove();
+    destroyedSignal(this);
+    weston_surface_destroy(m_rootSurface);
 }
 
 void Workspace::init(wl_client *client)
 {
     m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, 0);
-    wl_resource_set_user_data(m_resource, this);
+    wl_resource_set_implementation(m_resource, &s_implementation, this, 0);
 }
 
 void Workspace::addSurface(ShellSurface *surface)
@@ -125,3 +138,12 @@ Workspace *Workspace::fromResource(wl_resource *res)
 {
     return static_cast<Workspace *>(wl_resource_get_user_data(res));
 }
+
+void Workspace::removed(wl_client *client, wl_resource *res)
+{
+    delete this;
+}
+
+const struct desktop_shell_workspace_interface Workspace::s_implementation = {
+    wrapInterface(&Workspace::removed)
+};

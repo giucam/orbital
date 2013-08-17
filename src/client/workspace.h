@@ -31,6 +31,7 @@ class Workspace : public QObject
     Q_PROPERTY(bool active READ active NOTIFY activeChanged)
 public:
     Workspace(desktop_shell_workspace *ws, QObject *p = nullptr);
+    ~Workspace();
 
     bool active() const { return m_active; }
 

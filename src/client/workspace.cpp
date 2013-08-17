@@ -29,6 +29,12 @@ Workspace::Workspace(desktop_shell_workspace *ws, QObject *p)
     desktop_shell_workspace_add_listener(ws, &m_workspace_listener, this);
 }
 
+Workspace::~Workspace()
+{
+    desktop_shell_workspace_remove(m_workspace);
+    desktop_shell_workspace_destroy(m_workspace);
+}
+
 void Workspace::handleActivated(desktop_shell_workspace *ws)
 {
     m_active = true;

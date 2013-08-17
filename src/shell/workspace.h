@@ -20,6 +20,7 @@
 
 #include "layer.h"
 #include "transform.h"
+#include "signal.h"
 
 class Shell;
 
@@ -53,7 +54,11 @@ public:
 
     static Workspace *fromResource(wl_resource *res);
 
+    Signal<Workspace *> destroyedSignal;
+
 private:
+    void removed(wl_client *client, wl_resource *res);
+
     Shell *m_shell;
     int m_number;
     wl_resource *m_resource;
@@ -61,6 +66,8 @@ private:
     Transform m_transform;
     Layer m_layer;
     bool m_active;
+
+    static const struct desktop_shell_workspace_interface s_implementation;
 };
 
 #endif

@@ -177,9 +177,39 @@ void Shell::init()
 void Shell::addWorkspace(Workspace *ws)
 {
     m_workspaces.push_back(ws);
+    ws->destroyedSignal.connect(this, &Shell::workspaceRemoved);
     if (ws->number() == 0) {
         activateWorkspace(nullptr);
     }
+}
+
+void Shell::workspaceRemoved(Workspace *ws)
+{
+    for (auto i = m_workspaces.begin(); i != m_workspaces.end(); ++i) {
+        if (*i == ws) {
+            m_workspaces.erase(i);
+            break;
+        }
+    }
+
+    int nextWs = ws->number();
+    if (nextWs >= (int)m_workspaces.size()) {
+        nextWs = m_workspaces.size() - 1;
+    }
+    if (ws->active()) {
+        m_currentWorkspace = nextWs;
+    }
+
+    for (const weston_surface *s: ws->layer()) {
+        ShellSurface *shsurf = Shell::getShellSurface(s);
+        if (!shsurf)
+            continue;
+
+        workspace(nextWs)->addSurface(shsurf);
+        shsurf->m_workspace = workspace(nextWs);
+    }
+
+    activateWorkspace(nullptr);
 }
 
 weston_surface *Shell::createBlackSurface(int x, int y, int w, int h)

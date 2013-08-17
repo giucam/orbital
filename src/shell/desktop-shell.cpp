@@ -139,12 +139,8 @@ void DesktopShell::sendInitEvents()
         workspaceAdded(workspace(i));
     }
 
-    struct weston_surface *surface;
-    wl_list_for_each(surface, &compositor()->surface_list, link) {
-        ShellSurface *shsurf = Shell::getShellSurface(surface);
-        if (shsurf) {
-            shsurf->advertize();
-        }
+    for (ShellSurface *shsurf: surfaces()) {
+        shsurf->advertize();
     }
 }
 

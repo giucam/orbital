@@ -122,10 +122,6 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    for (int i = m_workspaces.size(); i < 4; ++i) {
-        addWorkspace();
-    }
-
     m_launcher = new ProcessLauncher(this);
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
@@ -144,6 +140,13 @@ void Client::create()
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + "/orbital.conf";
     m_ui = new ShellUI(this, engine, configFile);
+
+    for (int i = m_workspaces.size(); i < m_ui->numWorkspaces(); ++i) {
+        addWorkspace();
+    }
+    while (m_workspaces.size() > m_ui->numWorkspaces()) {
+        delete m_workspaces.takeLast();
+    }
 
     for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
         QScreen *screen = QGuiApplication::screens().at(i);

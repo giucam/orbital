@@ -39,6 +39,7 @@
 static const char *defaultConfig =
 "<Ui>\n"
 "    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
+"    <property name=\"numWorkspaces\" value=\"4\"/>\n"
 "    <Screen>\n"
 "        <element type=\"background\" id=\"1\">\n"
 "            <property name=\"color\" value=\"black\"/>\n"
@@ -66,6 +67,7 @@ ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        , m_configMode(false)
        , m_cursorShape(-1)
        , m_engine(engine)
+       , m_numWorkspaces(1)
 {
     reloadConfig();
 }

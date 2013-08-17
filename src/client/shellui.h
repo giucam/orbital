@@ -36,6 +36,7 @@ class ShellUI : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
+    Q_PROPERTY(int numWorkspaces READ numWorkspaces WRITE setNumWorkspaces)
     Q_PROPERTY(bool configMode READ configMode WRITE setConfigMode NOTIFY configModeChanged)
 public:
     ShellUI(Client *client, QQmlEngine *engine, const QString &configFile);
@@ -46,6 +47,9 @@ public:
 
     QString iconTheme() const;
     void setIconTheme(const QString &theme);
+
+    int numWorkspaces() const { return m_numWorkspaces; }
+    void setNumWorkspaces(int n) { m_numWorkspaces = n; }
 
     bool configMode() const { return m_configMode; }
     void setConfigMode(bool mode);
@@ -74,6 +78,7 @@ private:
     int m_cursorShape;
     QQmlEngine *m_engine;
     QList<UiScreen *> m_screens;
+    int m_numWorkspaces;
 
     QStringList m_properties;
 };

@@ -149,6 +149,7 @@ private:
     void pingTimeout(ShellSurface *shsurf);
     void pong(ShellSurface *shsurf);
     weston_surface *createBlackSurface(int x, int y, int w, int h);
+    void workspaceRemoved(Workspace *ws);
 
     struct weston_compositor *m_compositor;
     WlListener m_destroyListener;

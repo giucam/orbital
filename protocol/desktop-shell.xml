@@ -196,6 +196,7 @@
   </interface>
 
   <interface name="desktop_shell_workspace" version="1">
+      <request name="remove"/>
       <event name="activated"/>
       <event name="deactivated"/>
   </interface>
