@@ -33,6 +33,40 @@
 #include "desktop-shell.h"
 #include "animation.h"
 
+class Splash {
+public:
+    Splash() {}
+    void addOutput(weston_surface *s)
+    {
+        Animation *a = new Animation;
+        splash spl{s, a};
+        splashes.push_back(spl);
+        a->updateSignal->connect(&splashes.back(), &splash::setAlpha);
+    }
+    void fadeOut()
+    {
+        for (splash &s: splashes) {
+            s.fadeAnimation->setStart(1.f);
+            s.fadeAnimation->setTarget(0.f);
+            s.fadeAnimation->run(s.surface->output, 200);
+        }
+    }
+
+private:
+    struct splash {
+        weston_surface *surface;
+        Animation *fadeAnimation;
+
+        void setAlpha(float a)
+        {
+            surface->alpha = a;
+            weston_surface_geometry_dirty(surface);
+            weston_surface_damage(surface);
+        }
+    };
+    std::list<splash> splashes;
+};
+
 Binding::Binding(struct weston_binding *binding)
        : m_binding(binding)
 {
@@ -47,9 +81,7 @@ Binding::~Binding()
 
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
-            , m_blackSurface(nullptr)
             , m_grabSurface(nullptr)
-            , m_fadeAnimation(nullptr)
 {
     srandom(weston_compositor_get_time());
     m_child.shell = this;
@@ -113,15 +145,21 @@ void Shell::init()
     m_backgroundLayer.insert(&m_panelsLayer);
 
     m_currentWorkspace = 0;
+    m_splash = new Splash;
 
-    struct weston_output *out = container_of(m_compositor->output_list.next, struct weston_output, link);
-    int w = out->width, h = out->height;
+    struct weston_output *out;
+    wl_list_for_each(out, &m_compositor->output_list, link) {
+        int x = out->x, y = out->y;
+        int w = out->width, h = out->height;
 
-    m_blackSurface = createBlackSurface(w, h);
-    m_backgroundLayer.addSurface(m_blackSurface);
+        weston_surface *blackSurface = createBlackSurface(x, y, w, h);
+        m_backgroundLayer.addSurface(blackSurface);
+        m_blackSurfaces.push_back(blackSurface);
 
-    m_splashSurface = createBlackSurface(w, h);
-    m_splashLayer.addSurface(m_splashSurface);
+        weston_surface *splashSurface = createBlackSurface(x, y, w, h);
+        m_splashLayer.addSurface(splashSurface);
+        m_splash->addOutput(splashSurface);
+    }
 
     struct wl_event_loop *loop = wl_display_get_event_loop(m_compositor->wl_display);
     wl_event_loop_add_idle(loop, [](void *data) { static_cast<Shell *>(data)->launchShellProcess(); }, this);
@@ -144,13 +182,13 @@ void Shell::addWorkspace(Workspace *ws)
     }
 }
 
-weston_surface *Shell::createBlackSurface(int w, int h)
+weston_surface *Shell::createBlackSurface(int x, int y, int w, int h)
 {
     weston_surface *surface = weston_surface_create(m_compositor);
 
     surface->configure = black_surface_configure;
     surface->configure_private = 0;
-    weston_surface_configure(surface, 0, 0, w, h);
+    weston_surface_configure(surface, x, y, w, h);
     weston_surface_set_color(surface, 0.0, 0.0, 0.0, 1);
     pixman_region32_fini(&surface->input);
     pixman_region32_init_rect(&surface->input, 0, 0, 0, 0);
@@ -744,20 +782,7 @@ void Shell::pong(ShellSurface *shsurf)
 
 void Shell::fadeSplash()
 {
-    if (!m_fadeAnimation) {
-        m_fadeAnimation = new Animation;
-        m_fadeAnimation->updateSignal->connect(this, &Shell::setSplashAlpha);
-    }
-    m_fadeAnimation->setStart(m_splashSurface->alpha);
-    m_fadeAnimation->setTarget(0.f);
-    m_fadeAnimation->run(m_splashSurface->output, 200);
-}
-
-void Shell::setSplashAlpha(float alpha)
-{
-    m_splashSurface->alpha = alpha;
-    weston_surface_geometry_dirty(m_splashSurface);
-    weston_surface_damage(m_splashSurface);
+    m_splash->fadeOut();
 }
 
 const struct wl_shell_interface Shell::shell_implementation = {
