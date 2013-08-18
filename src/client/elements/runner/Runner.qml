@@ -43,6 +43,11 @@ Element {
                 ProcessLauncher.launch(text.text)
                 text.text = ""
             }
+            Keys.onPressed: {
+                if (event.key == Qt.Key_Escape) {
+                    text.text = ""
+                }
+            }
         }
 
         MouseArea {
