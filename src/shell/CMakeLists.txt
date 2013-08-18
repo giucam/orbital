@@ -41,4 +41,5 @@ wayland_add_protocol_server(SOURCES
 
 add_library(orbital-shell SHARED ${SOURCES})
 set_target_properties(orbital-shell PROPERTIES PREFIX "")
-# target_link_libraries(shell )
+
+install(TARGETS orbital-shell DESTINATION lib/orbital)

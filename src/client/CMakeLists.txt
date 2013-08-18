@@ -41,3 +41,6 @@ qt5_add_resources(RESOURCES resources.qrc)
 add_executable(orbital-client ${SOURCES} ${RESOURCES})
 qt5_use_modules(orbital-client Widgets Qml Quick DBus)
 target_link_libraries(orbital-client wayland-client asound)
+
+install(TARGETS orbital-client DESTINATION bin)
+install(DIRECTORY elements DESTINATION share/orbital)
