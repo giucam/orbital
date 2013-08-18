@@ -79,7 +79,6 @@ public:
     QQmlListProperty<Workspace> workspaces();
     QQmlListProperty<ElementInfo> elementsInfo();
 
-    void requestFocus(QWindow *window);
     Q_INVOKABLE Service *service(const QString &name);
 
     Q_INVOKABLE void logOut();

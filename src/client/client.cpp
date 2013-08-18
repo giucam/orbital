@@ -261,12 +261,6 @@ QQmlListProperty<ElementInfo> Client::elementsInfo()
     return QQmlListProperty<ElementInfo>(this, 0, elementsInfoCount, elementsInfoAt);
 }
 
-void Client::requestFocus(QWindow *window)
-{
-    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
-    desktop_shell_request_focus(m_shell, wlSurface);
-}
-
 Service *Client::service(const QString &name)
 {
     Service *s = m_services.value(name);

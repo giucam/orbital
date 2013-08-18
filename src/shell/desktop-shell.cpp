@@ -272,6 +272,7 @@ void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *r
 
     weston_compositor_add_key_binding(compositor(), key, (weston_keyboard_modifier)modifiers,
                                          [](struct weston_seat *seat, uint32_t time, uint32_t key, void *data) {
+
                                              desktop_shell_binding_send_triggered(static_cast<wl_resource *>(data));
                                          }, res);
 }
@@ -290,14 +291,6 @@ void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *reso
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
     pixman_region32_fini(&surface->pending.input);
     pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
-}
-
-void DesktopShell::requestFocus(wl_client *client, wl_resource *resource, wl_resource *surface_resource)
-{
-    weston_surface *surf = static_cast<weston_surface *>(surface_resource->data);
-    weston_seat *seat;
-    wl_list_for_each(seat, &compositor()->seat_list, link)
-        ShellSeat::shellSeat(seat)->activate(surf);
 }
 
 void DesktopShell::minimizeWindows(wl_client *client, wl_resource *resource)
@@ -432,7 +425,6 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     wrapInterface(&DesktopShell::desktopReady),
     wrapInterface(&DesktopShell::addKeyBinding),
     wrapInterface(&DesktopShell::addOverlay),
-    wrapInterface(&DesktopShell::requestFocus),
     wrapInterface(&DesktopShell::minimizeWindows),
     wrapInterface(&DesktopShell::restoreWindows),
     wrapInterface(&DesktopShell::createGrab),

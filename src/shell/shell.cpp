@@ -543,10 +543,13 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
         ShellSeat *shseat = ShellSeat::shellSeat(seat);
         if (shsurf) {
             shseat->activate(shsurf);
-        } else if (!shseat->currentFocus()) { //the focus may be a ShellItem (panel, background, ...)
-            weston_surface_activate(0, seat);
+        } else {
+            // Dont't activate the nullptr ShellSurface, as that would call setActive(false) on the previous
+            // active ShellSurface, and that would break minimizing windows by clicking on the taskbar:
+            // a click on the taskbar would deactivate the previous active surface, and the taskbar would
+            // activate instead of minimizing it.
+            weston_surface_activate(focus, seat);
         }
-//         activate(shell, focus, (struct weston_seat *)seat)
     };
 }
 

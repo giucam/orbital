@@ -61,7 +61,6 @@ public:
     Q_INVOKABLE void toggleConfigMode();
 
 public slots:
-    void requestFocus(QQuickItem *item);
     void reloadConfig();
     void saveConfig();
 

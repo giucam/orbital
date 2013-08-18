@@ -55,10 +55,6 @@
         <arg name="surface" type="object" interface="wl_surface"/>
     </request>
 
-    <request name="request_focus">
-        <arg name="surface" type="object" interface="wl_surface"/>
-    </request>
-
     <request name="minimize_windows"/>
     <request name="restore_windows"/>
 

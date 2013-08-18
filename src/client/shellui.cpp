@@ -151,11 +151,6 @@ void ShellUI::toggleConfigMode()
     setConfigMode(!m_configMode);
 }
 
-void ShellUI::requestFocus(QQuickItem *item)
-{
-    m_client->requestFocus(item->window());
-}
-
 static void goToEndElement(QXmlStreamReader &xml)
 {
     QString name = xml.name().toString();
