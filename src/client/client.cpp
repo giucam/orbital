@@ -47,6 +47,8 @@
 #include "workspace.h"
 #include "utils.h"
 #include "uiscreen.h"
+#include "service.h"
+#include "volumecontrol.h"
 
 Client *Client::s_client = nullptr;
 
@@ -75,6 +77,7 @@ Client::Client()
     wl_registry_add_listener(m_registry, &s_registryListener, this);
 
     qmlRegisterType<Binding>();
+    qmlRegisterType<Service>();
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
@@ -99,6 +102,7 @@ Client::~Client()
     delete m_grabWindow;
     qDeleteAll(m_bindings);
     qDeleteAll(m_workspaces);
+    qDeleteAll(m_services);
 
     Element::cleanupElementsList();
 }
@@ -261,6 +265,18 @@ void Client::requestFocus(QWindow *window)
 {
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
     desktop_shell_request_focus(m_shell, wlSurface);
+}
+
+Service *Client::service(const QString &name)
+{
+    Service *s = m_services.value(name);
+    if (s) {
+        return s;
+    }
+
+    s = ServiceFactory::createService(name);
+    m_services.insert(name, s);
+    return s;
 }
 
 void Client::logOut()

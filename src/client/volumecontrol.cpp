@@ -21,13 +21,13 @@
 
 #include "volumecontrol.h"
 
-const int a = qmlRegisterType<VolumeControl>("Orbital", 1, 0, "VolumeControl");
+REGISTER_SERVICE(VolumeControl)
 
 const char *card = "default";
 const char *selem_name = "Master";
 
 VolumeControl::VolumeControl(QObject *parent)
-             : QObject(parent)
+             : Service(parent)
 {
     snd_mixer_open(&m_handle, 0);
     snd_mixer_attach(m_handle, card);

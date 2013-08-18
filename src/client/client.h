@@ -47,6 +47,7 @@ class ShellUI;
 class Grab;
 class Workspace;
 class ElementInfo;
+class Service;
 
 class Binding : public QObject
 {
@@ -79,6 +80,7 @@ public:
     QQmlListProperty<ElementInfo> elementsInfo();
 
     void requestFocus(QWindow *window);
+    Q_INVOKABLE Service *service(const QString &name);
 
     Q_INVOKABLE void logOut();
     Q_INVOKABLE void poweroff();
@@ -136,7 +138,7 @@ private:
     QList<QQuickWindow *> m_uiWindows;
     QElapsedTimer m_elapsedTimer;
     QDBusInterface *m_loginServiceInterface;
-
+    QHash<QString, Service *> m_services;
     ShellUI *m_ui;
 
     QList<Window *> m_windows;

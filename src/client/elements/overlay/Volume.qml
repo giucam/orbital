@@ -38,6 +38,8 @@ Rectangle {
 
     Behavior on opacity { PropertyAnimation { duration: 300 } }
 
+    property variant control: Client.service("MixerService")
+
     RectangularGlow {
         id: effect
         anchors.fill: volume
@@ -54,11 +56,8 @@ Rectangle {
         onTriggered: volume.opacity = 0
     }
 
-    VolumeControl {
-        id: control
-    }
-
     ProgressBar {
+        id: bar
         anchors.fill: parent
 
         anchors.leftMargin: 10
@@ -67,7 +66,7 @@ Rectangle {
         anchors.bottomMargin: anchors.topMargin
 
         maximumValue: 100
-        value: control.master
+        Binding { target: bar; property: "value"; value: control.master }
 
         Behavior on value { SmoothedAnimation { velocity: 50 } }
 
