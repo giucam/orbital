@@ -78,8 +78,8 @@ Client::Client()
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
-    QString path = QCoreApplication::applicationDirPath() + QLatin1String("/../src/client/qml/");
-#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(path + type + ".qml"), "Orbital", 1, 0, type)
+
+#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Button");
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");

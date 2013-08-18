@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource>
+        <file>qml/Button.qml</file>
+        <file>qml/ElementConfiguration.qml</file>
+        <file>qml/ElementsChooser.qml</file>
+        <file>qml/Spacer.qml</file>
+    </qresource>
+</RCC>
