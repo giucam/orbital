@@ -18,17 +18,22 @@ To compile Orbital run this commands from the repository root directory:
     cd build
     cmake ..
     make
+    sudo make install
+
+Orbital will be installed in the "/usr/local" prefix, unless you specified
+otherwise using the CMAKE_INSTALL_PREFIX variable:
+    cmake -DCMAKE_INSTALL_PREFIX=/my/prefix ..
 
 3. RUNNING ORBITAL
 To run Orbital you need to tell Weston it should load it, so you must modify
 weston.ini, which should be in your $XDG_CONFIG_HOME, or in your $HOME/.config.
 Add these lines:
     [core]
-    modules=/'path to orbital sources'/build/orbital-shell.so
+    modules=/'orbital prefix'/lib/orbital/orbital-shell.so
 
     [orbital]
-    shell_client=/'path to orbital sources'/build/orbital-client
-replacing 'path to orbital sources' with the correct path.
+    shell_client=/'orbital prefix'/bin/orbital-client
+replacing 'orbital prefix' with the actual prefix.
 
 Now you can just run 'weston' or 'weston-launch' and it will load Orbital.
 
