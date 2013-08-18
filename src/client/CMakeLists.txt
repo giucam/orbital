@@ -1,4 +1,6 @@
 
+pkg_check_modules(WaylandClient wayland-client REQUIRED)
+
 find_package(Qt5Core)
 find_package(Qt5Gui)
 find_package(Qt5Widgets)
@@ -7,6 +9,8 @@ find_package(Qt5Quick)
 find_package(Qt5DBus)
 
 set(CMAKE_AUTOMOC ON)
+
+include_directories(${WaylandServer_INCLUDE_DIRS})
 
 foreach(dir ${Qt5Widgets_INCLUDE_DIRS})
     include_directories(${dir}/${Qt5Gui_VERSION_STRING}/QtGui/)

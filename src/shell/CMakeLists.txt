@@ -1,5 +1,15 @@
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/effects)
+
+pkg_check_modules(WaylandServer wayland-server REQUIRED)
+pkg_check_modules(Pixman pixman-1 REQUIRED)
+pkg_check_modules(Weston weston REQUIRED)
+
+include_directories(
+    ${WaylandServer_INCLUDE_DIRS}
+    ${Pixman_INCLUDE_DIRS}
+    ${Weston_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/effects
+)
 
 set(SOURCES
     shell.cpp
