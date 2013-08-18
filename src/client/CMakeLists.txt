@@ -10,7 +10,7 @@ find_package(Qt5DBus)
 
 set(CMAKE_AUTOMOC ON)
 
-include_directories(${WaylandServer_INCLUDE_DIRS})
+include_directories(${WaylandClient_INCLUDE_DIRS})
 
 foreach(dir ${Qt5Widgets_INCLUDE_DIRS})
     include_directories(${dir}/${Qt5Gui_VERSION_STRING}/QtGui/)
