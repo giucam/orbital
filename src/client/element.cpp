@@ -315,7 +315,6 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
 void Element::loadElementsList()
 {
     QStringList dirs = QStandardPaths::locateAll(QStandardPaths::DataLocation, "elements", QStandardPaths::LocateDirectory);
-    dirs << QCoreApplication::applicationDirPath() + "/../src/client/elements";
 
     for (const QString &path: dirs) {
         QDir dir(path);
