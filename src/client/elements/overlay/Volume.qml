@@ -67,6 +67,13 @@ Rectangle {
 
         maximumValue: 100
         Binding { target: bar; property: "value"; value: control.master }
+        Connections {
+            target: control
+            onMasterChanged: {
+                volume.opacity = 1;
+                timer.start();
+            }
+        }
 
         Behavior on value { SmoothedAnimation { velocity: 50 } }
 
@@ -76,23 +83,5 @@ Rectangle {
             font.pixelSize: 3 * parent.height / 4
         }
 
-    }
-
-    property variant volUp: Client.addKeyBinding(115, 0)
-    Connections {
-        target: volUp
-        onTriggered: changeVol(+5)
-    }
-
-    property variant volDown: Client.addKeyBinding(114, 0)
-    Connections {
-        target: volDown
-        onTriggered: changeVol(-5)
-    }
-
-    function changeVol(ch) {
-        control.changeMaster(ch);
-        volume.opacity = 1;
-        timer.restart();
     }
 }

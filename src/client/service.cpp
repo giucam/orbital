@@ -20,22 +20,24 @@
 #include <QDebug>
 
 #include "service.h"
+#include "client.h"
 
 Q_GLOBAL_STATIC(ServiceFactory, s_factory)
 
-Service::Service(QObject *p)
-       : QObject(p)
+Service::Service(Client *c)
+       : QObject(c)
+       , m_client(c)
 {
 }
 
-Service *ServiceFactory::createService(const QString &name)
+Service *ServiceFactory::createService(const QString &name, Client *client)
 {
     if (!s_factory->m_factories.contains(name)) {
         return nullptr;
     }
 
     Factory factory = s_factory->m_factories.value(name);
-    return factory();
+    return factory(client);
 }
 
 void ServiceFactory::registerService(const QString &name, Factory factory)

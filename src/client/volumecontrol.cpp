@@ -17,17 +17,20 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/input.h>
+
 #include <QtQml>
 
 #include "volumecontrol.h"
+#include "client.h"
 
 REGISTER_SERVICE(VolumeControl)
 
 const char *card = "default";
 const char *selem_name = "Master";
 
-VolumeControl::VolumeControl(QObject *parent)
-             : Service(parent)
+VolumeControl::VolumeControl(Client *client)
+             : Service(client)
 {
     snd_mixer_open(&m_handle, 0);
     snd_mixer_attach(m_handle, card);
@@ -39,11 +42,20 @@ VolumeControl::VolumeControl(QObject *parent)
     snd_mixer_selem_id_set_name(m_sid, selem_name);
     m_elem = snd_mixer_find_selem(m_handle, m_sid);
     snd_mixer_selem_get_playback_volume_range(m_elem, &m_min, &m_max);
+
+    m_upBinding = client->addKeyBinding(KEY_VOLUMEUP, 0);
+    m_downBinding = client->addKeyBinding(KEY_VOLUMEDOWN, 0);
+
+    connect(m_upBinding, &Binding::triggered, [this]() { changeMaster(5); });
+    connect(m_downBinding, &Binding::triggered, [this]() { changeMaster(-5); });
 }
 
 VolumeControl::~VolumeControl()
 {
     snd_mixer_close(m_handle);
+
+    delete m_upBinding;
+    delete m_downBinding;
 }
 
 void VolumeControl::changeMaster(int change)

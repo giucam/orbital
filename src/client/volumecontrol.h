@@ -24,12 +24,14 @@
 
 #include "service.h"
 
+class Binding;
+
 class VolumeControl : public Service
 {
     Q_OBJECT
     Q_PROPERTY(int master READ master WRITE setMaster NOTIFY masterChanged);
 public:
-    VolumeControl(QObject *parent = nullptr);
+    VolumeControl(Client *client);
     ~VolumeControl();
 
     int master() const;
@@ -49,6 +51,9 @@ private:
     snd_mixer_elem_t *m_elem;
     long m_min;
     long m_max;
+
+    Binding *m_upBinding;
+    Binding *m_downBinding;
 };
 
 #endif

@@ -23,12 +23,19 @@
 #include <QObject>
 #include <QHash>
 
+class Client;
+
 class Service : public QObject
 {
     Q_OBJECT
 public:
-    Service(QObject *p = nullptr);
+    Service(Client *client);
 
+protected:
+    Client *client() const { return m_client; }
+
+private:
+    Client *m_client;
 };
 
 class ServiceFactory
@@ -36,13 +43,13 @@ class ServiceFactory
 public:
     template<class T> static char registerService();
 
-    static Service *createService(const QString &name);
+    static Service *createService(const QString &name, Client *client);
 
 private:
-    typedef Service *(*Factory)();
+    typedef Service *(*Factory)(Client *);
 
     static void registerService(const QString &name, Factory factory);
-    template<class T> static Service *factory() { return new T; }
+    template<class T> static Service *factory(Client *c) { return new T(c); }
 
     QHash<QString, Factory> m_factories;
 };

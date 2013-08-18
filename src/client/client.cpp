@@ -274,7 +274,7 @@ Service *Client::service(const QString &name)
         return s;
     }
 
-    s = ServiceFactory::createService(name);
+    s = ServiceFactory::createService(name, this);
     m_services.insert(name, s);
     return s;
 }
