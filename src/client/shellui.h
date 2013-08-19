@@ -31,6 +31,7 @@ class QQmlEngine;
 class Element;
 class Client;
 class UiScreen;
+class Style;
 
 class ShellUI : public QObject
 {
@@ -53,6 +54,8 @@ public:
 
     bool configMode() const { return m_configMode; }
     void setConfigMode(bool mode);
+
+    Style *style() const { return m_style; }
 
     Q_INVOKABLE void setOverrideCursorShape(Qt::CursorShape shape);
     Q_INVOKABLE void restoreOverrideCursorShape();
@@ -78,6 +81,7 @@ private:
     QQmlEngine *m_engine;
     QList<UiScreen *> m_screens;
     int m_numWorkspaces;
+    Style *m_style;
 
     QStringList m_properties;
 };

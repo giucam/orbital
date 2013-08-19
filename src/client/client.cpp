@@ -48,7 +48,7 @@
 #include "utils.h"
 #include "uiscreen.h"
 #include "service.h"
-#include "volumecontrol.h"
+#include "style.h"
 
 Client *Client::s_client = nullptr;
 
@@ -78,6 +78,7 @@ Client::Client()
 
     qmlRegisterType<Binding>();
     qmlRegisterType<Service>();
+    qmlRegisterType<Style>("Orbital", 1, 0, "Style");
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
@@ -87,6 +88,8 @@ Client::Client()
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
     REGISTER_QMLFILE("Spacer");
+    REGISTER_QMLFILE("DefaultStyle");
+    REGISTER_QMLFILE("StyleItem");
 
     m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                                  "org.freedesktop.login1.Manager", QDBusConnection::systemBus());

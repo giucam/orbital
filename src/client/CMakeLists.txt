@@ -30,7 +30,8 @@ set(SOURCES
     grab.cpp
     layout.cpp
     workspace.cpp
-    service.cpp)
+    service.cpp
+    style.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml

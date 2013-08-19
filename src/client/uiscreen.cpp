@@ -88,7 +88,7 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
     Element *elm = (elements ? elements->take(id) : nullptr);
     if (!elm) {
         QString type = attribs.value("type").toString();
-        elm = Element::create(m_ui, m_ui->qmlEngine(), type, id);
+        elm = Element::create(m_ui, m_ui->qmlEngine(), type, m_ui->style(), id);
         if (!elm) {
             while (!xml.atEnd()) {
                 xml.readNext();
@@ -202,6 +202,13 @@ void UiScreen::removeElement(Element *elm)
     m_elements.remove(elm->m_id);
     elm->m_screen = nullptr;
     disconnect(elm, &QObject::destroyed, this, &UiScreen::elementDestroyed);
+}
+
+void UiScreen::setStyle(Style *s)
+{
+    for (Element *elm: m_elements) {
+        elm->setStyle(s);
+    }
 }
 
 void UiScreen::elementDestroyed(QObject *obj)

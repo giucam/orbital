@@ -5,5 +5,7 @@
         <file>qml/ElementConfiguration.qml</file>
         <file>qml/ElementsChooser.qml</file>
         <file>qml/Spacer.qml</file>
+        <file>qml/DefaultStyle.qml</file>
+        <file>qml/StyleItem.qml</file>
     </qresource>
 </RCC>

@@ -64,13 +64,9 @@ Element {
         element.dragOffset = Qt.point(offset.x, offset.y);
     }
 
-    contentItem: Rectangle {
+    contentItem: StyleItem {
         anchors.fill: parent
-
-        gradient: Gradient {
-            GradientStop { position: 1.0; color: "black" }
-            GradientStop { position: 0.0; color: "dimgrey" }
-        }
+        component: style.panelBackground
 
         Layout {
             id: layout

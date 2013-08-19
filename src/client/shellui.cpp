@@ -35,6 +35,7 @@
 #include "client.h"
 #include "element.h"
 #include "uiscreen.h"
+#include "style.h"
 
 static const char *defaultConfig =
 "<Ui>\n"
@@ -69,6 +70,11 @@ ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        , m_engine(engine)
        , m_numWorkspaces(1)
 {
+    // hardcode the default style for now
+    QQmlComponent c(engine);
+    c.loadUrl(QString("qrc:///qml/DefaultStyle.qml"));
+    m_style = static_cast<Style *>(c.create());
+
     client->addWorkspace(0);
     reloadConfig();
 }
@@ -116,7 +122,7 @@ void ShellUI::setNumWorkspaces(int n)
 
 Element *ShellUI::createElement(const QString &name)
 {
-    Element *elm = Element::create(this, m_engine, name);
+    Element *elm = Element::create(this, m_engine, name, m_style);
     return elm;
 }
 

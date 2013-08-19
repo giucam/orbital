@@ -32,6 +32,7 @@ class LayoutAttached;
 class ElementConfig;
 class ShellUI;
 class UiScreen;
+class Style;
 
 class ElementInfo : public QObject {
     Q_OBJECT
@@ -76,6 +77,7 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem)
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
+    Q_PROPERTY(Style *style READ style NOTIFY styleChanged)
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
     explicit Element(Element *parent = nullptr);
@@ -118,10 +120,12 @@ public:
     QQmlComponent *background() const { return m_childrenBackground; }
     void setBackground(QQmlComponent *c) { m_childrenBackground = c; }
 
+    Style *style() const { return m_style; }
+
     static void loadElementsList();
     static void cleanupElementsList();
     static const QMap<QString, ElementInfo *> &elementsInfo() { return s_elements; }
-    static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
+    static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, Style *style, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
 
@@ -130,6 +134,7 @@ signals:
     void elementEntered(Element *element, const QPointF &pos, const QPointF &offset);
     void elementMoved(Element *element, const QPointF &pos, const QPointF &offset);
     void elementExited(Element *element, const QPointF &pos, const QPointF &offset);
+    void styleChanged();
 
 protected:
     void setId(int id);
@@ -141,6 +146,7 @@ private slots:
     void button(uint32_t time, uint32_t button, uint32_t state);
 
 private:
+    void setStyle(Style *s);
     void setParentElement(Element *parent);
     void sortChildren();
     void createConfig(Element *child);
@@ -167,6 +173,7 @@ private:
     QQuickWindow *m_settingsWindow;
     QQmlComponent *m_childrenConfig;
     UiScreen *m_screen;
+    Style *m_style;
 
     QQmlComponent *m_childrenBackground;
     QQuickItem *m_background;
