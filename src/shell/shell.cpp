@@ -702,7 +702,7 @@ void Shell::selectNextWorkspace()
 
 void Shell::selectWorkspace(int32_t id)
 {
-    if (id == (int32_t)m_currentWorkspace || id >= (int32_t)m_workspaces.size()) {
+    if (id >= (int32_t)m_workspaces.size()) {
         return;
     }
 
