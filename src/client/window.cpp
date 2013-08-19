@@ -94,8 +94,7 @@ void Window::setTitle(const QString &t)
 
 void Window::setState(States state)
 {
-    m_state = state;
-    desktop_shell_window_set_state(m_window, state2WlState(m_state));
+    desktop_shell_window_set_state(m_window, state2WlState(state));
 }
 
 bool Window::isActive() const
