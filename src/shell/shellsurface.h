@@ -94,11 +94,15 @@ public:
     void setActive(bool active);
     bool isActive() const;
     bool isMinimized() const;
+    void setAcceptNewState(bool accept) { m_acceptState = accept; }
 
     void activate();
     void deactivate();
     void minimize();
     void unminimize();
+
+    void show();
+    void hide();
 
     Signal<> destroyedSignal;
     Signal<ShellSurface *> moveStartSignal;
@@ -135,6 +139,7 @@ private:
     bool m_unresponsive;
     int32_t m_state;
     bool m_windowAdvertized;
+    bool m_acceptState;
 
     struct weston_surface *m_parent;
     struct {

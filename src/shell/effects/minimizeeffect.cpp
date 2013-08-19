@@ -31,7 +31,7 @@ struct MinimizeEffect::Surface {
     void minimized(ShellSurface *surf)
     {
         minimizing = true;
-        surf->unminimize();
+        surf->show();
 
         struct weston_matrix *matrix = &transform.matrix;
         weston_matrix_init(matrix);
@@ -71,7 +71,7 @@ struct MinimizeEffect::Surface {
     void done()
     {
         if (minimizing) {
-            surface->minimize();
+            surface->hide();
         }
         surface->removeTransform(&transform);
     }

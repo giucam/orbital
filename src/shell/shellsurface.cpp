@@ -37,6 +37,7 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
             , m_unresponsive(false)
             , m_state(DESKTOP_SHELL_WINDOW_STATE_INACTIVE)
             , m_windowAdvertized(false)
+            , m_acceptState(true)
             , m_parent(nullptr)
             , m_pingTimer(nullptr)
 {
@@ -106,15 +107,17 @@ void ShellSurface::surfaceDestroyed()
 
 void ShellSurface::setState(int state)
 {
+    if (!m_acceptState) {
+        return;
+    }
+
     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         unminimize();
-        unminimizedSignal(this);
     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         minimize();
         if (isActive()) {
             deactivate();
         }
-        minimizedSignal(this);
     }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
@@ -145,13 +148,6 @@ bool ShellSurface::isMinimized() const
     return m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
 }
 
-void ShellSurface::minimize()
-{
-    wl_list_remove(&m_surface->layer_link);
-    wl_list_init(&m_surface->layer_link);
-    m_state |= DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
-}
-
 void ShellSurface::activate()
 {
     weston_seat *seat = container_of(weston_surface()->compositor->seat_list.next, weston_seat, link);
@@ -165,10 +161,27 @@ void ShellSurface::deactivate()
     ShellSeat::shellSeat(seat)->activate((ShellSurface*)nullptr);
 }
 
+void ShellSurface::minimize()
+{
+    hide();
+    minimizedSignal(this);
+}
+
 void ShellSurface::unminimize()
 {
+    show();
+    unminimizedSignal(this);
+}
+
+void ShellSurface::show()
+{
     m_workspace->addSurface(this);
-    m_state &= ~DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+}
+
+void ShellSurface::hide()
+{
+    wl_list_remove(&m_surface->layer_link);
+    wl_list_init(&m_surface->layer_link);
 }
 
 void ShellSurface::sendState()

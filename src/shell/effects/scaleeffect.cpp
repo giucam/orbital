@@ -172,7 +172,7 @@ void ScaleEffect::run(struct weston_seat *ws)
         } else {
             surf->wasMinimized = surf->surface->isMinimized();
             if (surf->wasMinimized) {
-                surf->surface->unminimize();
+                surf->surface->show();
             }
 
             int cellW = surf->surface->output()->width / numCols;
@@ -312,7 +312,7 @@ void SurfaceTransform::doneAnimation()
     surface->removeTransform(&transform);
 
     if (minimize) {
-        surface->minimize();
+        surface->hide();
         surface->setAlpha(1);
     }
 }
