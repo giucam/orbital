@@ -21,8 +21,10 @@
 #define STYLE_H
 
 #include <QObject>
+#include <QMap>
 
 class QQmlComponent;
+class QQmlEngine;
 
 #define PROPERTY(name) \
     QQmlComponent *name() const { return m_##name; } \
@@ -40,8 +42,24 @@ public:
 
     PROPERTY(panelBackground)
 
+    static Style *loadStyle(const QString &name, QQmlEngine *engine);
+
+    static void loadStylesList();
+    static void cleanupStylesList();
+
 signals:
     void panelBackgroundChanged();
+
+private:
+    static void loadStyleInfo(const QString &name, const QString &path);
+
+    struct StyleInfo {
+        QString m_name;
+        QString m_path;
+        QString m_qml;
+    };
+
+    static QMap<QString, StyleInfo *> s_styles;
 };
 
 #undef PROPERTY

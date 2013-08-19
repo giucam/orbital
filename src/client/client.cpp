@@ -88,7 +88,6 @@ Client::Client()
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
     REGISTER_QMLFILE("Spacer");
-    REGISTER_QMLFILE("DefaultStyle");
     REGISTER_QMLFILE("StyleItem");
 
     m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
@@ -98,6 +97,7 @@ Client::Client()
     QQuickWindow::setDefaultAlphaBuffer(true);
 
     Element::loadElementsList();
+    Style::loadStylesList();
 }
 
 Client::~Client()
@@ -108,6 +108,7 @@ Client::~Client()
     qDeleteAll(m_services);
 
     Element::cleanupElementsList();
+    Style::cleanupStylesList();
 }
 
 static const desktop_shell_binding_listener binding_listener = {

@@ -46,3 +46,4 @@ target_link_libraries(orbital-client wayland-client asound)
 
 install(TARGETS orbital-client DESTINATION bin)
 install(DIRECTORY elements DESTINATION share/orbital)
+install(DIRECTORY styles DESTINATION share/orbital)

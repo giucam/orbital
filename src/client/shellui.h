@@ -39,6 +39,7 @@ class ShellUI : public QObject
     Q_PROPERTY(QString iconTheme READ iconTheme WRITE setIconTheme)
     Q_PROPERTY(int numWorkspaces READ numWorkspaces WRITE setNumWorkspaces)
     Q_PROPERTY(bool configMode READ configMode WRITE setConfigMode NOTIFY configModeChanged)
+    Q_PROPERTY(QString styleName READ styleName WRITE setStyleName)
 public:
     ShellUI(Client *client, QQmlEngine *engine, const QString &configFile);
     ~ShellUI();
@@ -56,6 +57,9 @@ public:
     void setConfigMode(bool mode);
 
     Style *style() const { return m_style; }
+
+    QString styleName() const { return m_styleName; }
+    void setStyleName(const QString &style);
 
     Q_INVOKABLE void setOverrideCursorShape(Qt::CursorShape shape);
     Q_INVOKABLE void restoreOverrideCursorShape();
@@ -81,6 +85,7 @@ private:
     QQmlEngine *m_engine;
     QList<UiScreen *> m_screens;
     int m_numWorkspaces;
+    QString m_styleName;
     Style *m_style;
 
     QStringList m_properties;

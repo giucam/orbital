@@ -41,6 +41,7 @@ static const char *defaultConfig =
 "<Ui>\n"
 "    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
 "    <property name=\"numWorkspaces\" value=\"4\"/>\n"
+"    <property name=\"styleName\" value=\"default\"/>\n"
 "    <Screen>\n"
 "        <element type=\"background\" id=\"1\">\n"
 "            <property name=\"color\" value=\"black\"/>\n"
@@ -69,12 +70,8 @@ ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        , m_cursorShape(-1)
        , m_engine(engine)
        , m_numWorkspaces(1)
+       , m_style(nullptr)
 {
-    // hardcode the default style for now
-    QQmlComponent c(engine);
-    c.loadUrl(QString("qrc:///qml/DefaultStyle.qml"));
-    m_style = static_cast<Style *>(c.create());
-
     client->addWorkspace(0);
     reloadConfig();
 }
@@ -132,6 +129,20 @@ void ShellUI::setConfigMode(bool mode)
     emit configModeChanged();
     if (!m_configMode) {
         saveConfig();
+    }
+}
+
+void ShellUI::setStyleName(const QString &name)
+{
+    if (name == m_styleName) {
+        return;
+    }
+
+    delete m_style;
+    m_style = Style::loadStyle(name, m_engine);
+    m_styleName = name;
+    for (UiScreen *s: m_screens) {
+        s->setStyle(m_style);
     }
 }
 
