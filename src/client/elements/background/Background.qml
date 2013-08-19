@@ -172,7 +172,7 @@ Element {
             id: config
             y: bkg.height
             width: parent.width
-            height: 300
+            height: 230
             color: "#E6404040"
             z: 100
             visible: false
