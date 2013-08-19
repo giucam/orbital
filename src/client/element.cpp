@@ -32,7 +32,7 @@ static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
 
 int Element::s_id = 0;
-QHash<QString, ElementInfo *> Element::s_elements;
+QMap<QString, ElementInfo *> Element::s_elements;
 
 Element::Element(Element *parent)
        : QQuickItem(parent)

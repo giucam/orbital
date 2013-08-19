@@ -120,7 +120,7 @@ public:
 
     static void loadElementsList();
     static void cleanupElementsList();
-    static const QHash<QString, ElementInfo *> &elementsInfo() { return s_elements; }
+    static const QMap<QString, ElementInfo *> &elementsInfo() { return s_elements; }
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
@@ -177,7 +177,7 @@ private:
 
     static int s_id;
 
-    static QHash<QString, ElementInfo *> s_elements;
+    static QMap<QString, ElementInfo *> s_elements;
 
     friend class UiScreen;
 };
