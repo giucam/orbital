@@ -724,7 +724,7 @@ void Shell::activateWorkspace(Workspace *old)
     }
 
     currentWorkspace()->setActive(true);
-    currentWorkspace()->insert(&m_fullscreenLayer);
+    currentWorkspace()->insert(&m_panelsLayer);
 
     for (const weston_surface *surf: currentWorkspace()->layer()) {
         ShellSurface *shsurf = getShellSurface(surf);
@@ -756,7 +756,7 @@ void Shell::showAllWorkspaces()
         if (prev) {
             w->insert(prev);
         } else {
-            w->insert(&m_fullscreenLayer);
+            w->insert(&m_panelsLayer);
         }
         prev = w;
     }
