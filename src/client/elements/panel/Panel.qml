@@ -76,7 +76,6 @@ Element {
             Layout {
                 id: layout
                 anchors.fill: parent
-                anchors.margins: 2
             }
         }
         StyleItem {

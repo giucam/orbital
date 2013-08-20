@@ -22,14 +22,71 @@ import Orbital 1.0
 import QtGraphicalEffects 1.0
 
 Style {
-    panelBackground: Rectangle {
-        color: "#e6e6e6"
+    panelBackground: StyleComponent {
+        topContentsMargin: 2
+        leftContentsMargin: 2
+        rightContentsMargin: 2
+        Rectangle {
+            anchors.fill: parent
+            color: "#e6e6e6"
+        }
     }
 
-    panelBorder: Rectangle {
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#f0202020" }
-            GradientStop { position: 1.0; color: "#00000000" }
+    panelBorder: StyleComponent {
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
+            }
+        }
+    }
+
+    taskBarBackground: StyleComponent {
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+        }
+    }
+
+    taskBarItem: StyleComponent {
+        property alias title: text.text
+        property int state: Window.Inactive
+        Item {
+            anchors.fill: parent
+
+            Item {
+                anchors.fill: parent
+                clip: true
+
+                Rectangle {
+                    id: rect
+                    color: "#D2E3F5"
+                    radius: 3
+                    anchors.top: parent.top
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: parent.height + 10
+                }
+
+                Text {
+                    id: text
+                    anchors.fill: parent
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    color: "black"
+                }
+            }
+
+            states: [
+                State {
+                    name: "active"
+                    when: state == Window.Active
+                    PropertyChanges { target: rect; color: "#57A2FD" }
+                }
+            ]
         }
     }
 

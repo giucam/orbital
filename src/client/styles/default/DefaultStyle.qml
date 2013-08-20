@@ -21,16 +21,70 @@ import QtQuick 2.1
 import Orbital 1.0
 
 Style {
-    panelBackground: Rectangle {
-        gradient: Gradient {
-            GradientStop { position: 1.0; color: "black" }
-            GradientStop { position: 0.0; color: "dimgrey" }
+    panelBackground: StyleComponent {
+        topContentsMargin: 2
+        leftContentsMargin: 2
+        rightContentsMargin: 2
+        bottomContentsMargin: 2
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 1.0; color: "black" }
+                GradientStop { position: 0.0; color: "dimgrey" }
+            }
         }
     }
-    panelBorder: Rectangle {
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#f0202020" }
-            GradientStop { position: 1.0; color: "#00000000" }
+    panelBorder: StyleComponent {
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
+            }
+        }
+    }
+
+    taskBarBackground: StyleComponent {
+        topContentsMargin: 2
+        leftContentsMargin: 2
+        rightContentsMargin: 2
+        bottomContentsMargin: 2
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            border.color: "grey"
+        }
+    }
+
+    taskBarItem: StyleComponent {
+        property alias title: text.text
+        property int state: Window.Inactive
+
+        Rectangle {
+            id: rect
+            anchors.fill: parent
+            color: "#3B3B37"
+
+            property alias title: text.text
+            property int state: Window.Inactive
+
+            Text {
+                id: text
+                anchors.fill: parent
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+                maximumLineCount: 1
+                elide: Text.ElideRight
+                color: "white"
+            }
+
+            states: [
+                State {
+                    name: "active"
+                    when: state == Window.Active
+                    PropertyChanges { target: rect; color: "dimgrey" }
+                }
+            ]
         }
     }
 

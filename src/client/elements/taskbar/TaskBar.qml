@@ -31,21 +31,20 @@ Element {
     width: Layout.preferredWidth
     height: Layout.preferredHeight
 
-    contentItem: Rectangle {
+    contentItem: StyleItem {
         anchors.fill: parent
-        color: "transparent"
-        border.color: "grey"
+        component: style.taskBarBackground
 
         Layout {
             spacing: 5
             anchors.fill: parent
-            anchors.margins: 2
 
             Repeater {
                 model: Client.windows
 
                 TaskBarItem {
                     window: modelData
+                    taskBar: taskbar
                 }
             }
         }

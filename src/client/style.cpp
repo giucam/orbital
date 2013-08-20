@@ -30,6 +30,8 @@ Style::Style(QObject *p)
      : QObject(p)
      , m_panelBackground(nullptr)
      , m_panelBorder(nullptr)
+     , m_taskBarBackground(nullptr)
+     , m_taskBarItem(nullptr)
 {
 
 }

@@ -20,29 +20,23 @@
 import QtQuick 2.1
 import Orbital 1.0
 
-Rectangle {
+Item {
     id: item
-    color: "#3B3B37"
     property variant window
+    property variant taskBar: null
 
     Layout.minimumWidth: 10
-    Layout.preferredWidth: text.width + 20
+    Layout.preferredWidth: 200
     Layout.fillHeight: true
 
-    Text {
-        id: text
-        anchors.centerIn: parent
-        color: "white"
-        text: window ? window.title : ""
-    }
+    StyleItem {
+        id: style
+        component: taskBar.style.taskBarItem
+        anchors.fill: parent
 
-    states: [
-        State {
-            name: "active"
-            when: window.state == Window.Active
-            PropertyChanges { target: item; color: "dimgrey" }
-        }
-    ]
+        Binding { target: style.item; property: "title"; value: window ? window.title : "" }
+        Binding { target: style.item; property: "state"; value: window.state }
+    }
 
     MouseArea {
         anchors.fill: parent

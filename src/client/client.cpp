@@ -89,7 +89,6 @@ Client::Client()
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
     REGISTER_QMLFILE("Spacer");
-    REGISTER_QMLFILE("StyleItem");
 
     m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                                  "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
