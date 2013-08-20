@@ -88,5 +88,18 @@ Style {
         }
     }
 
+    pagerBackground: StyleComponent { }
+
+    pagerWorkspace: StyleComponent {
+        property bool active: false
+        Rectangle {
+            id: rect
+            anchors.fill: parent
+            anchors.margins: 1
+            color: "transparent"
+            border.color: active ? "white" : "grey"
+        }
+    }
+
     textColor: "white"
 }

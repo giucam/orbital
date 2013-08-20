@@ -90,5 +90,19 @@ Style {
         }
     }
 
+    pagerBackground: StyleComponent {
+        bottomContentsMargin: 2
+    }
+
+    pagerWorkspace: StyleComponent {
+        property bool active: false
+        Rectangle {
+            id: rect
+            anchors.fill: parent
+            anchors.margins: 1
+            color: active ? "white" : "#B4B4B4"
+        }
+    }
+
     textColor: "black"
 }

@@ -23,42 +23,54 @@ import Orbital 1.0
 
 Element {
     id: pager
-    Layout.preferredWidth: grid.width + 5
+
+    readonly property real ratio: Screen.height > 0 ? Screen.width / Screen.height : 1
+
+    Layout.preferredWidth: height * ratio
     Layout.maximumWidth: 1000
     Layout.fillHeight: true
 
     width: Layout.preferredWidth
     height: 50
 
-    contentItem: Grid {
-        id: grid
-        spacing: 2
+    contentItem: StyleItem {
+        component: style.pagerBackground
+        anchors.fill: parent
+        Grid {
+            width: parent.width
+            height: parent.height
+            id: grid
 
-        rows: Client.workspaces.length > 2 ? 2 : 1
-        x: (pager.width - grid.width) / 2
-        y: (pager.height - grid.height) / 2
-        readonly property int cols: Client.workspaces.length > 0 ? Client.workspaces.length / rows : 1
+            rows: Client.workspaces.length > 2 ? 2 : 1
+            readonly property int cols: Client.workspaces.length > 0 ? Client.workspaces.length / rows : 1
 
-        readonly property real ratio: Screen.height > 0 ? Screen.width / Screen.height : 1
-        readonly property bool fitWidth: pager.width >= pager.height * ratio
+            readonly property bool fitWidth: width >= height * pager.ratio
 
-        Repeater {
-            model: Client.workspaces
+            property int itemH: fitWidth ? height / rows : (width / cols) / pager.ratio
+            property int itemW: itemH * pager.ratio
 
-            Item {
-                height: grid.fitWidth ? pager.height / grid.rows : (pager.width / grid.cols) / grid.ratio
-                width: height * grid.ratio
+            x: (width - itemW * cols) / 2
+            y: (height - itemH * rows) / 2
 
-                Rectangle {
-                    id: rect
-                    anchors.fill: parent
-                    color: "transparent"
-                    border.color: modelData.active ? "white" : "grey"
-                }
+            Repeater {
+                model: Client.workspaces
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: Client.selectWorkspace(modelData)
+                Item {
+                    height: grid.itemH
+                    width: grid.itemW
+
+                    StyleItem {
+                        id: si
+                        anchors.fill: parent
+                        component: style.pagerWorkspace
+
+                        Binding { target: si.item; property: "active"; value: modelData.active }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: Client.selectWorkspace(modelData)
+                    }
                 }
             }
         }

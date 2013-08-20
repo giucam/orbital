@@ -61,6 +61,10 @@ class Style : public QObject
     Q_PROPERTY(QQmlComponent *panelBorder READ panelBorder WRITE set_panelBorder NOTIFY panelBorderChanged)
     Q_PROPERTY(QQmlComponent *taskBarBackground READ taskBarBackground WRITE set_taskBarBackground NOTIFY taskBarBackgroundChanged)
     Q_PROPERTY(QQmlComponent *taskBarItem READ taskBarItem WRITE set_taskBarItem NOTIFY taskBarItemChanged)
+
+    Q_PROPERTY(QQmlComponent *pagerBackground READ pagerBackground WRITE set_pagerBackground NOTIFY pagerBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *pagerWorkspace READ pagerWorkspace WRITE set_pagerWorkspace NOTIFY pagerWorkspaceChanged)
+
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
 public:
     Style(QObject *p = nullptr);
@@ -69,6 +73,8 @@ public:
     PROPERTY(QQmlComponent *, panelBorder)
     PROPERTY(QQmlComponent *, taskBarBackground)
     PROPERTY(QQmlComponent *, taskBarItem)
+    PROPERTY(QQmlComponent *, pagerBackground)
+    PROPERTY(QQmlComponent *, pagerWorkspace)
     PROPERTY(QColor, textColor)
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
@@ -82,6 +88,8 @@ signals:
     void panelBorderChanged();
     void taskBarBackgroundChanged();
     void taskBarItemChanged();
+    void pagerBackgroundChanged();
+    void pagerWorkspaceChanged();
     void textColorChanged();
 
 private:
