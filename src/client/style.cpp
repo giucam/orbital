@@ -26,6 +26,14 @@
 
 QMap<QString, Style::StyleInfo *> Style::s_styles;
 
+Style::Style(QObject *p)
+     : QObject(p)
+     , m_panelBackground(nullptr)
+     , m_panelBorder(nullptr)
+{
+
+}
+
 Style *Style::loadStyle(const QString &name, QQmlEngine *engine)
 {
     if (!s_styles.contains(name)) {

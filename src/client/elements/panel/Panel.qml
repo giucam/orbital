@@ -24,7 +24,7 @@ import Orbital 1.0
 Element {
     id: panel
     width: Screen.width
-    height: 30
+    height: 33
 
     childrenConfig: Component {
         id: elementConfig
@@ -64,14 +64,26 @@ Element {
         element.dragOffset = Qt.point(offset.x, offset.y);
     }
 
-    contentItem: StyleItem {
+    contentItem: Item {
         anchors.fill: parent
-        component: style.panelBackground
-
-        Layout {
-            id: layout
+        StyleItem {
+            id: background
             anchors.fill: parent
-            anchors.margins: 2
+            anchors.bottomMargin: 5
+            component: style.panelBackground
+
+            Layout {
+                id: layout
+                anchors.fill: parent
+                anchors.margins: 2
+            }
+        }
+        StyleItem {
+            anchors.top: background.bottom
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            component: style.panelBorder
         }
     }
 }

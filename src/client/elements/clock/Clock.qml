@@ -21,6 +21,7 @@ import QtQuick 2.1
 import Orbital 1.0
 
 Element {
+    id: element
     Layout.minimumWidth: text.width
     Layout.preferredWidth: text.width
     Layout.fillHeight: true
@@ -39,7 +40,7 @@ Element {
     contentItem: Text {
         id: text
         anchors.centerIn: parent
-        color: "white"
+        color: element.style.textColor
     }
 
 }

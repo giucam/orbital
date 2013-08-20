@@ -27,4 +27,12 @@ Style {
             GradientStop { position: 0.0; color: "dimgrey" }
         }
     }
+    panelBorder: Rectangle {
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#f0202020" }
+            GradientStop { position: 1.0; color: "#00000000" }
+        }
+    }
+
+    textColor: "white"
 }

@@ -22,25 +22,30 @@
 
 #include <QObject>
 #include <QMap>
+#include <QColor>
 
 class QQmlComponent;
 class QQmlEngine;
 
-#define PROPERTY(name) \
-    QQmlComponent *name() const { return m_##name; } \
-    void set_##name(QQmlComponent *c) { m_##name = c; emit name##Changed(); } \
+#define PROPERTY(type, name) \
+    type name() const { return m_##name; } \
+    void set_##name(type c) { m_##name = c; emit name##Changed(); } \
     private: \
-        QQmlComponent *m_##name; \
+        type m_##name; \
     public:
 
 class Style : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlComponent *panelBackground READ panelBackground WRITE set_panelBackground NOTIFY panelBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *panelBorder READ panelBorder WRITE set_panelBorder NOTIFY panelBorderChanged)
+    Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
 public:
-    Style(QObject *p = nullptr) : QObject(p) {}
+    Style(QObject *p = nullptr);
 
-    PROPERTY(panelBackground)
+    PROPERTY(QQmlComponent *, panelBackground)
+    PROPERTY(QQmlComponent *, panelBorder)
+    PROPERTY(QColor, textColor)
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
 
@@ -49,6 +54,8 @@ public:
 
 signals:
     void panelBackgroundChanged();
+    void panelBorderChanged();
+    void textColorChanged();
 
 private:
     static void loadStyleInfo(const QString &name, const QString &path);
