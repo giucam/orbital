@@ -25,6 +25,7 @@ Element {
     id: panel
     width: Screen.width
     height: 33
+    inputRegion: background.childrenRect
 
     childrenConfig: Component {
         id: elementConfig

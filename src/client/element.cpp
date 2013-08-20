@@ -48,6 +48,7 @@ Element::Element(Element *parent)
        , m_childrenConfig(nullptr)
        , m_screen(nullptr)
        , m_style(nullptr)
+       , m_inputRegionSet(false)
        , m_childrenBackground(nullptr)
        , m_background(nullptr)
 {
@@ -93,6 +94,21 @@ void Element::setChildrenParent(QQuickItem *item)
     for (Element *elm: m_children) {
         elm->setParentItem(m_childrenParent);
     }
+}
+
+QRectF Element::inputRegion() const
+{
+    if (m_inputRegionSet) {
+        return m_inputRegion;
+    }
+
+    return QRectF(0, 0, width(), height());
+}
+
+void Element::setInputRegion(const QRectF &rect)
+{
+    m_inputRegion = rect;
+    m_inputRegionSet = true;
 }
 
 void Element::addProperty(const QString &name)

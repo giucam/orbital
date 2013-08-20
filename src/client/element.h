@@ -78,6 +78,7 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_PROPERTY(Style *style READ style NOTIFY styleChanged)
+    Q_PROPERTY(QRectF inputRegion READ inputRegion WRITE setInputRegion)
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
     explicit Element(Element *parent = nullptr);
@@ -121,6 +122,9 @@ public:
     void setBackground(QQmlComponent *c) { m_childrenBackground = c; }
 
     Style *style() const { return m_style; }
+
+    QRectF inputRegion() const;
+    void setInputRegion(const QRectF &rect);
 
     static void loadElementsList();
     static void cleanupElementsList();
@@ -174,6 +178,8 @@ private:
     QQmlComponent *m_childrenConfig;
     UiScreen *m_screen;
     Style *m_style;
+    QRectF m_inputRegion;
+    bool m_inputRegionSet;
 
     QQmlComponent *m_childrenBackground;
     QQuickItem *m_background;

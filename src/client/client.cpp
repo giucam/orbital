@@ -149,6 +149,8 @@ void Client::create()
     QString configFile = path + "/orbital.conf";
     m_ui = new ShellUI(this, engine, configFile);
 
+    wl_compositor *compositor = static_cast<wl_compositor *>(QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("compositor"));
+
     for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
         QScreen *screen = QGuiApplication::screens().at(i);
         wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
@@ -178,6 +180,11 @@ void Client::create()
             window->create();
             m_uiWindows << window;
             wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+
+            wl_region *region = wl_compositor_create_region(compositor);
+            wl_region_add(region, elm->inputRegion().x(), elm->inputRegion().y(), elm->inputRegion().width(), elm->inputRegion().height());
+            wl_surface_set_input_region(wlSurface, region);
+            wl_region_destroy(region);
 
             switch (elm->type()) {
                 case ElementInfo::Type::Background:
