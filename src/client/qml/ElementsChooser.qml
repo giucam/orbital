@@ -23,33 +23,72 @@ import Orbital 1.0
 Item {
     id: elementsChooser
 
-    Row {
-        id: elementsList
+    Column {
         anchors.fill: parent
+        anchors.margins: 2
         spacing: 2
+        Row {
+            id: elementsList
+            height: 30
+            spacing: 2
 
-        Repeater {
-            model: Client.elementsInfo
+            Repeater {
+                model: Client.elementsInfo
 
-            Rectangle {
-                width: 100
-                height: elementsList.height
-                color: "dimgrey"
-                visible: modelData.type == ElementInfo.Item
+                Rectangle {
+                    width: 100
+                    height: elementsList.height
+                    color: "dimgrey"
+                    visible: modelData.type == ElementInfo.Item
 
-                Text {
-                    text: modelData.prettyName
-                    anchors.centerIn: parent
+                    Text {
+                        text: modelData.prettyName
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onPressed: {
+                            var newElem = Ui.createElement(modelData.name);
+                            newElem.publish();
+                        }
+                    }
                 }
+            }
+        }
+        Row {
+            id: stylesList
+            height: 20
+            spacing: 2
 
-                MouseArea {
-                    anchors.fill: parent
-                    onPressed: {
-                        var newElem = Ui.createElement(modelData.name);
-                        newElem.publish();
+            Text {
+                height: stylesList.height
+                text: "Style:"
+                verticalAlignment: Qt.AlignVCenter
+            }
+
+            Repeater {
+                model: Client.stylesInfo
+
+                Rectangle {
+                    width: 100
+                    height: stylesList.height
+                    color: "dimgrey"
+
+                    Text {
+                        text: modelData.prettyName
+                        anchors.centerIn: parent
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            Ui.styleName = modelData.name
+                        }
                     }
                 }
             }
         }
     }
+
 }

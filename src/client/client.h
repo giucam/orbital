@@ -48,6 +48,7 @@ class Grab;
 class Workspace;
 class ElementInfo;
 class Service;
+class StyleInfo;
 
 class Binding : public QObject
 {
@@ -69,6 +70,7 @@ class Client : public QObject
     Q_PROPERTY(QQmlListProperty<Window> windows READ windows NOTIFY windowsChanged)
     Q_PROPERTY(QQmlListProperty<Workspace> workspaces READ workspaces NOTIFY workspacesChanged)
     Q_PROPERTY(QQmlListProperty<ElementInfo> elementsInfo READ elementsInfo NOTIFY elementsInfoChanged)
+    Q_PROPERTY(QQmlListProperty<StyleInfo> stylesInfo READ stylesInfo NOTIFY stylesInfoChanged)
 public:
     Client();
     ~Client();
@@ -78,6 +80,7 @@ public:
     QQmlListProperty<Window> windows();
     QQmlListProperty<Workspace> workspaces();
     QQmlListProperty<ElementInfo> elementsInfo();
+    QQmlListProperty<StyleInfo> stylesInfo();
 
     Q_INVOKABLE Service *service(const QString &name);
 
@@ -103,6 +106,7 @@ signals:
     void windowsChanged();
     void workspacesChanged();
     void elementsInfoChanged();
+    void stylesInfoChanged();
 
 private slots:
     void create();

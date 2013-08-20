@@ -82,6 +82,7 @@ Client::Client()
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
+    qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
 
 #define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Button");
@@ -270,6 +271,22 @@ static ElementInfo *elementsInfoAt(QQmlListProperty<ElementInfo> *prop, int inde
 QQmlListProperty<ElementInfo> Client::elementsInfo()
 {
     return QQmlListProperty<ElementInfo>(this, 0, elementsInfoCount, elementsInfoAt);
+}
+
+static int stylesInfoCount(QQmlListProperty<StyleInfo> *prop)
+{
+    return Style::stylesInfo().count();
+}
+
+static StyleInfo *stylesInfoAt(QQmlListProperty<StyleInfo> *prop, int index)
+{
+    const QString &name = Style::stylesInfo().keys().at(index);
+    return Style::stylesInfo().value(name);
+}
+
+QQmlListProperty<StyleInfo> Client::stylesInfo()
+{
+    return QQmlListProperty<StyleInfo>(this, 0, stylesInfoCount, stylesInfoAt);
 }
 
 Service *Client::service(const QString &name)

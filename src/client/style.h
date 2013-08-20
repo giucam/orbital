@@ -27,6 +27,26 @@
 class QQmlComponent;
 class QQmlEngine;
 
+class StyleInfo : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(QString prettyName READ prettyName CONSTANT)
+public:
+    StyleInfo() {}
+
+    QString prettyName() const { return m_prettyName; }
+    QString name() const { return m_name; }
+
+private:
+    QString m_prettyName;
+    QString m_name;
+    QString m_path;
+    QString m_qml;
+
+    friend class Style;
+};
+
 #define PROPERTY(type, name) \
     type name() const { return m_##name; } \
     void set_##name(type c) { m_##name = c; emit name##Changed(); } \
@@ -51,6 +71,7 @@ public:
 
     static void loadStylesList();
     static void cleanupStylesList();
+    static QMap<QString, StyleInfo *> stylesInfo() { return s_styles; }
 
 signals:
     void panelBackgroundChanged();
@@ -59,12 +80,6 @@ signals:
 
 private:
     static void loadStyleInfo(const QString &name, const QString &path);
-
-    struct StyleInfo {
-        QString m_name;
-        QString m_path;
-        QString m_qml;
-    };
 
     static QMap<QString, StyleInfo *> s_styles;
 };

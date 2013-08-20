@@ -24,7 +24,7 @@
 
 #include "style.h"
 
-QMap<QString, Style::StyleInfo *> Style::s_styles;
+QMap<QString, StyleInfo *> Style::s_styles;
 
 Style::Style(QObject *p)
      : QObject(p)
@@ -100,6 +100,7 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
     StyleInfo *info = new StyleInfo;
     info->m_name = name;
     info->m_path = path;
+    info->m_prettyName = name;
 
     QTextStream stream(&file);
     while (!stream.atEnd()) {
@@ -113,6 +114,8 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
         const QString &value = parts.at(1);
         if (key == "qmlFile") {
             info->m_qml = path + "/" + value;
+        } else if (key == "prettyName") {
+            info->m_prettyName = value;
         }
     };
     file.close();
