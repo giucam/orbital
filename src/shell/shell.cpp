@@ -653,9 +653,10 @@ void Shell::hidePanels()
 IRect2D Shell::windowsArea(struct weston_output *output) const
 {
     int panelsHeight = 0;
-    for (const struct weston_surface *surface: m_panelsLayer) {
+    for (weston_surface *surface: m_panelsLayer) {
         if (surface->output == output) {
-            panelsHeight = surface->geometry.height;
+            pixman_box32_t *extents = pixman_region32_extents(&surface->input);
+            panelsHeight = extents->y2 - extents->y1;
         }
     }
     return IRect2D(output->x, output->y + panelsHeight, output->width, output->height - panelsHeight);

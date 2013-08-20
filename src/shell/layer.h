@@ -40,15 +40,15 @@ public:
         Iterator &operator++();
 
     private:
-        Iterator(const struct wl_list *list, L *elm, bool reverse);
+        Iterator(const struct wl_list *list, const L *elm, bool reverse);
         S *deref() const;
 
         const struct wl_list *m_list;
-        L *m_elm;
+        const L *m_elm;
         // this m_next is needed to do what wl_list_for_each_safe does, that is
         // it allows for the current element to be removed from the list
         // without having the iterator go berserk.
-        L *m_next;
+        const L *m_next;
         bool m_reverse;
 
         friend class Layer;
@@ -77,12 +77,9 @@ public:
     void stackAbove(struct weston_surface *surf, struct weston_surface *parent);
     void stackBelow(struct weston_surface *surf, struct weston_surface *parent);
 
-    iterator begin();
-    const_iterator begin() const;
-    iterator rbegin();
-    const_iterator rbegin() const;
-    iterator end();
-    const_iterator end() const;
+    iterator begin() const;
+    iterator rbegin() const;
+    iterator end() const;
 
 private:
     struct weston_layer m_layer;
@@ -90,7 +87,7 @@ private:
 };
 
 template<class L, class S>
-Layer::Iterator<L, S>::Iterator(const struct wl_list *list, L *elm, bool reverse)
+Layer::Iterator<L, S>::Iterator(const struct wl_list *list, const L *elm, bool reverse)
                      : m_list(list)
                      , m_elm(elm)
                      , m_reverse(reverse)
