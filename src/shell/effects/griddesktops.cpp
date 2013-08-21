@@ -105,8 +105,8 @@ void GridDesktops::run(struct weston_seat *ws)
             w->setTransform(tr);
         }
     } else {
-        shell()->hidePanels();
         shell()->showAllWorkspaces();
+        shell()->hidePanels();
         shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
         m_setWs = shell()->currentWorkspace()->number();
         for (int i = 0; i < numWs; ++i) {
