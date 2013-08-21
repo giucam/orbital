@@ -18,6 +18,7 @@
 #ifndef SHELL_H
 #define SHELL_H
 
+#include <list>
 #include <vector>
 
 #include "utils.h"
@@ -30,7 +31,7 @@ class Workspace;
 class ShellSeat;
 class Animation;
 
-typedef std::vector<ShellSurface *> ShellSurfaceList;
+typedef std::list<ShellSurface *> ShellSurfaceList;
 
 class Shell;
 

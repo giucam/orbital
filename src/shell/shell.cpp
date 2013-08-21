@@ -507,6 +507,7 @@ void Shell::removeShellSurface(ShellSurface *surface)
     for (Effect *e: m_effects) {
         e->removeSurface(surface);
     }
+    m_surfaces.remove(surface);
 }
 
 Binding *Shell::bindKey(uint32_t key, enum weston_keyboard_modifier modifier, weston_key_binding_handler_t handler, void *data)
