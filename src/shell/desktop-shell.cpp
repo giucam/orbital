@@ -293,16 +293,6 @@ void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *reso
     pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
 }
 
-void DesktopShell::minimizeWindows(wl_client *client, wl_resource *resource)
-{
-    Shell::minimizeWindows();
-}
-
-void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
-{
-    Shell::restoreWindows();
-}
-
 void DesktopShell::addWorkspace(wl_client *client, wl_resource *resource)
 {
     Workspace *ws = new Workspace(this, numWorkspaces());
@@ -425,8 +415,8 @@ const struct desktop_shell_interface DesktopShell::m_desktop_shell_implementatio
     wrapInterface(&DesktopShell::desktopReady),
     wrapInterface(&DesktopShell::addKeyBinding),
     wrapInterface(&DesktopShell::addOverlay),
-    wrapInterface(&DesktopShell::minimizeWindows),
-    wrapInterface(&DesktopShell::restoreWindows),
+    wrapInterface(&Shell::minimizeWindows),
+    wrapInterface(&Shell::restoreWindows),
     wrapInterface(&DesktopShell::createGrab),
     wrapInterface(&DesktopShell::addWorkspace),
     wrapInterface(&DesktopShell::selectWorkspace),

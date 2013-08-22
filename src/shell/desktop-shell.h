@@ -49,8 +49,6 @@ private:
     void desktopReady(struct wl_client *client, struct wl_resource *resource);
     void addKeyBinding(struct wl_client *client, struct wl_resource *resource, uint32_t id, uint32_t key, uint32_t modifiers);
     void addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource);
-    void minimizeWindows(wl_client *client, wl_resource *resource);
-    void restoreWindows(wl_client *client, wl_resource *resource);
     void createGrab(wl_client *client, wl_resource *resource, uint32_t id);
     void addWorkspace(wl_client *client, wl_resource *resource);
     void selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
