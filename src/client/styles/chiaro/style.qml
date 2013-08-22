@@ -104,5 +104,13 @@ Style {
         }
     }
 
+    toolTipBackground: StyleComponent {
+        Rectangle {
+            anchors.fill: parent
+            radius: 4
+            color: "#e6e6e6e6"
+        }
+    }
+
     textColor: "black"
 }

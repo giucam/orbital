@@ -34,6 +34,7 @@ Style::Style(QObject *p)
      , m_taskBarItem(nullptr)
      , m_pagerBackground(nullptr)
      , m_pagerWorkspace(nullptr)
+     , m_toolTipBackground(nullptr)
 {
 
 }

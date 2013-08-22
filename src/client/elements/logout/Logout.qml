@@ -74,16 +74,13 @@ Element {
         }
     }
 
-    toolTip: Rectangle {
-        radius: 4
+    toolTip: Text {
         width: 100
         height: 40
-        Text {
-            id: ttip
-            anchors.fill: parent
-            horizontalAlignment: Qt.AlignHCenter
-            verticalAlignment: Qt.AlignVCenter
-            elide: Text.ElideMiddle
-        }
+        id: ttip
+        horizontalAlignment: Qt.AlignHCenter
+        verticalAlignment: Qt.AlignVCenter
+        elide: Text.ElideMiddle
+        color: logout.style.textColor
     }
 }

@@ -65,6 +65,8 @@ class Style : public QObject
     Q_PROPERTY(QQmlComponent *pagerBackground READ pagerBackground WRITE set_pagerBackground NOTIFY pagerBackgroundChanged)
     Q_PROPERTY(QQmlComponent *pagerWorkspace READ pagerWorkspace WRITE set_pagerWorkspace NOTIFY pagerWorkspaceChanged)
 
+    Q_PROPERTY(QQmlComponent *toolTipBackground READ toolTipBackground WRITE set_toolTipBackground NOTIFY toolTipBackgroundChanged)
+
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
 public:
     Style(QObject *p = nullptr);
@@ -75,6 +77,7 @@ public:
     PROPERTY(QQmlComponent *, taskBarItem)
     PROPERTY(QQmlComponent *, pagerBackground)
     PROPERTY(QQmlComponent *, pagerWorkspace)
+    PROPERTY(QQmlComponent *, toolTipBackground)
     PROPERTY(QColor, textColor)
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
@@ -90,6 +93,7 @@ signals:
     void taskBarItemChanged();
     void pagerBackgroundChanged();
     void pagerWorkspaceChanged();
+    void toolTipBackgroundChanged();
     void textColorChanged();
 
 private:
