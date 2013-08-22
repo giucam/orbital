@@ -23,6 +23,8 @@
 #include <QDebug>
 
 #include "tooltip.h"
+#include "client.h"
+#include "grab.h"
 
 static const int a = qmlRegisterType<ToolTip>("Orbital", 1, 0, "ToolTip");
 
@@ -55,18 +57,21 @@ void ToolTip::show()
 
 void ToolTip::hide()
 {
+    m_showTimer->stop();
     if (!m_window) {
         return;
     }
 
     delete m_window;
     m_window = nullptr;
+    parentItem()->window()->removeEventFilter(this);
 
     m_hideTimer->start();
 }
 
 void ToolTip::doShow()
 {
+    m_hideTimer->stop();
     if (m_window || !parentItem() || !m_content) {
         return;
     }
@@ -75,6 +80,7 @@ void ToolTip::doShow()
     if (!w) {
         return;
     }
+    w->installEventFilter(this);
 
     QPointF pos = parentItem()->mapToScene(QPointF(0, 0));
     m_window = new QQuickWindow();
@@ -96,4 +102,13 @@ void ToolTip::doShow()
     m_window->show();
 
     ++s_showing;
+}
+
+bool ToolTip::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::MouseButtonPress) {
+        hide();
+    }
+
+    return QQuickItem::eventFilter(obj, event);
 }

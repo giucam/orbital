@@ -39,6 +39,9 @@ public slots:
     void show();
     void hide();
 
+protected:
+    virtual bool eventFilter(QObject *obj, QEvent *event) override;
+
 private:
     void doShow();
 
