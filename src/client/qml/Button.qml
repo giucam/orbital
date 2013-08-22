@@ -43,14 +43,13 @@ Item {
             fillMode: button.iconFillMode
         }
 
-        Glow {
+        BrightnessContrast {
             id: glow
             anchors.fill: image
-            radius: 8
-            samples: 16
-            color: "white"
             source: image
+            brightness: 0.3
             opacity: 0
+            cached: true
 
             Behavior on opacity { PropertyAnimation {} }
         }
@@ -75,7 +74,7 @@ Item {
         anchors.fill: parent
         hoverEnabled: true
 
-        onEntered: glow.opacity = 0.5
+        onEntered: glow.opacity = 1
         onExited: glow.opacity = 0
     }
 

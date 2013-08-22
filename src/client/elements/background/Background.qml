@@ -299,6 +299,7 @@ Element {
                                 color: "white"
                                 source: content
                                 opacity: 0
+                                fast: true
 
                                 Behavior on opacity { PropertyAnimation {} }
                             }
