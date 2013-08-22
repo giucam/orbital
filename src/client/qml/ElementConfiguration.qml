@@ -50,11 +50,10 @@ ElementConfig {
             element.publish(Qt.point(mouse.x, mouse.y));
         }
 
-        GaussianBlur {
+        FastBlur {
             id: glow
             anchors.fill: parent
             radius: 8
-            samples: 16
             source: element.content
             cached: true
         }
