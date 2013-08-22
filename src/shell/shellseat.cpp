@@ -43,12 +43,14 @@ public:
     }
 
     void surfaceDestroyed() {
-        for (const weston_surface *surf: surface->workspace()->layer()) {
-            if (surf != surface->weston_surface()) {
-                ShellSurface *shsurf = Shell::getShellSurface(surf);
-                if (shsurf) {
-                    seat->activate(shsurf);
-                    return;
+        if (surface->workspace()) {
+            for (const weston_surface *surf: surface->workspace()->layer()) {
+                if (surf != surface->weston_surface()) {
+                    ShellSurface *shsurf = Shell::getShellSurface(surf);
+                    if (shsurf) {
+                        seat->activate(shsurf);
+                        return;
+                    }
                 }
             }
         }
@@ -100,7 +102,7 @@ ShellSeat *ShellSeat::shellSeat(struct weston_seat *seat)
 void ShellSeat::activate(ShellSurface *shsurf)
 {
     weston_surface_activate(shsurf ? shsurf->weston_surface() : nullptr, m_seat);
-    if (shsurf) {
+    if (shsurf && shsurf->workspace()) {
         shsurf->workspace()->restack(shsurf);
     }
     m_focusState->setFocus(shsurf);
@@ -110,7 +112,7 @@ void ShellSeat::activate(weston_surface *surf)
 {
     weston_surface_activate(surf, m_seat);
     ShellSurface *shsurf = surf ? Shell::getShellSurface(surf) : nullptr;
-    if (shsurf) {
+    if (shsurf && shsurf->workspace()) {
         shsurf->workspace()->restack(shsurf);
     }
     m_focusState->setFocus(shsurf);

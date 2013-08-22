@@ -263,8 +263,13 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         switch (surface->m_type) {
             case ShellSurface::Type::Transient:
             case ShellSurface::Type::Popup:
-                surface->m_workspace->addSurface(surface);
-                surface->m_workspace->stackAbove(surface->m_surface, surface->m_parent);
+                if (ShellSurface *p = getShellSurface(surface->m_parent)) {
+                    surface->m_workspace = p->m_workspace;
+                } else {
+                    surface->m_workspace = 0;
+                }
+                surface->m_surface->output = surface->m_parent->output;
+                wl_list_insert(surface->m_parent->layer_link.prev, &surface->m_surface->layer_link);
                 break;
             case ShellSurface::Type::Fullscreen:
                 stackFullscreen(surface);
@@ -594,13 +599,6 @@ static void configure_static_surface(struct weston_surface *es, Layer *layer, in
     if (width == 0)
         return;
 
-    for (struct weston_surface *s: *layer) {
-        if (s->output == es->output && s != es) {
-            weston_surface_unmap(s);
-            s->configure = NULL;
-        }
-    }
-
     weston_surface_configure(es, es->output->x, es->output->y, width, height);
 
     if (wl_list_empty(&es->layer_link)) {
@@ -616,7 +614,7 @@ void Shell::backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t s
 
 void Shell::panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height)
 {
-    configure_static_surface(es, &m_panelsLayer, width, height);
+    configure_static_surface(es, &static_cast<Shell *>(es->configure_private)->m_panelsLayer, width, height);
 }
 
 void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_output *output)
