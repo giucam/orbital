@@ -73,7 +73,7 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *settingsItem READ settingsItem WRITE setSettingsItem)
     Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
-    Q_PROPERTY(QQuickItem *content READ content CONSTANT)
+    Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
     Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem)
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
@@ -111,6 +111,7 @@ public:
     void setDragOffset(const QPointF &pos) { m_offset = pos; }
 
     QQuickItem *content() const { return m_content; }
+    void setContent(QQuickItem *c);
 
     QQuickItem *contentItem() const { return m_contentItem; }
     void setContentItem(QQuickItem *item);

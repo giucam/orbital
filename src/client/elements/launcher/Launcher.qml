@@ -44,6 +44,19 @@ Element {
         onClicked: ProcessLauncher.launch(process)
     }
 
+    toolTip: Rectangle {
+        radius: 4
+        width: 200
+        height: 40
+        Text {
+            anchors.fill: parent
+            horizontalAlignment: Qt.AlignHCenter
+            verticalAlignment: Qt.AlignVCenter
+            text: launcher.process
+            elide: Text.ElideMiddle
+        }
+    }
+
     settingsItem: Rectangle {
         id: config
         width: 500

@@ -28,7 +28,7 @@
 #include "shellui.h"
 #include "uiscreen.h"
 
-static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "Element");
+static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "ElementBase");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
 
 int Element::s_id = 0;
@@ -40,7 +40,7 @@ Element::Element(Element *parent)
        , m_parent(nullptr)
        , m_layout(nullptr)
        , m_contentItem(nullptr)
-       , m_content(new QQuickItem(this))
+       , m_content(nullptr)
        , m_childrenParent(nullptr)
        , m_configureItem(nullptr)
        , m_settingsItem(nullptr)
@@ -76,10 +76,22 @@ void Element::setId(int id)
 
 void Element::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
-    m_content->setWidth(newGeometry.width());
-    m_content->setHeight(newGeometry.height());
+    if (m_content) {
+        m_content->setWidth(newGeometry.width());
+        m_content->setHeight(newGeometry.height());
+    }
 
     QQuickItem::geometryChanged(newGeometry, oldGeometry);
+}
+
+void Element::setContent(QQuickItem *c)
+{
+    delete m_content;
+    m_content = c;
+    c->setParentItem(this);
+
+    m_content->setWidth(width());
+    m_content->setHeight(height());
 }
 
 void Element::setContentItem(QQuickItem *item)

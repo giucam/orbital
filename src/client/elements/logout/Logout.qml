@@ -33,26 +33,57 @@ Element {
     contentItem: Layout {
         id: row
         anchors.fill: parent
-        Button {
+        MouseArea {
             Layout.preferredWidth: 32
             Layout.fillWidth: true
             height: parent.height
-            icon: "image://icon/system-log-out"
-            onClicked: Client.logOut()
+            hoverEnabled: true
+            onEntered: ttip.text = "Log out"
+
+            Button {
+                anchors.fill: parent
+                icon: "image://icon/system-log-out"
+                onClicked: Client.logOut()
+            }
         }
-        Button {
+        MouseArea {
             Layout.preferredWidth: 32
             Layout.fillWidth: true
             height: parent.height
-            icon: "image://icon/system-shutdown"
-            onClicked: Client.poweroff()
+            hoverEnabled: true
+            onEntered: ttip.text = "Shutdown"
+
+            Button {
+                anchors.fill: parent
+                icon: "image://icon/system-shutdown"
+                onClicked: Client.poweroff()
+            }
         }
-        Button {
+        MouseArea {
             Layout.preferredWidth: 32
             Layout.fillWidth: true
             height: parent.height
-            icon: "image://icon/system-reboot"
-            onClicked: Client.reboot()
+            hoverEnabled: true
+            onEntered: ttip.text = "Reboot"
+
+            Button {
+                anchors.fill: parent
+                icon: "image://icon/system-reboot"
+                onClicked: Client.reboot()
+            }
+        }
+    }
+
+    toolTip: Rectangle {
+        radius: 4
+        width: 100
+        height: 40
+        Text {
+            id: ttip
+            anchors.fill: parent
+            horizontalAlignment: Qt.AlignHCenter
+            verticalAlignment: Qt.AlignVCenter
+            elide: Text.ElideMiddle
         }
     }
 }
