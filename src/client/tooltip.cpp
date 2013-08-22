@@ -85,7 +85,7 @@ void ToolTip::doShow()
     QPointF pos = parentItem()->mapToScene(QPointF(0, 0));
     m_window = new QQuickWindow();
     m_window->setTransientParent(w);
-    m_window->setFlags(Qt::ForeignWindow);
+    m_window->setFlags(Qt::ForeignWindow | Qt::WindowTransparentForInput);
     m_window->setScreen(w->screen());
 
     // TODO: Better placement, maybe by adding some protocol
