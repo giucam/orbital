@@ -81,6 +81,7 @@ Binding::~Binding()
 
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
+            , m_windowsMinimized(false)
             , m_grabSurface(nullptr)
 {
     srandom(weston_compositor_get_time());
@@ -292,6 +293,10 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
             default:
                 break;
         }
+
+        if (m_windowsMinimized) {
+            surface->hide();
+        }
     } else if (changedType || sx != 0 || sy != 0 || surface->width() != width || surface->height() != height) {
         float from_x, from_y;
         float to_x, to_y;
@@ -314,7 +319,9 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
                 weston_surface_set_position(surface->m_surface, rect.x, rect.y);
             } break;
             default:
-                surface->m_workspace->addSurface(surface);
+                if (!m_windowsMinimized) {
+                    surface->m_workspace->addSurface(surface);
+                }
                 break;
         }
 
@@ -770,6 +777,28 @@ void Shell::resetWorkspaces()
         w->remove();
     }
     activateWorkspace(nullptr);
+}
+
+void Shell::minimizeWindows()
+{
+    for (ShellSurface *shsurf: surfaces()) {
+        if (!shsurf->isMinimized()) {
+            shsurf->minimize();
+        }
+        shsurf->setAcceptNewState(false);
+    }
+    m_windowsMinimized = true;
+}
+
+void Shell::restoreWindows()
+{
+    for (ShellSurface *shsurf: surfaces()) {
+        if (!shsurf->isMinimized()) {
+            shsurf->unminimize();
+        }
+        shsurf->setAcceptNewState(true);
+    }
+    m_windowsMinimized = false;
 }
 
 void Shell::pointerFocus(ShellSeat *, struct weston_pointer *pointer)

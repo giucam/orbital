@@ -295,22 +295,12 @@ void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *reso
 
 void DesktopShell::minimizeWindows(wl_client *client, wl_resource *resource)
 {
-    for (ShellSurface *shsurf: surfaces()) {
-        if (!shsurf->isMinimized()) {
-            shsurf->minimize();
-        }
-        shsurf->setAcceptNewState(false);
-    }
+    Shell::minimizeWindows();
 }
 
 void DesktopShell::restoreWindows(wl_client *client, wl_resource *resource)
 {
-    for (ShellSurface *shsurf: surfaces()) {
-        if (!shsurf->isMinimized()) {
-            shsurf->unminimize();
-        }
-        shsurf->setAcceptNewState(true);
-    }
+    Shell::restoreWindows();
 }
 
 void DesktopShell::addWorkspace(wl_client *client, wl_resource *resource)
