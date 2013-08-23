@@ -78,6 +78,8 @@ Style {
                 color: "white"
             }
 
+            Behavior on color { ColorAnimation { duration: 100 } }
+
             states: [
                 State {
                     name: "active"
@@ -98,6 +100,8 @@ Style {
             anchors.margins: 1
             color: "transparent"
             border.color: active ? "white" : "grey"
+
+            Behavior on border.color { ColorAnimation {} }
         }
     }
 

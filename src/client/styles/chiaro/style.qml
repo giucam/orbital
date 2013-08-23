@@ -54,30 +54,28 @@ Style {
         property int state: Window.Inactive
         Item {
             anchors.fill: parent
+            clip: true
 
-            Item {
+            Rectangle {
+                id: rect
+                color: "#D2E3F5"
+                radius: 3
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: parent.height + 10
+
+                Behavior on color { ColorAnimation { duration: 100 } }
+            }
+
+            Text {
+                id: text
                 anchors.fill: parent
-                clip: true
-
-                Rectangle {
-                    id: rect
-                    color: "#D2E3F5"
-                    radius: 3
-                    anchors.top: parent.top
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: parent.height + 10
-                }
-
-                Text {
-                    id: text
-                    anchors.fill: parent
-                    horizontalAlignment: Qt.AlignHCenter
-                    verticalAlignment: Qt.AlignVCenter
-                    maximumLineCount: 1
-                    elide: Text.ElideRight
-                    color: "black"
-                }
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+                maximumLineCount: 1
+                elide: Text.ElideRight
+                color: "black"
             }
 
             states: [
@@ -101,6 +99,8 @@ Style {
             anchors.fill: parent
             anchors.margins: 1
             color: active ? "white" : "#B4B4B4"
+
+            Behavior on border.color { ColorAnimation {} }
         }
     }
 
