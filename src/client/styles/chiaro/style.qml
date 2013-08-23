@@ -114,12 +114,15 @@ Style {
 
     button: StyleComponent {
         property alias text: text.text
+        property bool pressed: false
 
         Rectangle {
             anchors.fill: parent
             radius: 3
             border.color: "#a2a2a2"
-            color: "#c4c4c4"
+            color: pressed ? "white" : "#c4c4c4"
+
+            Behavior on color { ColorAnimation {} }
 
             Text {
                 anchors.fill: parent

@@ -36,11 +36,13 @@ Item {
         component: CurrentStyle.button
 
         Binding { target: style.item; property: "text"; value: button.caption }
+        Binding { target: style.item; property: "pressed"; value: mouseArea.pressedButtons & Qt.LeftButton }
     }
 
     MouseArea {
         id: mouseArea
         anchors.fill: parent
+        acceptedButtons: Qt.LeftButton
     }
 
     Component.onCompleted: {

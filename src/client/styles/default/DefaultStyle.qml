@@ -111,10 +111,13 @@ Style {
 
     button: StyleComponent {
         property alias text: text.text
+        property bool pressed: false
 
         Rectangle {
             anchors.fill: parent
-            color: "dimgrey"
+            color: pressed ? "#505050" : "dimgrey"
+
+            Behavior on color { ColorAnimation {} }
 
             Text {
                 anchors.fill: parent

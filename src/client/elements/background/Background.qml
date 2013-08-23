@@ -370,16 +370,23 @@ Element {
                         spacing: 2
                         currentIndex: bkg.imageFillMode
 
-                        delegate: Rectangle {
+                        delegate: Item {
+                            id: btn
                             width: fillModeList.width / fillModeList.count - fillModeList.spacing
                             height: fillModeList.height
-                            color: ListView.isCurrentItem ? "#505050" : "dimgrey"
 
-                            Behavior on color { ColorAnimation {} }
-                            Text {
-                                text: modelData.name
-                                anchors.centerIn: parent
+                            property bool current: ListView.isCurrentItem
+
+                            StyleItem {
+                                id: style
+                                anchors.fill: parent
+
+                                component: CurrentStyle.button
+
+                                Binding { target: style.item; property: "text"; value: modelData.name }
+                                Binding { target: style.item; property: "pressed"; value: btn.current }
                             }
+
 
                             MouseArea {
                                 anchors.fill: parent
