@@ -33,7 +33,7 @@ ElementBase {
             id: tooltipWindow
             anchors.fill: parent
 
-            content: StyleItem {
+            property Item c: StyleItem {
                 id: tt
                 component: style.toolTipBackground
                 property Item content: null
@@ -42,6 +42,8 @@ ElementBase {
                 Binding { target: tt; property: "width"; value: tt.content ? tt.content.width: 0 }
                 Binding { target: tt; property: "height"; value: tt.content ? tt.content.height: 0 }
             }
+
+            content: tt.content ? c : null
         }
 
         onEntered: {
