@@ -300,7 +300,15 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
         }
 
         if (m_windowsMinimized) {
-            surface->hide();
+            switch (surface->m_type) {
+                case ShellSurface::Type::Transient:
+                case ShellSurface::Type::Popup:
+                    if (surface->m_transient.flags == WL_SHELL_SURFACE_TRANSIENT_INACTIVE) {
+                        break;
+                    }
+                default:
+                    surface->hide();
+            }
         }
     } else if (changedType || sx != 0 || sy != 0 || surface->width() != width || surface->height() != height) {
         float from_x, from_y;
@@ -780,10 +788,18 @@ void Shell::resetWorkspaces()
 void Shell::minimizeWindows()
 {
     for (ShellSurface *shsurf: surfaces()) {
-        if (!shsurf->isMinimized()) {
-            shsurf->minimize();
+        switch (shsurf->m_type) {
+            case ShellSurface::Type::Transient:
+            case ShellSurface::Type::Popup:
+                if (shsurf->m_transient.flags == WL_SHELL_SURFACE_TRANSIENT_INACTIVE) {
+                    break;
+                }
+            default:
+                if (!shsurf->isMinimized()) {
+                    shsurf->minimize();
+                }
+                shsurf->setAcceptNewState(false);
         }
-        shsurf->setAcceptNewState(false);
     }
     m_windowsMinimized = true;
 }
@@ -791,10 +807,18 @@ void Shell::minimizeWindows()
 void Shell::restoreWindows()
 {
     for (ShellSurface *shsurf: surfaces()) {
-        if (!shsurf->isMinimized()) {
-            shsurf->unminimize();
+        switch (shsurf->m_type) {
+            case ShellSurface::Type::Transient:
+            case ShellSurface::Type::Popup:
+                if (shsurf->m_transient.flags == WL_SHELL_SURFACE_TRANSIENT_INACTIVE) {
+                    break;
+                }
+            default:
+                if (!shsurf->isMinimized()) {
+                    shsurf->unminimize();
+                }
+                shsurf->setAcceptNewState(true);
         }
-        shsurf->setAcceptNewState(true);
     }
     m_windowsMinimized = false;
 }
