@@ -40,7 +40,7 @@ Element {
             hoverEnabled: true
             onEntered: ttip.text = "Log out"
 
-            Button {
+            Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-log-out"
                 onClicked: Client.logOut()
@@ -53,7 +53,7 @@ Element {
             hoverEnabled: true
             onEntered: ttip.text = "Shutdown"
 
-            Button {
+            Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-shutdown"
                 onClicked: Client.poweroff()
@@ -66,7 +66,7 @@ Element {
             hoverEnabled: true
             onEntered: ttip.text = "Reboot"
 
-            Button {
+            Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-reboot"
                 onClicked: Client.reboot()

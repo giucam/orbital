@@ -85,7 +85,7 @@ Client::Client()
     qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
 
 #define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
-    REGISTER_QMLFILE("Button");
+    REGISTER_QMLFILE("Icon");
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
     REGISTER_QMLFILE("Spacer");

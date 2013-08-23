@@ -205,14 +205,14 @@ Element {
                 Row {
                     id: buttons
                     width: parent.width
-                    Button {
+                    Icon {
                         id: home
                         height: 20
                         icon: "image://icon/user-home"
 
                         onClicked: browser.cdHome()
                     }
-                    Button {
+                    Icon {
                         id: goUp
                         height: 20
                         icon: "image://icon/go-up"
@@ -417,7 +417,7 @@ Element {
             onEntered: config.faded = false
             onExited: config.faded = true
 
-            Button {
+            Icon {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
@@ -438,7 +438,7 @@ Element {
                 }
             }
 
-            Button {
+            Icon {
                 id: revertButton
                 anchors.left: parent.left
                 anchors.top: parent.top
@@ -450,7 +450,7 @@ Element {
             }
         }
 
-        Button {
+        Icon {
             anchors.bottom: configButtons.top
             anchors.right: parent.right
             anchors.bottomMargin: 10

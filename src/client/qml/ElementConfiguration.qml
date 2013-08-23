@@ -68,7 +68,7 @@ ElementConfig {
             id: content
             anchors.fill: parent
 
-            Button {
+            Icon {
                 id: deleteButton
                 anchors.top: parent.top
                 anchors.left: parent.left
@@ -79,7 +79,7 @@ ElementConfig {
 
                 onClicked: element.destroyElement()
             }
-            Button {
+            Icon {
                 id: configureButton
                 anchors.top: parent.top
                 anchors.left: deleteButton.right
