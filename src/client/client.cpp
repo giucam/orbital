@@ -371,7 +371,8 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
 }
 
 const wl_registry_listener Client::s_registryListener = {
-    wrapInterface(&Client::handleGlobal)
+    wrapInterface(&Client::handleGlobal),
+    [](void *, wl_registry *registry, uint32_t id) {}
 };
 
 void Client::handleLoad(desktop_shell *shell)
