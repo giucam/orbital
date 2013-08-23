@@ -100,6 +100,7 @@ Client::Client()
 
     Element::loadElementsList();
     Style::loadStylesList();
+    ServiceFactory::searchPlugins();
 }
 
 Client::~Client()
@@ -110,6 +111,7 @@ Client::~Client()
 
     Element::cleanupElementsList();
     Style::cleanupStylesList();
+    ServiceFactory::cleanupPlugins();
 }
 
 static const desktop_shell_binding_listener binding_listener = {

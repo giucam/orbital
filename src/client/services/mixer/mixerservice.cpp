@@ -18,19 +18,29 @@
  */
 
 #include <linux/input.h>
+#include <QDebug>
 
-#include <QtQml>
-
-#include "volumecontrol.h"
+#include "mixerservice.h"
 #include "client.h"
-
-REGISTER_SERVICE(VolumeControl)
 
 const char *card = "default";
 const char *selem_name = "Master";
 
-VolumeControl::VolumeControl(Client *client)
-             : Service(client)
+MixerService::MixerService()
+            : Service()
+{
+
+}
+
+MixerService::~MixerService()
+{
+    snd_mixer_close(m_handle);
+
+    delete m_upBinding;
+    delete m_downBinding;
+}
+
+void MixerService::init()
 {
     snd_mixer_open(&m_handle, 0);
     snd_mixer_attach(m_handle, card);
@@ -43,28 +53,21 @@ VolumeControl::VolumeControl(Client *client)
     m_elem = snd_mixer_find_selem(m_handle, m_sid);
     snd_mixer_selem_get_playback_volume_range(m_elem, &m_min, &m_max);
 
-    m_upBinding = client->addKeyBinding(KEY_VOLUMEUP, 0);
-    m_downBinding = client->addKeyBinding(KEY_VOLUMEDOWN, 0);
+    m_upBinding = client()->addKeyBinding(KEY_VOLUMEUP, 0);
+    m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
 
     connect(m_upBinding, &Binding::triggered, [this]() { changeMaster(5); });
     connect(m_downBinding, &Binding::triggered, [this]() { changeMaster(-5); });
 }
 
-VolumeControl::~VolumeControl()
-{
-    snd_mixer_close(m_handle);
-
-    delete m_upBinding;
-    delete m_downBinding;
-}
-
-void VolumeControl::changeMaster(int change)
+void MixerService::changeMaster(int change)
 {
     setMaster(master() + change);
 }
 
-void VolumeControl::setMaster(int volume)
+void MixerService::setMaster(int volume)
 {
+    qDebug()<<volume;
     if (volume > 100) volume = 100;
     if (volume < 0) volume = 0;
     snd_mixer_selem_set_playback_volume_all(m_elem, volume * m_max / 100.f);
@@ -72,7 +75,7 @@ void VolumeControl::setMaster(int volume)
     emit masterChanged();
 }
 
-int VolumeControl::master() const
+int MixerService::master() const
 {
     long vol;
     snd_mixer_selem_get_playback_volume(m_elem, SND_MIXER_SCHN_FRONT_LEFT, &vol);

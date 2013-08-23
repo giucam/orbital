@@ -26,13 +26,17 @@
 
 class Binding;
 
-class VolumeControl : public Service
+class MixerService : public Service
 {
     Q_OBJECT
     Q_PROPERTY(int master READ master WRITE setMaster NOTIFY masterChanged);
+    Q_INTERFACES(Service)
+    Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
-    VolumeControl(Client *client);
-    ~VolumeControl();
+    MixerService();
+    ~MixerService();
+
+    void init();
 
     int master() const;
 

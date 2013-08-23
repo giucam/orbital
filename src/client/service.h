@@ -24,46 +24,36 @@
 #include <QHash>
 
 class Client;
+class QPluginLoader;
 
 class Service : public QObject
 {
     Q_OBJECT
 public:
-    Service(Client *client);
+    Service();
+    virtual void init() = 0;
 
 protected:
     Client *client() const { return m_client; }
 
 private:
     Client *m_client;
+
+    friend class ServiceFactory;
 };
+
+Q_DECLARE_INTERFACE(Service, "Orbital.Service")
 
 class ServiceFactory
 {
 public:
-    template<class T> static char registerService();
+    static void searchPlugins();
+    static void cleanupPlugins();
 
     static Service *createService(const QString &name, Client *client);
 
 private:
-    typedef Service *(*Factory)(Client *);
-
-    static void registerService(const QString &name, Factory factory);
-    template<class T> static Service *factory(Client *c) { return new T(c); }
-
-    QHash<QString, Factory> m_factories;
+    QHash<QString, QPluginLoader *> m_factories;
 };
-
-
-
-#define REGISTER_SERVICE(class) static const int __r__ = ServiceFactory::registerService<class>();
-
-template<class T>
-char ServiceFactory::registerService() {
-    static_assert(std::is_base_of<Service, T>::value, "Services must be a subclass of Service");
-
-    registerService(QString(T::name()), factory<T>);
-    return 0;
-}
 
 #endif

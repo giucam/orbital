@@ -18,16 +18,43 @@
  */
 
 #include <QDebug>
+#include <QPluginLoader>
+#include <QJsonObject>
+#include <QDir>
+#include <QObject>
 
 #include "service.h"
 #include "client.h"
 
 Q_GLOBAL_STATIC(ServiceFactory, s_factory)
 
-Service::Service(Client *c)
-       : QObject(c)
-       , m_client(c)
+Service::Service()
+       : QObject()
+       , m_client(nullptr)
 {
+}
+
+
+void ServiceFactory::searchPlugins()
+{
+    QDir pluginsDir(QLatin1String(LIBRARIES_PATH) + "/services");
+    for (const QString &fileName: pluginsDir.entryList(QDir::Files)) {
+        QPluginLoader *pluginLoader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
+        QJsonObject metaData = pluginLoader->metaData();
+        if (metaData.value("IID").toString() == QLatin1String("Orbital.Service")) {
+            QString name = metaData.value("className").toString();
+            s_factory->m_factories.insert(name, pluginLoader);
+        } else {
+            delete pluginLoader;
+        }
+    }
+}
+
+void ServiceFactory::cleanupPlugins()
+{
+    for (QPluginLoader *p: s_factory->m_factories) {
+        delete p;
+    }
 }
 
 Service *ServiceFactory::createService(const QString &name, Client *client)
@@ -36,11 +63,16 @@ Service *ServiceFactory::createService(const QString &name, Client *client)
         return nullptr;
     }
 
-    Factory factory = s_factory->m_factories.value(name);
-    return factory(client);
-}
+    QPluginLoader *loader = s_factory->m_factories.value(name);
+    QObject *obj = loader->instance();
 
-void ServiceFactory::registerService(const QString &name, Factory factory)
-{
-    s_factory->m_factories.insert(name, factory);
+    Service *s = qobject_cast<Service *>(obj);
+    if (!s) {
+        qWarning() << "The plugin" << name << "is not a Service subclass!";
+    }
+
+    s->m_client = client;
+    s->init();
+
+    return s;
 }
