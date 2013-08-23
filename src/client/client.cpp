@@ -104,7 +104,6 @@ Client::Client()
 Client::~Client()
 {
     delete m_grabWindow;
-    qDeleteAll(m_bindings);
     qDeleteAll(m_workspaces);
     qDeleteAll(m_services);
 
@@ -124,7 +123,6 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
     Binding *binding = new Binding;
     binding->bind = desktop_shell_add_key_binding(m_shell, key, modifiers);
     desktop_shell_binding_add_listener(binding->bind, &binding_listener, binding);
-    m_bindings << binding;
 
     return binding;
 }
