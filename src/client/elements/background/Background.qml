@@ -173,7 +173,7 @@ Element {
             y: bkg.height
             width: parent.width
             height: 230
-            color: "#E6404040"
+            color: bkg.style.backgroundColor
             z: 100
             visible: false
 

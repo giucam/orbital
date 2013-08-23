@@ -68,6 +68,7 @@ class Style : public QObject
     Q_PROPERTY(QQmlComponent *toolTipBackground READ toolTipBackground WRITE set_toolTipBackground NOTIFY toolTipBackgroundChanged)
 
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
+    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
 public:
     Style(QObject *p = nullptr);
 
@@ -79,6 +80,7 @@ public:
     PROPERTY(QQmlComponent *, pagerWorkspace)
     PROPERTY(QQmlComponent *, toolTipBackground)
     PROPERTY(QColor, textColor)
+    PROPERTY(QColor, backgroundColor)
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
 
@@ -95,6 +97,7 @@ signals:
     void pagerWorkspaceChanged();
     void toolTipBackgroundChanged();
     void textColorChanged();
+    void backgroundColorChanged();
 
 private:
     static void loadStyleInfo(const QString &name, const QString &path);

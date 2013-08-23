@@ -110,4 +110,5 @@ Style {
     }
 
     textColor: "white"
+    backgroundColor: "#E6404040"
 }

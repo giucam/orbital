@@ -113,4 +113,5 @@ Style {
     }
 
     textColor: "black"
+    backgroundColor: "#e6e6e6"
 }
