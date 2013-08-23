@@ -47,7 +47,6 @@ Element::Element(Element *parent)
        , m_settingsWindow(nullptr)
        , m_childrenConfig(nullptr)
        , m_screen(nullptr)
-       , m_style(nullptr)
        , m_inputRegionSet(false)
        , m_childrenBackground(nullptr)
        , m_background(nullptr)
@@ -216,12 +215,6 @@ void Element::button(uint32_t time, uint32_t button, uint32_t state)
     static_cast<Grab *>(sender())->end();
 }
 
-void Element::setStyle(Style *s)
-{
-    m_style = s;
-    emit styleChanged();
-}
-
 void Element::setParentElement(Element *parent)
 {
     if (parent == m_parent) {
@@ -306,7 +299,7 @@ void Element::settingsVisibleChanged(bool visible)
     }
 }
 
-Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, Style *style, int id)
+Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
 {
     QElapsedTimer timer;
     timer.start();
@@ -341,7 +334,6 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     elm->m_typeName = name;
     elm->m_shell = shell;
     elm->m_info = info;
-    elm->m_style = style;
 
     c.completeCreate();
 

@@ -34,7 +34,7 @@ Element {
     height: 50
 
     contentItem: StyleItem {
-        component: style.pagerBackground
+        component: CurrentStyle.pagerBackground
         anchors.fill: parent
         Grid {
             width: parent.width
@@ -62,7 +62,7 @@ Element {
                     StyleItem {
                         id: si
                         anchors.fill: parent
-                        component: style.pagerWorkspace
+                        component: CurrentStyle.pagerWorkspace
 
                         Binding { target: si.item; property: "active"; value: modelData.active }
                     }

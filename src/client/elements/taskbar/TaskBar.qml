@@ -33,7 +33,7 @@ Element {
 
     contentItem: StyleItem {
         anchors.fill: parent
-        component: style.taskBarBackground
+        component: CurrentStyle.taskBarBackground
 
         Layout {
             spacing: 5
@@ -44,7 +44,6 @@ Element {
 
                 TaskBarItem {
                     window: modelData
-                    taskBar: taskbar
                 }
             }
         }

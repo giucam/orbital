@@ -50,8 +50,6 @@ public:
     void addElement(Element *elm);
     void removeElement(Element *elm);
 
-    void setStyle(Style *style);
-
 private:
     Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
     void saveElement(Element *elm, QXmlStreamWriter &xml);

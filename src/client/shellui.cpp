@@ -119,7 +119,7 @@ void ShellUI::setNumWorkspaces(int n)
 
 Element *ShellUI::createElement(const QString &name)
 {
-    Element *elm = Element::create(this, m_engine, name, m_style);
+    Element *elm = Element::create(this, m_engine, name);
     return elm;
 }
 
@@ -141,9 +141,7 @@ void ShellUI::setStyleName(const QString &name)
     delete m_style;
     m_style = Style::loadStyle(name, m_engine);
     m_styleName = name;
-    for (UiScreen *s: m_screens) {
-        s->setStyle(m_style);
-    }
+    m_engine->rootContext()->setContextProperty("CurrentStyle", m_style);
 }
 
 void ShellUI::setOverrideCursorShape(Qt::CursorShape shape)

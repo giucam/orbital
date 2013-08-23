@@ -71,7 +71,7 @@ Element {
             id: background
             anchors.fill: parent
             anchors.bottomMargin: 5
-            component: style.panelBackground
+            component: CurrentStyle.panelBackground
 
             Layout {
                 id: layout
@@ -83,7 +83,7 @@ Element {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            component: style.panelBorder
+            component: CurrentStyle.panelBorder
         }
     }
 }

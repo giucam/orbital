@@ -23,7 +23,6 @@ import Orbital 1.0
 Item {
     id: item
     property variant window
-    property variant taskBar: null
 
     Layout.minimumWidth: 10
     Layout.preferredWidth: 200
@@ -31,7 +30,7 @@ Item {
 
     StyleItem {
         id: style
-        component: taskBar.style.taskBarItem
+        component: CurrentStyle.taskBarItem
         anchors.fill: parent
 
         Binding { target: style.item; property: "title"; value: window ? window.title : "" }

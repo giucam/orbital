@@ -81,6 +81,6 @@ Element {
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
         elide: Text.ElideMiddle
-        color: logout.style.textColor
+        color: CurrentStyle.textColor
     }
 }

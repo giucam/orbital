@@ -35,7 +35,7 @@ ElementBase {
 
             property Item c: StyleItem {
                 id: tt
-                component: style.toolTipBackground
+                component: CurrentStyle.toolTipBackground
                 property Item content: null
 
                 Binding { target: tt.content; property: "parent"; value: tt }

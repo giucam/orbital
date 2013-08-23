@@ -51,7 +51,7 @@ Element {
             horizontalAlignment: Qt.AlignHCenter
             verticalAlignment: Qt.AlignVCenter
             text: launcher.process
-            color: launcher.style.textColor
+            color: CurrentStyle.textColor
             elide: Text.ElideMiddle
         }
 

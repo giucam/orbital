@@ -40,7 +40,7 @@ Element {
     contentItem: Text {
         id: text
         anchors.centerIn: parent
-        color: element.style.textColor
+        color: CurrentStyle.textColor
     }
 
 }
