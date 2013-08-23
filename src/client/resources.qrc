@@ -6,5 +6,6 @@
         <file>qml/ElementsChooser.qml</file>
         <file>qml/Spacer.qml</file>
         <file>qml/Element.qml</file>
+        <file>qml/Button.qml</file>
     </qresource>
 </RCC>

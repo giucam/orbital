@@ -109,6 +109,23 @@ Style {
         }
     }
 
+    button: StyleComponent {
+        property alias text: text.text
+
+        Rectangle {
+            anchors.fill: parent
+            color: "dimgrey"
+
+            Text {
+                anchors.fill: parent
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+                id: text
+                color: "black"
+            }
+        }
+    }
+
     textColor: "white"
     backgroundColor: "#E6404040"
 }

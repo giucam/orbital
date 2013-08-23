@@ -90,6 +90,7 @@ Client::Client()
     REGISTER_QMLFILE("ElementsChooser");
     REGISTER_QMLFILE("Spacer");
     REGISTER_QMLFILE("Element");
+    REGISTER_QMLFILE("Button");
 
     m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                                  "org.freedesktop.login1.Manager", QDBusConnection::systemBus());

@@ -67,6 +67,8 @@ class Style : public QObject
 
     Q_PROPERTY(QQmlComponent *toolTipBackground READ toolTipBackground WRITE set_toolTipBackground NOTIFY toolTipBackgroundChanged)
 
+    Q_PROPERTY(QQmlComponent *button READ button WRITE set_button NOTIFY buttonChanged)
+
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
 public:
@@ -79,6 +81,7 @@ public:
     PROPERTY(QQmlComponent *, pagerBackground)
     PROPERTY(QQmlComponent *, pagerWorkspace)
     PROPERTY(QQmlComponent *, toolTipBackground)
+    PROPERTY(QQmlComponent *, button)
     PROPERTY(QColor, textColor)
     PROPERTY(QColor, backgroundColor)
 
@@ -96,6 +99,7 @@ signals:
     void pagerBackgroundChanged();
     void pagerWorkspaceChanged();
     void toolTipBackgroundChanged();
+    void buttonChanged();
     void textColorChanged();
     void backgroundColorChanged();
 

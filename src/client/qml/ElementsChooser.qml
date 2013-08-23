@@ -35,16 +35,11 @@ Item {
             Repeater {
                 model: Client.elementsInfo
 
-                Rectangle {
+                Button {
                     width: 100
                     height: elementsList.height
-                    color: "dimgrey"
                     visible: modelData.type == ElementInfo.Item
-
-                    Text {
-                        text: modelData.prettyName
-                        anchors.centerIn: parent
-                    }
+                    caption: modelData.prettyName
 
                     MouseArea {
                         anchors.fill: parent
@@ -70,21 +65,13 @@ Item {
             Repeater {
                 model: Client.stylesInfo
 
-                Rectangle {
+                Button {
                     width: 100
                     height: stylesList.height
-                    color: "dimgrey"
+                    caption: modelData.prettyName
 
-                    Text {
-                        text: modelData.prettyName
-                        anchors.centerIn: parent
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            Ui.styleName = modelData.name
-                        }
+                    onClicked: {
+                        Ui.styleName = modelData.name
                     }
                 }
             }

@@ -35,6 +35,7 @@ Style::Style(QObject *p)
      , m_pagerBackground(nullptr)
      , m_pagerWorkspace(nullptr)
      , m_toolTipBackground(nullptr)
+     , m_button(nullptr)
 {
 
 }
