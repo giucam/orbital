@@ -10,9 +10,6 @@ find_package(PkgConfig "0.22" REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-
 add_subdirectory(src)
 
 # uninstall target
