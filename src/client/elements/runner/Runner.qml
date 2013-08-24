@@ -28,6 +28,8 @@ Element {
     Layout.preferredWidth: width
     Layout.fillHeight: true
 
+    property variant service: Client.service("ProcessLauncher")
+
     contentItem: Rectangle {
         color: "white"
         anchors.fill: parent
@@ -40,7 +42,7 @@ Element {
             verticalAlignment: TextInput.AlignVCenter
 
             onAccepted: {
-                ProcessLauncher.launch(text.text)
+                service.launch(text.text)
                 text.text = ""
             }
             Keys.onPressed: {
@@ -57,5 +59,15 @@ Element {
                 mouse.accepted = false;
             }
         }
+    }
+
+    toolTip: Text {
+        width: 150
+        height: 40
+        horizontalAlignment: Qt.AlignHCenter
+        verticalAlignment: Qt.AlignVCenter
+        elide: Text.ElideMiddle
+        color: CurrentStyle.textColor
+        text: "Run command"
     }
 }
