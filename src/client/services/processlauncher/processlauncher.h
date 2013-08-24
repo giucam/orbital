@@ -20,17 +20,18 @@
 #ifndef PROCESSLAUNCHER_H
 #define PROCESSLAUNCHER_H
 
-#include <QObject>
+#include "service.h"
 
-class ProcessLauncher : public QObject
+class ProcessLauncher : public Service
 {
     Q_OBJECT
+    Q_INTERFACES(Service)
+    Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
-    ProcessLauncher(QObject *parent = nullptr);
+    ProcessLauncher();
 
 public slots:
     void launch(const QString &process);
-    QString run(const QString &process);
 
 };
 

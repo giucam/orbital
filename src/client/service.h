@@ -31,7 +31,7 @@ class Service : public QObject
     Q_OBJECT
 public:
     Service();
-    virtual void init() = 0;
+    virtual void init() {};
 
 protected:
     Client *client() const { return m_client; }

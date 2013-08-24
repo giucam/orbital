@@ -38,7 +38,6 @@
 #include "wayland-desktop-shell-client-protocol.h"
 
 #include "client.h"
-#include "processlauncher.h"
 #include "iconimageprovider.h"
 #include "window.h"
 #include "shellui.h"
@@ -148,7 +147,6 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    m_launcher = new ProcessLauncher(this);
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
     m_grabWindow->resize(1, 1);
@@ -160,7 +158,6 @@ void Client::create()
 
     QQmlEngine *engine = new QQmlEngine(this);
     engine->rootContext()->setContextProperty("Client", this);
-    engine->rootContext()->setContextProperty("ProcessLauncher", m_launcher);
     engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);

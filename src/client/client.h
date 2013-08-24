@@ -39,7 +39,6 @@ struct desktop_shell_binding;
 struct desktop_shell_window;
 struct desktop_shell_workspace;
 
-class ProcessLauncher;
 class Window;
 class ShellUI;
 class Grab;
@@ -119,7 +118,6 @@ private:
     wl_registry *m_registry;
     int m_fd;
     desktop_shell *m_shell;
-    ProcessLauncher *m_launcher;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;

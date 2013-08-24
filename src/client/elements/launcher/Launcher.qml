@@ -37,11 +37,13 @@ Element {
     Layout.maximumWidth: 50
     Layout.fillHeight: true
 
+    property variant service: Client.service("ProcessLauncher")
+
     contentItem: Icon {
         anchors.fill: parent
         icon: launcher.icon
 
-        onClicked: ProcessLauncher.launch(process)
+        onClicked: service.launch(process)
     }
 
     toolTip: Text {

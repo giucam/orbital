@@ -1,0 +1,12 @@
+
+find_package(Qt5Core)
+
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/../..
+)
+
+set(SOURCES processlauncher.cpp)
+
+add_library(processlauncher SHARED ${SOURCES})
+qt5_use_modules(processlauncher Core)
+install(TARGETS processlauncher DESTINATION lib/orbital/services)

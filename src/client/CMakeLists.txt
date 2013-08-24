@@ -18,7 +18,6 @@ endforeach(dir)
 set(SOURCES
     main.cpp
     client.cpp
-    processlauncher.cpp
     iconimageprovider.cpp
     shellui.cpp
     uiscreen.cpp
@@ -51,3 +50,4 @@ install(DIRECTORY styles DESTINATION share/orbital)
 
 add_subdirectory(services/mixer)
 add_subdirectory(services/login)
+add_subdirectory(services/processlauncher)
