@@ -58,8 +58,8 @@ void MixerService::init()
     m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
     m_muteBinding = client()->addKeyBinding(KEY_MUTE, 0);
 
-    connect(m_upBinding, &Binding::triggered, [this]() { changeMaster(5); });
-    connect(m_downBinding, &Binding::triggered, [this]() { changeMaster(-5); });
+    connect(m_upBinding, &Binding::triggered, [this]() { increaseMaster(); });
+    connect(m_downBinding, &Binding::triggered, [this]() { decreaseMaster(); });
     connect(m_muteBinding, &Binding::triggered, this, &MixerService::toggleMuted);
 }
 
@@ -68,20 +68,43 @@ void MixerService::changeMaster(int change)
     setMaster(master() + change);
 }
 
-void MixerService::setMaster(int volume)
+void MixerService::increaseMaster()
 {
-    if (volume > 100) volume = 100;
-    if (volume < 0) volume = 0;
-    snd_mixer_selem_set_playback_volume_all(m_elem, volume * m_max / 100.f);
+    setRawVol(rawVol() + 2);
+}
+
+void MixerService::decreaseMaster()
+{
+    setRawVol(rawVol() - 2);
+}
+
+void MixerService::setRawVol(int volume)
+{
+    if (volume > m_max) volume = m_max;
+    if (volume < m_min) volume = m_min;
+    snd_mixer_selem_set_playback_volume_all(m_elem, volume);
 
     emit masterChanged();
 }
 
-int MixerService::master() const
+void MixerService::setMaster(int volume)
+{
+    setRawVol((float)volume * (float)m_max / 100.f);
+
+    emit masterChanged();
+}
+
+int MixerService::rawVol() const
 {
     long vol;
     snd_mixer_selem_get_playback_volume(m_elem, SND_MIXER_SCHN_UNKNOWN, &vol);
-    vol *= 100.f / (float)m_max;
+    return vol;
+}
+
+int MixerService::master() const
+{
+    int vol = rawVol();
+    vol = (float)vol * 100.f / (float)m_max;
     return vol;
 }
 

@@ -46,6 +46,8 @@ public:
     constexpr static const char *name() { return "MixerService"; }
 
 public slots:
+    void increaseMaster();
+    void decreaseMaster();
     void setMaster(int master);
     void changeMaster(int change);
     void toggleMuted();
@@ -55,6 +57,9 @@ signals:
     void mutedChanged();
 
 private:
+    int rawVol() const;
+    void setRawVol(int vol);
+
     snd_mixer_t *m_handle;
     snd_mixer_selem_id_t *m_sid;
     snd_mixer_elem_t *m_elem;
