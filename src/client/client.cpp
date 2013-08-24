@@ -30,6 +30,7 @@
 #include <QStandardPaths>
 #include <QQuickWindow>
 #include <QDBusInterface>
+#include <QQmlListProperty>
 
 #include <qpa/qplatformnativeinterface.h>
 
@@ -52,6 +53,24 @@
 
 Client *Client::s_client = nullptr;
 
+class ClientPrivate {
+    Q_DECLARE_PUBLIC(Client)
+public:
+    ClientPrivate(Client *c) : q_ptr(c) {}
+
+    QQmlListProperty<Window> windows();
+    QQmlListProperty<Workspace> workspaces();
+    QQmlListProperty<ElementInfo> elementsInfo();
+    QQmlListProperty<StyleInfo> stylesInfo();
+
+    static int windowsCount(QQmlListProperty<Window> *prop);
+    static Window *windowsAt(QQmlListProperty<Window> *prop, int index);
+    static int workspacesCount(QQmlListProperty<Workspace> *prop);
+    static Workspace *workspacesAt(QQmlListProperty<Workspace> *prop, int index);
+
+    Client *q_ptr;
+};
+
 Binding::~Binding()
 {
     desktop_shell_binding_destroy(bind);
@@ -59,6 +78,7 @@ Binding::~Binding()
 
 Client::Client()
       : QObject()
+      , d_ptr(new ClientPrivate(this))
 {
     m_elapsedTimer.start();
     s_client = this;
@@ -224,38 +244,38 @@ void Client::windowRemoved(Window *w)
     emit windowsChanged();
 }
 
-int Client::windowsCount(QQmlListProperty<Window> *prop)
+int ClientPrivate::windowsCount(QQmlListProperty<Window> *prop)
 {
     Client *c = static_cast<Client *>(prop->object);
     return c->m_windows.count();
 }
 
-Window *Client::windowsAt(QQmlListProperty<Window> *prop, int index)
+Window *ClientPrivate::windowsAt(QQmlListProperty<Window> *prop, int index)
 {
     Client *c = static_cast<Client *>(prop->object);
     return c->m_windows.at(index);
 }
 
-QQmlListProperty<Window> Client::windows()
+QQmlListProperty<Window> ClientPrivate::windows()
 {
-    return QQmlListProperty<Window>(this, 0, windowsCount, windowsAt);
+    return QQmlListProperty<Window>(q_ptr, 0, windowsCount, windowsAt);
 }
 
-int Client::workspacesCount(QQmlListProperty<Workspace> *prop)
+int ClientPrivate::workspacesCount(QQmlListProperty<Workspace> *prop)
 {
     Client *c = static_cast<Client *>(prop->object);
     return c->m_workspaces.count();
 }
 
-Workspace *Client::workspacesAt(QQmlListProperty<Workspace> *prop, int index)
+Workspace *ClientPrivate::workspacesAt(QQmlListProperty<Workspace> *prop, int index)
 {
     Client *c = static_cast<Client *>(prop->object);
     return c->m_workspaces.at(index);
 }
 
-QQmlListProperty<Workspace> Client::workspaces()
+QQmlListProperty<Workspace> ClientPrivate::workspaces()
 {
-    return QQmlListProperty<Workspace>(this, 0, workspacesCount, workspacesAt);
+    return QQmlListProperty<Workspace>(q_ptr, 0, workspacesCount, workspacesAt);
 }
 
 static int elementsInfoCount(QQmlListProperty<ElementInfo> *prop)
@@ -269,9 +289,9 @@ static ElementInfo *elementsInfoAt(QQmlListProperty<ElementInfo> *prop, int inde
     return Element::elementsInfo().value(name);
 }
 
-QQmlListProperty<ElementInfo> Client::elementsInfo()
+QQmlListProperty<ElementInfo> ClientPrivate::elementsInfo()
 {
-    return QQmlListProperty<ElementInfo>(this, 0, elementsInfoCount, elementsInfoAt);
+    return QQmlListProperty<ElementInfo>(q_ptr, 0, elementsInfoCount, elementsInfoAt);
 }
 
 static int stylesInfoCount(QQmlListProperty<StyleInfo> *prop)
@@ -285,9 +305,9 @@ static StyleInfo *stylesInfoAt(QQmlListProperty<StyleInfo> *prop, int index)
     return Style::stylesInfo().value(name);
 }
 
-QQmlListProperty<StyleInfo> Client::stylesInfo()
+QQmlListProperty<StyleInfo> ClientPrivate::stylesInfo()
 {
-    return QQmlListProperty<StyleInfo>(this, 0, stylesInfoCount, stylesInfoAt);
+    return QQmlListProperty<StyleInfo>(q_ptr, 0, stylesInfoCount, stylesInfoAt);
 }
 
 Service *Client::service(const QString &name)
@@ -490,4 +510,4 @@ QQuickWindow *Client::createUiWindow()
     return window;
 }
 
-#include "client.moc"
+#include "moc_client.cpp"

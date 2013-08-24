@@ -67,7 +67,6 @@ void MixerService::changeMaster(int change)
 
 void MixerService::setMaster(int volume)
 {
-    qDebug()<<volume;
     if (volume > 100) volume = 100;
     if (volume < 0) volume = 0;
     snd_mixer_selem_set_playback_volume_all(m_elem, volume * m_max / 100.f);

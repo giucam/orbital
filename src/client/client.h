@@ -21,7 +21,6 @@
 #define CLIENT_H
 
 #include <QObject>
-#include <QQmlListProperty>
 #include <QElapsedTimer>
 
 class QQmlEngine;
@@ -67,20 +66,15 @@ private:
 class Client : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<Window> windows READ windows NOTIFY windowsChanged)
-    Q_PROPERTY(QQmlListProperty<Workspace> workspaces READ workspaces NOTIFY workspacesChanged)
-    Q_PROPERTY(QQmlListProperty<ElementInfo> elementsInfo READ elementsInfo NOTIFY elementsInfoChanged)
-    Q_PROPERTY(QQmlListProperty<StyleInfo> stylesInfo READ stylesInfo NOTIFY stylesInfoChanged)
+    Q_PRIVATE_PROPERTY(Client::d_func(), QQmlListProperty<Window> windows READ windows NOTIFY windowsChanged)
+    Q_PRIVATE_PROPERTY(Client::d_func(), QQmlListProperty<Workspace> workspaces READ workspaces NOTIFY workspacesChanged)
+    Q_PRIVATE_PROPERTY(Client::d_func(), QQmlListProperty<ElementInfo> elementsInfo READ elementsInfo NOTIFY elementsInfoChanged)
+    Q_PRIVATE_PROPERTY(Client::d_func(), QQmlListProperty<StyleInfo> stylesInfo READ stylesInfo NOTIFY stylesInfoChanged)
 public:
     Client();
     ~Client();
 
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
-
-    QQmlListProperty<Window> windows();
-    QQmlListProperty<Workspace> workspaces();
-    QQmlListProperty<ElementInfo> elementsInfo();
-    QQmlListProperty<StyleInfo> stylesInfo();
 
     Q_INVOKABLE Service *service(const QString &name);
 
@@ -126,11 +120,6 @@ private:
     static const wl_registry_listener s_registryListener;
     static const desktop_shell_listener s_shellListener;
 
-    static int windowsCount(QQmlListProperty<Window> *prop);
-    static Window *windowsAt(QQmlListProperty<Window> *prop, int index);
-    static int workspacesCount(QQmlListProperty<Workspace> *prop);
-    static Workspace *workspacesAt(QQmlListProperty<Workspace> *prop, int index);
-
     wl_display *m_display;
     wl_registry *m_registry;
     int m_fd;
@@ -150,6 +139,9 @@ private:
     uint32_t m_pendingGrabCursor;
 
     static Client *s_client;
+
+    class ClientPrivate *const d_ptr;
+    Q_DECLARE_PRIVATE(Client)
 };
 
 #endif
