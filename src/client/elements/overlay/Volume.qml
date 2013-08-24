@@ -71,11 +71,15 @@ Rectangle {
             target: control
             onMasterChanged: {
                 volume.opacity = 1;
-                timer.start();
+                timer.restart();
+            }
+            onMutedChanged: {
+                volume.opacity = 1;
+                timer.restart();
             }
         }
 
-        Behavior on value { SmoothedAnimation { velocity: 50 } }
+        Behavior on value { PropertyAnimation { duration: 200 } }
 
         Text {
             anchors.centerIn: parent
