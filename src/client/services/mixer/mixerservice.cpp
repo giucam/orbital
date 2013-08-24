@@ -38,6 +38,7 @@ MixerService::~MixerService()
 
     delete m_upBinding;
     delete m_downBinding;
+    delete m_muteBinding;
 }
 
 void MixerService::init()
@@ -55,9 +56,11 @@ void MixerService::init()
 
     m_upBinding = client()->addKeyBinding(KEY_VOLUMEUP, 0);
     m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
+    m_muteBinding = client()->addKeyBinding(KEY_MUTE, 0);
 
     connect(m_upBinding, &Binding::triggered, [this]() { changeMaster(5); });
     connect(m_downBinding, &Binding::triggered, [this]() { changeMaster(-5); });
+    connect(m_muteBinding, &Binding::triggered, this, &MixerService::toggleMuted);
 }
 
 void MixerService::changeMaster(int change)
@@ -77,7 +80,24 @@ void MixerService::setMaster(int volume)
 int MixerService::master() const
 {
     long vol;
-    snd_mixer_selem_get_playback_volume(m_elem, SND_MIXER_SCHN_FRONT_LEFT, &vol);
+    snd_mixer_selem_get_playback_volume(m_elem, SND_MIXER_SCHN_UNKNOWN, &vol);
     vol *= 100.f / (float)m_max;
     return vol;
+}
+
+bool MixerService::muted() const
+{
+    int mute;
+    snd_mixer_selem_get_playback_switch(m_elem, SND_MIXER_SCHN_UNKNOWN, &mute);
+    return mute;
+}
+
+void MixerService::setMuted(bool muted)
+{
+    snd_mixer_selem_set_playback_switch_all(m_elem, muted);
+}
+
+void MixerService::toggleMuted()
+{
+    setMuted(!muted());
 }

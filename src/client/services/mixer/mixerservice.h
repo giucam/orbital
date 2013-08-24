@@ -30,6 +30,7 @@ class MixerService : public Service
 {
     Q_OBJECT
     Q_PROPERTY(int master READ master WRITE setMaster NOTIFY masterChanged);
+    Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
     Q_INTERFACES(Service)
     Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
@@ -39,15 +40,19 @@ public:
     void init();
 
     int master() const;
+    bool muted() const;
+    void setMuted(bool muted);
 
     constexpr static const char *name() { return "MixerService"; }
 
 public slots:
     void setMaster(int master);
     void changeMaster(int change);
+    void toggleMuted();
 
 signals:
     void masterChanged();
+    void mutedChanged();
 
 private:
     snd_mixer_t *m_handle;
@@ -55,9 +60,11 @@ private:
     snd_mixer_elem_t *m_elem;
     long m_min;
     long m_max;
+    int m_savedVol;
 
     Binding *m_upBinding;
     Binding *m_downBinding;
+    Binding *m_muteBinding;
 };
 
 #endif
