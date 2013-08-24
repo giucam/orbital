@@ -60,15 +60,22 @@ void ServiceFactory::cleanupPlugins()
 Service *ServiceFactory::createService(const QString &name, Client *client)
 {
     if (!s_factory->m_factories.contains(name)) {
+        qWarning() << "Cannot find the plugin" << name;
         return nullptr;
     }
 
     QPluginLoader *loader = s_factory->m_factories.value(name);
     QObject *obj = loader->instance();
+    if (!obj) {
+        qWarning() << "Could not load the plugin" << name;
+        qWarning() << loader->errorString();
+        return nullptr;
+    }
 
     Service *s = qobject_cast<Service *>(obj);
     if (!s) {
         qWarning() << "The plugin" << name << "is not a Service subclass!";
+        return nullptr;
     }
 
     s->m_client = client;
