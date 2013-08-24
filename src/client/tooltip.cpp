@@ -48,6 +48,17 @@ ToolTip::ToolTip(QQuickItem *parent)
 
 void ToolTip::show()
 {
+    m_hideTimer->stop();
+    if (m_window || !parentItem() || !m_content) {
+        return;
+    }
+
+    QQuickWindow *w = parentItem()->window();
+    if (!w) {
+        return;
+    }
+    w->installEventFilter(this);
+
     if (s_showing > 0) {
         doShow();
     } else {
@@ -71,17 +82,7 @@ void ToolTip::hide()
 
 void ToolTip::doShow()
 {
-    m_hideTimer->stop();
-    if (m_window || !parentItem() || !m_content) {
-        return;
-    }
-
     QQuickWindow *w = parentItem()->window();
-    if (!w) {
-        return;
-    }
-    w->installEventFilter(this);
-
     QPointF pos = parentItem()->mapToScene(QPointF(0, 0));
     m_window = new QQuickWindow();
     m_window->setTransientParent(w);
