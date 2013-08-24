@@ -1,2 +1,5 @@
-prettyName=Launcher
-qmlFile=Launcher.qml
+{
+    "prettyName": "Launcher",
+    "qmlFile": "Launcher.qml"
+}
+

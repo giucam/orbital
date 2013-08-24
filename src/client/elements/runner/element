@@ -1,2 +1,4 @@
-prettyName=Runner
-qmlFile=Runner.qml
+{
+    "prettyName": "Runner",
+    "qmlFile": "Runner.qml"
+}

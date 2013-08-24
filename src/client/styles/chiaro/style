@@ -1,2 +1,4 @@
-qmlFile=style.qml
-prettyName=Chiaro
+{
+    "qmlFile": "style.qml",
+    "prettyName": "Chiaro"
+}

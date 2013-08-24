@@ -1,2 +1,4 @@
-prettyName=Pager
-qmlFile=Pager.qml
+{
+    "prettyName": "Pager",
+    "qmlFile": "Pager.qml"
+}

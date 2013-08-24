@@ -1,2 +1,4 @@
-prettyName=Digital Clock
-qmlFile=Clock.qml
+{
+    "prettyName": "Digital Clock",
+    "qmlFile": "Clock.qml"
+}

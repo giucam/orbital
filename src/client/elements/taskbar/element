@@ -1,2 +1,4 @@
-prettyName=Taskbar
-qmlFile=TaskBar.qml
+{
+    "prettyName": "Taskbar",
+    "qmlFile": "TaskBar.qml"
+}

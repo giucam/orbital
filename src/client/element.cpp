@@ -383,31 +383,32 @@ void Element::loadElementInfo(const QString &name, const QString &path)
     info->m_prettyName = name;
     info->m_type = ElementInfo::Type::Item;
 
-    QTextStream stream(&file);
-    while (!stream.atEnd()) {
-        QString line = stream.readLine();
-
-        QStringList parts = line.split('=');
-        if (parts.size() < 2) {
-            continue;
-        }
-        const QString &key = parts.at(0);
-        const QString &value = parts.at(1);
-        if (key == "prettyName") {
-            info->m_prettyName = value;
-        } else if (key == "qmlFile") {
-            info->m_qml = path + "/" + value;
-        } else if (key == "type") {
-            if (value == "background") {
-                info->m_type = ElementInfo::Type::Background;
-            } else if (value == "panel") {
-                info->m_type = ElementInfo::Type::Panel;
-            } else if (value == "overlay") {
-                info->m_type = ElementInfo::Type::Overlay;
-            }
-        }
-    };
+    QByteArray data = file.readAll();
     file.close();
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError) {
+        qWarning("Error parsing %s at offset %d: %s", qPrintable(filePath), error.offset, qPrintable(error.errorString()));
+        delete info;
+        return;
+    }
+    QJsonObject json = doc.object();
+
+    info->m_prettyName = json.value("prettyName").toString();
+    if (json.contains("qmlFile")) {
+        info->m_qml = path + "/" + json.value("qmlFile").toString();
+    }
+    if (json.contains("type")) {
+        QString value = json.value("type").toString();
+        if (value == "background") {
+            info->m_type = ElementInfo::Type::Background;
+        } else if (value == "panel") {
+            info->m_type = ElementInfo::Type::Panel;
+        } else if (value == "overlay") {
+            info->m_type = ElementInfo::Type::Overlay;
+        }
+    }
 
     if (info->m_qml.isEmpty()) {
         qWarning() << QString("Failed to load the element '%1'. Missing 'qmlFile' field.").arg(path);

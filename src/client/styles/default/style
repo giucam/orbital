@@ -1,2 +1,4 @@
-qmlFile=DefaultStyle.qml
-prettyName=Default
+{
+    "qmlFile": "DefaultStyle.qml",
+    "prettyName": "Default"
+}

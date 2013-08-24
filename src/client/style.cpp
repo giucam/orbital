@@ -21,6 +21,8 @@
 #include <QStandardPaths>
 #include <QDebug>
 #include <QQmlComponent>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "style.h"
 
@@ -108,23 +110,24 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
     info->m_path = path;
     info->m_prettyName = name;
 
-    QTextStream stream(&file);
-    while (!stream.atEnd()) {
-        QString line = stream.readLine();
-
-        QStringList parts = line.split('=');
-        if (parts.size() < 2) {
-            continue;
-        }
-        const QString &key = parts.at(0);
-        const QString &value = parts.at(1);
-        if (key == "qmlFile") {
-            info->m_qml = path + "/" + value;
-        } else if (key == "prettyName") {
-            info->m_prettyName = value;
-        }
-    };
+    QByteArray data = file.readAll();
     file.close();
+
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
+    if (error.error != QJsonParseError::NoError) {
+        qWarning("Error parsing %s at offset %d: %s", qPrintable(filePath), error.offset, qPrintable(error.errorString()));
+        delete info;
+        return;
+    }
+    QJsonObject json = doc.object();
+
+    if (json.contains("prettyName")) {
+        info->m_prettyName = json.value("prettyName").toString();
+    }
+    if (json.contains("qmlFile")) {
+        info->m_qml = path + "/" + json.value("qmlFile").toString();
+    }
 
     if (info->m_qml.isEmpty()) {
         qWarning() << QString("Failed to load the style '%1'. Missing 'qmlFile' field.").arg(path);

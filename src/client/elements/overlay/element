@@ -1,3 +1,5 @@
-prettyName=Overlay
-qmlFile=Overlay.qml
-type=overlay
+{
+    "prettyName": "Overlay",
+    "qmlFile": "Overlay.qml",
+    "type": "overlay"
+}

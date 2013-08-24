@@ -1,3 +1,5 @@
-prettyName=Background
-qmlFile=Background.qml
-type=background
+{
+    "prettyName": "Background",
+    "qmlFile": "Background.qml",
+    "type": "background"
+}

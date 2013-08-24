@@ -1,3 +1,5 @@
-prettyName=Panel
-qmlFile=Panel.qml
-type=panel
+{
+    "prettyName": "Panel",
+    "qmlFile": "Panel.qml",
+    "type": "panel"
+}

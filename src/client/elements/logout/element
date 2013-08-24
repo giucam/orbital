@@ -1,2 +1,4 @@
-prettyName=Logout
-qmlFile=Logout.qml
+{
+    "prettyName": "Logout",
+    "qmlFile": "Logout.qml"
+}
