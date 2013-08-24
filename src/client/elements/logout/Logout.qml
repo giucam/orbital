@@ -30,6 +30,8 @@ Element {
     Layout.preferredWidth: height * 3 + 10
     Layout.fillHeight: true
 
+    property variant service: Client.service("LoginService")
+
     contentItem: Layout {
         id: row
         anchors.fill: parent
@@ -43,7 +45,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-log-out"
-                onClicked: Client.logOut()
+                onClicked: service.logOut()
             }
         }
         MouseArea {
@@ -56,7 +58,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-shutdown"
-                onClicked: Client.poweroff()
+                onClicked: service.poweroff()
             }
         }
         MouseArea {
@@ -69,7 +71,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-reboot"
-                onClicked: Client.reboot()
+                onClicked: service.reboot()
             }
         }
     }

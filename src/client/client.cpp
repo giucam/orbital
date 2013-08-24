@@ -29,7 +29,6 @@
 #include <QQuickItem>
 #include <QStandardPaths>
 #include <QQuickWindow>
-#include <QDBusInterface>
 #include <QQmlListProperty>
 
 #include <qpa/qplatformnativeinterface.h>
@@ -111,9 +110,6 @@ Client::Client()
     REGISTER_QMLFILE("Spacer");
     REGISTER_QMLFILE("Element");
     REGISTER_QMLFILE("Button");
-
-    m_loginServiceInterface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
-                                                 "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
 
     QCoreApplication::setApplicationName("orbital");
     QQuickWindow::setDefaultAlphaBuffer(true);
@@ -322,21 +318,9 @@ Service *Client::service(const QString &name)
     return s;
 }
 
-void Client::logOut()
+void Client::quit()
 {
     desktop_shell_quit(m_shell);
-}
-
-void Client::poweroff()
-{
-    logOut();
-    m_loginServiceInterface->call("PowerOff", true);
-}
-
-void Client::reboot()
-{
-    logOut();
-    m_loginServiceInterface->call("Reboot", true);
 }
 
 void Client::minimizeWindows()

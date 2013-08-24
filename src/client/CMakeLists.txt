@@ -6,7 +6,6 @@ find_package(Qt5Gui)
 find_package(Qt5Widgets)
 find_package(Qt5Qml)
 find_package(Qt5Quick)
-find_package(Qt5DBus)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -42,7 +41,7 @@ wayland_add_protocol_client(SOURCES
 qt5_add_resources(RESOURCES resources.qrc)
 
 add_executable(orbital-client ${SOURCES} ${RESOURCES})
-qt5_use_modules(orbital-client Widgets Qml Quick DBus)
+qt5_use_modules(orbital-client Widgets Qml Quick)
 target_link_libraries(orbital-client wayland-client asound)
 set_target_properties(orbital-client PROPERTIES COMPILE_DEFINITIONS LIBRARIES_PATH="${CMAKE_INSTALL_PREFIX}/lib/orbital")
 
@@ -51,3 +50,4 @@ install(DIRECTORY elements DESTINATION share/orbital)
 install(DIRECTORY styles DESTINATION share/orbital)
 
 add_subdirectory(services/mixer)
+add_subdirectory(services/login)

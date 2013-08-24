@@ -27,7 +27,6 @@ class QQmlEngine;
 class QQmlComponent;
 class QWindow;
 class QQuickWindow;
-class QDBusInterface;
 
 struct wl_display;
 struct wl_registry;
@@ -74,20 +73,16 @@ public:
     Client();
     ~Client();
 
+    void quit();
+    QQuickWindow *findWindow(wl_surface *surface) const;
+
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
-
     Q_INVOKABLE Service *service(const QString &name);
-
-    Q_INVOKABLE void logOut();
-    Q_INVOKABLE void poweroff();
-    Q_INVOKABLE void reboot();
 
     static Grab *createGrab();
     static QQuickWindow *createUiWindow();
 
     static Client *client() { return s_client; }
-
-    QQuickWindow *findWindow(wl_surface *surface) const;
 
 public slots:
     void minimizeWindows();
@@ -129,7 +124,6 @@ private:
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;
     QElapsedTimer m_elapsedTimer;
-    QDBusInterface *m_loginServiceInterface;
     QHash<QString, Service *> m_services;
     ShellUI *m_ui;
 
