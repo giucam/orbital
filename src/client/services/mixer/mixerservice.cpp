@@ -89,12 +89,13 @@ bool MixerService::muted() const
 {
     int mute;
     snd_mixer_selem_get_playback_switch(m_elem, SND_MIXER_SCHN_UNKNOWN, &mute);
-    return mute;
+    return !mute;
 }
 
 void MixerService::setMuted(bool muted)
 {
-    snd_mixer_selem_set_playback_switch_all(m_elem, muted);
+    snd_mixer_selem_set_playback_switch_all(m_elem, !muted);
+    emit mutedChanged();
 }
 
 void MixerService::toggleMuted()

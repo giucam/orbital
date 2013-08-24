@@ -66,7 +66,7 @@ Rectangle {
         anchors.bottomMargin: anchors.topMargin
 
         maximumValue: 100
-        Binding { target: bar; property: "value"; value: control.master }
+        Binding { target: bar; property: "value"; value: control.muted ? 0 : control.master }
         Connections {
             target: control
             onMasterChanged: {
