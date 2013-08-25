@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <linux/input.h>
+#include <string.h>
 
 #include <wayland-server.h>
 
@@ -927,9 +928,15 @@ WL_EXPORT int
 module_init(struct weston_compositor *ec, int *argc, char *argv[])
 {
 
-    weston_config_section *s = weston_config_get_section(ec->config, "orbital", NULL, NULL);
-    char *client;
-    weston_config_section_get_string(s, "shell_client", &client, NULL);
+    char *client = nullptr;
+
+    for (int i = 0; i < *argc; ++i) {
+        if (char *s = strstr(argv[i], "--orbital-client=")) {
+            client = strdup(s + 17);
+            --*argc;
+            break;
+        }
+    }
 
     Shell *shell = Shell::load<DesktopShell>(ec, client);
     if (!shell) {
