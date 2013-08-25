@@ -44,7 +44,7 @@ qt5_use_modules(orbital-client Widgets Qml Quick)
 target_link_libraries(orbital-client wayland-client)
 set_target_properties(orbital-client PROPERTIES COMPILE_DEFINITIONS LIBRARIES_PATH="${CMAKE_INSTALL_PREFIX}/lib/orbital")
 
-install(TARGETS orbital-client DESTINATION bin)
+install(TARGETS orbital-client DESTINATION libexec)
 install(DIRECTORY elements DESTINATION share/orbital)
 install(DIRECTORY styles DESTINATION share/orbital)
 
