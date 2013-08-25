@@ -5,12 +5,13 @@ Its goal is to produce a light and self-contained shell running on Wayland,
 without many dependencies aside Weston and Qt.
 
 1. DEPENDENCIES
-Orbital depends on two things: Weston 1.2 and Qt 5.1.
+Orbital depends on two things: Weston git master and Qt 5.1.
 Since it uses QtQuick 2 to draw the interface it will make use of OpenGL,
 so it is advisable to use a decent graphics driver, otherwise the performance
 will not be good.
-You also need QtWayland, as Qt does not provide a Wayland backend by default.
-You do not need QtCompositor, the platform plugin is enough.
+You also need QtWayland, preferably from git (branch 'stable') as Qt does not
+provide a Wayland backend by default. You do not need QtCompositor, the
+platform plugin is enough.
 
 2. COMPILING ORBITAL
 To compile Orbital run this commands from the repository root directory:
@@ -31,11 +32,11 @@ Add these lines:
     [core]
     modules=/'orbital prefix'/lib/orbital/orbital-shell.so
 
-    [orbital]
-    shell_client=/'orbital prefix'/bin/orbital-client
 replacing 'orbital prefix' with the actual prefix.
 
-Now you can just run 'weston' or 'weston-launch' and it will load Orbital.
+Now you can just run 'orbital', to run it. If you run it inside an X session
+it will run in windowed mode, otherwise running it from a tty will start its
+own dedicated session.
 
 4. CONFIGURING ORBITAL
 The first time you start Orbital it will load a default configuration. If you
