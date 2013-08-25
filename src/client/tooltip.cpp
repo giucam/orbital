@@ -91,7 +91,7 @@ void ToolTip::doShow()
 
     // TODO: Better placement, maybe by adding some protocol
     m_window->setX(pos.x());
-    m_window->setY(pos.y() + parentItem()->height());
+    m_window->setY(pos.y() + parentItem()->height() + 5);
 
     m_window->setWidth(m_content->width());
     m_window->setHeight(m_content->height());
