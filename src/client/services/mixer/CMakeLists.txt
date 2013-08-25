@@ -9,4 +9,5 @@ set(SOURCES mixerservice.cpp)
 
 add_library(mixerservice SHARED ${SOURCES})
 qt5_use_modules(mixerservice Core)
+target_link_libraries(mixerservice asound)
 install(TARGETS mixerservice DESTINATION lib/orbital/services)

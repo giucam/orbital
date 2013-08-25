@@ -41,7 +41,7 @@ qt5_add_resources(RESOURCES resources.qrc)
 
 add_executable(orbital-client ${SOURCES} ${RESOURCES})
 qt5_use_modules(orbital-client Widgets Qml Quick)
-target_link_libraries(orbital-client wayland-client asound)
+target_link_libraries(orbital-client wayland-client)
 set_target_properties(orbital-client PROPERTIES COMPILE_DEFINITIONS LIBRARIES_PATH="${CMAKE_INSTALL_PREFIX}/lib/orbital")
 
 install(TARGETS orbital-client DESTINATION bin)
