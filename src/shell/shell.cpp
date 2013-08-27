@@ -608,9 +608,9 @@ static void configure_static_surface(struct weston_surface *es, Layer *layer, in
     if (width == 0)
         return;
 
-    weston_surface_configure(es, es->output->x, es->output->y, width, height);
+    weston_surface_configure(es, es->geometry.x, es->geometry.y, width, height);
 
-    if (wl_list_empty(&es->layer_link)) {
+    if (wl_list_empty(&es->layer_link) || es->layer_link.next == es->layer_link.prev) {
         layer->addSurface(es);
         weston_compositor_schedule_repaint(es->compositor);
     }
@@ -632,6 +632,7 @@ void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_o
         static_cast<Shell *>(es->configure_private)->backgroundConfigure(es, sx, sy, width, height); };
     surface->configure_private = this;
     surface->output = output;
+    weston_surface_set_position(surface, output->x, output->y);
 }
 
 void Shell::setGrabSurface(struct weston_surface *surface)
@@ -645,6 +646,7 @@ void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output
         static_cast<Shell *>(es->configure_private)->panelConfigure(es, sx, sy, width, height); };
     surface->configure_private = this;
     surface->output = output;
+    weston_surface_set_position(surface, output->x, output->y);
 }
 
 void Shell::addOverlaySurface(struct weston_surface *surface, struct weston_output *output)
@@ -653,6 +655,7 @@ void Shell::addOverlaySurface(struct weston_surface *surface, struct weston_outp
         configure_static_surface(es, &static_cast<Shell *>(es->configure_private)->m_overlayLayer, width, height); };
     surface->configure_private = this;
     surface->output = output;
+    weston_surface_set_position(surface, output->x, output->y);
 }
 
 void Shell::showPanels()

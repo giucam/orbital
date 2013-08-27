@@ -45,6 +45,7 @@ private:
     void setPanel(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                                         struct wl_resource *surface_resource);
     void setLockSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
+    void setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *output_resource, wl_resource *surface_resource, int x, int y);
     void unlock(struct wl_client *client, struct wl_resource *resource);
     void setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
     void desktopReady(struct wl_client *client, struct wl_resource *resource);
