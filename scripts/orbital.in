@@ -1,7 +1,9 @@
 #!/bin/sh
 
+args="--shell=@CMAKE_INSTALL_PREFIX@/lib/orbital/orbital-shell.so --orbital-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital"
+
 if [ -z "$DISPLAY" ]; then
-    weston-launch -- --orbital-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital
+    weston-launch -- $args
 else
-    weston --orbital-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital
+    weston $args
 fi
