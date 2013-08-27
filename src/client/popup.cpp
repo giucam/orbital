@@ -90,10 +90,7 @@ void Popup::hide()
 
 void Popup::hideEvent()
 {
-    // hiding the window would probably be better, but that would hang the process when
-    // rapidly showing and hiding the window.
-    delete m_window;
-    m_window = nullptr;
+    m_window->hide();
 }
 
 void Popup::close(desktop_shell_surface *s)
