@@ -26,14 +26,6 @@ otherwise using the CMAKE_INSTALL_PREFIX variable:
     cmake -DCMAKE_INSTALL_PREFIX=/my/prefix ..
 
 3. RUNNING ORBITAL
-To run Orbital you need to tell Weston it should load it, so you must modify
-weston.ini, which should be in your $XDG_CONFIG_HOME, or in your $HOME/.config.
-Add these lines:
-    [core]
-    modules=/'orbital prefix'/lib/orbital/orbital-shell.so
-
-replacing 'orbital prefix' with the actual prefix.
-
 Now you can just run 'orbital', to run it. If you run it inside an X session
 it will run in windowed mode, otherwise running it from a tty will start its
 own dedicated session.
