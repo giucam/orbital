@@ -30,7 +30,8 @@ set(SOURCES
     service.cpp
     style.cpp
     styleitem.cpp
-    tooltip.cpp)
+    tooltip.cpp
+    popup.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml

@@ -38,6 +38,7 @@ struct desktop_shell_listener;
 struct desktop_shell_binding;
 struct desktop_shell_window;
 struct desktop_shell_workspace;
+struct desktop_shell_surface;
 
 class Window;
 class ShellUI;
@@ -74,6 +75,7 @@ public:
 
     void quit();
     QQuickWindow *findWindow(wl_surface *surface) const;
+    desktop_shell_surface *setPopup(QWindow *p);
 
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
     Q_INVOKABLE Service *service(const QString &name);
