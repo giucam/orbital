@@ -69,11 +69,7 @@ Rectangle {
         Binding { target: bar; property: "value"; value: control.muted ? 0 : control.master }
         Connections {
             target: control
-            onMasterChanged: {
-                volume.opacity = 1;
-                timer.restart();
-            }
-            onMutedChanged: {
+            onBindingTriggered: {
                 volume.opacity = 1;
                 timer.restart();
             }

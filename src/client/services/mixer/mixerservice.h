@@ -55,6 +55,7 @@ public slots:
 signals:
     void masterChanged();
     void mutedChanged();
+    void bindingTriggered();
 
 private:
     int rawVol() const;

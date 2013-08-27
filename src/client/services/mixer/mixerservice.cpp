@@ -58,9 +58,9 @@ void MixerService::init()
     m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
     m_muteBinding = client()->addKeyBinding(KEY_MUTE, 0);
 
-    connect(m_upBinding, &Binding::triggered, [this]() { increaseMaster(); });
-    connect(m_downBinding, &Binding::triggered, [this]() { decreaseMaster(); });
-    connect(m_muteBinding, &Binding::triggered, this, &MixerService::toggleMuted);
+    connect(m_upBinding, &Binding::triggered, [this]() { increaseMaster(); emit bindingTriggered(); });
+    connect(m_downBinding, &Binding::triggered, [this]() { decreaseMaster(); emit bindingTriggered(); });
+    connect(m_muteBinding, &Binding::triggered, [this]() { toggleMuted(); emit bindingTriggered(); });
 }
 
 void MixerService::changeMaster(int change)
@@ -90,8 +90,6 @@ void MixerService::setRawVol(int volume)
 void MixerService::setMaster(int volume)
 {
     setRawVol((float)volume * (float)m_max / 100.f);
-
-    emit masterChanged();
 }
 
 int MixerService::rawVol() const
