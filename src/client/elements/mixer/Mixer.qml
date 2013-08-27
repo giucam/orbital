@@ -41,6 +41,21 @@ Element {
 
         onClicked: popup.show()
 
+        MouseArea {
+            anchors.fill: parent
+
+            onPressed: mouse.accepted = false
+            onWheel: {
+                wheel.accepted = true;
+                if (!service.muted) {
+                    if (wheel.angleDelta.y > 0)
+                        service.increaseMaster();
+                    else
+                        service.decreaseMaster();
+                }
+            }
+        }
+
         function chooseIcon() {
             var vol = service.master;
             if (service.muted) {
@@ -101,7 +116,10 @@ Element {
                     onWheel: {
                         wheel.accepted = true;
                         if (!service.muted) {
-                            service.master += wheel.angleDelta.y / 10;
+                            if (wheel.angleDelta.y > 0)
+                                service.increaseMaster();
+                            else
+                                service.decreaseMaster();
                         }
                     }
                 }
