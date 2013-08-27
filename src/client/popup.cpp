@@ -34,7 +34,6 @@ Popup::Popup(QObject *p)
      : QObject(p)
      , m_window(nullptr)
      , m_parent(nullptr)
-     , m_visible(false)
      , m_content(nullptr)
 {
 }
@@ -44,6 +43,11 @@ Popup::~Popup()
     if (m_window) {
         hide();
     }
+}
+
+bool Popup::visible() const
+{
+    return m_window ? m_window->isVisible() : false;
 }
 
 void Popup::setVisible(bool v)
@@ -80,6 +84,8 @@ void Popup::show()
 
     m_shsurf = Client::client()->setPopup(m_window);
     desktop_shell_surface_add_listener(m_shsurf, &m_shsurf_listener, this);
+
+    emit visibleChanged();
 }
 
 void Popup::hide()
@@ -91,6 +97,7 @@ void Popup::hide()
 void Popup::hideEvent()
 {
     m_window->hide();
+    emit visibleChanged();
 }
 
 void Popup::close(desktop_shell_surface *s)

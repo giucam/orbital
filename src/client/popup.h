@@ -32,7 +32,7 @@ class Popup : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQuickItem *parentItem READ parentItem WRITE setParentItem)
-    Q_PROPERTY(bool visible READ visible WRITE setVisible)
+    Q_PROPERTY(bool visible READ visible WRITE setVisible NOTIFY visibleChanged)
     Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
 public:
     Popup(QObject *parent = nullptr);
@@ -41,7 +41,7 @@ public:
     QQuickItem *parentItem() const { return m_parent; }
     void setParentItem(QQuickItem *i) { m_parent = i; }
 
-    bool visible() const { return m_visible; }
+    bool visible() const;
     void setVisible(bool v);
 
     QQuickItem *content() const { return m_content; }
@@ -51,6 +51,9 @@ public slots:
     void show();
     void hide();
 
+signals:
+    void visibleChanged();
+
 private slots:
     void hideEvent();
 
@@ -59,7 +62,6 @@ private:
 
     QQuickWindow *m_window;
     QQuickItem *m_parent;
-    bool m_visible;
     QQuickItem *m_content;
     desktop_shell_surface *m_shsurf;
 
