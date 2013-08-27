@@ -55,10 +55,11 @@ static const char *defaultConfig =
 "            </element>\n"
 "            <element type=\"pager\" id=\"4\"/>\n"
 "            <element type=\"taskbar\" id=\"5\"/>\n"
-"            <element type=\"logout\" id=\"6\"/>\n"
-"            <element type=\"clock\" id=\"7\"/>\n"
+"            <element type=\"mixer\" id=\"6\"/>\n"
+"            <element type=\"logout\" id=\"7\"/>\n"
+"            <element type=\"clock\" id=\"8\"/>\n"
 "        </element>\n"
-"        <element type=\"overlay\" id=\"8\"/>\n"
+"        <element type=\"overlay\" id=\"9\"/>\n"
 "    </Screen>\n"
 "</Ui>\n";
 
