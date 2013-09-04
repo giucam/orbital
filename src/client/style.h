@@ -69,6 +69,9 @@ class Style : public QObject
 
     Q_PROPERTY(QQmlComponent *button READ button WRITE set_button NOTIFY buttonChanged)
 
+    Q_PROPERTY(QQmlComponent *popup READ popup WRITE set_popup NOTIFY popupChanged)
+    Q_PROPERTY(QQmlComponent *popupLauncher READ popupLauncher WRITE set_popupLauncher NOTIFY popupLauncherChanged)
+
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
 public:
@@ -82,6 +85,8 @@ public:
     PROPERTY(QQmlComponent *, pagerWorkspace)
     PROPERTY(QQmlComponent *, toolTipBackground)
     PROPERTY(QQmlComponent *, button)
+    PROPERTY(QQmlComponent *, popup)
+    PROPERTY(QQmlComponent *, popupLauncher)
     PROPERTY(QColor, textColor)
     PROPERTY(QColor, backgroundColor)
 
@@ -100,6 +105,8 @@ signals:
     void pagerWorkspaceChanged();
     void toolTipBackgroundChanged();
     void buttonChanged();
+    void popupChanged();
+    void popupLauncherChanged();
     void textColorChanged();
     void backgroundColorChanged();
 

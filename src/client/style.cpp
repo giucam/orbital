@@ -38,6 +38,8 @@ Style::Style(QObject *p)
      , m_pagerWorkspace(nullptr)
      , m_toolTipBackground(nullptr)
      , m_button(nullptr)
+     , m_popup(nullptr)
+     , m_popupLauncher(nullptr)
 {
 
 }

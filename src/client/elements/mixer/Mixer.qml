@@ -34,29 +34,97 @@ Element {
 
     property variant service: Client.service("MixerService")
 
-    contentItem: Item {
-        width: parent.width
-        height: parent.height + 10
-        clip: true
-        Rectangle {
+    contentItem: StyleItem {
+        id: launcher
+        anchors.fill: parent
+        component: CurrentStyle.popupLauncher
+
+        Binding { target: launcher.item; property: "popup"; value: popup }
+
+        Icon {
+            id: icon
             anchors.fill: parent
-            color: popup.visible ? "#57A2FD" : "transparent"
-            radius: 3
+            icon: chooseIcon()
 
-            Behavior on color { ColorAnimation { duration: 100 } }
+            onClicked: popup.show()
 
-            Icon {
-                id: icon
-                width: parent.width
-                height: mixer.height
-                icon: chooseIcon()
+            MouseArea {
+                anchors.fill: parent
 
-                onClicked: popup.show()
+                onPressed: mouse.accepted = false
+                onWheel: {
+                    wheel.accepted = true;
+                    if (!service.muted) {
+                        if (wheel.angleDelta.y > 0)
+                            service.increaseMaster();
+                        else
+                            service.decreaseMaster();
+                    }
+                }
+            }
+
+            function chooseIcon() {
+                var vol = service.master;
+                if (service.muted) {
+                    return "image://icon/audio-volume-muted";
+                } else if (vol > 66) {
+                    return "image://icon/audio-volume-high";
+                } else if (vol > 33) {
+                    return "image://icon/audio-volume-medium";
+                } else {
+                    return "image://icon/audio-volume-low";
+                }
+            }
+        }
+    }
+
+    Popup {
+        id: popup
+        parentItem: mixer
+
+        content: StyleItem {
+            id: style
+            width: 50
+            height: 180
+
+            component: CurrentStyle.popup
+
+            Binding { target: style.item; property: "header"; value: "Mixer" }
+
+            Slider {
+                id: slider
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.left: parent.left
+                anchors.bottom: ic.top
+                anchors.margins: 3
+                orientation: Qt.Vertical
+                maximumValue: 100
+                stepSize: 1
+                value: service.muted ? 0 : service.master;
 
                 MouseArea {
                     anchors.fill: parent
+                    onPressed: {
+                        mouse.accepted = true;
+                    }
+                    onPositionChanged: {
+                        if (!service.muted) {
+                            behavior.enabled = false;
+                            var h = slider.height - 10;
+                            var y = mouse.y - 5;
+                            service.setMaster((1 - y / h) * 100);
+                            behavior.enabled = true;
+                        }
+                    }
+                    onReleased: {
+                        if (!service.muted) {
+                            var h = slider.height - 10;
+                            var y = mouse.y - 5;
+                            service.setMaster((1 - y / h) * 100);
+                        }
+                    }
 
-                    onPressed: mouse.accepted = false
                     onWheel: {
                         wheel.accepted = true;
                         if (!service.muted) {
@@ -68,113 +136,21 @@ Element {
                     }
                 }
 
-                function chooseIcon() {
-                    var vol = service.master;
-                    if (service.muted) {
-                        return "image://icon/audio-volume-muted";
-                    } else if (vol > 66) {
-                        return "image://icon/audio-volume-high";
-                    } else if (vol > 33) {
-                        return "image://icon/audio-volume-medium";
-                    } else {
-                        return "image://icon/audio-volume-low";
-                    }
+                Behavior on value {
+                    id: behavior
+                    PropertyAnimation { duration: 200 }
                 }
             }
-        }
-    }
+            Icon {
+                id: ic
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.margins: 3
+                width: 20
+                height: 20
+                icon: icon.icon
 
-    Popup {
-        id: popup
-        parentItem: mixer
-
-        content: Item {
-            width: 50
-            height: 180
-            clip: true
-            Rectangle {
-                width: parent.width
-                height: parent.height + 10
-                y: -10
-                radius: 3
-                color: CurrentStyle.backgroundColor
-
-                Rectangle {
-                    id: header
-                    y: 10
-                    anchors.right: parent.right
-                    anchors.left: parent.left
-                    height: 20
-                    color: "#57A2FD"
-
-                    Text {
-                        text: "Mixer"
-                        color: "white"
-                        anchors.centerIn: parent
-                    }
-                }
-
-                Slider {
-                    id: slider
-                    anchors.top: header.bottom
-                    anchors.right: parent.right
-                    anchors.left: parent.left
-                    anchors.bottom: ic.top
-                    anchors.margins: 3
-                    orientation: Qt.Vertical
-                    maximumValue: 100
-                    stepSize: 1
-                    value: service.muted ? 0 : service.master;
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onPressed: {
-                            mouse.accepted = true;
-                        }
-                        onPositionChanged: {
-                            if (!service.muted) {
-                                behavior.enabled = false;
-                                var h = slider.height - 10;
-                                var y = mouse.y - 5;
-                                service.setMaster((1 - y / h) * 100);
-                                behavior.enabled = true;
-                            }
-                        }
-                        onReleased: {
-                            if (!service.muted) {
-                                var h = slider.height - 10;
-                                var y = mouse.y - 5;
-                                service.setMaster((1 - y / h) * 100);
-                            }
-                        }
-
-                        onWheel: {
-                            wheel.accepted = true;
-                            if (!service.muted) {
-                                if (wheel.angleDelta.y > 0)
-                                    service.increaseMaster();
-                                else
-                                    service.decreaseMaster();
-                            }
-                        }
-                    }
-
-                    Behavior on value {
-                        id: behavior
-                        PropertyAnimation { duration: 200 }
-                    }
-                }
-                Icon {
-                    id: ic
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.margins: 3
-                    width: 20
-                    height: 20
-                    icon: icon.icon
-
-                    onClicked: service.toggleMuted()
-                }
+                onClicked: service.toggleMuted()
             }
         }
     }

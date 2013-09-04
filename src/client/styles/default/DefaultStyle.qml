@@ -133,6 +133,50 @@ Style {
         }
     }
 
+    popup: StyleComponent {
+        clip: true
+        topContentsMargin: header.height
+
+        property alias header: title.text
+
+        Rectangle {
+            width: parent.width
+            height: parent.height + 10
+            y: -10
+            radius: 3
+            color: CurrentStyle.backgroundColor
+
+            Rectangle {
+                id: header
+                y: 10
+                anchors.right: parent.right
+                anchors.left: parent.left
+                height: 20
+                color: "#5A0608"
+
+                Text {
+                    id: title
+                    color: "white"
+                    anchors.centerIn: parent
+                }
+            }
+        }
+    }
+
+    popupLauncher: StyleComponent {
+        property variant popup: null
+
+        clip: true
+        Rectangle {
+            width: parent.width
+            height: parent.height + 10
+            color: (popup && popup.visible) ? "#5A0608" : "transparent"
+            radius: 3
+
+            Behavior on color { ColorAnimation { duration: 100 } }
+        }
+    }
+
     textColor: "white"
     backgroundColor: "#E6404040"
 }
