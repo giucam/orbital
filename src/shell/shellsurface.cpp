@@ -591,7 +591,8 @@ void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, 
 {
     struct weston_seat *ws = static_cast<weston_seat *>(wl_resource_get_user_data(seat_resource));
 
-    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || ws->pointer->focus != m_surface) {
+    struct weston_surface *surface = weston_surface_get_main_surface(ws->pointer->focus);
+    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || surface != m_surface) {
         return;
     }
 
@@ -690,11 +691,39 @@ void ShellSurface::resize(struct wl_client *client, struct wl_resource *resource
 {
     struct weston_seat *ws = static_cast<weston_seat *>(wl_resource_get_user_data(seat_resource));
 
-    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || ws->pointer->focus != m_surface) {
+    struct weston_surface *surface = weston_surface_get_main_surface(ws->pointer->focus);
+    if (ws->pointer->button_count == 0 || ws->pointer->grab_serial != serial || surface != m_surface) {
         return;
     }
 
     dragResize(ws, edges);
+}
+
+/*
+ * Returns the bounding box of a surface and all its sub-surfaces,
+ * in the surface coordinates system. */
+IRect2D ShellSurface::surfaceTreeBoundingBox() const {
+    pixman_region32_t region;
+    pixman_box32_t *box;
+    struct weston_subsurface *subsurface;
+
+    pixman_region32_init_rect(&region, 0, 0,
+                              m_surface->geometry.width,
+                              m_surface->geometry.height);
+
+    wl_list_for_each(subsurface, &m_surface->subsurface_list, parent_link) {
+        pixman_region32_union_rect(&region, &region,
+                                   subsurface->position.x,
+                                   subsurface->position.y,
+                                   subsurface->surface->geometry.width,
+                                   subsurface->surface->geometry.height);
+    }
+
+    box = pixman_region32_extents(&region);
+    IRect2D rect(box->x1, box->y1, box->x2 - box->x1, box->y2 - box->y1);
+    pixman_region32_fini(&region);
+
+    return rect;
 }
 
 void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
@@ -712,8 +741,10 @@ void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
     }
 
     grab->edges = edges;
-    grab->width = m_surface->geometry.width;
-    grab->height = m_surface->geometry.height;
+
+    IRect2D rect = surfaceTreeBoundingBox();
+    grab->width = rect.width;
+    grab->height = rect.height;
     grab->shsurf = this;
     m_runningGrab = grab;
 
