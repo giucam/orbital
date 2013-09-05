@@ -22,8 +22,8 @@ import Orbital 1.0
 
 Element {
     id: element
-    Layout.minimumWidth: text.width
-    Layout.preferredWidth: text.width
+    Layout.minimumWidth: time.contentWidth + 10
+    Layout.preferredWidth: Layout.minimumWidth
     Layout.fillHeight: true
 
     width: Layout.preferredWidth
@@ -34,13 +34,32 @@ Element {
         running: true
         repeat: true
         triggeredOnStart: true
-        onTriggered: text.text = Qt.formatDateTime(new Date(), "h:mm:ss")
+        onTriggered: {
+            var d = new Date();
+            time.text = Qt.formatDateTime(d, "h:mm:ss");
+            date.text = Qt.formatDateTime(d, "d/MM");
+        }
     }
 
-    contentItem: Text {
-        id: text
-        anchors.centerIn: parent
-        color: CurrentStyle.textColor
+    contentItem: Column {
+        anchors.fill: parent
+        Text {
+            id: time
+            width: parent.width
+            height: contentHeight
+            verticalAlignment: Qt.AlignVCenter
+            horizontalAlignment: Qt.AlignHCenter
+            color: CurrentStyle.textColor
+        }
+        Text {
+            id: date
+            width: parent.width
+            height: contentHeight
+            verticalAlignment: Qt.AlignVCenter
+            horizontalAlignment: Qt.AlignHCenter
+            color: CurrentStyle.textColor
+            font.pixelSize: 10
+        }
     }
 
 }
