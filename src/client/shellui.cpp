@@ -79,6 +79,7 @@ ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
 
 ShellUI::~ShellUI()
 {
+    qDeleteAll(m_screens);
 }
 
 UiScreen *ShellUI::loadScreen(int s)

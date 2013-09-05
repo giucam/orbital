@@ -121,6 +121,7 @@ Client::Client()
 Client::~Client()
 {
     delete m_grabWindow;
+    delete m_ui;
     qDeleteAll(m_workspaces);
     qDeleteAll(m_services);
 

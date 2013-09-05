@@ -63,6 +63,8 @@ Element::~Element()
         elm->m_parent = nullptr;
     }
     delete m_settingsWindow;
+    delete m_content;
+    delete m_contentItem;
 }
 
 void Element::setId(int id)
@@ -235,6 +237,7 @@ void Element::setParentElement(Element *parent)
     } else {
         setParentItem(nullptr);
     }
+    setParent(parent);
     m_parent = parent;
 }
 

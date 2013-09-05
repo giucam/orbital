@@ -42,6 +42,7 @@ UiScreen::UiScreen(ShellUI *ui, Client *client, int screen)
 
 UiScreen::~UiScreen()
 {
+    qDeleteAll(m_children);
 }
 
 void UiScreen::loadConfig(QXmlStreamReader &xml)
