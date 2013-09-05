@@ -29,16 +29,10 @@ Element {
     width: Layout.preferredWidth
     height: 20
 
-    Timer {
-        interval: 200
-        running: true
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: {
-            var d = new Date();
-            time.text = Qt.formatDateTime(d, "h:mm:ss");
-            date.text = Qt.formatDateTime(d, "d/MM");
-        }
+    property variant service: Client.service("DateTimeService")
+    Connections {
+        target: service
+        onUpdated: update()
     }
 
     contentItem: Column {
@@ -62,4 +56,12 @@ Element {
         }
     }
 
+    Component.onCompleted: update()
+
+    function update()
+    {
+        print("upd");
+        time.text = service.time();
+        date.text = service.date();
+    }
 }
