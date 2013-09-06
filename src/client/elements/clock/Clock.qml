@@ -60,7 +60,6 @@ Element {
 
     function update()
     {
-        print("upd");
         time.text = service.time();
         date.text = service.date();
     }
