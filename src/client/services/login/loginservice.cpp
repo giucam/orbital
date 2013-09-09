@@ -36,6 +36,9 @@ void LoginService::init()
 {
     m_interface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                      "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
+
+    m_timer.setInterval(1000);
+    connect(&m_timer, &QTimer::timeout, this, &LoginService::decreaseTimeout);
 }
 
 void LoginService::logOut()
@@ -53,4 +56,45 @@ void LoginService::reboot()
 {
     client()->quit();
     m_interface->call("Reboot", true);
+}
+
+void LoginService::requestLogOut()
+{
+    startRequest(&LoginService::logOut, "logout");
+}
+
+void LoginService::requestPoweroff()
+{
+    startRequest(&LoginService::poweroff, "poweroff");
+}
+
+void LoginService::requestReboot()
+{
+    startRequest(&LoginService::reboot, "reboot");
+}
+
+void LoginService::abortRequest()
+{
+    m_timer.stop();
+}
+
+void LoginService::startRequest(void (LoginService::*request)(), const QString &op)
+{
+    m_request = request;
+    m_timeout = 3;
+
+    emit timeoutStarted(op);
+    emit timeoutChanged();
+
+    m_timer.start();
+}
+
+void LoginService::decreaseTimeout()
+{
+    --m_timeout;
+    if (m_timeout < 1) {
+        (this->*m_request)();
+    } else {
+        emit timeoutChanged();
+    }
 }

@@ -25,5 +25,9 @@ Element {
     width: Screen.width
     height: Screen.height
 
-    contentItem: Volume {}
+    contentItem: Item {
+        anchors.fill: parent
+        Volume {}
+        Leave {}
+    }
 }

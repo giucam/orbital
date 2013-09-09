@@ -80,7 +80,7 @@ public:
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
     Q_INVOKABLE Service *service(const QString &name);
 
-    static Grab *createGrab();
+    Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
 
     static Client *client() { return s_client; }

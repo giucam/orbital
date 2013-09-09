@@ -45,7 +45,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-log-out"
-                onClicked: service.logOut()
+                onClicked: service.requestLogOut()
             }
         }
         MouseArea {
@@ -58,7 +58,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-shutdown"
-                onClicked: service.poweroff()
+                onClicked: service.requestPoweroff()
             }
         }
         MouseArea {
@@ -71,7 +71,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-reboot"
-                onClicked: service.reboot()
+                onClicked: service.requestReboot()
             }
         }
     }

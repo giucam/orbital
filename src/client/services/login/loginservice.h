@@ -20,6 +20,8 @@
 #ifndef LOGINSERVICE_H
 #define LOGINSERVICE_H
 
+#include <QTimer>
+
 #include "service.h"
 
 class QDBusInterface;
@@ -29,19 +31,37 @@ class LoginService : public Service
     Q_OBJECT
     Q_INTERFACES(Service)
     Q_PLUGIN_METADATA(IID "Orbital.Service")
+
+    Q_PROPERTY(int timeout READ timeout NOTIFY timeoutChanged)
 public:
     LoginService();
     ~LoginService();
 
     void init();
 
+    int timeout() const { return m_timeout; }
+
 public slots:
     void logOut();
     void poweroff();
     void reboot();
+    void requestLogOut();
+    void requestPoweroff();
+    void requestReboot();
+    void abortRequest();
+
+signals:
+    void timeoutStarted(const QString &operation);
+    void timeoutChanged();
 
 private:
+    void startRequest(void (LoginService::*request)(), const QString &op);
+    void decreaseTimeout();
+
     QDBusInterface *m_interface;
+    int m_timeout;
+    void (LoginService::*m_request)();
+    QTimer m_timer;
 };
 
 #endif

@@ -33,6 +33,7 @@ class Grab : public QObject
 public:
     Grab(desktop_shell_grab *grab);
 
+public slots:
     void end();
 
 signals:
