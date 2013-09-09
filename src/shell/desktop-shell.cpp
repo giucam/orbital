@@ -471,6 +471,7 @@ class ClientGrab : public ShellGrab {
 public:
     wl_resource *resource;
     weston_surface *focus;
+    bool pressed;
 };
 
 static void client_grab_focus(struct weston_pointer_grab *base)
@@ -507,10 +508,17 @@ static void client_grab_button(struct weston_pointer_grab *base, uint32_t time, 
     ShellGrab *grab = container_of(base, ShellGrab, grab);
     ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
 
-    if (grab->pointer->focus_resource) {
+    // Send the event to the application as normal if the mouse was pressed initially.
+    // The application has to know the button was released, otherwise its internal state
+    // will be inconsistent with the physical button state.
+    // Eat the other events, as the app doesn't need to know them.
+    // NOTE: this works only if there is only 1 button pressed initially. i can know how many button
+    // are pressed but weston currently has no API to determine which ones they are.
+    if (cgrab->pressed && button == grab->pointer->grab_button && grab->pointer->focus_resource) {
         wl_display *display = wl_client_get_display(wl_resource_get_client(grab->pointer->focus_resource));
         uint32_t serial = wl_display_next_serial(display);
         wl_pointer_send_button(grab->pointer->focus_resource, serial, time, button, state);
+        cgrab->pressed = false;
     }
 
     desktop_shell_grab_send_button(cgrab->resource, time, button, state);
@@ -547,6 +555,7 @@ void DesktopShell::createGrab(wl_client *client, wl_resource *resource, uint32_t
     grab->pointer = seat->pointer;
     grab->resource = res;
     grab->shell = this;
+    grab->pressed = seat->pointer->button_count > 0;
 
     ShellSeat::shellSeat(seat)->endPopupGrab();
 
