@@ -313,6 +313,14 @@ void ShellSurface::setXWayland(int x, int y, uint32_t flags)
     m_pendingType = Type::XWayland;
 }
 
+void ShellSurface::setTitle(const char *title)
+{
+    m_title = title;
+    if (m_windowResource) {
+        desktop_shell_window_send_set_title(m_windowResource, title);
+    }
+}
+
 void ShellSurface::mapPopup()
 {
     m_surface->output = m_parent->output;
@@ -798,14 +806,6 @@ void ShellSurface::setMaximized(struct wl_client *client, struct wl_resource *re
     IRect2D rect = m_shell->windowsArea(m_output);
     m_client->send_configure(m_surface, edges, rect.width, rect.height);
     m_pendingType = Type::Maximized;
-}
-
-void ShellSurface::setTitle(struct wl_client *client, struct wl_resource *resource, const char *title)
-{
-    m_title = title;
-    if (m_windowResource) {
-        desktop_shell_window_send_set_title(m_windowResource, title);
-    }
 }
 
 void ShellSurface::setClass(struct wl_client *client, struct wl_resource *resource, const char *className)
