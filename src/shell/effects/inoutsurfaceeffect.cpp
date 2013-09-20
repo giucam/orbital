@@ -81,6 +81,6 @@ void InOutSurfaceEffect::addedSurface(ShellSurface *surface)
     m_surfaces.push_back(surf);
 
     surf->animation.setStart(0);
-    surf->animation.setTarget(surface->alpha());
+    surf->animation.setTarget(1);
     surf->animation.run(surface->output(), ALPHA_ANIM_DURATION);
 }
