@@ -37,3 +37,6 @@ to normal mode) it will save the configuration file "orbital.conf", in
 $XDG_CONFIG_HOME or, if not set, in $HOME/.config. You can manually modify
 the configuration file, but Orbital has (or will have) graphical tools
 for configuring the environment.
+
+You can see a screencast of some of Orbital functionalities at this link:
+http://www.youtube.com/watch?v=bd1hguj2bPE
