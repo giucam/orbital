@@ -24,7 +24,6 @@
 #include <wayland-server.h>
 
 #include <weston/compositor.h>
-// #include <weston/config-parser.h>
 
 #include "shell.h"
 #include "shellsurface.h"
@@ -552,12 +551,6 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
     if (!focus)
         return;
 
-//     struct weston_surface *upper;
-//     if (is_black_surface(focus, &upper))
-//         focus = upper;
-
-//     if (get_shell_surface_type(focus) == SHELL_SURFACE_NONE)
-//         return;
     if (seat->pointer->grab == &seat->pointer->default_grab) {
         ShellSurface *shsurf = getShellSurface(focus);
         if (shsurf && shsurf->type() == ShellSurface::Type::Fullscreen) {
@@ -947,118 +940,6 @@ module_init(struct weston_compositor *ec, int *argc, char *argv[])
     if (!shell) {
         return -1;
     }
-
-//     struct weston_seat *seat;
-//     struct desktop_shell *shell;
-//     struct wl_notification_daemon *notification;
-//     struct workspace **pws;
-//     unsigned int i;
-//     struct wl_event_loop *loop;
-//
-//     shell = malloc(sizeof *shell);
-//     if (shell == NULL)
-//         return -1;
-//     memset(shell, 0, sizeof *shell);
-//     shell->compositor = ec;
-//
-//     notification = malloc(sizeof *notification);
-//     if (notification == NULL)
-//         return -1;
-//     memset(notification, 0, sizeof *notification);
-//     notification->compositor = ec;
-//
-//     shell->destroy_listener.notify = shell_destroy;
-//     wl_signal_add(&ec->destroy_signal, &shell->destroy_listener);
-//     shell->idle_listener.notify = idle_handler;
-//     wl_signal_add(&ec->idle_signal, &shell->idle_listener);
-//     shell->wake_listener.notify = wake_handler;
-//     wl_signal_add(&ec->wake_signal, &shell->wake_listener);
-//     shell->show_input_panel_listener.notify = show_input_panels;
-//     wl_signal_add(&ec->show_input_panel_signal, &shell->show_input_panel_listener);
-//     shell->hide_input_panel_listener.notify = hide_input_panels;
-//     wl_signal_add(&ec->hide_input_panel_signal, &shell->hide_input_panel_listener);
-//     ec->ping_handler = ping_handler;
-//     ec->shell_interface.shell = shell;
-//     ec->shell_interface.create_shell_surface = create_shell_surface;
-//     ec->shell_interface.set_toplevel = set_toplevel;
-//     ec->shell_interface.set_transient = set_transient;
-//     ec->shell_interface.set_fullscreen = set_fullscreen;
-//     ec->shell_interface.move = surface_move;
-//     ec->shell_interface.resize = surface_resize;
-//
-//     wl_list_init(&shell->input_panel.surfaces);
-//
-//     weston_layer_init(&notification->layer, &ec->cursor_layer.link);
-//     weston_layer_init(&shell->fullscreen_layer, &notification->layer.link);
-//     weston_layer_init(&shell->panel_layer, &shell->fullscreen_layer.link);
-//     weston_layer_init(&shell->background_layer, &shell->panel_layer.link);
-//     weston_layer_init(&shell->lock_layer, NULL);
-//     weston_layer_init(&shell->input_panel_layer, NULL);
-//
-//     wl_array_init(&shell->workspaces.array);
-//     wl_list_init(&shell->workspaces.client_list);
-//
-//     shell_configuration(shell, notification, config_file);
-//
-//     for (i = 0; i < shell->workspaces.num; i++) {
-//         pws = wl_array_add(&shell->workspaces.array, sizeof *pws);
-//         if (pws == NULL)
-//             return -1;
-//
-//         *pws = workspace_create();
-//         if (*pws == NULL)
-//             return -1;
-//     }
-//     activate_workspace(shell, 0);
-//
-//     wl_list_init(&shell->workspaces.anim_sticky_list);
-//     wl_list_init(&shell->workspaces.animation.link);
-//     shell->workspaces.animation.frame = animate_workspace_change_frame;
-//
-//     struct wl_global *global = wl_display_add_global(ec->wl_display, &wl_shell_interface, shell,
-//                                [](struct wl_client *client, void *data, uint32_t version, uint32_t id) {
-//                                    static_cast<Shell *>(data)->bind(client, version, id);
-//                                });
-//
-//     if (!global)
-//         return -1;
-//
-//     if (wl_display_add_global(ec->wl_display,
-//                   &desktop_shell_interface,
-//                   shell, bind_desktop_shell) == NULL)
-//         return -1;
-//
-//     if (wl_display_add_global(ec->wl_display,
-//                   &wl_notification_daemon_interface,
-//                   notification, bind_notification_daemon) == NULL)
-//         return -1;
-//
-//     if (wl_display_add_global(ec->wl_display, &screensaver_interface,
-//                   shell, bind_screensaver) == NULL)
-//         return -1;
-//
-//     if (wl_display_add_global(ec->wl_display, &input_panel_interface,
-//                   shell, bind_input_panel) == NULL)
-//         return -1;
-//
-//     if (wl_display_add_global(ec->wl_display, &workspace_manager_interface,
-//                   shell, bind_workspace_manager) == NULL)
-//         return -1;
-//
-//     shell->child.deathstamp = weston_compositor_get_time();
-//
-//     loop = wl_display_get_event_loop(ec->wl_display);
-//     wl_event_loop_add_idle(loop, launch_desktop_shell_process, shell);
-//
-//     shell->screensaver.timer =
-//         wl_event_loop_add_timer(loop, 0, shell);
-//
-//     wl_list_for_each(seat, &ec->seat_list, link)
-//         create_pointer_focus_listener(seat);
-//
-//     shell_add_bindings(ec, shell);
-//
-//     shell_fade(shell, FADE_IN);
 
     return 0;
 }
