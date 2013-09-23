@@ -155,8 +155,8 @@ void ShellSeat::popup_grab_focus(struct weston_pointer_grab *grab)
 
 static void popup_grab_motion(struct weston_pointer_grab *grab,  uint32_t time)
 {
-    struct wl_resource *resource = grab->pointer->focus_resource;
-    if (resource) {
+    struct wl_resource *resource;
+    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
         wl_fixed_t sx, sy;
         weston_surface_from_global_fixed(grab->pointer->focus, grab->pointer->x, grab->pointer->y, &sx, &sy);
         wl_pointer_send_motion(resource, time, sx, sy);
@@ -166,12 +166,15 @@ static void popup_grab_motion(struct weston_pointer_grab *grab,  uint32_t time)
 void ShellSeat::popup_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
 {
     ShellSeat *shseat = static_cast<PopupGrab *>(container_of(grab, PopupGrab, grab))->seat;
+    struct wl_display *display = shseat->m_seat->compositor->wl_display;
 
-    struct wl_resource *resource = grab->pointer->focus_resource;
-    if (resource) {
-        struct wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
+    struct wl_list *resource_list = &grab->pointer->focus_resource_list;
+    if (!wl_list_empty(resource_list)) {
+        struct wl_resource *resource;
         uint32_t serial = wl_display_get_serial(display);
-        wl_pointer_send_button(resource, serial, time, button, state_w);
+        wl_resource_for_each(resource, resource_list) {
+            wl_pointer_send_button(resource, serial, time, button, state_w);
+        }
     } else if (state_w == WL_POINTER_BUTTON_STATE_RELEASED &&
               (shseat->m_popupGrab.initial_up || time - shseat->m_seat->pointer->grab_time > 500)) {
         shseat->endPopupGrab();

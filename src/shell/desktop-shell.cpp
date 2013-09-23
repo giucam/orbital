@@ -331,8 +331,8 @@ static void shell_surface_motion(struct weston_pointer_grab *base, uint32_t time
 {
     ShellGrab *grab = container_of(base, ShellGrab, grab);
 
-    struct wl_resource *resource = grab->pointer->focus_resource;
-    if (resource) {
+    wl_resource *resource;
+    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
         wl_fixed_t sx, sy;
         weston_surface_from_global_fixed(grab->pointer->focus, grab->pointer->x, grab->pointer->y, &sx, &sy);
         wl_pointer_send_motion(resource, time, sx, sy);
@@ -344,8 +344,8 @@ static void shell_surface_button(struct weston_pointer_grab *base, uint32_t time
     ShellGrab *grab = container_of(base, ShellGrab, grab);
     PopupGrab *cgrab = static_cast<PopupGrab *>(grab);
 
-    struct wl_resource *resource = grab->pointer->focus_resource;
-    if (resource) {
+    wl_resource *resource;
+    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
         struct wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
         uint32_t serial = wl_display_get_serial(display);
         wl_pointer_send_button(resource, serial, time, button, state);
@@ -514,11 +514,14 @@ static void client_grab_button(struct weston_pointer_grab *base, uint32_t time, 
     // Eat the other events, as the app doesn't need to know them.
     // NOTE: this works only if there is only 1 button pressed initially. i can know how many button
     // are pressed but weston currently has no API to determine which ones they are.
-    if (cgrab->pressed && button == grab->pointer->grab_button && grab->pointer->focus_resource) {
-        wl_display *display = wl_client_get_display(wl_resource_get_client(grab->pointer->focus_resource));
-        uint32_t serial = wl_display_next_serial(display);
-        wl_pointer_send_button(grab->pointer->focus_resource, serial, time, button, state);
-        cgrab->pressed = false;
+    wl_resource *resource;
+    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
+        if (cgrab->pressed && button == grab->pointer->grab_button) {
+            wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
+            uint32_t serial = wl_display_next_serial(display);
+            wl_pointer_send_button(resource, serial, time, button, state);
+            cgrab->pressed = false;
+        }
     }
 
     desktop_shell_grab_send_button(cgrab->resource, time, button, state);

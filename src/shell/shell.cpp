@@ -244,7 +244,7 @@ void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int3
     if (surface->m_type == ShellSurface::Type::Fullscreen && surface->m_pendingType != ShellSurface::Type::Fullscreen &&
         surface->m_pendingType != ShellSurface::Type::None) {
         if (surface->m_fullscreen.type == WL_SHELL_SURFACE_FULLSCREEN_METHOD_DRIVER && surfaceIsTopFullscreen(surface)) {
-            weston_output_switch_mode(surface->m_fullscreen.output, surface->m_fullscreen.output->origin, surface->m_fullscreen.output->origin_scale);
+            weston_output_switch_mode(surface->m_fullscreen.output, surface->m_fullscreen.output->original_mode, surface->m_fullscreen.output->original_scale, WESTON_MODE_SWITCH_RESTORE_NATIVE);
         }
     }
     bool changedType = surface->updateType();
@@ -417,7 +417,7 @@ void Shell::configureFullscreen(ShellSurface *shsurf)
         if (surfaceIsTopFullscreen(shsurf)) {
             struct weston_mode mode = {0, surface->geometry.width * surface->buffer_scale, surface->geometry.height * surface->buffer_scale, shsurf->m_fullscreen.framerate, { nullptr, nullptr } };
 
-            if (weston_output_switch_mode(output, &mode, surface->buffer_scale) == 0) {
+            if (weston_output_switch_mode(output, &mode, surface->buffer_scale, WESTON_MODE_SWITCH_SET_TEMPORARY) == 0) {
                 weston_surface_configure(shsurf->m_fullscreen.blackSurface, output->x, output->y, output->width, output->height);
                 weston_surface_set_position(surface, output->x, output->y);
                 break;
