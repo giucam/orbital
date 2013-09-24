@@ -12,4 +12,6 @@ fi
 
 # Start the right shell
 @CMAKE_INSTALL_PREFIX@/libexec/orbital-client
-kill $DBUS_SESSION_BUS_PID
+if [[ $DBUS_SESSION_BUS_PID ]]; then
+    kill $DBUS_SESSION_BUS_PID
+fi
