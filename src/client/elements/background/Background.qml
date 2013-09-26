@@ -187,14 +187,9 @@ Element {
 
             onClicked: {
                 if (!config.open) {
-                print("click");
-                menu.popup();
+                    menu.popup();
                 }
             }
-
-            hoverEnabled: true
-            onEntered: print("enter");
-            onExited: print("exit");
         }
 
         Rectangle {
