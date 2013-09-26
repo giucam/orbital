@@ -21,6 +21,7 @@ import QtQuick 2.1
 import QtQuick.Window 2.1
 import Orbital 1.0
 import QtGraphicalEffects 1.0
+import QtQuick.Controls 1.0
 
 Element {
     id: bkg
@@ -167,6 +168,34 @@ Element {
             asynchronous: true
         }
 
+        Menu {
+            id: menu
+
+            MenuItem {
+                text: "Configure background"
+                onTriggered: config.toggle();
+            }
+            MenuItem {
+                text: Ui.configMode ? "Save configuration" : "Configure applets"
+                onTriggered: Ui.toggleConfigMode();
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+
+            onClicked: {
+                if (!config.open) {
+                print("click");
+                menu.popup();
+                }
+            }
+
+            hoverEnabled: true
+            onEntered: print("enter");
+            onExited: print("exit");
+        }
 
         Rectangle {
             id: config
@@ -195,10 +224,22 @@ Element {
                 nameFilters: [ "*.jpg", "*.png", "*.jpeg" ]
             }
 
+            function toggle() {
+                if (config.open) {
+                    Ui.saveConfig();
+                    Client.restoreWindows();
+                } else {
+                    Client.minimizeWindows();
+                }
+                config.open = !config.open;
+                Ui.configMode = false;
+                config.visible = true;
+            }
+
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
-                propagateComposedEvents: true
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onEntered: parent.faded = false
                 onExited: parent.faded = true
 
@@ -432,17 +473,7 @@ Element {
 
                 icon: "image://icon/preferences-desktop-wallpaper"
 
-                onClicked:  {
-                    if (config.open) {
-                        Ui.saveConfig();
-                        Client.restoreWindows();
-                    } else {
-                        Client.minimizeWindows();
-                    }
-                    config.open = !config.open;
-                    Ui.configMode = false;
-                    config.visible = true;
-                }
+                onClicked: config.toggle()
             }
 
             Icon {
