@@ -140,7 +140,7 @@ Element {
         element.addProperty("width");
         element.addProperty("height");
 
-        var pos = mapToItem(config, pos.x, pos.y);
+        pos = mapToItem(config, pos.x, pos.y);
         if (pos.x >= 0 && pos.y >= 0 && pos.x <= config.width && pos.y <= config.height)
             config.faded = false;
     }
