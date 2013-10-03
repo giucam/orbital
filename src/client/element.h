@@ -72,8 +72,8 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *settingsItem READ settingsItem WRITE setSettingsItem)
     Q_PROPERTY(QQmlComponent *childrenConfig READ childrenConfig WRITE setChildrenConfig)
     Q_PROPERTY(QPointF dragOffset READ dragOffset WRITE setDragOffset)
-    Q_PROPERTY(QQuickItem *content READ content WRITE setContent)
-    Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem)
+    Q_PROPERTY(QQuickItem *content READ content WRITE setContent NOTIFY contentChanged)
+    Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem NOTIFY contentItemChanged)
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_PROPERTY(QRectF inputRegion READ inputRegion WRITE setInputRegion)
@@ -135,6 +135,9 @@ signals:
     void elementEntered(Element *element, const QPointF &pos, const QPointF &offset);
     void elementMoved(Element *element, const QPointF &pos, const QPointF &offset);
     void elementExited(Element *element, const QPointF &pos, const QPointF &offset);
+
+    void contentChanged();
+    void contentItemChanged();
 
 protected:
     void setId(int id);

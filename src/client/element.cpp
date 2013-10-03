@@ -93,12 +93,16 @@ void Element::setContent(QQuickItem *c)
 
     m_content->setWidth(width());
     m_content->setHeight(height());
+
+    emit contentChanged();
 }
 
 void Element::setContentItem(QQuickItem *item)
 {
     m_contentItem = item;
     item->setParentItem(m_content);
+
+    emit contentItemChanged();
 }
 
 void Element::setChildrenParent(QQuickItem *item)
