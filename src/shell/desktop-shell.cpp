@@ -78,61 +78,46 @@ void DesktopShell::setGrabCursor(uint32_t cursor)
 }
 
 struct BusyGrab : public ShellGrab {
-    ShellSurface *surface;
-};
+    void focus() override
+    {
+        wl_fixed_t sx, sy;
+        weston_surface *es = weston_compositor_pick_surface(pointer()->seat->compositor, pointer()->x, pointer()->y, &sx, &sy);
 
-static void busy_cursor_grab_focus(struct weston_pointer_grab *base)
-{
-    BusyGrab *grab = static_cast<BusyGrab *>(container_of(base, ShellGrab, grab));
-    wl_fixed_t sx, sy;
-    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
-                                                                    grab->pointer->x, grab->pointer->y,
-                                                                    &sx, &sy);
-
-    if (grab->surface->weston_surface() != surface) {
-        Shell::endGrab(grab);
-        delete grab;
+        if (surface->weston_surface() != es) {
+            delete this;
+        }
     }
-}
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        weston_seat *seat = pointer()->seat;
 
-static void busy_cursor_grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
-{
-    BusyGrab *grab = static_cast<BusyGrab *>(container_of(base, ShellGrab, grab));
-
-    struct weston_seat *seat = grab->pointer->seat;
-
-    if (grab->surface && button == BTN_LEFT && state) {
-        ShellSeat::shellSeat(seat)->activate(grab->surface);
-        grab->surface->dragMove(seat);
-    } else if (grab->surface && button == BTN_RIGHT && state) {
-        ShellSeat::shellSeat(seat)->activate(grab->surface);
+        if (surface && button == BTN_LEFT && state) {
+            ShellSeat::shellSeat(seat)->activate(surface);
+            surface->dragMove(seat);
+        } else if (surface && button == BTN_RIGHT && state) {
+            ShellSeat::shellSeat(seat)->activate(surface);
 //         surface_rotate(grab->surface, &seat->seat);
+        }
     }
-}
 
-static const struct weston_pointer_grab_interface busy_cursor_grab_interface = {
-    busy_cursor_grab_focus,
-    [](struct weston_pointer_grab *grab, uint32_t time) {},
-    busy_cursor_grab_button,
+    ShellSurface *surface;
 };
 
 void DesktopShell::setBusyCursor(ShellSurface *surface, struct weston_seat *seat)
 {
     BusyGrab *grab = new BusyGrab;
-    if (!grab && grab->pointer)
+    if (!grab && grab->pointer())
         return;
 
-    grab->pointer = seat->pointer;
     grab->surface = surface;
-    startGrab(grab, &busy_cursor_grab_interface, seat, DESKTOP_SHELL_CURSOR_BUSY);
+    startGrab(grab, seat, DESKTOP_SHELL_CURSOR_BUSY);
 }
 
 void DesktopShell::endBusyCursor(struct weston_seat *seat)
 {
-    ShellGrab *grab = container_of(seat->pointer->grab, ShellGrab, grab);
+    ShellGrab *grab = ShellGrab::fromGrab(seat->pointer->grab);
 
-    if (grab->grab.interface == &busy_cursor_grab_interface) {
-        endGrab(grab);
+    if (dynamic_cast<BusyGrab *>(grab)) {
         delete grab;
     }
 }
@@ -302,75 +287,45 @@ public:
     bool inside;
     uint32_t creationTime;
 
-    void end() {
-        desktop_shell_surface_send_popup_close(shsurfResource);
-        Shell::endGrab(this);
-        wl_resource *res = shsurfResource;
-        shsurfResource = nullptr;
-        wl_resource_destroy(res);
-        delete this;
-    }
-};
-
-static void shell_surface_focus(struct weston_pointer_grab *base)
-{
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-    PopupGrab *cgrab = static_cast<PopupGrab *>(grab);
-
-    wl_fixed_t sx, sy;
-    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
-                                                                    grab->pointer->x, grab->pointer->y,
-                                                                    &sx, &sy);
-
-    cgrab->inside = surface == cgrab->surface;
-    if (surface == cgrab->surface)
-        weston_pointer_set_focus(grab->pointer, surface, sx, sy);
-}
-
-static void shell_surface_motion(struct weston_pointer_grab *base, uint32_t time)
-{
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-
-    wl_resource *resource;
-    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
+    void focus() override
+    {
         wl_fixed_t sx, sy;
-        weston_surface_from_global_fixed(grab->pointer->focus, grab->pointer->x, grab->pointer->y, &sx, &sy);
-        wl_pointer_send_motion(resource, time, sx, sy);
+        weston_surface *es = weston_compositor_pick_surface(pointer()->seat->compositor, pointer()->x, pointer()->y, &sx, &sy);
+
+        inside = es == surface;
+        if (inside)
+            weston_pointer_set_focus(pointer(), surface, sx, sy);
     }
-}
-
-static void shell_surface_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
-{
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-    PopupGrab *cgrab = static_cast<PopupGrab *>(grab);
-
-    wl_resource *resource;
-    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
-        struct wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
-        uint32_t serial = wl_display_get_serial(display);
-        wl_pointer_send_button(resource, serial, time, button, state);
+    void motion(uint32_t time) override
+    {
+        wl_resource *resource;
+        wl_resource_for_each(resource, &pointer()->focus_resource_list) {
+            wl_fixed_t sx, sy;
+            weston_surface_from_global_fixed(pointer()->focus, pointer()->x, pointer()->y, &sx, &sy);
+            wl_pointer_send_motion(resource, time, sx, sy);
+        }
     }
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        wl_resource *resource;
+        wl_resource_for_each(resource, &pointer()->focus_resource_list) {
+            struct wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
+            uint32_t serial = wl_display_get_serial(display);
+            wl_pointer_send_button(resource, serial, time, button, state);
+        }
 
-    // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
-    // there is a bug in QQuickWindow, which hangs up the process.
-    if (!cgrab->inside && state == WL_POINTER_BUTTON_STATE_RELEASED && time - cgrab->creationTime > 500) {
-        cgrab->end();
+        // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
+        // there is a bug in QQuickWindow, which hangs up the process.
+        if (!inside && state == WL_POINTER_BUTTON_STATE_RELEASED && time - creationTime > 500) {
+            desktop_shell_surface_send_popup_close(shsurfResource);
+            wl_resource_destroy(shsurfResource);
+        }
     }
-}
-
-static const struct weston_pointer_grab_interface shell_surface_interface = {
-    shell_surface_focus,
-    shell_surface_motion,
-    shell_surface_button,
 };
 
-static void shellsurf_destroyed(wl_resource *res)
+static void popupGrabDestroyed(wl_resource *res)
 {
-    PopupGrab *grab = static_cast<PopupGrab *>(wl_resource_get_user_data(res));
-    if (grab->shsurfResource) {
-        Shell::endGrab(grab);
-        delete grab;
-    }
+    delete static_cast<PopupGrab *>(wl_resource_get_user_data(res));
 }
 
 void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *output_resource, wl_resource *surface_resource, int x, int y)
@@ -388,22 +343,18 @@ void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t i
         return;
 
     grab->shsurfResource = wl_resource_create(client, &desktop_shell_surface_interface, wl_resource_get_version(resource), id);
-    wl_resource_set_destructor(grab->shsurfResource, shellsurf_destroyed);
+    wl_resource_set_destructor(grab->shsurfResource, popupGrabDestroyed);
     wl_resource_set_user_data(grab->shsurfResource, grab);
 
     weston_seat *seat = container_of(compositor()->seat_list.next, weston_seat, link);
-    grab->pointer = seat->pointer;
     grab->surface = surface;
-    grab->creationTime = grab->pointer->grab_time;
-
-    ShellSeat::shellSeat(seat)->endPopupGrab();
+    grab->creationTime = seat->pointer->grab_time;
 
     wl_fixed_t sx, sy;
-    weston_surface_from_global_fixed(surface, grab->pointer->x, grab->pointer->y, &sx, &sy);
-    weston_pointer_set_focus(grab->pointer, surface, sx, sy);
+    weston_surface_from_global_fixed(surface, seat->pointer->x, seat->pointer->y, &sx, &sy);
+    weston_pointer_set_focus(seat->pointer, surface, sx, sy);
 
-    grab->grab.interface = &shell_surface_interface;
-    weston_pointer_start_grab(grab->pointer, &grab->grab);
+    startGrab(grab, seat);
 }
 
 void DesktopShell::unlock(struct wl_client *client, struct wl_resource *resource)
@@ -469,75 +420,61 @@ void DesktopShell::selectWorkspace(wl_client *client, wl_resource *resource, wl_
 
 class ClientGrab : public ShellGrab {
 public:
+    void focus() override
+    {
+        wl_fixed_t sx, sy;
+        weston_surface *surface = weston_compositor_pick_surface(pointer()->seat->compositor, pointer()->x, pointer()->y, &sx, &sy);
+        if (surfFocus != surface) {
+            surfFocus = surface;
+            desktop_shell_grab_send_focus(resource, surface->resource, sx, sy);
+        }
+    }
+    void motion(uint32_t time) override
+    {
+        wl_fixed_t sx = pointer()->x;
+        wl_fixed_t sy = pointer()->y;
+        if (surfFocus) {
+            weston_surface_from_global_fixed(surfFocus, pointer()->x, pointer()->y, &sx, &sy);
+        }
+
+        desktop_shell_grab_send_motion(resource, time, sx, sy);
+    }
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        // Send the event to the application as normal if the mouse was pressed initially.
+        // The application has to know the button was released, otherwise its internal state
+        // will be inconsistent with the physical button state.
+        // Eat the other events, as the app doesn't need to know them.
+        // NOTE: this works only if there is only 1 button pressed initially. i can know how many button
+        // are pressed but weston currently has no API to determine which ones they are.
+        wl_resource *resource;
+        wl_resource_for_each(resource, &pointer()->focus_resource_list) {
+            if (pressed && button == pointer()->grab_button) {
+                wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
+                uint32_t serial = wl_display_next_serial(display);
+                wl_pointer_send_button(resource, serial, time, button, state);
+                pressed = false;
+            }
+        }
+
+        desktop_shell_grab_send_button(this->resource, time, button, state);
+    }
+
     wl_resource *resource;
-    weston_surface *focus;
+    weston_surface *surfFocus;
     bool pressed;
 };
 
-static void client_grab_focus(struct weston_pointer_grab *base)
+static void clientGrabDestroyed(wl_resource *res)
 {
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
-
-    wl_fixed_t sx, sy;
-    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
-                                                                    grab->pointer->x, grab->pointer->y,
-                                                                    &sx, &sy);
-    if (cgrab->focus != surface) {
-        cgrab->focus = surface;
-        desktop_shell_grab_send_focus(cgrab->resource, surface->resource, sx, sy);
-    }
+    delete static_cast<ClientGrab *>(wl_resource_get_user_data(res));
 }
-
-static void client_grab_motion(struct weston_pointer_grab *base, uint32_t time)
-{
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
-
-    wl_fixed_t sx = cgrab->pointer->x;
-    wl_fixed_t sy = cgrab->pointer->y;
-    if (cgrab->focus) {
-        weston_surface_from_global_fixed(cgrab->focus, cgrab->pointer->x, cgrab->pointer->y, &sx, &sy);
-    }
-
-    desktop_shell_grab_send_motion(cgrab->resource, time, sx, sy);
-}
-
-static void client_grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)
-{
-    ShellGrab *grab = container_of(base, ShellGrab, grab);
-    ClientGrab *cgrab = static_cast<ClientGrab *>(grab);
-
-    // Send the event to the application as normal if the mouse was pressed initially.
-    // The application has to know the button was released, otherwise its internal state
-    // will be inconsistent with the physical button state.
-    // Eat the other events, as the app doesn't need to know them.
-    // NOTE: this works only if there is only 1 button pressed initially. i can know how many button
-    // are pressed but weston currently has no API to determine which ones they are.
-    wl_resource *resource;
-    wl_resource_for_each(resource, &grab->pointer->focus_resource_list) {
-        if (cgrab->pressed && button == grab->pointer->grab_button) {
-            wl_display *display = wl_client_get_display(wl_resource_get_client(resource));
-            uint32_t serial = wl_display_next_serial(display);
-            wl_pointer_send_button(resource, serial, time, button, state);
-            cgrab->pressed = false;
-        }
-    }
-
-    desktop_shell_grab_send_button(cgrab->resource, time, button, state);
-}
-
-static const struct weston_pointer_grab_interface client_grab_interface = {
-    client_grab_focus,
-    client_grab_motion,
-    client_grab_button,
-};
 
 void client_grab_end(wl_client *client, wl_resource *resource)
 {
     ClientGrab *cg = static_cast<ClientGrab *>(resource->data);
-    Shell::endGrab(cg);
-    weston_output_schedule_repaint(cg->pointer->focus->output);
+    weston_output_schedule_repaint(cg->pointer()->focus->output);
+    cg->end();
 }
 
 static const struct desktop_shell_grab_interface desktop_shell_grab_implementation = {
@@ -549,29 +486,26 @@ void DesktopShell::createGrab(wl_client *client, wl_resource *resource, uint32_t
     wl_resource *res = wl_resource_create(client, &desktop_shell_grab_interface, wl_resource_get_version(resource), id);
 
     ClientGrab *grab = new ClientGrab;
-    wl_resource_set_implementation(res, &desktop_shell_grab_implementation, grab, [](wl_resource *) {});
+    wl_resource_set_implementation(res, &desktop_shell_grab_implementation, grab, clientGrabDestroyed);
 
     if (!grab)
         return;
 
     weston_seat *seat = container_of(compositor()->seat_list.next, weston_seat, link);
-    grab->pointer = seat->pointer;
     grab->resource = res;
-    grab->shell = this;
     grab->pressed = seat->pointer->button_count > 0;
 
     ShellSeat::shellSeat(seat)->endPopupGrab();
 
     wl_fixed_t sx, sy;
     struct weston_surface *surface = weston_compositor_pick_surface(compositor(),
-                                                                    grab->pointer->x, grab->pointer->y,
+                                                                    seat->pointer->x, seat->pointer->y,
                                                                     &sx, &sy);
-    weston_pointer_set_focus(grab->pointer, surface, sx, sy);
-    grab->focus = surface;
-    desktop_shell_grab_send_focus(grab->resource, surface->resource, sx, sy);
+    startGrab(grab, seat);
 
-    grab->grab.interface = &client_grab_interface;
-    weston_pointer_start_grab(grab->pointer, &grab->grab);
+    weston_pointer_set_focus(seat->pointer, surface, sx, sy);
+    grab->surfFocus = surface;
+    desktop_shell_grab_send_focus(grab->resource, surface->resource, sx, sy);
 }
 
 void DesktopShell::quit(wl_client *client, wl_resource *resource)

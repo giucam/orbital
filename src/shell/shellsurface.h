@@ -188,20 +188,14 @@ private:
 
     static const struct wl_shell_surface_interface m_shell_surface_implementation;
 
-    static void move_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
-    static void move_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct weston_pointer_grab_interface m_move_grab_interface;
-
-    static void resize_grab_motion(struct weston_pointer_grab *grab, uint32_t time);
-    static void resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct weston_pointer_grab_interface m_resize_grab_interface;
-
     static void set_state(struct wl_client *client, struct wl_resource *resource, int32_t state);
     static const struct desktop_shell_window_interface m_window_implementation;
 
     friend class Shell;
     friend class Layer;
     friend class Workspace;
+    friend class MoveGrab;
+    friend class ResizeGrab;
 };
 
 #endif

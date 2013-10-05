@@ -27,41 +27,28 @@
 #include "wayland-desktop-shell-server-protocol.h"
 
 struct Grab : public ShellGrab {
-    GridDesktops *effect;
-};
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
+            int x = wl_fixed_to_int(pointer()->x);
+            int y = wl_fixed_to_int(pointer()->y);
 
-void GridDesktops::grab_focus(struct weston_pointer_grab *base)
-{
+            int numWs = shell()->numWorkspaces();
+            int numWsCols = ceil(sqrt(numWs));
+            int numWsRows = ceil((float)numWs / (float)numWsCols);
 
-}
+            struct weston_output *out = shell()->getDefaultOutput();
+            int cellW = out->width / numWsCols;
+            int cellH = out->height / numWsRows;
 
-void GridDesktops::grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
-{
-    ShellGrab *shgrab = container_of(base, ShellGrab, grab);
-    Grab *grab = static_cast<Grab *>(shgrab);
-    if (state_w == WL_POINTER_BUTTON_STATE_PRESSED) {
-        int x = wl_fixed_to_int(base->pointer->x);
-        int y = wl_fixed_to_int(base->pointer->y);
-
-        int numWs = grab->shell->numWorkspaces();
-        int numWsCols = ceil(sqrt(numWs));
-        int numWsRows = ceil((float)numWs / (float)numWsCols);
-
-        struct weston_output *out = grab->shell->getDefaultOutput();
-        int cellW = out->width / numWsCols;
-        int cellH = out->height / numWsRows;
-
-        int c = x / cellW;
-        int r = y / cellH;
-        grab->effect->m_setWs = r * numWsCols + c;
-        grab->effect->run(grab->effect->m_seat);
+            int c = x / cellW;
+            int r = y / cellH;
+            effect->m_setWs = r * numWsCols + c;
+            effect->run(effect->m_seat);
+        }
     }
-}
 
-const struct weston_pointer_grab_interface GridDesktops::grab_interface = {
-    GridDesktops::grab_focus,
-    [](struct weston_pointer_grab *grab, uint32_t time) {},
-    GridDesktops::grab_button,
+    GridDesktops *effect;
 };
 
 GridDesktops::GridDesktops(Shell *shell)
@@ -96,7 +83,7 @@ void GridDesktops::run(struct weston_seat *ws)
     if (m_scaled) {
         shell()->showPanels();
         shell()->resetWorkspaces();
-        shell()->endGrab(m_grab);
+        m_grab->end();
         shell()->selectWorkspace(m_setWs);
         for (int i = 0; i < numWs; ++i) {
             Workspace *w = shell()->workspace(i);
@@ -107,7 +94,7 @@ void GridDesktops::run(struct weston_seat *ws)
     } else {
         shell()->showAllWorkspaces();
         shell()->hidePanels();
-        shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
+        shell()->startGrab(m_grab, ws, DESKTOP_SHELL_CURSOR_ARROW);
         m_setWs = shell()->currentWorkspace()->number();
         for (int i = 0; i < numWs; ++i) {
             Workspace *w = shell()->workspace(i);

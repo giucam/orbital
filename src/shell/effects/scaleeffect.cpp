@@ -29,11 +29,6 @@
 const float INACTIVE_ALPHA = 0.8;
 const int ALPHA_ANIM_DURATION = 200;
 
-struct Grab : public ShellGrab {
-    ScaleEffect *effect;
-    weston_surface *surface;
-};
-
 struct SurfaceTransform {
     void updateAnimation(float value);
     void doneAnimation();
@@ -50,57 +45,48 @@ struct SurfaceTransform {
     int sy, ty, cy;
 };
 
-void ScaleEffect::grab_focus(struct weston_pointer_grab *base)
-{
-    ShellGrab *shgrab = container_of(base, ShellGrab, grab);
-    Grab *grab = static_cast<Grab *>(shgrab);
+struct Grab : public ShellGrab {
+    void focus() override
+    {
+        Workspace *currWs = shell()->currentWorkspace();
 
-    Workspace *currWs = grab->shell->currentWorkspace();
+        wl_fixed_t sx, sy;
+        weston_surface *es = weston_compositor_pick_surface(pointer()->seat->compositor, pointer()->x, pointer()->y, &sx, &sy);
 
-    wl_fixed_t sx, sy;
-    struct weston_surface *surface = weston_compositor_pick_surface(grab->pointer->seat->compositor,
-                                                                    grab->pointer->x, grab->pointer->y,
-                                                                    &sx, &sy);
-
-    if (grab->surface == surface) {
-        return;
-    }
-
-    grab->surface = surface;
-
-    for (SurfaceTransform *tr: grab->effect->m_surfaces) {
-        if (tr->surface->workspace() != currWs) {
-            continue;
+        if (surface == es) {
+            return;
         }
 
-        float alpha = (tr->surface->is(surface) ? 1.0 : INACTIVE_ALPHA);
-        float curr = tr->surface->alpha();
-        if (alpha == curr) {
-            continue;
-        }
+        surface = es;
 
-        tr->alphaAnim.setStart(curr);
-        tr->alphaAnim.setTarget(alpha);
-        tr->alphaAnim.run(tr->surface->output(), ALPHA_ANIM_DURATION);
-    }
-}
+        for (SurfaceTransform *tr: effect->m_surfaces) {
+            if (tr->surface->workspace() != currWs) {
+                continue;
+            }
 
-static void grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w)
-{
-    ShellGrab *shgrab = container_of(base, ShellGrab, grab);
-    Grab *grab = static_cast<Grab *>(shgrab);
-    if (state_w == WL_POINTER_BUTTON_STATE_PRESSED) {
-        ShellSurface *shsurf = grab->shell->getShellSurface(grab->surface);
-        if (shsurf) {
-            grab->effect->end(shsurf);
+            float alpha = (tr->surface->is(es) ? 1.0 : INACTIVE_ALPHA);
+            float curr = tr->surface->alpha();
+            if (alpha == curr) {
+                continue;
+            }
+
+            tr->alphaAnim.setStart(curr);
+            tr->alphaAnim.setTarget(alpha);
+            tr->alphaAnim.run(tr->surface->output(), ALPHA_ANIM_DURATION);
         }
     }
-}
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        if (state == WL_POINTER_BUTTON_STATE_PRESSED) {
+            ShellSurface *shsurf = Shell::getShellSurface(surface);
+            if (shsurf) {
+                effect->end(shsurf);
+            }
+        }
+    }
 
-const struct weston_pointer_grab_interface ScaleEffect::grab_interface = {
-    ScaleEffect::grab_focus,
-    [](struct weston_pointer_grab *grab, uint32_t time) {},
-    grab_button,
+    ScaleEffect *effect;
+    weston_surface *surface;
 };
 
 ScaleEffect::ScaleEffect(Shell *shell)
@@ -220,7 +206,7 @@ void ScaleEffect::run(struct weston_seat *ws)
     if (m_scaled) {
         m_seat = ws;
         m_chosenSurface = nullptr;
-        shell()->startGrab(m_grab, &grab_interface, ws, DESKTOP_SHELL_CURSOR_ARROW);
+        shell()->startGrab(m_grab, ws, DESKTOP_SHELL_CURSOR_ARROW);
         shell()->hidePanels();
         m_grab->surface = nullptr;
         if (ws->pointer->focus) {
@@ -240,7 +226,7 @@ void ScaleEffect::run(struct weston_seat *ws)
         }
     } else {
         m_seat = nullptr;
-        Shell::endGrab(m_grab);
+        m_grab->end();
         shell()->showPanels();
     }
 }

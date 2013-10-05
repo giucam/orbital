@@ -49,8 +49,7 @@ private:
     Binding *m_binding;
     ShellSurface *m_chosenSurface;
 
-    static void grab_focus(struct weston_pointer_grab *grab);
-    static const struct weston_pointer_grab_interface grab_interface;
+    friend Grab;
 };
 
 #endif

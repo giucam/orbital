@@ -53,7 +53,6 @@ ShellSurface::ShellSurface(Shell *shell, struct weston_surface *surface)
 ShellSurface::~ShellSurface()
 {
     if (m_runningGrab) {
-        Shell::endGrab(m_runningGrab);
         delete m_runningGrab;
     }
     if (m_popup.seat) {
@@ -548,50 +547,34 @@ void ShellSurface::destroyPingTimer()
 
 // -- Move --
 
-struct MoveGrab : public ShellGrab {
-    struct ShellSurface *shsurf;
-    struct wl_listener shsurf_destroy_listener;
-    wl_fixed_t dx, dy;
-};
-
-void ShellSurface::move_grab_motion(struct weston_pointer_grab *grab, uint32_t time)
+struct MoveGrab : public ShellGrab
 {
-    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
-    MoveGrab *move = static_cast<MoveGrab *>(shgrab);
-    struct weston_pointer *pointer = grab->pointer;
-    ShellSurface *shsurf = move->shsurf;
-    int dx = wl_fixed_to_int(pointer->x + move->dx);
-    int dy = wl_fixed_to_int(pointer->y + move->dy);
+    void motion(uint32_t time) override
+    {
+        int dx = wl_fixed_to_int(pointer()->x + this->dx);
+        int dy = wl_fixed_to_int(pointer()->y + this->dy);
 
-    if (!shsurf)
-        return;
+        if (!shsurf)
+            return;
 
-    struct weston_surface *es = shsurf->m_surface;
-
-    weston_surface_configure(es, dx, dy, es->geometry.width, es->geometry.height);
-
-    weston_compositor_schedule_repaint(es->compositor);
-}
-
-void ShellSurface::move_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
-{
-    ShellGrab *shell_grab = container_of(grab, ShellGrab, grab);
-    MoveGrab *move = static_cast<MoveGrab *>(shell_grab);
-    struct weston_pointer *pointer = grab->pointer;
-    enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
-
-    if (pointer->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
-        Shell::endGrab(shell_grab);
-        move->shsurf->moveEndSignal(move->shsurf);
-        move->shsurf->m_runningGrab = nullptr;
-        delete shell_grab;
+        weston_surface *es = shsurf->m_surface;
+        weston_surface_configure(es, dx, dy, es->geometry.width, es->geometry.height);
+        weston_compositor_schedule_repaint(es->compositor);
     }
-}
+    void button(uint32_t time, uint32_t button, uint32_t state_w) override
+    {
+        enum wl_pointer_button_state state = (wl_pointer_button_state)state_w;
 
-const struct weston_pointer_grab_interface ShellSurface::m_move_grab_interface = {
-    [](struct weston_pointer_grab *grab) {},
-    ShellSurface::move_grab_motion,
-    ShellSurface::move_grab_button,
+        if (pointer()->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
+            shsurf->moveEndSignal(shsurf);
+            shsurf->m_runningGrab = nullptr;
+            delete this;
+        }
+    }
+
+    ShellSurface *shsurf;
+    wl_listener shsurf_destroy_listener;
+    wl_fixed_t dx, dy;
 };
 
 void ShellSurface::move(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
@@ -628,70 +611,54 @@ void ShellSurface::dragMove(struct weston_seat *ws)
     move->shsurf = this;
     m_runningGrab = move;
 
-    m_shell->startGrab(move, &m_move_grab_interface, ws, DESKTOP_SHELL_CURSOR_MOVE);
+    m_shell->startGrab(move, ws, DESKTOP_SHELL_CURSOR_MOVE);
     moveStartSignal(this);
 }
 
 // -- Resize --
 
-struct ResizeGrab : public ShellGrab {
+struct ResizeGrab : public ShellGrab
+{
+    void motion(uint32_t time) override
+    {
+        if (!shsurf)
+            return;
+
+        weston_surface *es = shsurf->m_surface;
+
+        wl_fixed_t from_x, from_y;
+        wl_fixed_t to_x, to_y;
+        weston_surface_from_global_fixed(es, pointer()->grab_x, pointer()->grab_y, &from_x, &from_y);
+        weston_surface_from_global_fixed(es, pointer()->x, pointer()->y, &to_x, &to_y);
+
+        int32_t w = width;
+        if (edges & WL_SHELL_SURFACE_RESIZE_LEFT) {
+            w += wl_fixed_to_int(from_x - to_x);
+        } else if (edges & WL_SHELL_SURFACE_RESIZE_RIGHT) {
+            w += wl_fixed_to_int(to_x - from_x);
+        }
+
+        int32_t h = height;
+        if (edges & WL_SHELL_SURFACE_RESIZE_TOP) {
+            h += wl_fixed_to_int(from_y - to_y);
+        } else if (edges & WL_SHELL_SURFACE_RESIZE_BOTTOM) {
+            h += wl_fixed_to_int(to_y - from_y);
+        }
+
+        shsurf->m_client->send_configure(shsurf->m_surface, edges, w, h);
+    }
+    void button(uint32_t time, uint32_t button, uint32_t state) override
+    {
+        if (pointer()->button_count == 0 && state == WL_POINTER_BUTTON_STATE_RELEASED) {
+            shsurf->m_runningGrab = nullptr;
+            delete this;
+        }
+    }
+
     struct ShellSurface *shsurf;
     struct wl_listener shsurf_destroy_listener;
     uint32_t edges;
     int32_t width, height;
-};
-
-void ShellSurface::resize_grab_motion(struct weston_pointer_grab *grab, uint32_t time)
-{
-    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
-    ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
-    struct weston_pointer *pointer = grab->pointer;
-    ShellSurface *shsurf = resize->shsurf;
-
-    if (!shsurf)
-        return;
-
-
-    struct weston_surface *es = shsurf->m_surface;
-
-    wl_fixed_t from_x, from_y;
-    wl_fixed_t to_x, to_y;
-    weston_surface_from_global_fixed(es, pointer->grab_x, pointer->grab_y, &from_x, &from_y);
-    weston_surface_from_global_fixed(es, pointer->x, pointer->y, &to_x, &to_y);
-
-    int32_t width = resize->width;
-    if (resize->edges & WL_SHELL_SURFACE_RESIZE_LEFT) {
-        width += wl_fixed_to_int(from_x - to_x);
-    } else if (resize->edges & WL_SHELL_SURFACE_RESIZE_RIGHT) {
-        width += wl_fixed_to_int(to_x - from_x);
-    }
-
-    int32_t height = resize->height;
-    if (resize->edges & WL_SHELL_SURFACE_RESIZE_TOP) {
-        height += wl_fixed_to_int(from_y - to_y);
-    } else if (resize->edges & WL_SHELL_SURFACE_RESIZE_BOTTOM) {
-        height += wl_fixed_to_int(to_y - from_y);
-    }
-
-    shsurf->m_client->send_configure(shsurf->m_surface, resize->edges, width, height);
-}
-
-void ShellSurface::resize_grab_button(struct weston_pointer_grab *grab, uint32_t time, uint32_t button, uint32_t state_w)
-{
-    ShellGrab *shgrab = container_of(grab, ShellGrab, grab);
-    ResizeGrab *resize = static_cast<ResizeGrab *>(shgrab);
-
-    if (grab->pointer->button_count == 0 && state_w == WL_POINTER_BUTTON_STATE_RELEASED) {
-        Shell::endGrab(resize);
-        resize->shsurf->m_runningGrab = nullptr;
-        delete resize;
-    }
-}
-
-const struct weston_pointer_grab_interface ShellSurface::m_resize_grab_interface = {
-    [](struct weston_pointer_grab *grab) {},
-    ShellSurface::resize_grab_motion,
-    ShellSurface::resize_grab_button,
 };
 
 void ShellSurface::resize(struct wl_client *client, struct wl_resource *resource, struct wl_resource *seat_resource,
@@ -756,7 +723,7 @@ void ShellSurface::dragResize(struct weston_seat *ws, uint32_t edges)
     grab->shsurf = this;
     m_runningGrab = grab;
 
-    m_shell->startGrab(grab, &m_resize_grab_interface, ws, edges);
+    m_shell->startGrab(grab, ws, edges);
 }
 
 void ShellSurface::setToplevel(struct wl_client *, struct wl_resource *)

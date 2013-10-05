@@ -67,6 +67,39 @@ private:
     std::list<splash> splashes;
 };
 
+ShellGrab::ShellGrab()
+         : m_shell(nullptr)
+         , m_pointer(nullptr)
+{
+    m_grab.base.interface = &s_shellGrabInterface;
+    m_grab.parent = this;
+}
+
+ShellGrab::~ShellGrab()
+{
+    end();
+}
+
+void ShellGrab::end()
+{
+    if (m_pointer) {
+        weston_pointer_end_grab(m_pointer);
+        m_pointer = nullptr;
+    }
+}
+
+ShellGrab *ShellGrab::fromGrab(weston_pointer_grab *grab)
+{
+    Grab *wrapper = container_of(grab, Grab, base);
+    return wrapper->parent;
+}
+
+const weston_pointer_grab_interface ShellGrab::s_shellGrabInterface = {
+    [](weston_pointer_grab *base)                                                 { ShellGrab::fromGrab(base)->focus(); },
+    [](weston_pointer_grab *base, uint32_t time)                                  { ShellGrab::fromGrab(base)->motion(time); },
+    [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state) { ShellGrab::fromGrab(base)->button(time, button, state); }
+};
+
 Binding::Binding(struct weston_binding *binding)
        : m_binding(binding)
 {
@@ -87,11 +120,6 @@ Shell::Shell(struct weston_compositor *ec)
     srandom(weston_compositor_get_time());
     m_child.shell = this;
     m_child.deathstamp = 0;
-}
-
-ShellGrab::ShellGrab()
-{
-
 }
 
 Shell::~Shell()
@@ -570,32 +598,19 @@ void Shell::activateSurface(struct weston_seat *seat, uint32_t time, uint32_t bu
     };
 }
 
-void Shell::startGrab(ShellGrab *grab, const struct weston_pointer_grab_interface *interface,
-                      struct weston_seat *seat, uint32_t cursor)
+void Shell::startGrab(ShellGrab *grab, weston_seat *seat, int32_t cursor)
 {
     ShellSeat::shellSeat(seat)->endPopupGrab();
 
-    grab->shell = this;
-    grab->grab.interface = interface;
-//     grab->shsurf = shsurf;
-//     grab->shsurf_destroy_listener.notify = destroy_shell_grab_shsurf;
-//     wl_signal_add(&shsurf->resource.destroy_signal, &grab->shsurf_destroy_listener);
+    grab->m_shell = this;
+    weston_pointer *pointer = seat->pointer;
+    grab->m_pointer = pointer;
 
-    struct weston_pointer *pointer = seat->pointer;
-    grab->pointer = pointer;
-//     grab->grab.focus = &shsurf->m_surface->surface;
-
-    weston_pointer_start_grab(pointer, &grab->grab);
-    setGrabCursor(cursor);
-    weston_pointer_set_focus(pointer, m_grabSurface, wl_fixed_from_int(0), wl_fixed_from_int(0));
-}
-
-void Shell::endGrab(ShellGrab *grab)
-{
-//     if (grab->shsurf)
-//         wl_list_remove(&grab->shsurf_destroy_listener.link);
-
-    weston_pointer_end_grab(grab->pointer);
+    weston_pointer_start_grab(pointer, &grab->m_grab.base);
+    if (cursor != -1) {
+        setGrabCursor(cursor);
+        weston_pointer_set_focus(pointer, m_grabSurface, wl_fixed_from_int(0), wl_fixed_from_int(0));
+    }
 }
 
 static void configure_static_surface(struct weston_surface *es, Layer *layer, int32_t width, int32_t height)

@@ -35,12 +35,34 @@ typedef std::list<ShellSurface *> ShellSurfaceList;
 
 class Shell;
 
-struct ShellGrab {
+class ShellGrab {
+public:
     ShellGrab();
+    virtual ~ShellGrab();
 
-    Shell *shell;
-    struct weston_pointer_grab grab;
-    struct weston_pointer *pointer;
+    void end();
+
+    Shell *shell() const { return m_shell; }
+    weston_pointer *pointer() const { return m_pointer; }
+
+    static ShellGrab *fromGrab(weston_pointer_grab *grab);
+
+protected:
+    virtual void focus() {}
+    virtual void motion(uint32_t time) {}
+    virtual void button(uint32_t time, uint32_t button, uint32_t state) {}
+
+private:
+    Shell *m_shell;
+    weston_pointer *m_pointer;
+    struct Grab {
+        weston_pointer_grab base;
+        ShellGrab *parent;
+    } m_grab;
+
+    static const weston_pointer_grab_interface s_shellGrabInterface;
+
+    friend class Shell;
 };
 
 class Binding {
@@ -86,9 +108,7 @@ public:
     void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
     void addOverlaySurface(struct weston_surface *surface, struct weston_output *output);
 
-    void startGrab(ShellGrab *grab, const struct weston_pointer_grab_interface *interface,
-                   struct weston_seat *seat, uint32_t cursor);
-    static void endGrab(ShellGrab *grab);
+    void startGrab(ShellGrab *grab, weston_seat *seat, int32_t cursor = -1);
 
     void showPanels();
     void hidePanels();

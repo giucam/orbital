@@ -44,9 +44,7 @@ private:
     Binding *m_binding;
     int m_setWs;
 
-    static void grab_focus(struct weston_pointer_grab *grab);
-    static void grab_button(struct weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state_w);
-    static const struct weston_pointer_grab_interface grab_interface;
+    friend Grab;
 };
 
 #endif
