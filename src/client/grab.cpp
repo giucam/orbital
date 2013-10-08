@@ -31,6 +31,11 @@ Grab::Grab(desktop_shell_grab *g)
     desktop_shell_grab_add_listener(g, &s_desktop_shell_grab_listener, this);
 }
 
+Grab::~Grab()
+{
+    desktop_shell_grab_destroy(m_grab);
+}
+
 void Grab::end()
 {
     desktop_shell_grab_end(m_grab);

@@ -32,6 +32,7 @@ class Grab : public QObject
     Q_OBJECT
 public:
     Grab(desktop_shell_grab *grab);
+    ~Grab();
 
 public slots:
     void end();
