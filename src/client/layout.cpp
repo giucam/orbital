@@ -256,55 +256,66 @@ void Layout::relayout()
         qWarning("Layout: vertical orientation not implemented.");
     }
 
-    int expandables = 0;
-    qreal x = 0;
-    for (int i = 0; i < m_items.size(); ++i) {
-        QQuickItem *item = m_items.at(i);
-        item->setX(x);
-        item->setY(0);
-        LayoutAttached *la = attachedLayoutObject(item);
-        qreal w = la->preferredWidth();
-        item->setWidth(w);
-        item->setHeight(height());
-
-        if (la->fillWidth()) {
-            ++expandables;
-        }
-
-        x += w + m_spacing;
+    struct It {
+        QQuickItem *item;
+        LayoutAttached *la;
+        bool resize;
+        qreal x;
+        qreal w;
+    };
+    QList<It> _items;
+    for (QQuickItem *i: m_items) {
+        _items.append({ i, attachedLayoutObject(i), true, 0, 0 });
     }
 
-    qreal spaceLeft = width() - x;
-    if (spaceLeft > 0) {
-        spaceLeft /= expandables;
+    qreal x = 0;
+    for (It &i: _items) {
+        i.x = x;
+        i.w = i.la->minimumWidth();
+
+        x += i.w + m_spacing;
+    }
+
+    bool again;
+    int num = _items.count();
+    do {
+        again = false;
+        qreal spaceLeft = width() - x;
+        if (spaceLeft <= 0) {
+            break;
+        }
+
+        spaceLeft /= num;
         x = 0;
-        for (QQuickItem *i: m_items) {
-            LayoutAttached *la = attachedLayoutObject(i);
-            i->setX(x);
-            if (la->fillWidth()) {
-                qreal w = i->width() + spaceLeft;
-                if (w > la->maximumWidth()) {
-                    w = la->maximumWidth();
+        for (It &i: _items) {
+            i.x = x;
+            if (i.resize) {
+                i.w += spaceLeft;
+                if (i.la->fillWidth()) {
+                    if (i.w > i.la->maximumWidth()) {
+                        i.w = i.la->maximumWidth();
+                        i.resize = false;
+                        --num;
+                        again = true;
+                    } else if (spaceLeft > 1) {
+                        again = true;
+                    }
+                } else if (i.w > i.la->preferredWidth()) {
+                    i.w = i.la->preferredWidth();
+                    i.resize = false;
+                    --num;
+                    again = true;
                 }
-                i->setWidth(w);
+
             }
-
-            x += i->width();
+            x += i.w + m_spacing;
         }
-    } else if (spaceLeft < 0) {
-        spaceLeft /= m_items.count();
-        x = 0;
-        for (QQuickItem *i: m_items) {
-            LayoutAttached *la = attachedLayoutObject(i);
-            i->setX(x);
+    } while (again);
 
-            qreal w = i->width() + spaceLeft;
-            if (w < la->minimumWidth()) {
-                w = la->minimumWidth();
-            }
-            i->setWidth(w);
-
-            x += w + m_spacing;
-        }
+    for (It &i: _items) {
+        i.item->setX(i.x);
+        i.item->setY(0);
+        i.item->setWidth(i.w);
+        i.item->setHeight(height());
     }
 }
