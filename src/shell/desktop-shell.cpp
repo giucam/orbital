@@ -145,7 +145,7 @@ void DesktopShell::bind(struct wl_client *client, uint32_t version, uint32_t id)
 
     if (client == m_child.client) {
         wl_resource_set_implementation(resource, &m_desktop_shell_implementation, this,
-                                       [](struct wl_resource *resource) { static_cast<DesktopShell *>(resource->data)->unbind(resource); });
+                                       [](struct wl_resource *resource) { static_cast<DesktopShell *>(wl_resource_get_user_data(resource))->unbind(resource); });
         m_child.desktop_shell = resource;
 
         sendInitEvents();
@@ -228,7 +228,7 @@ void DesktopShell::resizeBinding(weston_seat *seat, uint32_t time, uint32_t butt
 void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                                  struct wl_resource *surface_resource)
 {
-    struct weston_surface *surface = static_cast<weston_surface *>(surface_resource->data);
+    struct weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
     if (surface->configure) {
         wl_resource_post_error(surface_resource,
                                WL_DISPLAY_ERROR_INVALID_OBJECT,
@@ -236,7 +236,7 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
         return;
     }
 
-    setBackgroundSurface(surface, static_cast<weston_output *>(output_resource->data));
+    setBackgroundSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
 
     desktop_shell_send_configure(resource, 0,
                                  surface_resource,
@@ -247,7 +247,7 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
 void DesktopShell::setPanel(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
                             struct wl_resource *surface_resource)
 {
-    struct weston_surface *surface = static_cast<struct weston_surface *>(surface_resource->data);
+    struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
 
     if (surface->configure) {
         wl_resource_post_error(surface_resource,
@@ -256,7 +256,7 @@ void DesktopShell::setPanel(struct wl_client *client, struct wl_resource *resour
         return;
     }
 
-    addPanelSurface(surface, static_cast<weston_output *>(output_resource->data));
+    addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
 }
 
@@ -330,11 +330,11 @@ static void popupGrabDestroyed(wl_resource *res)
 
 void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *output_resource, wl_resource *surface_resource, int x, int y)
 {
-    struct weston_surface *surface = static_cast<struct weston_surface *>(surface_resource->data);
+    struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
 
     if (!surface->configure) {
         // FIXME: change/rename this function
-        addPanelSurface(surface, static_cast<weston_output *>(output_resource->data));
+        addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
     }
     weston_surface_set_position(surface, x, y);
 
@@ -369,7 +369,7 @@ void DesktopShell::unlock(struct wl_client *client, struct wl_resource *resource
 
 void DesktopShell::setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource)
 {
-    this->Shell::setGrabSurface(static_cast<struct weston_surface *>(surface_resource->data));
+    this->Shell::setGrabSurface(static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource)));
 }
 
 void DesktopShell::desktopReady(struct wl_client *client, struct wl_resource *resource)
@@ -391,7 +391,7 @@ void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *r
 
 void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource)
 {
-    struct weston_surface *surface = static_cast<weston_surface *>(surface_resource->data);
+    struct weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
     if (surface->configure) {
         wl_resource_post_error(surface_resource,
                                WL_DISPLAY_ERROR_INVALID_OBJECT,
@@ -399,7 +399,7 @@ void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *reso
         return;
     }
 
-    addOverlaySurface(surface, static_cast<weston_output *>(output_resource->data));
+    addOverlaySurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
     pixman_region32_fini(&surface->pending.input);
     pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
@@ -472,7 +472,7 @@ static void clientGrabDestroyed(wl_resource *res)
 
 void client_grab_end(wl_client *client, wl_resource *resource)
 {
-    ClientGrab *cg = static_cast<ClientGrab *>(resource->data);
+    ClientGrab *cg = static_cast<ClientGrab *>(wl_resource_get_user_data(resource));
     weston_output_schedule_repaint(cg->pointer()->focus->output);
     cg->end();
 }

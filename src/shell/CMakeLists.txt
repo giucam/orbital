@@ -41,5 +41,6 @@ wayland_add_protocol_server(SOURCES
 
 add_library(orbital-shell SHARED ${SOURCES})
 set_target_properties(orbital-shell PROPERTIES PREFIX "")
+set_target_properties(orbital-shell PROPERTIES COMPILE_DEFINITIONS WL_HIDE_DEPRECATED=1)
 
 install(TARGETS orbital-shell DESTINATION lib/orbital)

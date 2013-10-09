@@ -519,7 +519,7 @@ const struct weston_shell_client Shell::shell_client = {
 ShellSurface *Shell::getShellSurface(struct wl_client *client, struct wl_resource *resource, uint32_t id,
                                      struct wl_resource *surface_resource)
 {
-    struct weston_surface *surface = static_cast<weston_surface *>(surface_resource->data);
+    struct weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
 
     ShellSurface *shsurf = getShellSurface(surface);
     if (shsurf) {
@@ -887,7 +887,7 @@ void Shell::fadeSplash()
 
 const struct wl_shell_interface Shell::shell_implementation = {
     [](struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *surface_resource) {
-        static_cast<Shell *>(resource->data)->getShellSurface(client, resource, id, surface_resource);
+        static_cast<Shell *>(wl_resource_get_user_data(resource))->getShellSurface(client, resource, id, surface_resource);
     }
 };
 
