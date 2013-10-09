@@ -28,11 +28,11 @@ Element {
     width: Screen.width
     height: Screen.height
 
-    property variant fillModes: [ { name: "Scaled", value: 0 },
-                                  { name: "Scaled, keep aspect", value: 1},
-                                  { name: "Scaled, cropped", value: 2 },
-                                  { name: "Centered", value: 6 },
-                                  { name: "Tiled", value: 3 } ]
+    property variant fillModes: [ { name: qsTr("Scaled"), value: 0 },
+                                  { name: qsTr("Scaled, keep aspect"), value: 1},
+                                  { name: qsTr("Scaled, cropped"), value: 2 },
+                                  { name: qsTr("Centered"), value: 6 },
+                                  { name: qsTr("Tiled"), value: 3 } ]
 
     property string imageSource: ""
     property int imageFillMode: 1
@@ -172,11 +172,11 @@ Element {
             id: menu
 
             MenuItem {
-                text: "Configure background"
+                text: qsTr("Configure background")
                 onTriggered: config.toggle();
             }
             MenuItem {
-                text: Ui.configMode ? "Save configuration" : "Configure applets"
+                text: Ui.configMode ? qsTr("Save configuration") : qsTr("Configure applets")
                 onTriggered: Ui.toggleConfigMode();
             }
         }

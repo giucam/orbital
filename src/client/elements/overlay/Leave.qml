@@ -49,24 +49,31 @@ Item {
         styleColor: "grey"
         wrapMode: Text.Wrap
 
+        property string abort: qsTr("Click anywhere to abort")
         property string op: ""
-        text: "%1 in\n%2... \n\nClick anywhere to abort".arg(op).arg(service.timeout)
+    }
+
+    function updateText() {
+        var t;
+        if (text.op == "logout") {
+            t = qsTr("Logging out in\n%2...").arg(service.timeout);
+        } else if (text.op == "poweroff") {
+            t = qsTr("Shutting down in\n%2...").arg(service.timeout);
+        } else if (text.op == "reboot") {
+            t = qsTr("Rebooting in\n%2...").arg(service.timeout);
+        }
+        text.text = t + "\n\n" + text.abort;
     }
 
     Connections {
         target: service
         onTimeoutStarted: {
-            if (operation == "logout") {
-                text.op = "Logging out";
-            } else if (operation == "poweroff") {
-                text.op = "Shutting down";
-            } else if (operation == "reboot") {
-                text.op = "Rebooting";
-            }
-
+            text.op = operation;
             leave.opacity = 1;
             leave.grab = Client.createGrab();
+            updateText();
         }
+        onTimeoutChanged: updateText();
     }
 
     Connections {

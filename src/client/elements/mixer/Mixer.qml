@@ -161,6 +161,6 @@ Element {
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
         color: CurrentStyle.textColor
-        text: service.muted ? "Muted" : "Volume at " + service.master + "%"
+        text: service.muted ? qsTr("Muted") : qsTr("Volume at %1\%").arg(service.master)
     }
 }

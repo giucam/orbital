@@ -40,7 +40,7 @@ Element {
             Layout.fillWidth: true
             height: parent.height
             hoverEnabled: true
-            onEntered: ttip.text = "Log out"
+            onEntered: ttip.text = qsTr("Log out")
 
             Icon {
                 anchors.fill: parent
@@ -53,7 +53,7 @@ Element {
             Layout.fillWidth: true
             height: parent.height
             hoverEnabled: true
-            onEntered: ttip.text = "Shutdown"
+            onEntered: ttip.text = qsTr("Shutdown")
 
             Icon {
                 anchors.fill: parent
@@ -66,7 +66,7 @@ Element {
             Layout.fillWidth: true
             height: parent.height
             hoverEnabled: true
-            onEntered: ttip.text = "Reboot"
+            onEntered: ttip.text = qsTr("Reboot")
 
             Icon {
                 anchors.fill: parent

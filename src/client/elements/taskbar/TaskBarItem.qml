@@ -61,7 +61,7 @@ Item {
         id: menu
 
         MenuItem {
-            text: "Close"
+            text: qsTr("Close")
             onTriggered: window.close();
         }
 

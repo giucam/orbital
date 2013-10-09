@@ -75,7 +75,7 @@ Element {
                 Controls.Label {
                     width: content.middle - content.anchors.margins
                     height: parent.height
-                    text: "Icon:"
+                    text: qsTr("Icon:")
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignRight
                 }
@@ -95,7 +95,7 @@ Element {
                 Controls.Label {
                     width: content.middle - content.anchors.margins
                     height: parent.height
-                    text: "Process:"
+                    text: qsTr("Process:")
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignRight
                 }

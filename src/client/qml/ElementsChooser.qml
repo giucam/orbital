@@ -58,7 +58,7 @@ Item {
 
             Text {
                 height: stylesList.height
-                text: "Style:"
+                text: qsTr("Style:")
                 verticalAlignment: Qt.AlignVCenter
             }
 

@@ -68,6 +68,6 @@ Element {
         verticalAlignment: Qt.AlignVCenter
         elide: Text.ElideMiddle
         color: CurrentStyle.textColor
-        text: "Run command"
+        text: qsTr("Run command")
     }
 }
