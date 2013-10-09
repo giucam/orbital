@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import QtQuick.Controls 1.0
 
 Item {
     id: item
@@ -39,17 +40,30 @@ Item {
 
     MouseArea {
         anchors.fill: parent
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: {
-            print(window.isMinimized());
-            if (window.isMinimized()) {
-                window.unminimize();
-            } else if (window.isActive()) {
-                window.minimize();
-            }
-            if (!window.isActive()) {
-                window.activate();
+            if (mouse.button == Qt.LeftButton) {
+                if (window.isMinimized()) {
+                    window.unminimize();
+                } else if (window.isActive()) {
+                    window.minimize();
+                }
+                if (!window.isActive()) {
+                    window.activate();
+                }
+            } else {
+                menu.popup();
             }
         }
     }
 
+    Menu {
+        id: menu
+
+        MenuItem {
+            text: "Close"
+            onTriggered: window.close();
+        }
+
+    }
 }

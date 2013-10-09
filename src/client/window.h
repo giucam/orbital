@@ -57,6 +57,7 @@ public slots:
     void activate();
     void minimize();
     void unminimize();
+    void close();
 
 signals:
     void destroyed(Window *w);

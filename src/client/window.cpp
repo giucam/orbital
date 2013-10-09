@@ -127,3 +127,8 @@ void Window::unminimize()
         setState(m_state & ~Window::Minimized);
     }
 }
+
+void Window::close()
+{
+    desktop_shell_window_close(m_window);
+}
