@@ -16,6 +16,8 @@
  */
 
 #include <stdio.h>
+#include <sys/types.h>
+#include <signal.h>
 
 #include <weston/compositor.h>
 
@@ -75,8 +77,19 @@ void ShellSurface::set_state(struct wl_client *client, struct wl_resource *resou
     shsurf->setState(state);
 }
 
+void ShellSurface::close()
+{
+    wl_signal_emit(&m_shell->compositor()->kill_signal, m_surface);
+
+    wl_client *client = wl_resource_get_client(m_resource);
+    pid_t pid;
+    wl_client_get_credentials(client, &pid, NULL, NULL);
+    kill(pid, SIGTERM);
+}
+
 const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
-    set_state
+    set_state,
+    wrapInterface(&ShellSurface::close)
 };
 
 void ShellSurface::init(struct wl_client *client, uint32_t id)
