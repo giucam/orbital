@@ -61,8 +61,8 @@ Element {
         }
     }
     onElementExited: {
-        var offset = mapToItem(element, pos.x, pos.y);
-        element.dragOffset = Qt.point(offset.x, offset.y);
+        var newoffset = mapToItem(element, pos.x, pos.y);
+        element.dragOffset = Qt.point(newoffset.x, newoffset.y);
     }
 
     contentItem: Item {
