@@ -170,6 +170,7 @@
       <request name="set_state">
           <arg name="state" type="int"/>
       </request>
+      <request name="close"/>
       <event name="set_title">
           <arg name="title" type="string"/>
       </event>
