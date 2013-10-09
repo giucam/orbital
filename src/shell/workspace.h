@@ -20,7 +20,7 @@
 
 #include "layer.h"
 #include "transform.h"
-#include "signal.h"
+#include "shellsignal.h"
 
 class Shell;
 

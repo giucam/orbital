@@ -22,7 +22,7 @@
 
 #include <wayland-server.h>
 
-#include "signal.h"
+#include "shellsignal.h"
 #include "utils.h"
 
 class Shell;
@@ -106,6 +106,7 @@ public:
 
     void show();
     void hide();
+    void close();
 
     Signal<> destroyedSignal;
     Signal<ShellSurface *> moveStartSignal;
