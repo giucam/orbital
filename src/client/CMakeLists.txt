@@ -14,7 +14,7 @@ function(INSTALL_ELEMENT _sources _dir)
             add_custom_command(OUTPUT ${qm} COMMAND ${LRELEASE_EXECUTABLE} ARGS ${_abs_ts} -qm ${qm} DEPENDS ${_abs} VERBATIM)
 
             list(APPEND ${_sources} "${qm}")
-            install(FILES ${qm} DESTINATION share/orbital/elements)
+            install(FILES ${qm} DESTINATION share/orbital/${_dir})
         endforeach(ts)
         set(${_sources} ${${_sources}} PARENT_SCOPE)
     else(LRELEASE_EXECUTABLE)
