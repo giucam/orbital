@@ -84,6 +84,7 @@ public:
     static QQuickWindow *createUiWindow();
 
     static Client *client() { return s_client; }
+    static QLocale locale();
 
 public slots:
     void minimizeWindows();

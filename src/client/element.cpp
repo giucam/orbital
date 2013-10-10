@@ -423,6 +423,14 @@ void Element::loadElementInfo(const QString &name, const QString &path)
         return;
     }
 
+    QDir dir(path);
+    QTranslator *tr = new QTranslator;
+    if (tr->load(Client::locale(), "", "", path, ".qm")) {
+        QCoreApplication::installTranslator(tr);
+    } else {
+        delete tr;
+    }
+
     s_elements.insert(name, info);
 }
 

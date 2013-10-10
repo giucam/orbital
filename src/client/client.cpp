@@ -54,7 +54,7 @@ Client *Client::s_client = nullptr;
 class ClientPrivate {
     Q_DECLARE_PUBLIC(Client)
 public:
-    ClientPrivate(Client *c) : q_ptr(c) {}
+    ClientPrivate(Client *c) : locale(QLocale::system()), q_ptr(c) {}
 
     QQmlListProperty<Window> windows();
     QQmlListProperty<Workspace> workspaces();
@@ -66,6 +66,7 @@ public:
     static int workspacesCount(QQmlListProperty<Workspace> *prop);
     static Workspace *workspacesAt(QQmlListProperty<Workspace> *prop, int index);
 
+    QLocale locale;
     Client *q_ptr;
 };
 
@@ -110,6 +111,13 @@ Client::Client()
     REGISTER_QMLFILE("Spacer");
     REGISTER_QMLFILE("Element");
     REGISTER_QMLFILE("Button");
+
+    QTranslator *tr = new QTranslator;
+    if (tr->load(d_ptr->locale, "", "", DATA_PATH "/translations", ".qm")) {
+        QCoreApplication::installTranslator(tr);
+    } else {
+        delete tr;
+    }
 
     QCoreApplication::setApplicationName("orbital");
     QQuickWindow::setDefaultAlphaBuffer(true);
@@ -315,6 +323,11 @@ Service *Client::service(const QString &name)
     s = ServiceFactory::createService(name, this);
     m_services.insert(name, s);
     return s;
+}
+
+QLocale Client::locale()
+{
+    return s_client->d_ptr->locale;
 }
 
 void Client::quit()
