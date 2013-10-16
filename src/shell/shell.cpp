@@ -631,9 +631,36 @@ void Shell::backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t s
     configure_static_surface(es, &m_backgroundLayer, width, height);
 }
 
-void Shell::panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height)
+void Shell::panelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, PanelPosition pos)
 {
-    configure_static_surface(es, &static_cast<Shell *>(es->configure_private)->m_panelsLayer, width, height);
+    if (width == 0)
+        return;
+
+    weston_output *output = es->output;
+
+    int32_t x, y;
+    switch (pos) {
+        case PanelPosition::Top:
+        case PanelPosition::Left:
+            x = output->x;
+            y = output->y;
+            break;
+        case PanelPosition::Right:
+            y = output->y;
+            x = output->x + output->width - width;
+            break;
+        case PanelPosition::Bottom:
+            x = output->x;
+            y = output->y + output->height - height;
+            break;
+    }
+
+    weston_surface_configure(es, x, y, width, height);
+
+    if (wl_list_empty(&es->layer_link) || es->layer_link.next == es->layer_link.prev) {
+        m_panelsLayer.addSurface(es);
+        weston_compositor_schedule_repaint(es->compositor);
+    }
 }
 
 void Shell::setBackgroundSurface(struct weston_surface *surface, struct weston_output *output)
@@ -650,13 +677,31 @@ void Shell::setGrabSurface(struct weston_surface *surface)
     m_grabSurface = surface;
 }
 
-void Shell::addPanelSurface(struct weston_surface *surface, struct weston_output *output)
+struct Panel {
+    weston_surface *surface;
+    Shell::PanelPosition pos;
+    Shell *shell;
+    wl_listener destroyListener;
+};
+
+static void panelDestroyed(wl_listener *listener, void *data)
 {
-    surface->configure = [](struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
-        static_cast<Shell *>(es->configure_private)->panelConfigure(es, sx, sy, width, height); };
-    surface->configure_private = this;
+    weston_surface *surface = static_cast<weston_surface *>(data);
+    delete static_cast<Panel *>(surface->configure_private);
+}
+
+void Shell::addPanelSurface(weston_surface *surface, weston_output *output, PanelPosition pos)
+{
+    Panel *panel = new Panel({ surface, pos, this, 0, 0, 0 });
+    surface->configure = [](weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
+        Panel *p = static_cast<Panel *>(es->configure_private);
+        p->shell->panelConfigure(es, sx, sy, width, height, p->pos);
+    };
+    surface->configure_private = panel;
     surface->output = output;
-    weston_surface_set_position(surface, output->x, output->y);
+
+    panel->destroyListener.notify = panelDestroyed;
+    wl_signal_add(&surface->destroy_signal, &panel->destroyListener);
 }
 
 void Shell::addOverlaySurface(struct weston_surface *surface, struct weston_output *output)

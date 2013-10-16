@@ -15,6 +15,7 @@
     <request name="set_panel">
       <arg name="output" type="object" interface="wl_output"/>
       <arg name="surface" type="object" interface="wl_surface"/>
+      <arg name="position" type="uint"/>
     </request>
 
     <request name="set_lock_surface">
@@ -143,6 +144,14 @@
 
       <entry name="busy" value="11"/>
     </enum>
+
+    <enum name="panel_position">
+      <entry name="top" value="0"/>
+      <entry name="left" value="1"/>
+      <entry name="bottom" value="2"/>
+      <entry name="right" value="3"/>
+    </enum>
+
   </interface>
 
   <interface name="desktop_shell_binding" version="1">

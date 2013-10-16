@@ -216,7 +216,7 @@ void Client::create()
                     desktop_shell_set_background(m_shell, output, wlSurface);
                     break;
                 case ElementInfo::Type::Panel:
-                    desktop_shell_set_panel(m_shell, output, wlSurface);
+                    desktop_shell_set_panel(m_shell, output, wlSurface, elm->property("position").toInt());
                     break;
                 case ElementInfo::Type::Overlay:
                     desktop_shell_add_overlay(m_shell, output, wlSurface);

@@ -23,8 +23,12 @@ import Orbital 1.0
 
 Element {
     id: panel
-    width: Screen.width
-    height: 33
+    property int position: 0
+    property int orientation: (position == 0 || position == 2) ? Qt.Horizontal : Qt.Vertical
+    property int size: 33
+
+    width: orientation == Qt.Horizontal ? Screen.width : size
+    height: orientation == Qt.Horizontal ? size : Screen.height
     inputRegion: background.childrenRect
 
     childrenConfig: Component {
@@ -70,7 +74,10 @@ Element {
         StyleItem {
             id: background
             anchors.fill: parent
-            anchors.bottomMargin: 5
+            anchors.topMargin:    position == 2 ? 5 : 0
+            anchors.leftMargin:   position == 3 ? 5 : 0
+            anchors.bottomMargin: position == 0 ? 5 : 0
+            anchors.rightMargin:  position == 1 ? 5 : 0
             component: CurrentStyle.panelBackground
 
             Layout {
@@ -79,11 +86,13 @@ Element {
             }
         }
         StyleItem {
-            anchors.top: background.bottom
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
+            id: border
+            anchors.top:    panel.position == 0 ? background.bottom : contentItem.top
+            anchors.bottom: panel.position == 2 ? background.top : contentItem.bottom
+            anchors.left:   panel.position == 1 ? background.right : contentItem.left
+            anchors.right:  panel.position == 3 ? background.left : contentItem.right
             component: CurrentStyle.panelBorder
+            Binding { target: border.item; property: "panel"; value: panel }
         }
     }
 }

@@ -244,8 +244,7 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
                                  surface->output->height);
 }
 
-void DesktopShell::setPanel(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource,
-                            struct wl_resource *surface_resource)
+void DesktopShell::setPanel(wl_client *client, wl_resource *resource, wl_resource *output_resource, wl_resource *surface_resource, uint32_t pos)
 {
     struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
 
@@ -256,7 +255,7 @@ void DesktopShell::setPanel(struct wl_client *client, struct wl_resource *resour
         return;
     }
 
-    addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
+    addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)), (Shell::PanelPosition)pos);
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
 }
 
@@ -334,7 +333,7 @@ void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t i
 
     if (!surface->configure) {
         // FIXME: change/rename this function
-        addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
+        addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)), Shell::PanelPosition::Top);
     }
     weston_surface_set_position(surface, x, y);
 

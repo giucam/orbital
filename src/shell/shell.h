@@ -80,6 +80,13 @@ private:
 
 class Shell {
 public:
+    enum class PanelPosition {
+        Top = 0,
+        Left = 1,
+        Bottom = 2,
+        Right = 3
+    };
+
     template<class T>
     static Shell *load(struct weston_compositor *ec, char *client);
     virtual ~Shell();
@@ -105,7 +112,7 @@ public:
 
     void setBackgroundSurface(struct weston_surface *surface, struct weston_output *output);
     void setGrabSurface(struct weston_surface *surface);
-    void addPanelSurface(struct weston_surface *surface, struct weston_output *output);
+    void addPanelSurface(weston_surface *surface, weston_output *output, PanelPosition pos);
     void addOverlaySurface(struct weston_surface *surface, struct weston_output *output);
 
     void startGrab(ShellGrab *grab, weston_seat *seat, int32_t cursor = -1);
@@ -161,7 +168,7 @@ private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
     void sigchld(int status);
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
-    void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
+    void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, PanelPosition pos);
     void activateSurface(struct weston_seat *seat, uint32_t time, uint32_t button);
     void configureFullscreen(ShellSurface *surface);
     void stackFullscreen(ShellSurface *surface);
