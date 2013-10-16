@@ -77,8 +77,18 @@ class Element : public QQuickItem
     Q_PROPERTY(QQuickItem *childrenParent READ childrenParent WRITE setChildrenParent)
     Q_PROPERTY(QQmlComponent *childrenBackground READ background WRITE setBackground)
     Q_PROPERTY(QRectF inputRegion READ inputRegion WRITE setInputRegion)
+    Q_PROPERTY(Location location READ location NOTIFY locationChanged)
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
+    enum class Location {
+        TopEdge = 0,
+        LeftEdge = 1,
+        BottomEdge = 2,
+        RightEdge = 3,
+        Floating = 4
+    };
+    Q_ENUMS(Location)
+
     explicit Element(Element *parent = nullptr);
     ~Element();
 
@@ -123,6 +133,9 @@ public:
     QRectF inputRegion() const;
     void setInputRegion(const QRectF &rect);
 
+    Location location() const { return m_location; }
+    void setLocation(Location p);
+
     static void loadElementsList();
     static void cleanupElementsList();
     static const QMap<QString, ElementInfo *> &elementsInfo() { return s_elements; }
@@ -138,6 +151,7 @@ signals:
 
     void contentChanged();
     void contentItemChanged();
+    void locationChanged();
 
 protected:
     void setId(int id);
@@ -177,6 +191,7 @@ private:
     UiScreen *m_screen;
     QRectF m_inputRegion;
     bool m_inputRegionSet;
+    Location m_location;
 
     QQmlComponent *m_childrenBackground;
     QQuickItem *m_background;

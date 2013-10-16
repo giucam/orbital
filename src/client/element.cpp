@@ -48,6 +48,7 @@ Element::Element(Element *parent)
        , m_childrenConfig(nullptr)
        , m_screen(nullptr)
        , m_inputRegionSet(false)
+       , m_location(Location::Floating)
        , m_childrenBackground(nullptr)
        , m_background(nullptr)
 {
@@ -126,6 +127,14 @@ void Element::setInputRegion(const QRectF &rect)
 {
     m_inputRegion = rect;
     m_inputRegionSet = true;
+}
+
+void Element::setLocation(Location p)
+{
+    if (m_location != p) {
+        m_location = p;
+        emit locationChanged();
+    }
 }
 
 void Element::addProperty(const QString &name)
@@ -238,6 +247,7 @@ void Element::setParentElement(Element *parent)
         }
         setParentItem(parentItem);
         parent->m_children << this;
+        setLocation(parent->m_location);
     } else {
         setParentItem(nullptr);
     }

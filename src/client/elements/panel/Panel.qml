@@ -23,8 +23,7 @@ import Orbital 1.0
 
 Element {
     id: panel
-    property int position: 0
-    property int orientation: (position == 0 || position == 2) ? Qt.Horizontal : Qt.Vertical
+    property int orientation: (location == 0 || location == 2) ? Qt.Horizontal : Qt.Vertical
     property int size: 33
 
     width: orientation == Qt.Horizontal ? Screen.width : size
@@ -74,10 +73,10 @@ Element {
         StyleItem {
             id: background
             anchors.fill: parent
-            anchors.topMargin:    position == 2 ? 5 : 0
-            anchors.leftMargin:   position == 3 ? 5 : 0
-            anchors.bottomMargin: position == 0 ? 5 : 0
-            anchors.rightMargin:  position == 1 ? 5 : 0
+            anchors.topMargin:    location == 2 ? 5 : 0
+            anchors.leftMargin:   location == 3 ? 5 : 0
+            anchors.bottomMargin: location == 0 ? 5 : 0
+            anchors.rightMargin:  location == 1 ? 5 : 0
             component: CurrentStyle.panelBackground
 
             Layout {
@@ -88,12 +87,11 @@ Element {
         }
         StyleItem {
             id: border
-            anchors.top:    panel.position == 0 ? background.bottom : contentItem.top
-            anchors.bottom: panel.position == 2 ? background.top : contentItem.bottom
-            anchors.left:   panel.position == 1 ? background.right : contentItem.left
-            anchors.right:  panel.position == 3 ? background.left : contentItem.right
+            anchors.top:    panel.location == 0 ? background.bottom : contentItem.top
+            anchors.bottom: panel.location == 2 ? background.top : contentItem.bottom
+            anchors.left:   panel.location == 1 ? background.right : contentItem.left
+            anchors.right:  panel.location == 3 ? background.left : contentItem.right
             component: CurrentStyle.panelBorder
-            Binding { target: border.item; property: "panel"; value: panel }
         }
     }
 }

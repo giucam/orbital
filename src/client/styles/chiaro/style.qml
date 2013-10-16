@@ -33,32 +33,29 @@ Style {
     }
 
     panelBorder: StyleComponent {
-        property variant panel: null
-        Connections {
-            target: panel
-            ignoreUnknownSignals: true
-            onPositionChanged: {
-                if (panel.position == 1) {
-                    gradient.start = Qt.point(0, 0);
-                    gradient.end = Qt.point(gradient.width, 0);
-                } else if (panel.position == 2) {
-                    gradient.start = Qt.point(0, gradient.height);
-                    gradient.end = Qt.point(0, 0);
-                } else if (panel.position == 3) {
-                    gradient.start = Qt.point(gradient.width, 0);
-                    gradient.end = Qt.point(0, 0);
-                } else {
-                    gradient.start = Qt.point(0, 0);
-                    gradient.end = Qt.point(0, gradient.height);
-                }
-            }
-        }
+        Component.onCompleted: update()
+        onLocationChanged: update()
         LinearGradient {
             id: gradient
             anchors.fill: parent
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#f0202020" }
                 GradientStop { position: 1.0; color: "#00000000" }
+            }
+        }
+        function update() {
+            if (location == 1) {
+                gradient.start = Qt.point(0, 0);
+                gradient.end = Qt.point(gradient.width, 0);
+            } else if (location == 2) {
+                gradient.start = Qt.point(0, gradient.height);
+                gradient.end = Qt.point(0, 0);
+            } else if (location == 3) {
+                gradient.start = Qt.point(gradient.width, 0);
+                gradient.end = Qt.point(0, 0);
+            } else {
+                gradient.start = Qt.point(0, 0);
+                gradient.end = Qt.point(0, gradient.height);
             }
         }
     }

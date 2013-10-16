@@ -22,6 +22,8 @@
 
 #include <QQuickItem>
 
+#include "element.h"
+
 class QQmlComponent;
 
 class StyleComponent : public QQuickItem
@@ -31,6 +33,7 @@ class StyleComponent : public QQuickItem
     Q_PROPERTY(qreal topContentsMargin READ topContentsMargin WRITE setTopContentsMargin NOTIFY contentsMarginsChanged)
     Q_PROPERTY(qreal rightContentsMargin READ rightContentsMargin WRITE setRightContentsMargin NOTIFY contentsMarginsChanged)
     Q_PROPERTY(qreal bottomContentsMargin READ bottomContentsMargin WRITE setBottomContentsMargin NOTIFY contentsMarginsChanged)
+    Q_PROPERTY(Element::Location location READ location NOTIFY locationChanged)
 public:
     StyleComponent(QQuickItem *parent = nullptr);
 
@@ -38,6 +41,7 @@ public:
     qreal topContentsMargin() const { return m_topMargin; }
     qreal rightContentsMargin() const { return m_rightMargin; }
     qreal bottomContentsMargin() const { return m_bottomMargin; }
+    Element::Location location() const { return m_location; }
 
     void setLeftContentsMargin(qreal m) { m_leftMargin = m; emit contentsMarginsChanged(); }
     void setTopContentsMargin(qreal m) { m_topMargin = m; emit contentsMarginsChanged(); }
@@ -46,12 +50,19 @@ public:
 
 signals:
     void contentsMarginsChanged();
+    void locationChanged();
 
 private:
+    void updPos();
+
     qreal m_leftMargin;
     qreal m_topMargin;
     qreal m_rightMargin;
     qreal m_bottomMargin;
+    Element::Location m_location;
+    Element *m_element;
+
+    friend class StyleItem;
 };
 
 class StyleItem : public QQuickItem
@@ -76,6 +87,7 @@ signals:
 
 private:
     void updateMargins();
+    Element *element();
 
     QQmlComponent *m_component;
     StyleComponent *m_item;

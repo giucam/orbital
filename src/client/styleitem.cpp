@@ -42,11 +42,19 @@ void StyleItem::setComponent(QQmlComponent *c)
     m_component = c;
     m_item = nullptr;
     if (c) {
-        QObject *obj = c->create();
+        QObject *obj = c->beginCreate(c->creationContext());
         m_item = qobject_cast<StyleComponent *>(obj);
-        if (!m_item) {
+        if (m_item) {
+            Element *e = element();
+            m_item->m_element = e;
+            if (e) {
+                m_item->m_location = e->location();
+                connect(e, &Element::locationChanged, m_item, &StyleComponent::updPos);
+            }
+        } else {
             qWarning() << "Style components must instantiate StyleComponent items.";
         }
+        c->completeCreate();
     }
 
     if (m_item) {
@@ -107,7 +115,21 @@ void StyleItem::updateMargins()
     m_child->setHeight(height() - m_margins[1] - m_margins[3]);
 }
 
+Element *StyleItem::element()
+{
+    QQuickItem *item = parentItem();
+    while (true) {
+        if (!item) {
+            return nullptr;
+        }
 
+        Element *elm = qobject_cast<Element *>(item);
+        if (elm) {
+            return elm;
+        }
+        item = item->parentItem();
+    }
+}
 
 
 StyleComponent::StyleComponent(QQuickItem *p)
@@ -116,5 +138,12 @@ StyleComponent::StyleComponent(QQuickItem *p)
               , m_topMargin(0)
               , m_rightMargin(0)
               , m_bottomMargin(0)
+              , m_element(nullptr)
 {
+}
+
+void StyleComponent::updPos()
+{
+    m_location = m_element->location();
+    emit locationChanged();
 }

@@ -49,7 +49,7 @@ static const char *defaultConfig =
 "            <property name=\"imageFillMode\" value=\"4\"/>\n"
 "        </element>\n"
 "        <element type=\"panel\" id=\"2\">\n"
-"            <property name=\"position\" value=\"0\"/>\n"
+"            <property name=\"location\" value=\"0\"/>\n"
 "            <element type=\"launcher\" id=\"3\">\n"
 "                <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
 "                <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"

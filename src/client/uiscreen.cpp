@@ -120,7 +120,11 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
                 QString name = attribs.value("name").toString();
                 QString value = attribs.value("value").toString();
 
-                QQmlProperty::write(elm, name, value);
+                if (name == "location") {
+                    elm->setLocation((Element::Location)value.toInt());
+                } else {
+                    QQmlProperty::write(elm, name, value);
+                }
                 elm->addProperty(name);
             }
         }
