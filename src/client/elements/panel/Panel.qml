@@ -82,6 +82,7 @@ Element {
 
             Layout {
                 id: layout
+                orientation: panel.orientation
                 anchors.fill: parent
             }
         }

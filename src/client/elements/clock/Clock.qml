@@ -24,7 +24,8 @@ Element {
     id: element
     Layout.minimumWidth: time.contentWidth + 10
     Layout.preferredWidth: Layout.minimumWidth
-    Layout.fillHeight: true
+    Layout.minimumHeight: time.contentHeight + 10
+    Layout.preferredHeight: Layout.minimumHeight
 
     width: Layout.preferredWidth
     height: 20

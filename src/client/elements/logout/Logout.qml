@@ -18,7 +18,6 @@
  */
 
 import QtQuick 2.1
-import QtQuick.Layouts 1.0
 import QtGraphicalEffects 1.0
 import Orbital 1.0
 
@@ -27,17 +26,21 @@ Element {
     width: 100
     height: 32
 
+    property int orientation: Layout ? Layout.orientation : Qt.Horizontal
     Layout.preferredWidth: height * 3 + 10
-    Layout.fillHeight: true
+    Layout.preferredHeight: width * 3 + 10
 
     property variant service: Client.service("LoginService")
 
     contentItem: Layout {
         id: row
+        orientation: logout.orientation
         anchors.fill: parent
         MouseArea {
             Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             Layout.fillWidth: true
+            Layout.fillHeight: true
             height: parent.height
             hoverEnabled: true
             onEntered: ttip.text = qsTr("Log out")
@@ -50,7 +53,9 @@ Element {
         }
         MouseArea {
             Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             Layout.fillWidth: true
+            Layout.fillHeight: true
             height: parent.height
             hoverEnabled: true
             onEntered: ttip.text = qsTr("Shutdown")
@@ -63,7 +68,9 @@ Element {
         }
         MouseArea {
             Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
             Layout.fillWidth: true
+            Layout.fillHeight: true
             height: parent.height
             hoverEnabled: true
             onEntered: ttip.text = qsTr("Reboot")

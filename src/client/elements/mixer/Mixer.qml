@@ -30,7 +30,7 @@ Element {
     height: 30
 
     Layout.preferredWidth: 30
-    Layout.fillHeight: true
+    Layout.preferredHeight: 30
 
     property variant service: Client.service("MixerService")
 

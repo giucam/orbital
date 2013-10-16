@@ -23,8 +23,10 @@ import Orbital 1.0
 Element {
     id: taskbar
 
+    property int orientation: Layout ? Layout.orientation : Qt.Horizontal
+
     Layout.preferredWidth: 200
-    Layout.preferredHeight: 32
+    Layout.preferredHeight: 200
     Layout.fillWidth: true
     Layout.fillHeight: true
 
@@ -38,6 +40,7 @@ Element {
         Layout {
             spacing: 5
             anchors.fill: parent
+            orientation: taskbar.orientation
 
             Repeater {
                 model: Client.windows

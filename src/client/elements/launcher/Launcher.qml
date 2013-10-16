@@ -30,12 +30,13 @@ Element {
 
     saveProperties: [ "icon", "process" ]
 
-    width: 32
+    width: Layout.preferredWidth
     height: width
 
-    Layout.preferredWidth: width
+    Layout.preferredWidth: 32
     Layout.maximumWidth: 50
-    Layout.fillHeight: true
+    Layout.preferredHeight: 32
+    Layout.maximumHeight: 50
 
     property variant service: Client.service("ProcessLauncher")
 

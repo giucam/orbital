@@ -27,8 +27,7 @@ Element {
     readonly property real ratio: Screen.height > 0 ? Screen.width / Screen.height : 1
 
     Layout.preferredWidth: height * ratio
-    Layout.maximumWidth: 1000
-    Layout.fillHeight: true
+    Layout.preferredHeight: 50 / ratio
 
     width: Layout.preferredWidth
     height: 50

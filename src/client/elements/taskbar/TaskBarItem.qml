@@ -27,7 +27,8 @@ Item {
 
     Layout.minimumWidth: 10
     Layout.preferredWidth: 200
-    Layout.fillHeight: true
+    Layout.minimumHeight: 10
+    Layout.preferredHeight: 200
 
     StyleItem {
         id: style
