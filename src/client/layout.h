@@ -70,6 +70,7 @@ class LayoutAttached : public QObject
     Q_PROPERTY(bool fillHeight READ fillHeight WRITE setFillHeight)
     Q_PROPERTY(bool fillWidth READ fillWidth WRITE setFillWidth)
     Q_PROPERTY(int index READ index WRITE setIndex)
+    Q_PROPERTY(Qt::Orientation orientation READ orientation NOTIFY orientationChanged)
 
 public:
     LayoutAttached(QObject *object);
@@ -101,6 +102,8 @@ public:
     int index() const { return m_index; }
     void setIndex(int index);
 
+    Qt::Orientation orientation() { return m_orientation; }
+
 signals:
     void minimumWidthChanged();
     void minimumHeightChanged();
@@ -110,10 +113,12 @@ signals:
     void maximumHeightChanged();
     void fillWidthChanged();
     void fillHeightChanged();
+    void orientationChanged();
 
 private:
     void invalidateItem();
     Layout *parentLayout() const;
+    void setOrientation(Qt::Orientation o);
 
     QQuickItem *m_item;
     qreal m_minimumWidth;
@@ -124,6 +129,7 @@ private:
     qreal m_maximumHeight;
 
     int m_index;
+    Qt::Orientation m_orientation;
 
     unsigned m_fillWidth : 1;
     unsigned m_fillHeight : 1;

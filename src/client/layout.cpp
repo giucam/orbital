@@ -34,6 +34,7 @@ LayoutAttached::LayoutAttached(QObject *object)
               , m_preferredHeight(0)
               , m_maximumWidth(10000)
               , m_maximumHeight(10000)
+              , m_orientation(Qt::Horizontal)
               , m_fillWidth(false)
               , m_fillHeight(false)
 {
@@ -120,6 +121,14 @@ Layout *LayoutAttached::parentLayout() const
         qWarning("Layout must be attached to Item elements");
     }
     return nullptr;
+}
+
+void LayoutAttached::setOrientation(Qt::Orientation o)
+{
+    if (m_orientation != o) {
+        m_orientation = o;
+        emit orientationChanged();
+    }
 }
 
 
@@ -227,6 +236,7 @@ void Layout::invalidate()
         QQuickItem *item = m_items.at(i);
         LayoutAttached *la = attachedLayoutObject(item);
         la->m_index = i;
+        la->setOrientation(m_orientation);
     }
 
     if (m_dirty)
@@ -244,17 +254,15 @@ void Layout::setSpacing(qreal spacing)
 
 void Layout::setOrientation(Qt::Orientation orientation)
 {
-    m_orientation = orientation;
-    invalidate();
+    if (orientation != m_orientation) {
+        m_orientation = orientation;
+        invalidate();
+    }
 }
 
 void Layout::relayout()
 {
     m_dirty = false;
-
-    if (m_orientation == Qt::Vertical) {
-        qWarning("Layout: vertical orientation not implemented.");
-    }
 
     struct It {
         QQuickItem *item;
@@ -268,10 +276,11 @@ void Layout::relayout()
         _items.append({ i, attachedLayoutObject(i), true, 0, 0 });
     }
 
+    const bool horizontal = m_orientation == Qt::Horizontal;
     qreal x = 0;
     for (It &i: _items) {
         i.x = x;
-        i.w = i.la->minimumWidth();
+        i.w = horizontal ? i.la->minimumWidth() : i.la->minimumHeight();
 
         x += i.w + m_spacing;
     }
@@ -280,7 +289,7 @@ void Layout::relayout()
     int num = _items.count();
     do {
         again = false;
-        qreal spaceLeft = width() - x;
+        qreal spaceLeft = (horizontal ? width() : height()) - x;
         if (spaceLeft <= 0) {
             break;
         }
@@ -291,31 +300,41 @@ void Layout::relayout()
             i.x = x;
             if (i.resize) {
                 i.w += spaceLeft;
-                if (i.la->fillWidth()) {
-                    if (i.w > i.la->maximumWidth()) {
-                        i.w = i.la->maximumWidth();
+                qreal max = horizontal ? i.la->maximumWidth() : i.la->maximumHeight();
+                qreal pref = horizontal ? i.la->preferredWidth() : i.la->preferredHeight();
+                if ((horizontal ? i.la->fillWidth() : i.la->fillHeight())) {
+                    if (max < i.w) {
+                        i.w = max;
                         i.resize = false;
                         --num;
                         again = true;
                     } else if (spaceLeft > 1) {
                         again = true;
                     }
-                } else if (i.w > i.la->preferredWidth()) {
-                    i.w = i.la->preferredWidth();
+                } else if (pref < i.w) {
+                    i.w = pref;
                     i.resize = false;
                     --num;
                     again = true;
                 }
-
             }
             x += i.w + m_spacing;
         }
     } while (again);
 
-    for (It &i: _items) {
-        i.item->setX(i.x);
-        i.item->setY(0);
-        i.item->setWidth(i.w);
-        i.item->setHeight(height());
+    if (horizontal) {
+        for (It &i: _items) {
+            i.item->setX(i.x);
+            i.item->setY(0);
+            i.item->setWidth(i.w);
+            i.item->setHeight(height());
+        }
+    } else {
+        for (It &i: _items) {
+            i.item->setY(i.x);
+            i.item->setX(0);
+            i.item->setHeight(i.w);
+            i.item->setWidth(width());
+        }
     }
 }
