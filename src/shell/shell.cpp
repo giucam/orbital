@@ -638,23 +638,24 @@ void Shell::panelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t w
 
     weston_output *output = es->output;
 
-    int32_t x, y;
-    switch (pos) {
-        case PanelPosition::Top:
-        case PanelPosition::Left:
-            x = output->x;
-            y = output->y;
-            break;
-        case PanelPosition::Right:
-            y = output->y;
-            x = output->x + output->width - width;
-            break;
-        case PanelPosition::Bottom:
-            x = output->x;
-            y = output->y + output->height - height;
-            break;
+    int32_t x = 0, y = 0;
+    if (output) {
+        switch (pos) {
+            case PanelPosition::Top:
+            case PanelPosition::Left:
+                x = output->x;
+                y = output->y;
+                break;
+            case PanelPosition::Right:
+                y = output->y;
+                x = output->x + output->width - width;
+                break;
+            case PanelPosition::Bottom:
+                x = output->x;
+                y = output->y + output->height - height;
+                break;
+        }
     }
-
     weston_surface_configure(es, x, y, width, height);
 
     if (wl_list_empty(&es->layer_link) || es->layer_link.next == es->layer_link.prev) {
