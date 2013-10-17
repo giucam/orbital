@@ -7,5 +7,6 @@
         <file>qml/Spacer.qml</file>
         <file>qml/Element.qml</file>
         <file>qml/Button.qml</file>
+        <file>qml/Rotator.qml</file>
     </qresource>
 </RCC>

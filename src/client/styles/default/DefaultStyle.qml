@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import QtGraphicalEffects 1.0
 
 Style {
     panelBackground: StyleComponent {
@@ -35,11 +36,29 @@ Style {
         }
     }
     panelBorder: StyleComponent {
-        Rectangle {
+        Component.onCompleted: update()
+        onLocationChanged: update()
+        LinearGradient {
+            id: gradient
             anchors.fill: parent
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#f0202020" }
                 GradientStop { position: 1.0; color: "#00000000" }
+            }
+        }
+        function update() {
+            if (location == 1) {
+                gradient.start = Qt.point(0, 0);
+                gradient.end = Qt.point(gradient.width, 0);
+            } else if (location == 2) {
+                gradient.start = Qt.point(0, gradient.height);
+                gradient.end = Qt.point(0, 0);
+            } else if (location == 3) {
+                gradient.start = Qt.point(gradient.width, 0);
+                gradient.end = Qt.point(0, 0);
+            } else {
+                gradient.start = Qt.point(0, 0);
+                gradient.end = Qt.point(0, gradient.height);
             }
         }
     }
@@ -59,6 +78,7 @@ Style {
     taskBarItem: StyleComponent {
         property alias title: text.text
         property int state: Window.Inactive
+        property int horizontal: (location != 1 && location != 3)
 
         Rectangle {
             id: rect
@@ -68,14 +88,18 @@ Style {
             property alias title: text.text
             property int state: Window.Inactive
 
-            Text {
-                id: text
+            Rotator {
                 anchors.fill: parent
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-                maximumLineCount: 1
-                elide: Text.ElideRight
-                color: "white"
+                angle: horizontal ? 0 : (location == 1 ? 270 : 90)
+                Text {
+                    id: text
+                    anchors.fill: parent
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    color: "white"
+                }
             }
 
             Behavior on color { ColorAnimation { duration: 100 } }

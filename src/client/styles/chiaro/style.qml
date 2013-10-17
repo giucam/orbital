@@ -68,8 +68,10 @@ Style {
     }
 
     taskBarItem: StyleComponent {
+        id: item
         property alias title: text.text
         property int state: Window.Inactive
+        property int horizontal: (location != 1 && location != 3)
         Item {
             anchors.fill: parent
             clip: true
@@ -86,14 +88,18 @@ Style {
                 Behavior on color { ColorAnimation { duration: 100 } }
             }
 
-            Text {
-                id: text
+            Rotator {
                 anchors.fill: parent
-                horizontalAlignment: Qt.AlignHCenter
-                verticalAlignment: Qt.AlignVCenter
-                maximumLineCount: 1
-                elide: Text.ElideRight
-                color: "black"
+                angle: horizontal ? 0 : (location == 1 ? 270 : 90)
+                Text {
+                    id: text
+                    anchors.fill: parent
+                    horizontalAlignment: Qt.AlignHCenter
+                    verticalAlignment: Qt.AlignVCenter
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    color: "black"
+                }
             }
 
             states: [

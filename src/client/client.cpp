@@ -111,6 +111,7 @@ Client::Client()
     REGISTER_QMLFILE("Spacer");
     REGISTER_QMLFILE("Element");
     REGISTER_QMLFILE("Button");
+    REGISTER_QMLFILE("Rotator");
 
     QTranslator *tr = new QTranslator;
     if (tr->load(d_ptr->locale, "", "", DATA_PATH "/translations", ".qm")) {
@@ -216,7 +217,7 @@ void Client::create()
                     desktop_shell_set_background(m_shell, output, wlSurface);
                     break;
                 case ElementInfo::Type::Panel:
-                    desktop_shell_set_panel(m_shell, output, wlSurface, elm->property("position").toInt());
+                    desktop_shell_set_panel(m_shell, output, wlSurface, (int)elm->location());
                     break;
                 case ElementInfo::Type::Overlay:
                     desktop_shell_add_overlay(m_shell, output, wlSurface);
