@@ -27,6 +27,7 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class QQuickItem;
 class QQmlEngine;
+class QScreen;
 
 class Element;
 class Client;
@@ -44,7 +45,7 @@ public:
     ShellUI(Client *client, QQmlEngine *engine, const QString &configFile);
     ~ShellUI();
 
-    UiScreen *loadScreen(int screen);
+    UiScreen *loadScreen(int id, QScreen *screen);
     QQmlEngine *qmlEngine() const { return m_engine; }
 
     QString iconTheme() const;

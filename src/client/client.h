@@ -27,6 +27,7 @@ class QQmlEngine;
 class QQmlComponent;
 class QWindow;
 class QQuickWindow;
+class QScreen;
 
 struct wl_display;
 struct wl_registry;
@@ -47,6 +48,7 @@ class Workspace;
 class ElementInfo;
 class Service;
 class StyleInfo;
+class Element;
 
 class Binding : public QObject
 {
@@ -82,9 +84,15 @@ public:
 
     Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
+    QQuickWindow *window(Element *ele);
 
     static Client *client() { return s_client; }
     static QLocale locale();
+
+    void setBackground(QQuickWindow *window, QScreen *screen);
+    void setPanel(QQuickWindow *window, QScreen *screen, int location);
+    void addOverlay(QQuickWindow *window, QScreen *screen);
+    void setInputRegion(QQuickWindow *w, const QRectF &region);
 
 public slots:
     void minimizeWindows();

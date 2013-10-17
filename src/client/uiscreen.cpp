@@ -27,15 +27,17 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQmlProperty>
+#include <QQuickWindow>
 
 #include "client.h"
 #include "element.h"
 #include "shellui.h"
 
-UiScreen::UiScreen(ShellUI *ui, Client *client, int screen)
+UiScreen::UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen)
        : QObject(client)
        , m_client(client)
        , m_ui(ui)
+       , m_id(id)
        , m_screen(screen)
 {
 }
@@ -75,6 +77,38 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         delete e;
         m_children.removeOne(e);
     }
+
+    for (Element *elm: m_children) {
+        if (elm->type() == ElementInfo::Type::Item)
+            continue;
+
+        QQuickWindow *window = m_client->window(elm);
+
+        window->setWidth(elm->width());
+        window->setHeight(elm->height());
+        window->setColor(Qt::transparent);
+        window->setFlags(Qt::BypassWindowManagerHint);
+        window->setScreen(m_screen);
+        window->show();
+        window->create();
+
+        m_client->setInputRegion(window, elm->inputRegion());
+
+        switch (elm->type()) {
+            case ElementInfo::Type::Background:
+                m_client->setBackground(window, m_screen);
+                break;
+            case ElementInfo::Type::Panel:
+                m_client->setPanel(window, m_screen, (int)elm->location());
+                break;
+            case ElementInfo::Type::Overlay:
+                m_client->addOverlay(window, m_screen);
+                break;
+            default:
+                break;
+        }
+    }
+
 }
 
 Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
@@ -143,7 +177,7 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
 void UiScreen::saveConfig(QXmlStreamWriter &xml)
 {
     xml.writeStartElement("Screen");
-    xml.writeAttribute("output", QString::number(m_screen));
+    xml.writeAttribute("output", QString::number(m_id));
 
     saveChildren(m_children, xml);
 

@@ -83,13 +83,13 @@ ShellUI::~ShellUI()
     qDeleteAll(m_screens);
 }
 
-UiScreen *ShellUI::loadScreen(int s)
+UiScreen *ShellUI::loadScreen(int s, QScreen *sc)
 {
     m_engine->rootContext()->setContextProperty("Ui", this);
 
     qDebug()<<"screen"<<s;
 
-    UiScreen *screen = new UiScreen(this, m_client, s);
+    UiScreen *screen = new UiScreen(this, m_client, s, sc);
     loadScreen(screen);
 
     m_screens << screen;

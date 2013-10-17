@@ -691,13 +691,21 @@ static void panelDestroyed(wl_listener *listener, void *data)
     delete static_cast<Panel *>(surface->configure_private);
 }
 
+void Shell::staticPanelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
+    Panel *p = static_cast<Panel *>(es->configure_private);
+    p->shell->panelConfigure(es, sx, sy, width, height, p->pos);
+}
+
 void Shell::addPanelSurface(weston_surface *surface, weston_output *output, PanelPosition pos)
 {
+    if (surface->configure == staticPanelConfigure) {
+        Panel *p = static_cast<Panel *>(surface->configure_private);
+        wl_list_remove(&p->destroyListener.link);
+        delete p;
+    }
+
     Panel *panel = new Panel({ surface, pos, this, 0, 0, 0 });
-    surface->configure = [](weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height) {
-        Panel *p = static_cast<Panel *>(es->configure_private);
-        p->shell->panelConfigure(es, sx, sy, width, height, p->pos);
-    };
+    surface->configure = staticPanelConfigure;
     surface->configure_private = panel;
     surface->output = output;
 

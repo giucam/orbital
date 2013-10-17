@@ -28,6 +28,7 @@ class QXmlStreamReader;
 class QXmlStreamWriter;
 class QQmlEngine;
 class QQuickItem;
+class QScreen;
 
 class Element;
 class Client;
@@ -38,10 +39,10 @@ class UiScreen : public QObject
 {
     Q_OBJECT
 public:
-    UiScreen(ShellUI *ui, Client *client, int screen);
+    UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen);
     ~UiScreen();
 
-    int screen() const { return m_screen; }
+    int screen() const { return m_id; }
 
     void loadConfig(QXmlStreamReader &xml);
     void saveConfig(QXmlStreamWriter &xml);
@@ -59,8 +60,9 @@ private:
 
     Client *m_client;
     ShellUI *m_ui;
-    int m_screen;
+    int m_id;
     QByteArray m_config;
+    QScreen *m_screen;
 
     QHash<int, Element *> m_elements;
     QList<Element *> m_children;

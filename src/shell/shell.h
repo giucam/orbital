@@ -200,6 +200,8 @@ private:
     class Splash *m_splash;
     struct weston_surface *m_grabSurface;
 
+    static void staticPanelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
+
     static const struct wl_shell_interface shell_implementation;
     static const struct weston_shell_client shell_client;
 

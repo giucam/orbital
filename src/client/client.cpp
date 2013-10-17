@@ -175,58 +175,11 @@ void Client::create()
     QString configFile = path + "/orbital.conf";
     m_ui = new ShellUI(this, engine, configFile);
 
-    wl_compositor *compositor = static_cast<wl_compositor *>(QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("compositor"));
-
     for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
         QScreen *screen = QGuiApplication::screens().at(i);
-        wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 
-        UiScreen *sc = m_ui->loadScreen(i);
+        m_ui->loadScreen(i, screen);
         qDebug() << "Elements for screen" << i << "loaded after" << m_elapsedTimer.elapsed() << "ms";
-
-        const QObjectList objects = sc->children();
-        for (int i = 0; i < objects.size(); i++) {
-            Element *elm = qobject_cast<Element *>(objects.at(i));
-            if (!elm)
-                continue;
-
-            if (elm->type() == ElementInfo::Type::Item)
-                continue;
-
-
-            QQuickWindow *window = new QQuickWindow();
-            elm->setParentItem(window->contentItem());
-
-            window->setWidth(elm->width());
-            window->setHeight(elm->height());
-            window->setColor(Qt::transparent);
-            window->setFlags(Qt::BypassWindowManagerHint);
-            window->setScreen(screen);
-            window->show();
-            window->create();
-            m_uiWindows << window;
-            wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
-
-            wl_region *region = wl_compositor_create_region(compositor);
-            wl_region_add(region, elm->inputRegion().x(), elm->inputRegion().y(), elm->inputRegion().width(), elm->inputRegion().height());
-            wl_surface_set_input_region(wlSurface, region);
-            wl_region_destroy(region);
-
-            switch (elm->type()) {
-                case ElementInfo::Type::Background:
-                    desktop_shell_set_background(m_shell, output, wlSurface);
-                    break;
-                case ElementInfo::Type::Panel:
-                    desktop_shell_set_panel(m_shell, output, wlSurface, (int)elm->location());
-                    break;
-                case ElementInfo::Type::Overlay:
-                    desktop_shell_add_overlay(m_shell, output, wlSurface);
-                    break;
-                default:
-                    break;
-            }
-
-        }
     }
 
     // wait until all the objects have finished what they're doing before sending the ready event
@@ -234,6 +187,41 @@ void Client::create()
         QCoreApplication::processEvents();
     }
     ready();
+}
+
+void Client::setBackground(QQuickWindow *window, QScreen *screen)
+{
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+    wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+
+    desktop_shell_set_background(m_shell, output, wlSurface);
+}
+
+void Client::setPanel(QQuickWindow *window, QScreen *screen, int location)
+{
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+    wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+
+    desktop_shell_set_panel(m_shell, output, wlSurface, location);
+}
+
+void Client::addOverlay(QQuickWindow *window, QScreen *screen)
+{
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
+    wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+
+    desktop_shell_add_overlay(m_shell, output, wlSurface);
+}
+
+void Client::setInputRegion(QQuickWindow *w, const QRectF &r)
+{
+    wl_compositor *compositor = static_cast<wl_compositor *>(QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("compositor"));
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", w));
+
+    wl_region *region = wl_compositor_create_region(compositor);
+    wl_region_add(region, r.x(), r.y(), r.width(), r.height());
+    wl_surface_set_input_region(wlSurface, region);
+    wl_region_destroy(region);
 }
 
 void Client::ready()
@@ -502,6 +490,25 @@ Grab *Client::createGrab()
 {
     desktop_shell_grab *grab = desktop_shell_start_grab(s_client->m_shell);
     return new Grab(grab);
+}
+
+QQuickWindow *Client::window(Element *elm)
+{
+    if (elm->type() == ElementInfo::Type::Item)
+        return nullptr;
+
+    for (QQuickWindow *w: m_uiWindows) {
+        if (w->property("element").value<Element *>() == elm) {
+            return w;
+        }
+    }
+
+    QQuickWindow *window = new QQuickWindow();
+    elm->setParentItem(window->contentItem());
+    window->setProperty("element", QVariant::fromValue(elm));
+    m_uiWindows << window;
+
+    return window;
 }
 
 QQuickWindow *Client::createUiWindow()

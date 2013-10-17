@@ -229,12 +229,6 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
                                  struct wl_resource *surface_resource)
 {
     struct weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
-    if (surface->configure) {
-        wl_resource_post_error(surface_resource,
-                               WL_DISPLAY_ERROR_INVALID_OBJECT,
-                               "surface role already assigned");
-        return;
-    }
 
     setBackgroundSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
 
@@ -247,13 +241,6 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
 void DesktopShell::setPanel(wl_client *client, wl_resource *resource, wl_resource *output_resource, wl_resource *surface_resource, uint32_t pos)
 {
     struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
-
-    if (surface->configure) {
-        wl_resource_post_error(surface_resource,
-                               WL_DISPLAY_ERROR_INVALID_OBJECT,
-                               "surface role already assigned");
-        return;
-    }
 
     addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)), (Shell::PanelPosition)pos);
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
@@ -391,12 +378,6 @@ void DesktopShell::addKeyBinding(struct wl_client *client, struct wl_resource *r
 void DesktopShell::addOverlay(struct wl_client *client, struct wl_resource *resource, struct wl_resource *output_resource, struct wl_resource *surface_resource)
 {
     struct weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
-    if (surface->configure) {
-        wl_resource_post_error(surface_resource,
-                               WL_DISPLAY_ERROR_INVALID_OBJECT,
-                               "surface role already assigned");
-        return;
-    }
 
     addOverlaySurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)));
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
