@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <linux/input.h>
 #include <string.h>
+#include <signal.h>
 
 #include <wayland-server.h>
 
@@ -125,8 +126,11 @@ Shell::Shell(struct weston_compositor *ec)
 Shell::~Shell()
 {
     free(m_clientPath);
-    if (m_child.client)
-        wl_client_destroy(m_child.client);
+    if (m_child.client) {
+        pid_t pid;
+        wl_client_get_credentials(m_child.client, &pid, NULL, NULL);
+        kill(pid, SIGKILL);
+    }
 }
 
 void Shell::destroy()
@@ -259,6 +263,12 @@ weston_surface *Shell::createBlackSurface(int x, int y, int w, int h)
 void Shell::quit()
 {
     wl_display_terminate(compositor()->wl_display);
+    if (m_child.client) {
+        wl_client_destroy(m_child.client);
+        pid_t pid;
+        wl_client_get_credentials(m_child.client, &pid, NULL, NULL);
+        kill(pid, SIGTERM);
+    }
 }
 
 void Shell::configureSurface(ShellSurface *surface, int32_t sx, int32_t sy, int32_t width, int32_t height)
