@@ -700,8 +700,9 @@ void Shell::addPanelSurface(weston_surface *surface, weston_output *output, Pane
 {
     if (surface->configure == staticPanelConfigure) {
         Panel *p = static_cast<Panel *>(surface->configure_private);
-        wl_list_remove(&p->destroyListener.link);
-        delete p;
+        p->pos = pos;
+        surface->output = output;
+        return;
     }
 
     Panel *panel = new Panel({ surface, pos, this, 0, 0, 0 });
