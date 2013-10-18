@@ -560,8 +560,9 @@ void ShellSurface::destroyPingTimer()
 
 // -- Move --
 
-struct MoveGrab : public ShellGrab
+class MoveGrab : public ShellGrab
 {
+public:
     void motion(uint32_t time) override
     {
         int dx = wl_fixed_to_int(pointer()->x + this->dx);
@@ -630,8 +631,9 @@ void ShellSurface::dragMove(struct weston_seat *ws)
 
 // -- Resize --
 
-struct ResizeGrab : public ShellGrab
+class ResizeGrab : public ShellGrab
 {
+public:
     void motion(uint32_t time) override
     {
         if (!shsurf)
@@ -668,8 +670,8 @@ struct ResizeGrab : public ShellGrab
         }
     }
 
-    struct ShellSurface *shsurf;
-    struct wl_listener shsurf_destroy_listener;
+    ShellSurface *shsurf;
+    wl_listener shsurf_destroy_listener;
     uint32_t edges;
     int32_t width, height;
 };

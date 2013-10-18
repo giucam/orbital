@@ -47,15 +47,17 @@ public:
     ~WlListener() { signal->flush(); wl_list_remove(&m_listener.listener.link); }
 
     void listen(struct wl_signal *signal) {
-        m_listener.listener.notify = [](struct wl_listener *listener, void *data) {
-            WlListener *_this = static_cast<Wrapper *>(container_of(listener, Wrapper, listener))->parent;
-            (*_this->signal)();
-        };
+        m_listener.listener.notify = notify;
         wl_signal_add(signal, &m_listener.listener);
     }
 
     Signal<> *signal;
 private:
+    static void notify(wl_listener *listener, void *data) {
+        WlListener *_this = static_cast<Wrapper *>(container_of(listener, Wrapper, listener))->parent;
+        (*_this->signal)();
+    }
+
     struct Wrapper {
         struct wl_listener listener;
         WlListener *parent;

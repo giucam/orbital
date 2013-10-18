@@ -689,6 +689,8 @@ void Shell::setGrabSurface(struct weston_surface *surface)
 }
 
 struct Panel {
+    Panel(weston_surface *s, Shell::PanelPosition p, Shell *sh)
+        : surface(s), pos(p), shell(sh) {}
     weston_surface *surface;
     Shell::PanelPosition pos;
     Shell *shell;
@@ -715,7 +717,7 @@ void Shell::addPanelSurface(weston_surface *surface, weston_output *output, Pane
         return;
     }
 
-    Panel *panel = new Panel({ surface, pos, this, 0, 0, 0 });
+    Panel *panel = new Panel(surface, pos, this);
     surface->configure = staticPanelConfigure;
     surface->configure_private = panel;
     surface->output = output;

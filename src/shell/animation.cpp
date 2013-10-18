@@ -110,3 +110,8 @@ void Animation::update(struct weston_output *output, uint32_t msecs)
 
     weston_compositor_schedule_repaint(output->compositor);
 }
+
+void Animation::delCurve()
+{
+    delete m_curve;
+}

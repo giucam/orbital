@@ -29,8 +29,6 @@ public:
     void addSurface(ShellSurface *surf);
     void removeSurface(ShellSurface *surf);
 
-    virtual void run(struct wl_seat *seat, uint32_t time, uint32_t key) {}
-
 protected:
     virtual void addedSurface(ShellSurface *surf) {}
     virtual void removedSurface(ShellSurface *surf) {}

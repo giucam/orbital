@@ -25,7 +25,6 @@
 #include "layer.h"
 
 class ShellSurface;
-struct ShellGrab;
 class Effect;
 class Workspace;
 class ShellSeat;

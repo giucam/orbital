@@ -41,13 +41,14 @@ public:
     void stop();
     bool isRunning() const;
     template<class T>
-    void setCurve(const T &curve) { delete m_curve; m_curve = new T; *static_cast<T *>(m_curve) = curve; }
+    void setCurve(const T &curve) { delCurve(); m_curve = new T; *static_cast<T *>(m_curve) = curve; }
 
     Signal<float> *updateSignal;
     Signal<> *doneSignal;
 
 private:
     void update(struct weston_output *output, uint32_t msecs);
+    void delCurve();
 
     struct AnimWrapper {
         struct weston_animation ani;
