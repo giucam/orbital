@@ -130,6 +130,16 @@ void Element::setInputRegion(const QRectF &rect)
     m_inputRegionSet = true;
 }
 
+static void traverse(QQuickItem *item, Element::Location l)
+{
+    for (QQuickItem *i: item->childItems()) {
+        if (StyleItem *s = qobject_cast<StyleItem *>(i)) {
+            s->updateLocation(l);
+        }
+        traverse(i, l);
+    }
+}
+
 void Element::setLocation(Location p)
 {
     if (m_location != p) {
@@ -141,9 +151,7 @@ void Element::setLocation(Location p)
             emit elm->locationChanged();
         }
 
-        for (StyleItem *s: findChildren<StyleItem *>()) {
-            s->updateLocation(m_location);
-        }
+        traverse(this, m_location);
     }
 }
 

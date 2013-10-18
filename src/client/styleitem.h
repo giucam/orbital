@@ -74,6 +74,7 @@ public:
     void setComponent(QQmlComponent *c);
 
     QQuickItem *item() const { return m_item; }
+    void updateLocation(Element::Location loc);
 
 protected:
     virtual void itemChange(ItemChange change, const ItemChangeData &value) override;
@@ -83,7 +84,6 @@ signals:
     void itemChanged();
 
 private:
-    void updateLocation(Element::Location loc);
     void updateMargins();
 
     QQmlComponent *m_component;
