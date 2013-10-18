@@ -53,14 +53,11 @@ signals:
     void locationChanged();
 
 private:
-    void updPos();
-
     qreal m_leftMargin;
     qreal m_topMargin;
     qreal m_rightMargin;
     qreal m_bottomMargin;
     Element::Location m_location;
-    Element *m_element;
 
     friend class StyleItem;
 };
@@ -86,13 +83,15 @@ signals:
     void itemChanged();
 
 private:
+    void updateLocation(Element::Location loc);
     void updateMargins();
-    Element *element();
 
     QQmlComponent *m_component;
     StyleComponent *m_item;
     QQuickItem *m_child;
     qreal m_margins[4];
+
+    friend class Element;
 };
 
 #endif

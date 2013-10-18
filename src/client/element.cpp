@@ -27,6 +27,7 @@
 #include "grab.h"
 #include "shellui.h"
 #include "uiscreen.h"
+#include "styleitem.h"
 
 static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "ElementBase");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
@@ -134,6 +135,15 @@ void Element::setLocation(Location p)
     if (m_location != p) {
         m_location = p;
         emit locationChanged();
+
+        for (Element *elm: m_children) {
+            elm->m_location = p;
+            emit elm->locationChanged();
+        }
+
+        for (StyleItem *s: findChildren<StyleItem *>()) {
+            s->updateLocation(m_location);
+        }
     }
 }
 
