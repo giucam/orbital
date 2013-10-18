@@ -84,8 +84,10 @@ Element {
 
         content: StyleItem {
             id: style
-            width: 50
-            height: 180
+            property int horizontal: (mixer.location == 1 || mixer.location == 3)
+
+            width: horizontal ? 180 : 50
+            height: horizontal ? 50 : 180
 
             component: CurrentStyle.popup
 
@@ -93,12 +95,12 @@ Element {
 
             Slider {
                 id: slider
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.left: parent.left
-                anchors.bottom: ic.top
+                anchors.top: mixer.location == 2 ? ic.bottom : parent.top
+                anchors.right: mixer.location == 1 ? ic.left : parent.right
+                anchors.left: mixer.location == 3 ? ic.right : parent.left
+                anchors.bottom: mixer.location == 0 ? ic.top : parent.bottom
                 anchors.margins: 3
-                orientation: Qt.Vertical
+                orientation: style.horizontal ? Qt.Horizontal : Qt.Vertical
                 maximumValue: 100
                 stepSize: 1
                 value: service.muted ? 0 : service.master;
@@ -111,17 +113,29 @@ Element {
                     onPositionChanged: {
                         if (!service.muted) {
                             behavior.enabled = false;
-                            var h = slider.height - 10;
-                            var y = mouse.y - 5;
-                            service.setMaster((1 - y / h) * 100);
+                            if (slider.orientation == Qt.Vertical) {
+                                var h = slider.height - 10;
+                                var y = mouse.y - 5;
+                                service.setMaster((1 - y / h) * 100);
+                            } else {
+                                var h = slider.width - 10;
+                                var y = mouse.x - 5;
+                                service.setMaster((y / h) * 100);
+                            }
                             behavior.enabled = true;
                         }
                     }
                     onReleased: {
                         if (!service.muted) {
-                            var h = slider.height - 10;
-                            var y = mouse.y - 5;
-                            service.setMaster((1 - y / h) * 100);
+                            if (slider.orientation == Qt.Vertical) {
+                                var h = slider.height - 10;
+                                var y = mouse.y - 5;
+                                service.setMaster((1 - y / h) * 100);
+                            } else {
+                                var h = slider.width - 10;
+                                var y = mouse.x - 5;
+                                service.setMaster((y / h) * 100);
+                            }
                         }
                     }
 
@@ -143,13 +157,49 @@ Element {
             }
             Icon {
                 id: ic
-                anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
                 anchors.margins: 3
                 width: 20
                 height: 20
                 icon: icon.icon
 
+                states: [
+                    State {
+                        name: "top"
+                        when: mixer.location == 0
+                        AnchorChanges {
+                            target: ic
+                            anchors.bottom: parent.bottom
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    },
+                    State {
+                        name: "left"
+                        when: mixer.location == 1
+                        AnchorChanges {
+                            target: ic
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    },
+                    State {
+                        name: "bottom"
+                        when: mixer.location == 2
+                        AnchorChanges {
+                            target: ic
+                            anchors.top: parent.top
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    },
+                    State {
+                        name: "right"
+                        when: mixer.location == 3
+                        AnchorChanges {
+                            target: ic
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+                ]
                 onClicked: service.toggleMuted()
             }
         }
