@@ -159,29 +159,39 @@ Style {
 
     popup: StyleComponent {
         clip: true
-        topContentsMargin: header.height
+        topContentsMargin: location == 0 ? header.size : 0
+        leftContentsMargin: location == 1 ? header.size : 0
+        bottomContentsMargin: location == 2 ? header.size : 0
+        rightContentsMargin: location == 3 ? header.size : 0
+        property int horizontal: (location != 1 && location != 3)
 
         property alias header: title.text
 
         Rectangle {
-            width: parent.width
-            height: parent.height + 10
-            y: -10
+            width: horizontal ? parent.width : parent.width + 10
+            height: horizontal ? parent.height + 10 : parent.height
+            y: location == 0 ? -10 : 0
+            x: location == 1 ? -10 : 0
             radius: 3
             color: CurrentStyle.backgroundColor
 
             Rectangle {
                 id: header
-                y: 10
-                anchors.right: parent.right
-                anchors.left: parent.left
-                height: 20
+                property int size: 20
                 color: "#5A0608"
+                width: horizontal ? parent.width : header.size
+                height: horizontal ? header.size : parent.height
+                x: location == 1 ? 10 : (location == 3 ? parent.width - 30 : 0)
+                y: location == 0 ? 10 : (location == 2 ? parent.height - 30 : 0)
 
-                Text {
-                    id: title
-                    color: "white"
-                    anchors.centerIn: parent
+                Rotator {
+                    anchors.fill: parent
+                    angle: horizontal ? 0 : (location == 1 ? 270 : 90)
+                    Text {
+                        id: title
+                        color: "white"
+                        anchors.centerIn: parent
+                    }
                 }
             }
         }
@@ -189,13 +199,16 @@ Style {
 
     popupLauncher: StyleComponent {
         property variant popup: null
+        property int horizontal: (location != 1 && location != 3)
 
         clip: true
         Rectangle {
-            width: parent.width
-            height: parent.height + 10
+            width: horizontal ? parent.width : parent.width + 10
+            height: horizontal ? parent.height + 10 : parent.height
             color: (popup && popup.visible) ? "#5A0608" : "transparent"
             radius: 3
+            x: location == 3 ? -10 : 0
+            y: location == 2 ? -10 : 0
 
             Behavior on color { ColorAnimation { duration: 100 } }
         }
