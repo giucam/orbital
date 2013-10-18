@@ -44,7 +44,7 @@ private:
                                              struct wl_resource *surface_resource);
     void setPanel(wl_client *client, wl_resource *resource, wl_resource *output_resource, wl_resource *surface_resource, uint32_t position);
     void setLockSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
-    void setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *output_resource, wl_resource *surface_resource, int x, int y);
+    void setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *parent_resource, wl_resource *surface_resource, int x, int y);
     void unlock(struct wl_client *client, struct wl_resource *resource);
     void setGrabSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource);
     void desktopReady(struct wl_client *client, struct wl_resource *resource);
@@ -54,6 +54,8 @@ private:
     void addWorkspace(wl_client *client, wl_resource *resource);
     void selectWorkspace(wl_client *client, wl_resource *resource, wl_resource *workspace_resource);
     void quit(wl_client *client, wl_resource *resource);
+
+    static void configurePopup(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
 
     static const struct desktop_shell_interface m_desktop_shell_implementation;
 

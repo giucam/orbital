@@ -367,11 +367,11 @@ QQuickWindow *Client::findWindow(wl_surface *surface) const
     return nullptr;
 }
 
-desktop_shell_surface *Client::setPopup(QWindow *w)
+desktop_shell_surface *Client::setPopup(QWindow *w, QWindow *parent)
 {
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", w));
-    wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", w->screen()));
-    return desktop_shell_set_popup(m_shell, output, wlSurface, w->x(), w->y());
+    wl_surface *parentSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", parent));
+    return desktop_shell_set_popup(m_shell, parentSurface, wlSurface, w->x(), w->y());
 }
 
 void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)

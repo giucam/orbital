@@ -273,6 +273,21 @@ void Element::sortChildren()
     qSort(m_children.begin(), m_children.end(), sorter);
 }
 
+Element *Element::fromItem(QQuickItem *item)
+{
+    while (true) {
+        if (!item) {
+            return nullptr;
+        }
+
+        Element *elm = qobject_cast<Element *>(item);
+        if (elm) {
+            return elm;
+        }
+        item = item->parentItem();
+    }
+}
+
 void Element::createConfig(Element *child)
 {
     delete child->m_configureItem;

@@ -45,7 +45,7 @@ void StyleItem::setComponent(QQmlComponent *c)
         QObject *obj = c->beginCreate(c->creationContext());
         m_item = qobject_cast<StyleComponent *>(obj);
         if (m_item) {
-            Element *e = element();
+            Element *e = Element::fromItem(parentItem());
             m_item->m_element = e;
             if (e) {
                 m_item->m_location = e->location();
@@ -115,21 +115,6 @@ void StyleItem::updateMargins()
     m_child->setHeight(height() - m_margins[1] - m_margins[3]);
 }
 
-Element *StyleItem::element()
-{
-    QQuickItem *item = parentItem();
-    while (true) {
-        if (!item) {
-            return nullptr;
-        }
-
-        Element *elm = qobject_cast<Element *>(item);
-        if (elm) {
-            return elm;
-        }
-        item = item->parentItem();
-    }
-}
 
 
 StyleComponent::StyleComponent(QQuickItem *p)

@@ -27,6 +27,7 @@
 #include "client.h"
 #include "grab.h"
 #include "utils.h"
+#include "element.h"
 
 static const int a = qmlRegisterType<Popup>("Orbital", 1, 0, "Popup");
 
@@ -61,6 +62,14 @@ void Popup::show()
         return;
     }
 
+    Element *e = Element::fromItem(m_parent);
+    if (!e) {
+        qWarning() << "Popup::show(): Something is wrong, the popup does not have a parent Element!";
+        return;
+    }
+
+    Element::Location loc = e->location();
+
     QQuickWindow *w = m_parent->window();
     QPointF pos = m_parent->mapToScene(QPointF(0, 0));
     if (!m_window) {
@@ -71,8 +80,25 @@ void Popup::show()
     m_window->setScreen(w->screen());
 
     // TODO: Better placement, maybe by adding some protocol
-    m_window->setX(pos.x());
-    m_window->setY(pos.y() + m_parent->height());
+    switch (loc) {
+        case Element::Location::TopEdge:
+        case Element::Location::Floating:
+            m_window->setX(pos.x());
+            m_window->setY(pos.y() + m_parent->height());
+            break;
+        case Element::Location::LeftEdge:
+            m_window->setX(pos.x() + m_parent->width());
+            m_window->setY(pos.y());
+            break;
+        case Element::Location::RightEdge:
+            m_window->setX(pos.x() - m_content->width());
+            m_window->setY(pos.y());
+            break;
+        case Element::Location::BottomEdge:
+            m_window->setX(pos.x());
+            m_window->setY(pos.y() - m_content->height());
+            break;
+    }
 
     m_window->setWidth(m_content->width());
     m_window->setHeight(m_content->height());
@@ -82,7 +108,7 @@ void Popup::show()
 
     m_window->show();
 
-    m_shsurf = Client::client()->setPopup(m_window);
+    m_shsurf = Client::client()->setPopup(m_window, e->window());
     desktop_shell_surface_add_listener(m_shsurf, &m_shsurf_listener, this);
 
     emit visibleChanged();

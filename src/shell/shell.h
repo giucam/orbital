@@ -162,6 +162,11 @@ protected:
     };
     Child m_child;
 
+    Layer m_backgroundLayer;
+    Layer m_panelsLayer;
+    Layer m_fullscreenLayer;
+    Layer m_overlayLayer;
+
 private:
     void destroy();
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
@@ -184,10 +189,6 @@ private:
     struct weston_compositor *m_compositor;
     WlListener m_destroyListener;
     char *m_clientPath;
-    Layer m_backgroundLayer;
-    Layer m_panelsLayer;
-    Layer m_fullscreenLayer;
-    Layer m_overlayLayer;
     Layer m_splashLayer;
     std::vector<Effect *> m_effects;
     ShellSurfaceList m_surfaces;

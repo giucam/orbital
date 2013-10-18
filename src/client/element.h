@@ -136,6 +136,8 @@ public:
     Location location() const { return m_location; }
     void setLocation(Location p);
 
+    static Element *fromItem(QQuickItem *item);
+
     static void loadElementsList();
     static void cleanupElementsList();
     static const QMap<QString, ElementInfo *> &elementsInfo() { return s_elements; }

@@ -314,15 +314,58 @@ static void popupGrabDestroyed(wl_resource *res)
     delete static_cast<PopupGrab *>(wl_resource_get_user_data(res));
 }
 
-void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *output_resource, wl_resource *surface_resource, int x, int y)
-{
-    struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
+struct Popup {
+    Popup(weston_surface *p, DesktopShell *s, int32_t _x, int32_t _y)
+        : parent(p), shell(s), x(_x), y(_y) {}
+    weston_surface *parent;
+    DesktopShell *shell;
+    int32_t x, y;
+    wl_listener destroyListener;
+};
 
-    if (!surface->configure) {
-        // FIXME: change/rename this function
-        addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)), Shell::PanelPosition::Top);
+static void popupDestroyed(wl_listener *listener, void *data)
+{
+    weston_surface *surface = static_cast<weston_surface *>(data);
+    delete static_cast<Popup *>(surface->configure_private);
+}
+
+void DesktopShell::configurePopup(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height)
+{
+    if (width == 0)
+        return;
+
+    Popup *p = static_cast<Popup *>(es->configure_private);
+    DesktopShell *shell= p->shell;
+    Layer *layer = &shell->m_panelsLayer;
+
+    weston_surface_configure(es, p->parent->geometry.x + p->x, p->parent->geometry.y + p->y, width, height);
+
+    if (wl_list_empty(&es->layer_link) || es->layer_link.next == es->layer_link.prev) {
+        layer->addSurface(es);
+        weston_compositor_schedule_repaint(es->compositor);
     }
-    weston_surface_set_position(surface, x, y);
+}
+
+void DesktopShell::setPopup(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *parent_resource, wl_resource *surface_resource, int x, int y)
+{
+    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parent_resource));
+    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
+
+    Popup *p = nullptr;
+    if (surface->configure == configurePopup) {
+        p = static_cast<Popup *>(surface->configure_private);
+        p->x = x;
+        p->y = y;
+        p->parent = parent;
+    } else {
+        p = new Popup(parent, this, x, y);
+        p->destroyListener.notify = popupDestroyed;
+        wl_signal_add(&surface->destroy_signal, &p->destroyListener);
+    }
+
+    surface->configure = configurePopup;
+    surface->configure_private = p;
+    surface->output = parent->output;
 
     PopupGrab *grab = new PopupGrab;
     if (!grab)
