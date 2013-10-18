@@ -26,6 +26,7 @@ Style {
         topContentsMargin: 2
         leftContentsMargin: 2
         rightContentsMargin: 2
+        bottomContentsMargin: 2
         Rectangle {
             anchors.fill: parent
             color: "#e6e6e6"
@@ -72,18 +73,18 @@ Style {
         property alias title: text.text
         property int state: Window.Inactive
         property int horizontal: (location != 1 && location != 3)
+
         Item {
             anchors.fill: parent
-            clip: true
 
             Rectangle {
                 id: rect
                 color: "#D2E3F5"
                 radius: 3
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: parent.height + 10
+                height: horizontal ? parent.height + 10 : parent.height
+                width: horizontal ? parent.width : parent.width + 10
+                x: location == 3 ? -10 : 0
+                y: location == 2 ? -10 : 0
 
                 Behavior on color { ColorAnimation { duration: 100 } }
             }

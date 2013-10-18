@@ -71,6 +71,7 @@ Element {
     contentItem: Item {
         anchors.fill: parent
         StyleItem {
+            clip: true
             id: background
             anchors.fill: parent
             anchors.topMargin:    location == 2 ? 5 : 0
