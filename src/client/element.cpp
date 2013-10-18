@@ -20,7 +20,6 @@
 #include <QtQml>
 #include <QGuiApplication>
 #include <QQuickWindow>
-#include <qpa/qplatformnativeinterface.h>
 
 #include "element.h"
 #include "client.h"
