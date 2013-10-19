@@ -47,7 +47,12 @@ Element {
         element.parent = layout
     }
     onElementEntered: {
-        var item = layout.childAt(pos.x, 15);
+        var item = null;
+        if (orientation == Qt.Horizontal) {
+            item = layout.childAt(pos.x, 15);
+        } else {
+            item = layout.childAt(15, pos.y);
+        }
         if (item) {
             layout.insertAt(element, item.Layout.index);
             layout.relayout();
@@ -56,11 +61,17 @@ Element {
         }
     }
     onElementMoved: {
-        var item = layout.childAt(pos.x, 15);
+        var item = null;
+        if (orientation == Qt.Horizontal) {
+            item = layout.childAt(pos.x, 15);
+        } else {
+            item = layout.childAt(15, pos.y);
+        }
         if (item) {
             if (item != element) {
                 var index = item.Layout.index;
-                if (pos.x < item.x + item.width - element.width)
+                if ((orientation == Qt.Horizontal && pos.x < item.x + item.width - element.width) ||
+                    (pos.y < item.y + item.height - element.height))
                     index--;
                 layout.insertAt(element, index);
             }
