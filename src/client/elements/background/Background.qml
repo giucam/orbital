@@ -194,8 +194,10 @@ Element {
 
         Rectangle {
             id: config
+            property var rect: bkg.screen ? bkg.screen.availableRect : bkg
             y: bkg.height
-            width: parent.width
+            x: rect.x
+            width: rect.width
             height: 230
             color: CurrentStyle.backgroundColor
             z: 100
@@ -209,7 +211,7 @@ Element {
                 State {
                     name: "open"
                     when: config.open
-                    PropertyChanges { target: config; y: bkg.height - config.height }
+                    PropertyChanges { target: config; y: rect.y + rect.height - config.height }
                     StateChangeScript { script: browser.path = bkg.imageSource }
                 }
             ]
