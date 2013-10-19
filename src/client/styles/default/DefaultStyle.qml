@@ -36,29 +36,14 @@ Style {
         }
     }
     panelBorder: StyleComponent {
-        Component.onCompleted: update()
-        onLocationChanged: update()
         LinearGradient {
             id: gradient
             anchors.fill: parent
+            start: location == 2 ? Qt.point(0, height) : (location == 3 ? Qt.point(width, 0) : Qt.point(0, 0))
+            end: location == 1 ? Qt.point(width, 0) : (location == 0 || location == 4 ? Qt.point(0, height) : Qt.point(0, 0))
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#f0202020" }
                 GradientStop { position: 1.0; color: "#00000000" }
-            }
-        }
-        function update() {
-            if (location == 1) {
-                gradient.start = Qt.point(0, 0);
-                gradient.end = Qt.point(gradient.width, 0);
-            } else if (location == 2) {
-                gradient.start = Qt.point(0, gradient.height);
-                gradient.end = Qt.point(0, 0);
-            } else if (location == 3) {
-                gradient.start = Qt.point(gradient.width, 0);
-                gradient.end = Qt.point(0, 0);
-            } else {
-                gradient.start = Qt.point(0, 0);
-                gradient.end = Qt.point(0, gradient.height);
             }
         }
     }
