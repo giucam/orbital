@@ -449,8 +449,9 @@ Element {
 
         MouseArea {
             id: configButtons
-            anchors.bottom: parent.bottom
-            anchors.right: parent.right
+            property var rect: bkg.screen ? bkg.screen.availableRect : parent
+            x: rect.x + rect.width - width - 5
+            y: rect.y + rect.height - height - 5
             width: 50
             height:20
             z: 101
@@ -485,7 +486,7 @@ Element {
 
         Icon {
             anchors.bottom: configButtons.top
-            anchors.right: parent.right
+            anchors.right: configButtons.right
             anchors.bottomMargin: 10
             width: 20
             height: 20
