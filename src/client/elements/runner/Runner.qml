@@ -25,7 +25,7 @@ Element {
     height: 32
 
     Layout.minimumWidth: 10
-    Layout.preferredWidth: width
+    Layout.preferredWidth: 200
     Layout.preferredHeight: 30
 
     property variant service: Client.service("ProcessLauncher")
