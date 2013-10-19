@@ -28,7 +28,10 @@ Element {
 
     width: orientation == Qt.Horizontal ? Screen.width : size
     height: orientation == Qt.Horizontal ? size : Screen.height
-    inputRegion: background.childrenRect
+
+    property rect __rect: background.childrenRect
+    property var __map: mapFromItem(background, __rect.x, __rect.y, __rect.width, __rect.height)
+    inputRegion: Qt.rect(__map.x, __map.y, __map.width, __map.height)
 
     childrenConfig: Component {
         id: elementConfig
