@@ -752,10 +752,16 @@ IRect2D Shell::windowsArea(struct weston_output *output) const
 
     for (weston_surface *surface: m_panelsLayer) {
         if (surface->output == output && surface->configure == staticPanelConfigure) {
-            pixman_region32_subtract(&area, &area, &surface->input);
+            pixman_region32_t surf;
+            pixman_region32_init(&surf);
+            pixman_region32_copy(&surf, &surface->input);
+            pixman_region32_translate(&surf, surface->geometry.x, surface->geometry.y);
+            pixman_region32_subtract(&area, &area, &surf);
+            pixman_region32_fini(&surf);
         }
     }
     pixman_box32_t *box = pixman_region32_extents(&area);
+    pixman_region32_fini(&area);
     return IRect2D(box->x1, box->y1, box->x2 - box->x1, box->y2 - box->y1);
 }
 
