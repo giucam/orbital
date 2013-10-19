@@ -36,6 +36,9 @@ public:
     T y;
     T width;
     T height;
+
+    bool operator==(const Rect2D &r) { return x == r.x && y == r.y && width == r.width && height == r.height; }
+    bool operator!=(const Rect2D &r) { return !(*this == r); }
 };
 
 typedef Vector2D<int> IVector2D;

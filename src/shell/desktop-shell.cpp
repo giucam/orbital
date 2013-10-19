@@ -132,6 +132,20 @@ void DesktopShell::sendInitEvents()
     for (ShellSurface *shsurf: surfaces()) {
         shsurf->advertize();
     }
+
+    m_outputs.clear();
+    weston_output *out;
+    wl_list_for_each(out, &compositor()->output_list, link) {
+        wl_resource *resource;
+        wl_resource_for_each(resource, &out->resource_list) {
+            if (wl_resource_get_client(resource) == m_child.client) {
+                IRect2D rect = windowsArea(out);
+                m_outputs.push_back({ out, resource, rect });
+                desktop_shell_send_desktop_rect(m_child.desktop_shell, resource, rect.x, rect.y, rect.width, rect.height);
+                break;
+            }
+        }
+    }
 }
 
 void DesktopShell::workspaceAdded(Workspace *ws)
@@ -240,10 +254,24 @@ void DesktopShell::setBackground(struct wl_client *client, struct wl_resource *r
 
 void DesktopShell::setPanel(wl_client *client, wl_resource *resource, wl_resource *output_resource, wl_resource *surface_resource, uint32_t pos)
 {
-    struct weston_surface *surface = static_cast<struct weston_surface *>(wl_resource_get_user_data(surface_resource));
+    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
+    weston_output *output = static_cast<weston_output *>(wl_resource_get_user_data(output_resource));
 
-    addPanelSurface(surface, static_cast<weston_output *>(wl_resource_get_user_data(output_resource)), (Shell::PanelPosition)pos);
+    addPanelSurface(surface, output, (Shell::PanelPosition)pos);
     desktop_shell_send_configure(resource, 0, surface_resource, surface->output->width, surface->output->height);
+}
+
+void DesktopShell::panelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, Shell::PanelPosition pos)
+{
+    Shell::panelConfigure(es, sx, sy, width, height, pos);
+
+    IRect2D rect = windowsArea(es->output);
+    for (Output &out: m_outputs) {
+        if (out.output == es->output && out.rect != rect) {
+            out.rect = rect;
+            desktop_shell_send_desktop_rect(m_child.desktop_shell, out.resource, rect.x, rect.y, rect.width, rect.height);
+        }
+    }
 }
 
 void DesktopShell::setLockSurface(struct wl_client *client, struct wl_resource *resource, struct wl_resource *surface_resource)

@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QQmlListProperty>
 #include <QStringList>
+#include <QRect>
 
 class QXmlStreamReader;
 class QXmlStreamWriter;
@@ -38,11 +39,13 @@ class Style;
 class UiScreen : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QRect availableRect READ availableRect NOTIFY availableRectChanged)
 public:
     UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen);
     ~UiScreen();
 
-    int screen() const { return m_id; }
+    QScreen *screen() const { return m_screen; }
+    int id() const { return m_id; }
 
     void loadConfig(QXmlStreamReader &xml);
     void saveConfig(QXmlStreamWriter &xml);
@@ -50,6 +53,12 @@ public:
 
     void addElement(Element *elm);
     void removeElement(Element *elm);
+
+    QRect availableRect() const { return m_rect; }
+    void setAvailableRect(const QRect &r);
+
+signals:
+    void availableRectChanged();
 
 private:
     Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
@@ -63,6 +72,7 @@ private:
     int m_id;
     QByteArray m_config;
     QScreen *m_screen;
+    QRect m_rect;
 
     QHash<int, Element *> m_elements;
     QList<Element *> m_children;

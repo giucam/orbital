@@ -118,6 +118,14 @@
         <arg name="active" type="int"/>
     </event>
 
+    <event name="desktop_rect">
+        <arg name="output" type="object" interface="wl_output"/>
+        <arg name="x" type="int"/>
+        <arg name="y" type="int"/>
+        <arg name="width" type="int"/>
+        <arg name="height" type="int"/>
+    </event>
+
     <enum name="window_state">
         <entry name="inactive" value="0"/>
         <entry name="active" value="1"/>

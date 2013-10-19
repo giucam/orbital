@@ -136,6 +136,7 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
         }
         connect(elm, &QObject::destroyed, this, &UiScreen::elementDestroyed);
         elm->m_screen = this;
+        emit elm->screenChanged();
         created = true;
     }
     if (parent) {
@@ -228,6 +229,7 @@ void UiScreen::addElement(Element *elm)
 
     m_elements.insert(elm->m_id, elm);
     elm->m_screen = this;
+    emit elm->screenChanged();
     connect(elm, &QObject::destroyed, this, &UiScreen::elementDestroyed);
 }
 
@@ -248,4 +250,10 @@ void UiScreen::elementDestroyed(QObject *obj)
     Element *elm = static_cast<Element *>(obj);
     m_children.removeOne(elm);
     m_elements.remove(elm->m_id);
+}
+
+void UiScreen::setAvailableRect(const QRect &r)
+{
+    m_rect = r;
+    emit availableRectChanged();
 }

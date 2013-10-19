@@ -150,6 +150,7 @@ protected:
     virtual void endBusyCursor(struct weston_seat *seat) {}
     void fadeSplash();
     void addWorkspace(Workspace *ws);
+    virtual void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, PanelPosition pos);
 
     struct Child {
         Shell *shell;
@@ -172,7 +173,6 @@ private:
     void bind(struct wl_client *client, uint32_t version, uint32_t id);
     void sigchld(int status);
     void backgroundConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height);
-    void panelConfigure(struct weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, PanelPosition pos);
     void activateSurface(struct weston_seat *seat, uint32_t time, uint32_t button);
     void configureFullscreen(ShellSurface *surface);
     void stackFullscreen(ShellSurface *surface);

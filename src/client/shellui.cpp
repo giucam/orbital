@@ -96,6 +96,19 @@ UiScreen *ShellUI::loadScreen(int s, QScreen *sc)
     return screen;
 }
 
+UiScreen *ShellUI::findScreen(wl_output *output) const
+{
+    for (UiScreen *screen: m_screens) {
+        QScreen *sc = screen->screen();
+        wl_output *out = Client::nativeOutput(sc);
+        if (out == output) {
+            return screen;
+        }
+    }
+
+    return nullptr;
+}
+
 QString ShellUI::iconTheme() const
 {
     return QIcon::themeName();
@@ -255,7 +268,7 @@ void ShellUI::loadScreen(UiScreen *screen)
             QXmlStreamAttributes attribs = xml.attributes();
             if (attribs.hasAttribute("output")) {
                 int num = attribs.value("output").toInt();
-                if (num == screen->screen()) {
+                if (num == screen->id()) {
                     screen->loadConfig(xml);
                     loaded = true;
                     break;

@@ -29,6 +29,8 @@ class QQuickItem;
 class QQmlEngine;
 class QScreen;
 
+struct wl_output;
+
 class Element;
 class Client;
 class UiScreen;
@@ -67,6 +69,8 @@ public:
 
     Q_INVOKABLE Element *createElement(const QString &name);
     Q_INVOKABLE void toggleConfigMode();
+
+    UiScreen *findScreen(wl_output *output) const;
 
 public slots:
     void reloadConfig();

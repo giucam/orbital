@@ -18,7 +18,10 @@
 #ifndef DESKTOP_SHELL_H
 #define DESKTOP_SHELL_H
 
+#include <list>
+
 #include "shell.h"
+#include "utils.h"
 
 class InputPanel;
 
@@ -31,6 +34,7 @@ protected:
     virtual void setGrabCursor(uint32_t);
     virtual void setBusyCursor(ShellSurface *shsurf, struct weston_seat *seat) override;
     virtual void endBusyCursor(struct weston_seat *seat) override;
+    virtual void panelConfigure(weston_surface *es, int32_t sx, int32_t sy, int32_t width, int32_t height, Shell::PanelPosition pos) override;
 
 private:
     void sendInitEvents();
@@ -59,6 +63,12 @@ private:
 
     static const struct desktop_shell_interface m_desktop_shell_implementation;
 
+    struct Output {
+        weston_output *output;
+        wl_resource *resource;
+        IRect2D rect;
+    };
+    std::list<Output> m_outputs;
     InputPanel *m_inputPanel;
 };
 

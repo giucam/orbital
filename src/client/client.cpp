@@ -77,6 +77,7 @@ Binding::~Binding()
 
 Client::Client()
       : QObject()
+      , m_ui(nullptr)
       , d_ptr(new ClientPrivate(this))
 {
     m_elapsedTimer.start();
@@ -103,6 +104,7 @@ Client::Client()
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
     qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
+    qmlRegisterUncreatableType<UiScreen>("Orbital", 1, 0, "UiScreen", "UiScreen is not creatable");
 
 #define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Icon");
@@ -477,13 +479,28 @@ void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_wo
     emit workspacesChanged();
 }
 
+void Client::handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height)
+{
+    if (!m_ui) {
+        return;
+    }
+
+    UiScreen *screen = m_ui->findScreen(output);
+    if (screen) {
+        screen->setAvailableRect(QRect(x, y, width, height));
+    } else {
+        qWarning() << "Client::handleDesktopRect: Could not find a UiScreen for a wl_output!";
+    }
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleLoad),
     wrapInterface(&Client::handleConfigure),
     wrapInterface(&Client::handlePrepareLockSurface),
     wrapInterface(&Client::handleGrabCursor),
     wrapInterface(&Client::handleWindowAdded),
-    wrapInterface(&Client::handleWorkspaceAdded)
+    wrapInterface(&Client::handleWorkspaceAdded),
+    wrapInterface(&Client::handleDesktopRect)
 };
 
 Grab *Client::createGrab()
@@ -519,6 +536,11 @@ QQuickWindow *Client::createUiWindow()
     window->create();
 
     return window;
+}
+
+wl_output *Client::nativeOutput(QScreen *screen)
+{
+    return static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
 }
 
 #include "moc_client.cpp"
