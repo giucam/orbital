@@ -127,9 +127,7 @@ Shell::~Shell()
 {
     free(m_clientPath);
     if (m_child.client) {
-        pid_t pid;
-        wl_client_get_credentials(m_child.client, &pid, NULL, NULL);
-        kill(pid, SIGKILL);
+        kill(m_child.process.pid, SIGKILL);
     }
 }
 
@@ -265,9 +263,7 @@ void Shell::quit()
     wl_display_terminate(compositor()->wl_display);
     if (m_child.client) {
         wl_client_destroy(m_child.client);
-        pid_t pid;
-        wl_client_get_credentials(m_child.client, &pid, NULL, NULL);
-        kill(pid, SIGTERM);
+        kill(m_child.process.pid, SIGTERM);
     }
 }
 
