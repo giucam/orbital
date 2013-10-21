@@ -195,6 +195,7 @@ private:
     std::vector<Workspace *> m_workspaces;
     uint32_t m_currentWorkspace;
     bool m_windowsMinimized;
+    bool m_quitting;
 
     std::list<weston_surface *> m_blackSurfaces;
     class Splash *m_splash;

@@ -116,6 +116,7 @@ Binding::~Binding()
 Shell::Shell(struct weston_compositor *ec)
             : m_compositor(ec)
             , m_windowsMinimized(false)
+            , m_quitting(false)
             , m_grabSurface(nullptr)
 {
     srandom(weston_compositor_get_time());
@@ -260,6 +261,7 @@ weston_surface *Shell::createBlackSurface(int x, int y, int w, int h)
 
 void Shell::quit()
 {
+    m_quitting = true;
     wl_display_terminate(compositor()->wl_display);
     if (m_child.client) {
         wl_client_destroy(m_child.client);
@@ -975,6 +977,10 @@ void Shell::sigchld(int status)
 
     m_child.process.pid = 0;
     m_child.client = nullptr; /* already destroyed by wayland */
+
+    if (m_quitting) {
+        return;
+    }
 
     /* if desktop-shell dies more than 5 times in 30 seconds, give up */
     time = weston_compositor_get_time();
