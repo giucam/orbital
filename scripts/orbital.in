@@ -2,8 +2,16 @@
 
 args="--shell=@CMAKE_INSTALL_PREFIX@/lib/orbital/orbital-shell.so --orbital-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital"
 
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
+    eval `dbus-launch --sh-syntax`
+fi
+
 if [ -z "$DISPLAY" ]; then
     weston-launch -- $args
 else
     weston $args
+fi
+
+if [[ $DBUS_SESSION_BUS_PID ]]; then
+    kill $DBUS_SESSION_BUS_PID
 fi

@@ -1,17 +1,4 @@
 #!/bin/sh
 
-# Launch a session bus instance
-if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
-    eval `dbus-launch --sh-syntax`
-fi
-
-# Check whether D-Bus is OK
-if ! qdbus >/dev/null 2>/dev/null; then
-    echo "Could not start D-Bus session bus" 1>&2
-fi
-
 # Start the right shell
-@CMAKE_INSTALL_PREFIX@/libexec/orbital-client
-if [[ $DBUS_SESSION_BUS_PID ]]; then
-    kill $DBUS_SESSION_BUS_PID
-fi
+exec @CMAKE_INSTALL_PREFIX@/libexec/orbital-client
