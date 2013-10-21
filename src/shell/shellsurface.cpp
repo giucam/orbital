@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <unistd.h>
 
 #include <weston/compositor.h>
 
@@ -81,10 +82,13 @@ void ShellSurface::close()
 {
     wl_signal_emit(&m_shell->compositor()->kill_signal, m_surface);
 
-    wl_client *client = wl_resource_get_client(m_resource);
+    wl_client *client = wl_resource_get_client(m_surface->resource);
     pid_t pid;
     wl_client_get_credentials(client, &pid, NULL, NULL);
-    kill(pid, SIGTERM);
+
+    if (pid != getpid()) {
+        kill(pid, SIGTERM);
+    }
 }
 
 const struct desktop_shell_window_interface ShellSurface::m_window_implementation = {
