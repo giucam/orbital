@@ -23,6 +23,7 @@ function(INSTALL_ELEMENT _sources _dir)
 endfunction()
 
 pkg_check_modules(WaylandClient wayland-client REQUIRED)
+pkg_check_modules(Nuclear nuclear REQUIRED)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
@@ -58,7 +59,7 @@ set(SOURCES
     popup.cpp)
 
 wayland_add_protocol_client(SOURCES
-    ${CMAKE_SOURCE_DIR}/protocol/desktop-shell.xml
+    ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml
     desktop-shell
 )
 

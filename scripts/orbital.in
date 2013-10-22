@@ -1,6 +1,6 @@
 #!/bin/sh
 
-args="--shell=@CMAKE_INSTALL_PREFIX@/lib/orbital/orbital-shell.so --orbital-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital"
+args="--shell=@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-shell.so --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital"
 
 if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
     eval `dbus-launch --sh-syntax`
