@@ -165,10 +165,12 @@ void Layout::itemChange(ItemChange change, const ItemChangeData &value)
     switch (change) {
         case QQuickItem::ItemChildAddedChange:
             m_items << value.item;
+            connect(value.item, &QQuickItem::visibleChanged, this, &Layout::invalidate);
             invalidate();
             break;
         case QQuickItem::ItemChildRemovedChange:
             m_items.removeOne(value.item);
+            disconnect(value.item);
             invalidate();
             break;
         default:
@@ -273,7 +275,9 @@ void Layout::relayout()
     };
     QList<It> _items;
     for (QQuickItem *i: m_items) {
-        _items.append({ i, attachedLayoutObject(i), true, 0, 0 });
+        if (i->isVisible()) {
+            _items.append({ i, attachedLayoutObject(i), true, 0, 0 });
+        }
     }
 
     const bool horizontal = m_orientation == Qt::Horizontal;
