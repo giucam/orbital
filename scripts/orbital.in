@@ -1,6 +1,53 @@
 #!/bin/sh
 
-args="--shell=@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-shell.so --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital"
+socket=0
+tmppath="$XDG_CACHE_HOME"
+if [ -z "$tmppath" ]; then
+    tmppath="$HOME/.cache"
+fi
+tmppath="$tmppath/orbital"
+mkdir -p $tmppath >/dev/null
+
+while getopts S: name
+do
+    case $name in
+        S)  if [ $OPTARG -eq $OPTARG 2> /dev/null ]; then
+                socket="$OPTARG"
+            else
+                echo "Invalid socket number. Must be an integer."
+                exit 1
+            fi;;
+        ?)  printf "Usage: %s: [-Svalue]\n" $0
+            exit 2;;
+    esac
+done
+
+logfile="$tmppath/orbital-$socket.log"
+out="$tmppath/orbital-$socket.out"
+err="$tmppath/orbital-$socket.err"
+
+function watch() {
+    IFS=''
+    while read a; do
+        echo "$a"
+        echo "$2$a" >>$logfile
+    done < "$1"
+}
+
+rm $logfile $out $err > /dev/null 2>&1
+mkfifo $out $err
+trap 'rm "$out" "$err"' EXIT
+
+exec 4<>"$out"
+exec 5<>"$err"
+
+(watch "$out" "stdout: " >&1) &
+(watch "$err" "stderr: " >&2) &
+
+exec 1>&4
+exec 2>&5
+
+args="--shell=@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-shell.so --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital -Swayland-$socket"
 
 if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
     eval `dbus-launch --sh-syntax`
