@@ -158,6 +158,8 @@ signals:
     void contentItemChanged();
     void locationChanged();
     void screenChanged();
+    void inputRegionChanged();
+    void published();
 
 protected:
     void setId(int id);

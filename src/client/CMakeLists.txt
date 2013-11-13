@@ -56,7 +56,8 @@ set(SOURCES
     style.cpp
     styleitem.cpp
     tooltip.cpp
-    popup.cpp)
+    popup.cpp
+    panel.cpp)
 
 wayland_add_protocol_client(SOURCES
     ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml

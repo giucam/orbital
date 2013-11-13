@@ -26,8 +26,8 @@ Element {
     property int orientation: (location == 0 || location == 2) ? Qt.Horizontal : Qt.Vertical
     property int size: 33
 
-    width: orientation == Qt.Horizontal ? Screen.width : size
-    height: orientation == Qt.Horizontal ? size : Screen.height
+    width: (location == 0 || location == 2) ? Screen.width : size
+    height: (location == 0 || location == 2) ? size : Screen.height
 
     property rect __rect: background.childrenRect
     property var __map: mapFromItem(background, __rect.x, __rect.y, __rect.width, __rect.height)
@@ -94,10 +94,35 @@ Element {
             anchors.rightMargin:  location == 1 ? 5 : 0
             component: CurrentStyle.panelBackground
 
+            Item {
+                id: handle
+                visible: Ui.configMode
+                anchors.top: parent.top
+                anchors.left: parent.left
+                width: orientation == Qt.Horizontal ? (visible ? parent.height : 0) : parent.width
+                height: orientation == Qt.Vertical ? (visible ? parent.width : 0) : parent.height
+
+                Icon {
+                    anchors.fill: parent
+                    // This is in the oxygen theme but not in the xdg icon naming spec.
+                    // i'd really like to use one in the spec but i couldn't find a suitable one.
+                    icon: "image://icon/transform-move"
+                    onPressed: {
+                        panel.publish(Qt.point(0, 0));
+                    }
+                }
+
+                Behavior on width { PropertyAnimation {} }
+                Behavior on height { PropertyAnimation {} }
+            }
+
             Layout {
                 id: layout
                 orientation: panel.orientation
-                anchors.fill: parent
+                anchors.top: panel.orientation == Qt.Horizontal ? parent.top : handle.bottom
+                anchors.left: panel.orientation == Qt.Horizontal ? handle.right : parent.left
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
             }
         }
         StyleItem {

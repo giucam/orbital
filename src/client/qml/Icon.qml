@@ -28,6 +28,7 @@ Item {
     height: width
 
     signal clicked()
+    signal pressed()
     property string icon: ""
     property int iconFillMode: Image.PreserveAspectFit
 
@@ -76,9 +77,7 @@ Item {
 
         onEntered: glow.opacity = 1
         onExited: glow.opacity = 0
-    }
-
-    Component.onCompleted: {
-        mouseArea.clicked.connect(clicked)
+        onPressed: button.pressed()
+        onClicked: button.clicked()
     }
 }

@@ -41,6 +41,7 @@ struct desktop_shell_binding;
 struct desktop_shell_window;
 struct desktop_shell_workspace;
 struct desktop_shell_surface;
+struct desktop_shell_panel;
 
 class Window;
 class ShellUI;
@@ -91,7 +92,7 @@ public:
     static QLocale locale();
 
     void setBackground(QQuickWindow *window, QScreen *screen);
-    void setPanel(QQuickWindow *window, QScreen *screen, int location);
+    desktop_shell_panel *setPanel(QQuickWindow *window, QScreen *screen, int location);
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
 

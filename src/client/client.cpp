@@ -199,12 +199,15 @@ void Client::setBackground(QQuickWindow *window, QScreen *screen)
     desktop_shell_set_background(m_shell, output, wlSurface);
 }
 
-void Client::setPanel(QQuickWindow *window, QScreen *screen, int location)
+desktop_shell_panel *Client::setPanel(QQuickWindow *window, QScreen *screen, int location)
 {
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
     wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+    if (!m_uiWindows.contains(window)) {
+        m_uiWindows << window;
+    }
 
-    desktop_shell_set_panel(m_shell, output, wlSurface, location);
+    return desktop_shell_set_panel(m_shell, output, wlSurface, location);
 }
 
 void Client::addOverlay(QQuickWindow *window, QScreen *screen)

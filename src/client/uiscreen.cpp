@@ -32,6 +32,7 @@
 #include "client.h"
 #include "element.h"
 #include "shellui.h"
+#include "panel.h"
 
 UiScreen::UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen)
        : QObject(client)
@@ -82,30 +83,38 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         if (elm->type() == ElementInfo::Type::Item)
             continue;
 
-        QQuickWindow *window = m_client->window(elm);
+        if (elm->type() == ElementInfo::Type::Panel) {
+            Panel *p = static_cast<Panel *>(elm->window());
+            if (!p) {
+                p = new Panel(m_screen, elm);
+            }
+            p->setLocation(elm->location());
+        } else {
+            QQuickWindow *window = m_client->window(elm);
 
-        window->setWidth(elm->width());
-        window->setHeight(elm->height());
-        window->setColor(Qt::transparent);
-        window->setFlags(Qt::BypassWindowManagerHint);
-        window->setScreen(m_screen);
-        window->show();
-        window->create();
+            window->setWidth(elm->width());
+            window->setHeight(elm->height());
+            window->setColor(Qt::transparent);
+            window->setFlags(Qt::BypassWindowManagerHint);
+            window->setScreen(m_screen);
+            window->show();
+            window->create();
 
-        m_client->setInputRegion(window, elm->inputRegion());
+            m_client->setInputRegion(window, elm->inputRegion());
 
-        switch (elm->type()) {
-            case ElementInfo::Type::Background:
-                m_client->setBackground(window, m_screen);
-                break;
-            case ElementInfo::Type::Panel:
-                m_client->setPanel(window, m_screen, (int)elm->location());
-                break;
-            case ElementInfo::Type::Overlay:
-                m_client->addOverlay(window, m_screen);
-                break;
-            default:
-                break;
+            switch (elm->type()) {
+                case ElementInfo::Type::Background:
+                    m_client->setBackground(window, m_screen);
+                    break;
+                case ElementInfo::Type::Panel:
+                    m_client->setPanel(window, m_screen, (int)elm->location());
+                    break;
+                case ElementInfo::Type::Overlay:
+                    m_client->addOverlay(window, m_screen);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

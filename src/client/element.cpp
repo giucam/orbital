@@ -27,6 +27,7 @@
 #include "shellui.h"
 #include "uiscreen.h"
 #include "styleitem.h"
+#include "panel.h"
 
 static const int a = qmlRegisterType<Element>("Orbital", 1, 0, "ElementBase");
 static const int b = qmlRegisterType<ElementConfig>("Orbital", 1, 0, "ElementConfig");
@@ -127,6 +128,7 @@ void Element::setInputRegion(const QRectF &rect)
 {
     m_inputRegion = rect;
     m_inputRegionSet = true;
+    emit inputRegionChanged();
 }
 
 static void traverse(QQuickItem *item, Element::Location l)
@@ -190,13 +192,16 @@ void Element::configure()
 
 void Element::publish(const QPointF &offset)
 {
-    m_target = nullptr;
-    m_offset = offset;
-    Grab *grab = Client::createGrab();
-    connect(grab, SIGNAL(focus(wl_surface *, int, int)), this, SLOT(focus(wl_surface *, int, int)));
-    connect(grab, &Grab::motion, this, &Element::motion);
-    connect(grab, &Grab::button, this, &Element::button);
-    m_properties.clear();
+    if (type() == ElementInfo::Type::Item) {
+        m_target = nullptr;
+        m_offset = offset;
+        Grab *grab = Client::createGrab();
+        connect(grab, SIGNAL(focus(wl_surface *, int, int)), this, SLOT(focus(wl_surface *, int, int)));
+        connect(grab, &Grab::motion, this, &Element::motion);
+        connect(grab, &Grab::button, this, &Element::button);
+        m_properties.clear();
+    }
+    emit published();
 }
 
 void Element::focus(wl_surface *surface, int x, int y)
