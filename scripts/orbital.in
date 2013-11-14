@@ -54,9 +54,9 @@ if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
 fi
 
 if [ -z "$DISPLAY" ]; then
-    weston-launch -- $args
+    stdbuf -oL -eL weston-launch -- $args
 else
-    weston $args
+    stdbuf -oL -eL weston $args
 fi
 
 if [[ $DBUS_SESSION_BUS_PID ]]; then
