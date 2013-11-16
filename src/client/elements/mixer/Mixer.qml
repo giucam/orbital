@@ -105,6 +105,12 @@ Element {
                 stepSize: 1
                 value: service.muted ? 0 : service.master;
 
+                // changing the orientation of the slider makes it lose the value and
+                // break the binding, so reset it here
+                onOrientationChanged: {
+                    slider.value = Qt.binding(function() { return service.muted ? 0 : service.master })
+                }
+
                 MouseArea {
                     anchors.fill: parent
                     onPressed: {
