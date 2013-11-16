@@ -131,13 +131,13 @@ void Element::setInputRegion(const QRectF &rect)
     emit inputRegionChanged();
 }
 
-static void traverse(QQuickItem *item, Element::Location l)
+static void traverse(QObject *object, Element::Location l)
 {
-    for (QQuickItem *i: item->childItems()) {
-        if (StyleItem *s = qobject_cast<StyleItem *>(i)) {
+    for (QObject *o: object->children()) {
+        if (StyleItem *s = qobject_cast<StyleItem *>(o)) {
             s->updateLocation(l);
         }
-        traverse(i, l);
+        traverse(o, l);
     }
 }
 
