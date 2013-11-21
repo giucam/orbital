@@ -71,6 +71,26 @@ Style {
                 x: location == 3 ? -10 : 0
                 y: location == 2 ? -10 : 0
 
+                states: [
+                    State {
+                        name: "active"
+                        when: item.state == Window.Active
+                        PropertyChanges { target: rect; color: "#57A2FD" }
+                    },
+                    State {
+                        name: "minimized"
+                        when: item.state & Window.Minimized
+                        PropertyChanges { target: rect; color: "#57A2FD" }
+                        PropertyChanges { target: rect; height: horizontal ? 10 : parent.height }
+                        PropertyChanges { target: rect; width: horizontal ? parent.width : 10 }
+                        PropertyChanges { target: rect; x: horizontal ? 0 : (location == 1 ? item.width - 3 : -5) }
+                        PropertyChanges { target: rect; y: horizontal ? (location == 0 ? item.height - 3 : -5) : 0 }
+                    }
+                ]
+                transitions: Transition {
+                    NumberAnimation { properties: "x,y,width,height"; easing.type: Easing.InOutQuad }
+                }
+
                 Behavior on color { ColorAnimation { duration: 100 } }
             }
 
@@ -87,14 +107,6 @@ Style {
                     color: "black"
                 }
             }
-
-            states: [
-                State {
-                    name: "active"
-                    when: state == Window.Active
-                    PropertyChanges { target: rect; color: "#57A2FD" }
-                }
-            ]
         }
     }
 
