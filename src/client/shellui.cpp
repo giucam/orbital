@@ -41,7 +41,7 @@ static const char *defaultConfig =
 "<Ui>\n"
 "    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
 "    <property name=\"numWorkspaces\" value=\"4\"/>\n"
-"    <property name=\"styleName\" value=\"default\"/>\n"
+"    <property name=\"styleName\" value=\"chiaro\"/>\n"
 "    <Screen>\n"
 "        <element type=\"background\" id=\"1\">\n"
 "            <property name=\"color\" value=\"black\"/>\n"
