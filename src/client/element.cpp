@@ -140,6 +140,16 @@ static void traverse(QObject *object, Element::Location l)
         traverse(o, l);
     }
 }
+static void traverse(QQuickItem *object, Element::Location l)
+{
+    for (QQuickItem *o: object->childItems()) {
+        if (StyleItem *s = qobject_cast<StyleItem *>(o)) {
+            s->updateLocation(l);
+        }
+        traverse(o, l);
+    }
+    traverse(static_cast<QObject *>(object), l);
+}
 
 void Element::setLocation(Location p)
 {
