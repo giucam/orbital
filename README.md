@@ -28,6 +28,17 @@ make
 sudo make install
 ```
 
+
+If *cmake* fails with the error `package 'nuclear' not found` but you do have
+[Nuclear](https://github.com/nuclide/nuclear) installed you may need to set
+the `PKG_CONFIG_PATH` environment variable to the right path
+(replacing *NUCLEAR_PREFIX* with the right path):
+```sh
+export PKG_CONFIG_PATH=NUCLEAR_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
+cmake ..
+```
+
+
 Orbital will be installed in the */usr/local* prefix, unless you specified
 otherwise using the `CMAKE_INSTALL_PREFIX` variable:
 ```sh
