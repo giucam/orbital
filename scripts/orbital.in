@@ -50,7 +50,7 @@ exec 1>&4
 exec 2>&5
 
 plugin="@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-desktop-shell.so"
-if[[ "@Nuclear_VERSION@" == "0.0.1" ]; then
+if [ "@Nuclear_VERSION@" == "0.0.1" ]; then
     plugin="@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-shell.so"
 fi
 args="--shell=$plugin --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital -Swayland-$socket"
