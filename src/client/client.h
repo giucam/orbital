@@ -28,6 +28,7 @@ class QQmlComponent;
 class QWindow;
 class QQuickWindow;
 class QScreen;
+class QProcess;
 
 struct wl_display;
 struct wl_registry;
@@ -95,6 +96,7 @@ public:
     desktop_shell_panel *setPanel(QQuickWindow *window, QScreen *screen, int location);
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
+    QProcess *createTrustedClient(const QString &interface);
 
     static wl_output *nativeOutput(QScreen *screen);
 
