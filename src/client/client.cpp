@@ -19,6 +19,7 @@
 
 #include <linux/input.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <QGuiApplication>
 #include <QQmlEngine>
@@ -234,15 +235,19 @@ void Client::setInputRegion(QQuickWindow *w, const QRectF &r)
 QProcess *Client::createTrustedClient(const QString &interface)
 {
     int sv[2];
-    socketpair(AF_UNIX, SOCK_STREAM, 0, sv);
+    socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("WAYLAND_SOCKET", QString::number(sv[1]));
+    int fd = dup(sv[1]);
+    env.insert("WAYLAND_SOCKET", QString::number(fd));
+    close(sv[1]);
     QProcess *process = new QProcess;
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->setProcessEnvironment(env);
 
     desktop_shell_add_trusted_client(m_shell, sv[0], qPrintable(interface));
+    close(sv[0]);
 
+    connect(process, (void (QProcess::*)(int))&QProcess::finished, [fd](int) { close(fd); });
     return process;
 }
 
