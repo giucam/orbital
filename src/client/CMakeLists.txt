@@ -81,6 +81,7 @@ install_element(SOURCES elements/taskbar)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")
+list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
 
 add_executable(orbital-client ${SOURCES} ${RESOURCES} ${QM_FILES})
 qt5_use_modules(orbital-client Widgets Qml Quick)
