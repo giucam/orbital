@@ -121,6 +121,7 @@ private slots:
     void windowDestroyed(Window *w);
     void setGrabCursor();
     void ready();
+    void takeScreenshot();
 
 private:
     void handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version);

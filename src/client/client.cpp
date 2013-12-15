@@ -173,6 +173,9 @@ void Client::create()
     wl_display_flush(m_display); //Make sure the server receives the fd asap
     connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });
 
+    // win + print_screen FIXME: make this configurable
+    connect(addKeyBinding(KEY_SYSRQ, 1 << 2), &Binding::triggered, this, &Client::takeScreenshot);
+
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
     m_grabWindow->resize(1, 1);
@@ -266,6 +269,14 @@ void Client::ready()
 {
     desktop_shell_desktop_ready(m_shell);
     qDebug() << "Orbital-client startup time:" << m_elapsedTimer.elapsed() << "ms";
+}
+
+void Client::takeScreenshot()
+{
+    QProcess *proc = createTrustedClient("screenshooter");
+    proc->start(LIBEXEC_PATH "/orbital-screenshooter");
+    wl_display_flush(m_display); //Make sure the server receives the fd asap
+    connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });
 }
 
 void Client::windowDestroyed(Window *w)
