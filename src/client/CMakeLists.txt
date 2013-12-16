@@ -63,6 +63,10 @@ wayland_add_protocol_client(SOURCES
     ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml
     desktop-shell
 )
+wayland_add_protocol_client(SOURCES
+    ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-settings.xml
+    settings
+)
 
 file(GLOB translations translations/*.ts)
 qt5_add_resources(RESOURCES resources.qrc)

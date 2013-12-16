@@ -39,6 +39,7 @@
 #include <wayland-client.h>
 
 #include "wayland-desktop-shell-client-protocol.h"
+#include "wayland-settings-client-protocol.h"
 
 #include "client.h"
 #include "iconimageprovider.h"
@@ -80,6 +81,7 @@ Binding::~Binding()
 
 Client::Client()
       : QObject()
+      , m_settings(nullptr)
       , m_ui(nullptr)
       , d_ptr(new ClientPrivate(this))
 {
@@ -163,6 +165,8 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
+    loadSettings();
+
     QProcess *proc = createTrustedClient("desktop_shell_splash");
     proc->start(LIBEXEC_PATH "/orbital-splash");
     wl_display_flush(m_display); //Make sure the server receives the fd asap
@@ -197,6 +201,28 @@ void Client::create()
         QCoreApplication::processEvents();
     }
     ready();
+}
+
+void Client::loadSettings()
+{
+    if (!m_settings) {
+        return;
+    }
+
+    nuclear_settings_set_integer(m_settings, "effects/scale_effect", "enabled", 1);
+    nuclear_settings_set_key_binding(m_settings, "effects/scale_effect", "toggle_binding", KEY_E, NUCLEAR_SETTINGS_MODIFIER_CTRL);
+    nuclear_settings_set_hotspot_binding(m_settings, "effects/scale_effect", "toggle_binding", NUCLEAR_SETTINGS_HOTSPOT_TOP_LEFT_CORNER);
+
+    nuclear_settings_set_integer(m_settings, "effects/griddesktops_effect", "enabled", 1);
+    nuclear_settings_set_key_binding(m_settings, "effects/griddesktops_effect", "toggle_binding", KEY_G, NUCLEAR_SETTINGS_MODIFIER_CTRL);
+    nuclear_settings_set_hotspot_binding(m_settings, "effects/griddesktops_effect", "toggle_binding", NUCLEAR_SETTINGS_HOTSPOT_TOP_RIGHT_CORNER);
+
+    nuclear_settings_set_integer(m_settings, "effects/zoom_effect", "enabled", 1);
+    nuclear_settings_set_axis_binding(m_settings, "effects/zoom_effect", "zoom_binding", WL_POINTER_AXIS_VERTICAL_SCROLL, NUCLEAR_SETTINGS_MODIFIER_SUPER);
+
+    nuclear_settings_set_integer(m_settings, "effects/fademoving_effect", "enabled", 1);
+    nuclear_settings_set_integer(m_settings, "effects/inoutsurface_effect", "enabled", 1);
+    nuclear_settings_set_integer(m_settings, "effects/minimize_effect", "enabled", 1);
 }
 
 void Client::setBackground(QQuickWindow *window, QScreen *screen)
@@ -414,6 +440,8 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
         // Bind interface and register listener
         m_shell = static_cast<desktop_shell *>(wl_registry_bind(registry, id, &desktop_shell_interface, version));
         desktop_shell_add_listener(m_shell, &s_shellListener, this);
+    } else if (strcmp(interface, "nuclear_settings") == 0) {
+        m_settings = static_cast<nuclear_settings *>(wl_registry_bind(registry, id, &nuclear_settings_interface, version));
     }
 }
 
