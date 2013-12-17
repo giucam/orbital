@@ -43,7 +43,6 @@ struct desktop_shell_window;
 struct desktop_shell_workspace;
 struct desktop_shell_surface;
 struct desktop_shell_panel;
-struct nuclear_settings;
 
 class Window;
 class ShellUI;
@@ -53,6 +52,7 @@ class ElementInfo;
 class Service;
 class StyleInfo;
 class Element;
+class CompositorSettings;
 
 class Binding : public QObject
 {
@@ -121,7 +121,6 @@ private slots:
     void ready();
 
 private:
-    void loadSettings();
     void handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
     void handleLoad(desktop_shell *shell);
     void handleConfigure(desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
@@ -138,7 +137,7 @@ private:
     wl_registry *m_registry;
     int m_fd;
     desktop_shell *m_shell;
-    nuclear_settings *m_settings;
+    CompositorSettings *m_settings;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;

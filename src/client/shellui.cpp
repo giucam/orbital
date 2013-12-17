@@ -36,37 +36,52 @@
 #include "element.h"
 #include "uiscreen.h"
 #include "style.h"
+#include "compositorsettings.h"
 
 static const char *defaultConfig =
-"<Ui>\n"
-"    <property name=\"iconTheme\" value=\"oxygen\"/>\n"
-"    <property name=\"numWorkspaces\" value=\"4\"/>\n"
-"    <property name=\"styleName\" value=\"chiaro\"/>\n"
-"    <Screen>\n"
-"        <element type=\"background\" id=\"1\">\n"
-"            <property name=\"color\" value=\"black\"/>\n"
-"            <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
-"            <property name=\"imageFillMode\" value=\"4\"/>\n"
-"        </element>\n"
-"        <element type=\"panel\" id=\"2\">\n"
-"            <property name=\"location\" value=\"0\"/>\n"
-"            <element type=\"launcher\" id=\"3\">\n"
-"                <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
-"                <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
+"<Orbital>\n"
+"    <Ui>\n"
+"        <property name=\"iconTheme\" value=\"oxygen\"/>\n"
+"        <property name=\"numWorkspaces\" value=\"4\"/>\n"
+"        <property name=\"styleName\" value=\"chiaro\"/>\n"
+"        <Screen>\n"
+"            <element type=\"background\" id=\"1\">\n"
+"                <property name=\"color\" value=\"black\"/>\n"
+"                <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
+"                <property name=\"imageFillMode\" value=\"4\"/>\n"
 "            </element>\n"
-"            <element type=\"pager\" id=\"4\"/>\n"
-"            <element type=\"taskbar\" id=\"5\"/>\n"
-"            <element type=\"mixer\" id=\"6\"/>\n"
-"            <element type=\"logout\" id=\"7\"/>\n"
-"            <element type=\"clock\" id=\"8\"/>\n"
-"        </element>\n"
-"        <element type=\"overlay\" id=\"9\"/>\n"
-"    </Screen>\n"
-"</Ui>\n";
+"            <element type=\"panel\" id=\"2\">\n"
+"                <property name=\"location\" value=\"0\"/>\n"
+"                <element type=\"launcher\" id=\"3\">\n"
+"                    <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
+"                    <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
+"                </element>\n"
+"                <element type=\"pager\" id=\"4\"/>\n"
+"                <element type=\"taskbar\" id=\"5\"/>\n"
+"                <element type=\"mixer\" id=\"6\"/>\n"
+"                <element type=\"logout\" id=\"7\"/>\n"
+"                <element type=\"clock\" id=\"8\"/>\n"
+"            </element>\n"
+"            <element type=\"overlay\" id=\"9\"/>\n"
+"        </Screen>\n"
+"    </Ui>\n"
+"    <CompositorSettings>\n"
+"        <option name=\"effects/scale_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"effects/scale_effect.toggle_binding\" value=\"key:ctrl+e;hotspot:topleft_corner\"/>\n"
+"        <option name=\"effects/griddesktops_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"effects/griddesktops_effect.toggle_binding\" value=\"key:ctrl+g;hotspot:topright_corner\"/>\n"
+"        <option name=\"effects/zoom_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"effects/zoom_effect.zoom_binding\" value=\"axis:super+axis_vertical\"/>\n"
+"        <option name=\"effects/minimize_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"effects/inoutsurface_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"effects/fademoving_effect.enabled\" value=\"1\"/>\n"
+"    </CompositorSettings>\n"
+"</Orbital>\n";
 
-ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
+ShellUI::ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, const QString &configFile)
        : QObject(client)
        , m_client(client)
+       , m_compositorSettings(s)
        , m_configFile(configFile)
        , m_configMode(false)
        , m_cursorShape(-1)
@@ -218,7 +233,11 @@ void ShellUI::reloadConfig()
 
                 setProperty(qPrintable(name), value);
                 m_properties << name;
-            } else if (xml.name() != "Ui") {
+            } else if (xml.name() == "CompositorSettings") {
+                if (m_compositorSettings) {
+                    m_compositorSettings->load(&xml);
+                }
+            } else if (xml.name() != "Ui" && xml.name() != "Orbital") {
                 goToEndElement(xml);
             }
         }
@@ -238,6 +257,7 @@ void ShellUI::saveConfig()
 
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
+    xml.writeStartElement("Orbital");
     xml.writeStartElement("Ui");
 
     for (const QString &prop: m_properties) {
@@ -251,6 +271,12 @@ void ShellUI::saveConfig()
         screen->saveConfig(xml);
     }
 
+    xml.writeEndElement();
+    xml.writeStartElement("CompositorSettings");
+    if (m_compositorSettings) {
+        m_compositorSettings->save(&xml);
+    }
+    xml.writeEndElement();
     xml.writeEndElement();
     file.close();
 }
