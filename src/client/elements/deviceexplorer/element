@@ -1,0 +1,4 @@
+{
+    "prettyName": "Device explorer",
+    "qmlFile": "explorer.qml"
+}
