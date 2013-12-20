@@ -69,6 +69,10 @@ static bool typeFromString(const QString &t, nuclear_settings_binding_type *type
         *type =  NUCLEAR_SETTINGS_BINDING_TYPE_KEY;
         return true;
     }
+    if (t == "button") {
+        *type = NUCLEAR_SETTINGS_BINDING_TYPE_BUTTON;
+        return true;
+    }
     if (t == "axis") {
         *type =  NUCLEAR_SETTINGS_BINDING_TYPE_AXIS;
         return true;
@@ -160,6 +164,29 @@ static bool keyFromString(const QString &t, int *key)
     return false;
 }
 
+struct Button {
+    const char *name;
+    int b;
+};
+
+static const Button buttonmap[] = {
+    { "button_left", BTN_LEFT },
+    { "button_middle", BTN_MIDDLE },
+    { "button_right", BTN_RIGHT }
+};
+
+static bool buttonFromString(const QString &t, int *button)
+{
+    for (unsigned int i = 0; i < sizeof(buttonmap) / sizeof(Button); ++i) {
+        if (t == buttonmap[i].name) {
+            *button = buttonmap[i].b;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static bool hsFromString(const QString &t, nuclear_settings_hotspot *hs)
 {
     if (t == "topleft_corner") {
@@ -231,6 +258,18 @@ bool CompositorSettings::set(const QString &option, const QString &v)
                     }
                 }
                 nuclear_settings_set_key_binding(m_settings, qPrintable(path), qPrintable(name), key, mod);
+            } else if (type == NUCLEAR_SETTINGS_BINDING_TYPE_BUTTON) {
+                nuclear_settings_modifier mod = (nuclear_settings_modifier)0;
+                int button;
+                for (const QString &part: binding.split('+')) {
+                    nuclear_settings_modifier m;
+                    if (modFromString(part, &m)) {
+                        mod = (nuclear_settings_modifier)(mod | m);
+                    } else if (!buttonFromString(part, &button)) {
+                        return false;
+                    }
+                }
+                nuclear_settings_set_button_binding(m_settings, qPrintable(path), qPrintable(name), button, mod);
             } else if (type == NUCLEAR_SETTINGS_BINDING_TYPE_AXIS) {
                 nuclear_settings_modifier mod = (nuclear_settings_modifier)0;
                 int axis;
