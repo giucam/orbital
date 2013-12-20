@@ -8,6 +8,13 @@ fi
 tmppath="$tmppath/orbital"
 mkdir -p $tmppath >/dev/null
 
+configpath="$XDG_CONFIG_HOME"
+if [ -z "$configpath" ]; then
+    configpath="$HOME/.config"
+fi
+configpath="$configpath/orbital"
+mkdir -p $configpath > /dev/null
+
 while getopts S: name
 do
     case $name in
@@ -53,7 +60,7 @@ plugin="@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-desktop-shell.so"
 if [ "@Nuclear_VERSION@" == "0.0.1" ]; then
     plugin="@Nuclear_PREFIX@/lib/nuclear-shell/nuclear-shell.so"
 fi
-args="--shell=$plugin --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital -Swayland-$socket"
+args="--shell=$plugin --nuclear-client=@CMAKE_INSTALL_PREFIX@/libexec/startorbital --session-file=$configpath/session -Swayland-$socket"
 
 if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
     eval `dbus-launch --sh-syntax`
