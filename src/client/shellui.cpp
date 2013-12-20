@@ -75,6 +75,10 @@ static const char *defaultConfig =
 "        <option name=\"effects/minimize_effect.enabled\" value=\"1\"/>\n"
 "        <option name=\"effects/inoutsurface_effect.enabled\" value=\"1\"/>\n"
 "        <option name=\"effects/fademoving_effect.enabled\" value=\"1\"/>\n"
+"        <option name=\"desktop_shell.move_window\" value=\"button:super+button_left\"/>\n"
+"        <option name=\"desktop_shell.resize_window\" value=\"button:super+button_middle\"/>\n"
+"        <option name=\"desktop_shell.previous_workspace\" value=\"key:ctrl+left\"/>\n"
+"        <option name=\"desktop_shell.next_workspace\" value=\"key:ctrl+right\"/>\n"
 "    </CompositorSettings>\n"
 "</Orbital>\n";
 
