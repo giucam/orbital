@@ -26,9 +26,7 @@
 int main(int argc, char *argv[])
 {
     // Force Wayland platform plugin
-    setenv("QT_QPA_PLATFORM", "wayland", 1);
     setenv("QT_MESSAGE_PATTERN", "[%{type}] %{message}", 0);
-    setenv("XDG_CURRENT_DESKTOP", "orbital", 1);
 
     QApplication app(argc, argv);
     Client client;

@@ -66,6 +66,9 @@ if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
     eval `dbus-launch --sh-syntax`
 fi
 
+export QT_QPA_PLATFORM="wayland"
+export XDG_CURRENT_DESKTOP="orbital"
+
 if [ -z "$DISPLAY" ]; then
     stdbuf -oL -eL weston-launch -- $args
 else
