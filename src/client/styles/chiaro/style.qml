@@ -215,4 +215,5 @@ Style {
 
     textColor: "black"
     backgroundColor: "#F4F4F4"
+    highlightColor: "#57A2FD"
 }

@@ -74,6 +74,7 @@ class Style : public QObject
 
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
+    Q_PROPERTY(QColor highlightColor READ highlightColor WRITE set_highlightColor NOTIFY highlightColorChanged)
 public:
     Style(QObject *p = nullptr);
 
@@ -89,6 +90,7 @@ public:
     PROPERTY(QQmlComponent *, popupLauncher)
     PROPERTY(QColor, textColor)
     PROPERTY(QColor, backgroundColor)
+    PROPERTY(QColor, highlightColor)
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
 
@@ -109,6 +111,7 @@ signals:
     void popupLauncherChanged();
     void textColorChanged();
     void backgroundColorChanged();
+    void highlightColorChanged();
 
 private:
     static void loadStyleInfo(const QString &name, const QString &path);

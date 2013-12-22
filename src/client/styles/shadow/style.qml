@@ -201,4 +201,5 @@ Style {
 
     textColor: "white"
     backgroundColor: "#E6404040"
+    highlightColor: "#5A0608"
 }
