@@ -77,7 +77,7 @@ Rectangle {
             property real h_opacity: 1
 
             highlight: Rectangle {
-                color: "#aa777777"
+                color: CurrentStyle.highlightColor
                 radius: 5
                 opacity: listview.h_opacity
                 y: listview.h_y
