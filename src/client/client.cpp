@@ -267,10 +267,11 @@ void Client::ready()
     qDebug() << "Orbital-client startup time:" << m_elapsedTimer.elapsed() << "ms";
 }
 
-void Client::windowRemoved(Window *w)
+void Client::windowDestroyed(Window *w)
 {
     m_windows.removeOne(w);
     emit windowsChanged();
+    emit windowRemoved(w);
 }
 
 int ClientPrivate::windowsCount(QQmlListProperty<Window> *prop)
@@ -502,9 +503,10 @@ void Client::handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_windo
     m_windows << w;
     w->moveToThread(QCoreApplication::instance()->thread());
 
-    connect(w, &Window::destroyed, this, &Client::windowRemoved);
+    connect(w, &Window::destroyed, this, &Client::windowDestroyed);
 
     emit windowsChanged();
+    emit windowAdded(w);
 }
 
 void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)

@@ -110,13 +110,15 @@ public slots:
 
 signals:
     void windowsChanged();
+    void windowAdded(Window *window);
+    void windowRemoved(Window *window);
     void workspacesChanged();
     void elementsInfoChanged();
     void stylesInfoChanged();
 
 private slots:
     void create();
-    void windowRemoved(Window *w);
+    void windowDestroyed(Window *w);
     void setGrabCursor();
     void ready();
 
