@@ -33,6 +33,34 @@ Element {
     width: Layout.preferredWidth
     height: Layout.preferredHeight
 
+    ListModel {
+        id: windowsModel
+
+    }
+
+    Component.onCompleted: {
+        var windows = Client.windows;
+        for (var i = 0; i < windows.length; ++i) {
+            var d = windows[i];
+            windowsModel.append({ "window": windows[i] });
+        }
+    }
+
+    Connections {
+        target: Client
+        onWindowAdded: {
+            windowsModel.append({ "window": window });
+        }
+        onWindowRemoved: {
+            for (var i = 0; i < windowsModel.count; ++i) {
+                if (windowsModel.get(i).window == window) {
+                    windowsModel.remove(i);
+                    return;
+                }
+            }
+        }
+    }
+
     contentItem: StyleItem {
         anchors.fill: parent
         component: CurrentStyle.taskBarBackground
@@ -43,7 +71,7 @@ Element {
             orientation: taskbar.orientation
 
             Repeater {
-                model: Client.windows
+                model: windowsModel
 
                 TaskBarItem {
                     window: modelData
