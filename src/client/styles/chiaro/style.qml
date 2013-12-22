@@ -158,10 +158,11 @@ Style {
 
     popup: StyleComponent {
         clip: true
-        topContentsMargin: location == 0 ? header.size : 0
-        leftContentsMargin: location == 1 ? header.size : 0
-        bottomContentsMargin: location == 2 ? header.size : 0
-        rightContentsMargin: location == 3 ? header.size : 0
+        property int _margin: header.size + 5
+        topContentsMargin: location == 0 ? _margin : 0
+        leftContentsMargin: location == 1 ? _margin : 0
+        bottomContentsMargin: location == 2 ? _margin : 0
+        rightContentsMargin: location == 3 ? _margin : 0
         property int horizontal: (location != 1 && location != 3)
 
         property alias header: title.text
