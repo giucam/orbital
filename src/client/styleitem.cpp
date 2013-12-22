@@ -39,16 +39,23 @@ void StyleItem::setComponent(QQmlComponent *c)
 {
     QQuickItem *old = m_item;
 
+    Element::Location loc;
+    if (m_item) {
+        loc = m_item->m_location;
+    } else {
+        Element *e = Element::fromItem(parentItem());
+        if (e) {
+            loc = e->location();
+        }
+    }
+
     m_component = c;
     m_item = nullptr;
     if (c) {
         QObject *obj = c->beginCreate(c->creationContext());
         m_item = qobject_cast<StyleComponent *>(obj);
         if (m_item) {
-            Element *e = Element::fromItem(parentItem());
-            if (e) {
-                m_item->m_location = e->location();
-            }
+            m_item->m_location = loc;
         } else {
             qWarning() << "Style components must instantiate StyleComponent items.";
         }
