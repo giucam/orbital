@@ -328,17 +328,17 @@ void Layout::relayout()
 
     if (horizontal) {
         for (It &i: _items) {
-            i.item->setX(i.x);
-            i.item->setY(0);
-            i.item->setWidth(i.w);
-            i.item->setHeight(height());
+            i.item->setProperty("x", i.x);
+            i.item->setProperty("y", 0);
+            i.item->setProperty("width", i.w);
+            i.item->setProperty("height", height());
         }
     } else {
         for (It &i: _items) {
-            i.item->setY(i.x);
-            i.item->setX(0);
-            i.item->setHeight(i.w);
-            i.item->setWidth(width());
+            i.item->setProperty("y", i.x);
+            i.item->setProperty("x", 0);
+            i.item->setProperty("height", i.w);
+            i.item->setProperty("width", width());
         }
     }
 }

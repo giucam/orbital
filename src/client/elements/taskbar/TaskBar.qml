@@ -75,6 +75,9 @@ Element {
 
                 TaskBarItem {
                     window: modelData
+
+                    Behavior on x { PropertyAnimation { } }
+                    Behavior on y { PropertyAnimation { } }
                 }
             }
         }
