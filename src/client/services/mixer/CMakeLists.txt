@@ -1,6 +1,10 @@
 
+option(use_alsa "Use the Alsa library, if found." 1)
+
 find_package(Qt5Core)
-find_package(ALSA)
+if (${use_alsa} MATCHES 1)
+    find_package(ALSA)
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
@@ -16,7 +20,7 @@ if (${ALSA_FOUND})
     include_directories("${ALSA_INCLUDE_DIR}")
     list(APPEND defines "HAVE_ALSA")
     target_link_libraries(mixerservice ${ALSA_LIBRARIES})
-else()
+elseif (${use_alsa} MATCHES 1)
     message("\nCannot find Alsa\n")
 endif()
 
