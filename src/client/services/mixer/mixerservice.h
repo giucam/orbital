@@ -20,11 +20,21 @@
 #ifndef VOLUMECONTROL_H
 #define VOLUMECONTROL_H
 
-#include <alsa/asoundlib.h>
-
 #include "service.h"
 
 class Binding;
+
+class Backend
+{
+public:
+    virtual ~Backend() {}
+
+    virtual void getBoundaries(long *min, long *max) const = 0;
+    virtual int rawVol() const = 0;
+    virtual void setRawVol(int vol) = 0;
+    virtual bool muted() const = 0;
+    virtual void setMuted(bool muted) = 0;
+};
 
 class MixerService : public Service
 {
@@ -43,8 +53,6 @@ public:
     bool muted() const;
     void setMuted(bool muted);
 
-    constexpr static const char *name() { return "MixerService"; }
-
 public slots:
     void increaseMaster();
     void decreaseMaster();
@@ -58,16 +66,10 @@ signals:
     void bindingTriggered();
 
 private:
-    int rawVol() const;
-    void setRawVol(int vol);
-
-    snd_mixer_t *m_handle;
-    snd_mixer_selem_id_t *m_sid;
-    snd_mixer_elem_t *m_elem;
     long m_min;
     long m_max;
-    int m_savedVol;
 
+    Backend *m_backend;
     Binding *m_upBinding;
     Binding *m_downBinding;
     Binding *m_muteBinding;
