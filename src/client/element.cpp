@@ -193,6 +193,8 @@ void Element::configure()
         m_settingsWindow->setTitle(m_typeName + " Settings");
 
         connect(m_settingsWindow, &QWindow::visibleChanged, this, &Element::settingsVisibleChanged);
+        connect(m_settingsWindow, &QWindow::widthChanged, [this](int w) { m_settingsItem->setWidth(w); });
+        connect(m_settingsWindow, &QWindow::heightChanged, [this](int h) { m_settingsItem->setHeight(h); });
     } else if (m_settingsWindow->isVisible()) {
         m_settingsWindow->hide();
         return;
