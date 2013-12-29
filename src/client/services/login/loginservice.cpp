@@ -18,24 +18,29 @@
  */
 
 #include <QDBusInterface>
+#include <QProcess>
 
 #include "loginservice.h"
 #include "client.h"
 
 LoginService::LoginService()
             : Service()
+            , m_interface(nullptr)
 {
 }
 
 LoginService::~LoginService()
 {
-
+    delete m_interface;
 }
 
 void LoginService::init()
 {
     m_interface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
                                      "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
+    if (!m_interface || !m_interface->isValid()) {
+        m_interface = nullptr;
+    }
 
     m_timer.setInterval(1000);
     connect(&m_timer, &QTimer::timeout, this, &LoginService::decreaseTimeout);
@@ -49,13 +54,23 @@ void LoginService::logOut()
 void LoginService::poweroff()
 {
     client()->quit();
-    m_interface->call("PowerOff", true);
+    if (m_interface) {
+        m_interface->call("PowerOff", true);
+    } else {
+        // try the dumb fallback
+        QProcess::execute("shutdown -h now");
+    }
 }
 
 void LoginService::reboot()
 {
     client()->quit();
-    m_interface->call("Reboot", true);
+    if (m_interface) {
+        m_interface->call("Reboot", true);
+    } else {
+        // try the dumb fallback
+        QProcess::execute("shutdown -r now");
+    }
 }
 
 void LoginService::requestLogOut()
