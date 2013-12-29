@@ -40,6 +40,7 @@ Element {
             anchors.fill: parent
             anchors.margins: 2
             verticalAlignment: TextInput.AlignVCenter
+            clip: true
 
             onAccepted: {
                 service.launch(text.text)
