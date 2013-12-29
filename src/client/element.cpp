@@ -202,6 +202,15 @@ void Element::configure()
     m_settingsWindow->show();
 }
 
+void Element::closeSettings()
+{
+    if (!m_settingsWindow) {
+        return;
+    }
+
+    m_settingsWindow->hide();
+}
+
 void Element::publish(const QPointF &offset)
 {
     if (type() == ElementInfo::Type::Item) {

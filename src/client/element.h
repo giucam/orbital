@@ -147,6 +147,7 @@ public:
     static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
+    Q_INVOKABLE void closeSettings();
 
 signals:
     void elementAdded(Element *element, const QPointF &pos, const QPointF &offset);

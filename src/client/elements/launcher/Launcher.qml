@@ -65,22 +65,27 @@ Element {
 
         Column {
             id: content
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.bottom: buttons.top
             anchors.margins: 5
-            property int middle: 60
+            property int middle: Math.max(iconLabel.width, commandLabel.width) + anchors.margins
             spacing: 3
             Item {
                 width: parent.width
                 height: 25
 
                 Controls.Label {
-                    width: content.middle - content.anchors.margins
+                    id: iconLabel
+                    x: content.middle - width
                     height: parent.height
                     text: qsTr("Icon:")
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignRight
                 }
                 Controls.TextField {
+                    id: iconText
                     x: content.middle + content.spacing
                     width: content.width - content.anchors.margins - x
                     height: parent.height
@@ -94,18 +99,47 @@ Element {
                 height: 25
 
                 Controls.Label {
-                    width: content.middle - content.anchors.margins
+                    id: commandLabel
+                    x: content.middle - width
                     height: parent.height
                     text: qsTr("Process:")
                     verticalAlignment: Text.AlignVCenter
                     horizontalAlignment: Text.AlignRight
                 }
                 Controls.TextField {
+                    id: commandText
                     x: content.middle + content.spacing
                     width: content.width - content.anchors.margins - x
                     height: parent.height
                     text: launcher.process
                     onAccepted: launcher.process = text
+                }
+            }
+        }
+        Row {
+            id: buttons
+            anchors.margins: 5
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            spacing: 5
+            Controls.Button {
+                width: 100
+                height: 30
+                text: qsTr("Ok")
+                onClicked: {
+                    launcher.process = commandText.text;
+                    launcher.icon = iconText.text;
+                    launcher.closeSettings();
+                }
+            }
+            Controls.Button {
+                width: 100
+                height: 30
+                text: qsTr("Cancel")
+                onClicked: {
+                    commandText.text = launcher.process
+                    iconText.text = launcher.icon
+                    launcher.closeSettings();
                 }
             }
         }
