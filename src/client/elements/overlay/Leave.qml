@@ -50,36 +50,63 @@ Item {
         wrapMode: Text.Wrap
 
         property string abort: qsTr("Click anywhere to abort")
-        property string op: ""
+        property int op: -1
+    }
+
+    property int timeout: 3
+
+    Timer {
+        id: timer
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            timeout--;
+            if (timeout == 0) {
+                if (text.op == 0) {
+                    service.logOut();
+                } else if (text.op == 1) {
+                    service.poweroff();
+                } else if (text.op == 2) {
+                    service.reboot();
+                }
+            }
+            updateText();
+        }
     }
 
     function updateText() {
         var t;
-        if (text.op == "logout") {
-            t = qsTr("Logging out in\n%2...").arg(service.timeout);
-        } else if (text.op == "poweroff") {
-            t = qsTr("Shutting down in\n%2...").arg(service.timeout);
-        } else if (text.op == "reboot") {
-            t = qsTr("Rebooting in\n%2...").arg(service.timeout);
+        if (text.op == 0) {
+            t = qsTr("Logging out in\n%2...").arg(timeout);
+        } else if (text.op == 1) {
+            t = qsTr("Shutting down in\n%2...").arg(timeout);
+        } else if (text.op == 2) {
+            t = qsTr("Rebooting in\n%2...").arg(timeout);
         }
         text.text = t + "\n\n" + text.abort;
     }
 
+    function startTimeout(op) {
+        service.requestHandled();
+        text.op = op;
+        leave.opacity = 1;
+        leave.grab = Client.createGrab();
+        timeout = 3;
+        timer.start();
+        updateText();
+    }
+
     Connections {
         target: service
-        onTimeoutStarted: {
-            text.op = operation;
-            leave.opacity = 1;
-            leave.grab = Client.createGrab();
-            updateText();
-        }
-        onTimeoutChanged: updateText();
+        onLogOutRequested: startTimeout(0)
+        onPoweroffRequested: startTimeout(1)
+        onRebootRequested: startTimeout(2)
     }
 
     Connections {
         target: leave.grab
         onButton: {
-            service.abortRequest();
+            timer.stop();
             leave.grab.end();
             leave.grab.destroy();
             leave.opacity = 0;

@@ -41,9 +41,6 @@ void LoginService::init()
     if (!m_interface || !m_interface->isValid()) {
         m_interface = nullptr;
     }
-
-    m_timer.setInterval(1000);
-    connect(&m_timer, &QTimer::timeout, this, &LoginService::decreaseTimeout);
 }
 
 void LoginService::logOut()
@@ -75,41 +72,36 @@ void LoginService::reboot()
 
 void LoginService::requestLogOut()
 {
-    startRequest(&LoginService::logOut, "logout");
+    m_request = &LoginService::logOut;
+    m_requestHandled = false;
+    QTimer::singleShot(200, this, SLOT(doRequest()));
+    emit logOutRequested();
 }
 
 void LoginService::requestPoweroff()
 {
-    startRequest(&LoginService::poweroff, "poweroff");
+    m_request = &LoginService::poweroff;
+    m_requestHandled = false;
+    QTimer::singleShot(200, this, SLOT(doRequest()));
+    emit poweroffRequested();
 }
 
 void LoginService::requestReboot()
 {
-    startRequest(&LoginService::reboot, "reboot");
+    m_request = &LoginService::reboot;
+    m_requestHandled = false;
+    QTimer::singleShot(200, this, SLOT(doRequest()));
+    emit rebootRequested();
 }
 
-void LoginService::abortRequest()
+void LoginService::requestHandled()
 {
-    m_timer.stop();
+    m_requestHandled = true;
 }
 
-void LoginService::startRequest(void (LoginService::*request)(), const QString &op)
+void LoginService::doRequest()
 {
-    m_request = request;
-    m_timeout = 3;
-
-    emit timeoutStarted(op);
-    emit timeoutChanged();
-
-    m_timer.start();
-}
-
-void LoginService::decreaseTimeout()
-{
-    --m_timeout;
-    if (m_timeout < 1) {
+    if (!m_requestHandled) {
         (this->*m_request)();
-    } else {
-        emit timeoutChanged();
     }
 }

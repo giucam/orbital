@@ -32,14 +32,11 @@ class LoginService : public Service
     Q_INTERFACES(Service)
     Q_PLUGIN_METADATA(IID "Orbital.Service")
 
-    Q_PROPERTY(int timeout READ timeout NOTIFY timeoutChanged)
 public:
     LoginService();
     ~LoginService();
 
     void init();
-
-    int timeout() const { return m_timeout; }
 
 public slots:
     void logOut();
@@ -48,20 +45,20 @@ public slots:
     void requestLogOut();
     void requestPoweroff();
     void requestReboot();
-    void abortRequest();
+    void requestHandled();
 
 signals:
-    void timeoutStarted(const QString &operation);
-    void timeoutChanged();
+    void logOutRequested();
+    void poweroffRequested();
+    void rebootRequested();
+
+private slots:
+    void doRequest();
 
 private:
-    void startRequest(void (LoginService::*request)(), const QString &op);
-    void decreaseTimeout();
-
     QDBusInterface *m_interface;
-    int m_timeout;
     void (LoginService::*m_request)();
-    QTimer m_timer;
+    bool m_requestHandled;
 };
 
 #endif
