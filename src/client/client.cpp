@@ -186,7 +186,7 @@ void Client::create()
     engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QString configFile = path + "/orbital.conf";
+    QString configFile = path + "/orbital/orbital.conf";
     m_ui = new ShellUI(this, m_settings, engine, configFile);
     wl_display_flush(m_display);
 
