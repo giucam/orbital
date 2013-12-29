@@ -22,12 +22,14 @@ import Orbital 1.0
 
 Element {
     id: element
+
+    property int orientation: (location == 0 || location == 2) ? Qt.Horizontal : Qt.Vertical
     Layout.minimumWidth: time.contentWidth + 10
     Layout.preferredWidth: Layout.minimumWidth
     Layout.minimumHeight: time.contentHeight + 10
-    Layout.preferredHeight: Layout.minimumHeight
+    Layout.preferredHeight: time.contentHeight + date.contentHeight
 
-    width: Layout.preferredWidth
+    width: orientation == Qt.Horizontal ? Layout.preferredWidth : 100
     height: 20
 
     property variant service: Client.service("DateTimeService")
@@ -45,6 +47,7 @@ Element {
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
+            wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
         }
         Text {
             id: date
@@ -54,6 +57,7 @@ Element {
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
             font.pixelSize: 10
+            wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
         }
     }
 
