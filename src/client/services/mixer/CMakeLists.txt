@@ -2,7 +2,7 @@
 option(use_alsa "Use the Alsa library, if found." 1)
 
 find_package(Qt5Core)
-if (${use_alsa} MATCHES 1)
+if (${use_alsa} MATCHES ON)
     find_package(ALSA)
 endif()
 
@@ -20,7 +20,7 @@ if (${ALSA_FOUND})
     include_directories("${ALSA_INCLUDE_DIR}")
     list(APPEND defines "HAVE_ALSA")
     target_link_libraries(mixerservice ${ALSA_LIBRARIES})
-elseif (${use_alsa} MATCHES 1)
+elseif (${use_alsa} MATCHES ON)
     message("\nCannot find Alsa\n")
 endif()
 
