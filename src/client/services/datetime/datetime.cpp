@@ -59,7 +59,12 @@ void DateTimeService::timerEvent(QTimerEvent *event)
 
 void DateTimeService::setDT(const QDateTime &dt)
 {
+    QString d = date();
     m_dateTime = dt;
     m_nsecs = dt.toTime_t();
-    emit updated();
+
+    emit timeChanged();
+    if (d != date()) {
+        emit dateChanged();
+    }
 }

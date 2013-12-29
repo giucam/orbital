@@ -33,10 +33,6 @@ Element {
     height: 20
 
     property variant service: Client.service("DateTimeService")
-    Connections {
-        target: service
-        onUpdated: update()
-    }
 
     contentItem: Column {
         anchors.fill: parent
@@ -48,6 +44,7 @@ Element {
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
             wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
+            text: service.time
         }
         Text {
             id: date
@@ -58,14 +55,7 @@ Element {
             color: CurrentStyle.textColor
             font.pixelSize: 10
             wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
+            text: service.date
         }
-    }
-
-    Component.onCompleted: update()
-
-    function update()
-    {
-        time.text = service.time();
-        date.text = service.date();
     }
 }

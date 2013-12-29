@@ -29,17 +29,21 @@ class DateTimeService : public Service
     Q_OBJECT
     Q_INTERFACES(Service)
     Q_PLUGIN_METADATA(IID "Orbital.Service")
+
+    Q_PROPERTY(QString time READ time NOTIFY timeChanged)
+    Q_PROPERTY(QString date READ date NOTIFY dateChanged)
 public:
     DateTimeService();
     ~DateTimeService();
 
     void init();
 
-    Q_INVOKABLE QString time() const;
-    Q_INVOKABLE QString date() const;
+    QString time() const;
+    QString date() const;
 
 signals:
-    void updated();
+    void timeChanged();
+    void dateChanged();
 
 protected:
     virtual void timerEvent(QTimerEvent *event) override;
