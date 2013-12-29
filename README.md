@@ -53,7 +53,7 @@ own dedicated session.
 ## Configuring Orbital
 The first time you start Orbital it will load a default configuration. If you
 save the configuration (by closing the config dialog or by going from edit mode
-to normal mode) it will save the configuration file *orbital.conf*, in
+to normal mode) it will save the configuration file *orbital/orbital.conf*, in
 `$XDG_CONFIG_HOME` or, if not set, in `$HOME/.config`. You can manually modify
 the configuration file, but Orbital has (or will have) graphical tools
 for configuring the environment.
