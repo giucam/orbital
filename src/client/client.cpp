@@ -120,6 +120,7 @@ Client::Client()
     REGISTER_QMLFILE("Element");
     REGISTER_QMLFILE("Button");
     REGISTER_QMLFILE("Rotator");
+    REGISTER_QMLFILE("PopupElement");
 
     QTranslator *tr = new QTranslator;
     if (tr->load(d_ptr->locale, "", "", DATA_PATH "/translations", ".qm")) {

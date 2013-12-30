@@ -21,7 +21,7 @@ import QtQuick 2.1
 import Orbital 1.0
 import QtQuick.Controls 1.0
 
-Element {
+PopupElement {
     id: explorer
     width: 250
     height: 300
@@ -31,59 +31,22 @@ Element {
 
     property variant service: Client.service("HardwareService")
 
-    Component.onCompleted: {
-        explorer.update();
-    }
-
-    property int _minWidth: 100
-    property int _minHeight: 100
-
-    function update() {
-        if (explorer.width < _minWidth || explorer.height < _minHeight) {
-            loader.item.parent = popup.content;
-            explorer.contentItem = popupButton;
-        } else {
-            popupButton.parent = null;
-            explorer.contentItem = loader.item;
-        }
-    }
-    onWidthChanged: update()
-    onHeightChanged: update()
-
-
-    StyleItem {
-        id: popupButton
-        anchors.fill: parent
-        component: CurrentStyle.popupLauncher
-
-        Binding { target: popupButton.item; property: "popup"; value: popup }
-
-        Icon {
-            id: icon
-            anchors.fill: parent
-            icon: "image://icon/drive-harddisk"
-
-            onClicked: popup.show()
-        }
-    }
-
-    Popup {
-        id: popup
-        parentItem: explorer
-
-        content: StyleItem {
-            id: style
-
-            width: 250
-            height: 300
-
-            component: CurrentStyle.popup
-            Binding { target: style.item; property: "header"; value: explorer.prettyName }
-        }
-    }
+    minimumWidth: 100
+    minimumHeight: 100
 
     Loader {
         id: loader
         source: service ? "maincontent.qml" : "noservice.qml"
+    }
+
+    popupContent: loader.item
+    popupWidth: 250
+    popupHeight: 300
+    buttonContent: Icon {
+        id: icon
+        anchors.fill: parent
+        icon: "image://icon/drive-harddisk"
+
+        onClicked: showPopup()
     }
 }
