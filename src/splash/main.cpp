@@ -24,6 +24,7 @@
 #include <QQuickView>
 #include <QScreen>
 #include <QDebug>
+#include <QTranslator>
 #include <qpa/qplatformnativeinterface.h>
 
 #include "wayland-desktop-shell-client-protocol.h"
@@ -36,6 +37,13 @@ public:
         : QObject()
         , m_splash(nullptr)
     {
+        QTranslator *tr = new QTranslator;
+        if (tr->load(QLocale::system(), "", "", DATA_PATH "/translations", ".qm")) {
+            QCoreApplication::installTranslator(tr);
+        } else {
+            delete tr;
+        }
+
         QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
         m_display = static_cast<wl_display *>(native->nativeResourceForIntegration("display"));
         m_registry = wl_display_get_registry(m_display);

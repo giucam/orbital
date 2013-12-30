@@ -60,7 +60,7 @@ Rectangle {
 
     Text {
         id: label
-        text: "Loading Orbital..."
+        text: qsTr("Loading Orbital...")
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: orbiter.bottom
         color: "white"
