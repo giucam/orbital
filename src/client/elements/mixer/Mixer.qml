@@ -26,13 +26,13 @@ import QtQuick.Controls 1.0
 
 PopupElement {
     id: mixer
-    width: 30
-    height: 30
+    width: 50
+    height: 150
 
     Layout.preferredWidth: 30
     Layout.preferredHeight: 30
-    minimumWidth: 50
-    minimumHeight: 50
+    minimumWidth: 40
+    minimumHeight: 40
     property int horizontal: (mixer.location == 1 || mixer.location == 3)
 
     property variant service: Client.service("MixerService")
@@ -83,7 +83,7 @@ PopupElement {
             anchors.top: mixer.location == 2 ? ic.bottom : parent.top
             anchors.right: mixer.location == 1 ? ic.left : parent.right
             anchors.left: mixer.location == 3 ? ic.right : parent.left
-            anchors.bottom: mixer.location == 0 ? ic.top : parent.bottom
+            anchors.bottom: mixer.location == 0 || mixer.location == 4 ? ic.top : parent.bottom
             anchors.margins: 3
             orientation: style.horizontal ? Qt.Horizontal : Qt.Vertical
             maximumValue: 100
@@ -156,7 +156,7 @@ PopupElement {
             states: [
             State {
                 name: "top"
-                when: mixer.location == 0
+                when: mixer.location == 0 || mixer.location == 4
                 AnchorChanges {
                     target: ic
                     anchors.bottom: parent.bottom
