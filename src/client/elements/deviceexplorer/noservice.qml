@@ -26,7 +26,7 @@ Rectangle {
     color: Qt.rgba(CurrentStyle.backgroundColor.r, CurrentStyle.backgroundColor.g, CurrentStyle.backgroundColor.b, 0.6)
     anchors.fill: parent
     Text {
-        text: "Error: unable to load the \"HardwareService\" service. Check your installation."
+        text: qsTr("Error: unable to load the \"HardwareService\" service. Check your installation.")
         anchors.fill: parent
         anchors.margins: 5
         wrapMode: Text.Wrap
