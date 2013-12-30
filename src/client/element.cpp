@@ -166,6 +166,11 @@ void Element::setLocation(Location p)
     }
 }
 
+QString Element::prettyName() const
+{
+    return m_info->prettyName();
+}
+
 void Element::addProperty(const QString &name)
 {
     if (!m_ownProperties.contains(name) && !m_properties.contains(name)) {

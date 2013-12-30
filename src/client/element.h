@@ -79,6 +79,7 @@ class Element : public QQuickItem
     Q_PROPERTY(QRectF inputRegion READ inputRegion WRITE setInputRegion)
     Q_PROPERTY(Location location READ location NOTIFY locationChanged)
     Q_PROPERTY(UiScreen *screen READ screen NOTIFY screenChanged);
+    Q_PROPERTY(QString prettyName READ prettyName CONSTANT);
     Q_CLASSINFO("DefaultProperty", "resources")
 public:
     enum class Location {
@@ -138,6 +139,7 @@ public:
     void setLocation(Location p);
 
     UiScreen *screen() const { return m_screen; }
+    QString prettyName() const;
 
     static Element *fromItem(QQuickItem *item);
 
