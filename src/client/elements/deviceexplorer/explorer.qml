@@ -78,7 +78,7 @@ Element {
             height: 300
 
             component: CurrentStyle.popup
-            Binding { target: style.item; property: "header"; value: "Device Explorer" }
+            Binding { target: style.item; property: "header"; value: explorer.prettyName }
         }
     }
 

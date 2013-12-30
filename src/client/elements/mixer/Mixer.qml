@@ -91,7 +91,7 @@ Element {
 
             component: CurrentStyle.popup
 
-            Binding { target: style.item; property: "header"; value: "Mixer" }
+            Binding { target: style.item; property: "header"; value: mixer.prettyName }
 
             Slider {
                 id: slider
