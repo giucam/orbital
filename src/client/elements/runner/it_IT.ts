@@ -4,7 +4,7 @@
 <context>
     <name>Runner</name>
     <message>
-        <location filename="Runner.qml" line="71"/>
+        <location filename="Runner.qml" line="72"/>
         <source>Run command</source>
         <translation type="unfinished"></translation>
     </message>

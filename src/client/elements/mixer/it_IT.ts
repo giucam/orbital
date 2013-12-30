@@ -4,12 +4,12 @@
 <context>
     <name>Mixer</name>
     <message>
-        <location filename="Mixer.qml" line="164"/>
+        <location filename="Mixer.qml" line="220"/>
         <source>Muted</source>
         <translation>Muto</translation>
     </message>
     <message>
-        <location filename="Mixer.qml" line="164"/>
+        <location filename="Mixer.qml" line="220"/>
         <source>Volume at %1%</source>
         <translation>Volume al %1%</translation>
     </message>

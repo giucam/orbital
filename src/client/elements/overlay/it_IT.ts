@@ -9,19 +9,19 @@
         <translation>Clicca ovunque per annullare</translation>
     </message>
     <message>
-        <location filename="Leave.qml" line="59"/>
+        <location filename="Leave.qml" line="80"/>
         <source>Logging out in
 %2...</source>
         <translation>Uscita in %2...</translation>
     </message>
     <message>
-        <location filename="Leave.qml" line="61"/>
+        <location filename="Leave.qml" line="82"/>
         <source>Shutting down in
 %2...</source>
         <translation>Spegnimento in %2...</translation>
     </message>
     <message>
-        <location filename="Leave.qml" line="63"/>
+        <location filename="Leave.qml" line="84"/>
         <source>Rebooting in
 %2...</source>
         <translation>Riavvio in %2...</translation>

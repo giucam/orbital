@@ -4,17 +4,17 @@
 <context>
     <name>Logout</name>
     <message>
-        <location filename="Logout.qml" line="43"/>
+        <location filename="Logout.qml" line="46"/>
         <source>Log out</source>
         <translation>Esci</translation>
     </message>
     <message>
-        <location filename="Logout.qml" line="56"/>
+        <location filename="Logout.qml" line="61"/>
         <source>Shutdown</source>
         <translation>Spegni</translation>
     </message>
     <message>
-        <location filename="Logout.qml" line="69"/>
+        <location filename="Logout.qml" line="76"/>
         <source>Reboot</source>
         <translation>Riavvia</translation>
     </message>

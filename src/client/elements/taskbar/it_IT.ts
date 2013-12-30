@@ -4,7 +4,7 @@
 <context>
     <name>TaskBarItem</name>
     <message>
-        <location filename="TaskBarItem.qml" line="64"/>
+        <location filename="TaskBarItem.qml" line="65"/>
         <source>Close</source>
         <translation>Chiudi</translation>
     </message>
