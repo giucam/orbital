@@ -24,13 +24,26 @@ import Orbital 1.0
 Element {
     id: pager
 
+    property bool horizontal: location == 0 || location == 2 || location == 4
     readonly property real ratio: Screen.height > 0 ? Screen.width / Screen.height : 1
 
-    Layout.preferredWidth: height * ratio
-    Layout.preferredHeight: 50 / ratio
+    Layout.preferredWidth: horizontal ? _cols * height * ratio / _rows : 50
+    Layout.preferredHeight: horizontal ? 50 / ratio : _rows * width / ratio / _cols
 
     width: Layout.preferredWidth
     height: 50
+    property int _rows: 1
+    property int _cols: 1
+
+    onHorizontalChanged: {
+        if (horizontal) {
+            _rows = Qt.binding(function() { return Client.workspaces.length > 2 ? 2 : 1 });
+            _cols = Qt.binding(function() { return Client.workspaces.length > 0 ? Client.workspaces.length / _rows : 1 });
+        } else {
+            _rows = Qt.binding(function() { return Client.workspaces.length > 0 ? Client.workspaces.length / _cols : 1 });
+            _cols = Qt.binding(function() { return Client.workspaces.length > 2 ? 2 : 1 });
+        }
+    }
 
     contentItem: StyleItem {
         component: CurrentStyle.pagerBackground
@@ -40,15 +53,13 @@ Element {
             height: parent.height
             id: grid
 
-            rows: Client.workspaces.length > 2 ? 2 : 1
-            readonly property int cols: Client.workspaces.length > 0 ? Client.workspaces.length / rows : 1
+            rows: _rows
+            readonly property bool fitWidth: width / _cols * _rows >= height * pager.ratio
 
-            readonly property bool fitWidth: width >= height * pager.ratio
-
-            property int itemH: fitWidth ? height / rows : (width / cols) / pager.ratio
+            property int itemH: fitWidth ? height / rows : (width / _cols) / pager.ratio
             property int itemW: itemH * pager.ratio
 
-            x: (width - itemW * cols) / 2
+            x: (width - itemW * _cols) / 2
             y: (height - itemH * rows) / 2
 
             Repeater {
