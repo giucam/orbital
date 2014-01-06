@@ -147,8 +147,30 @@ static Key keymap[] = {
     { "7", KEY_7 },
     { "8", KEY_8 },
     { "9", KEY_9 },
+    { "f1", KEY_F1 },
+    { "f2", KEY_F2 },
+    { "f3", KEY_F3 },
+    { "f4", KEY_F4 },
+    { "f5", KEY_F5 },
+    { "f6", KEY_F6 },
+    { "f7", KEY_F7 },
+    { "f8", KEY_F8 },
+    { "f9", KEY_F9 },
+    { "f10", KEY_F10 },
+    { "f11", KEY_F11 },
+    { "f12", KEY_F12 },
     { "left", KEY_LEFT },
-    { "right", KEY_RIGHT }
+    { "right", KEY_RIGHT },
+    { "up", KEY_UP },
+    { "down", KEY_DOWN },
+    { "pageup", KEY_PAGEUP },
+    { "pagedown", KEY_PAGEDOWN },
+    { "esc", KEY_ESC },
+    { "minus", KEY_MINUS },
+    { "space", KEY_SPACE },
+    { "backspace", KEY_BACKSPACE },
+    { "volumeup", KEY_VOLUMEUP },
+    { "volumedown", KEY_VOLUMEDOWN }
 };
 
 static bool keyFromString(const QString &t, int *key)
