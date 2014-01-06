@@ -34,27 +34,41 @@ Element {
 
     property variant service: Client.service("DateTimeService")
 
+    onOrientationChanged: {
+        if (orientation == Qt.Horizontal) {
+            time.wrapMode = Text.NoWrap;
+            time.width = Qt.binding(function() { return time.contentWidth});
+
+            date.wrapMode = Text.NoWrap;
+            date.width = Qt.binding(function() { return date.contentWidth});
+        } else {
+            time.wrapMode = Text.WrapAnywhere;
+            time.width = Qt.binding(function() { return element.width});
+
+            date.wrapMode = Text.WrapAnywhere;
+            date.width = Qt.binding(function() { return element.width});
+        }
+    }
+
     contentItem: Column {
         anchors.fill: parent
         Text {
             id: time
-            width: parent.width
             height: contentHeight
+            anchors.horizontalCenter: parent.horizontalCenter
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
-            wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
             text: service.time
         }
         Text {
             id: date
-            width: parent.width
             height: contentHeight
+            anchors.horizontalCenter: parent.horizontalCenter
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
             font.pixelSize: 10
-            wrapMode: orientation == Qt.Horizontal ? Text.NoWrap : Text.WrapAnywhere
             text: service.date
         }
     }
