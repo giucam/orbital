@@ -45,7 +45,7 @@ MixerService::~MixerService()
 void MixerService::init()
 {
 #ifdef HAVE_ALSA
-    m_backend = new AlsaMixer(this);
+    m_backend = AlsaMixer::create(this);
 #endif
     if (!m_backend) {
         qWarning() << "MixerService: could not load a mixer backend.";

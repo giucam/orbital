@@ -27,8 +27,9 @@
 class AlsaMixer : public Backend
 {
 public:
-    AlsaMixer(MixerService *mixer);
     ~AlsaMixer();
+
+    static AlsaMixer *create(MixerService *mixer);
 
     void getBoundaries(long *min, long *max) const override;
 
@@ -38,6 +39,8 @@ public:
     void setMuted(bool muted) override;
 
 private:
+    AlsaMixer(MixerService *mixer);
+
     MixerService *m_mixer;
     snd_mixer_t *m_handle;
     snd_mixer_selem_id_t *m_sid;

@@ -27,16 +27,31 @@ AlsaMixer::AlsaMixer(MixerService *m)
          : Backend()
          , m_mixer(m)
 {
-    snd_mixer_open(&m_handle, 0);
-    snd_mixer_attach(m_handle, card);
-    snd_mixer_selem_register(m_handle, NULL, NULL);
-    snd_mixer_load(m_handle);
+}
 
-    snd_mixer_selem_id_alloca(&m_sid);
-    snd_mixer_selem_id_set_index(m_sid, 0);
-    snd_mixer_selem_id_set_name(m_sid, selem_name);
-    m_elem = snd_mixer_find_selem(m_handle, m_sid);
-    snd_mixer_selem_get_playback_volume_range(m_elem, &m_min, &m_max);
+AlsaMixer *AlsaMixer::create(MixerService *m)
+{
+    AlsaMixer *alsa = new AlsaMixer(m);
+    if (!alsa) {
+        return nullptr;
+    }
+
+    snd_mixer_open(&alsa->m_handle, 0);
+    snd_mixer_attach(alsa->m_handle, card);
+    snd_mixer_selem_register(alsa->m_handle, NULL, NULL);
+    snd_mixer_load(alsa->m_handle);
+
+    snd_mixer_selem_id_alloca(&alsa->m_sid);
+    snd_mixer_selem_id_set_index(alsa->m_sid, 0);
+    snd_mixer_selem_id_set_name(alsa->m_sid, selem_name);
+    alsa->m_elem = snd_mixer_find_selem(alsa->m_handle, alsa->m_sid);
+    if (!alsa->m_elem) {
+        delete alsa;
+        return nullptr;
+    }
+
+    snd_mixer_selem_get_playback_volume_range(alsa->m_elem, &alsa->m_min, &alsa->m_max);
+    return alsa;
 }
 
 AlsaMixer::~AlsaMixer()
