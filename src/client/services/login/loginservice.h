@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -20,11 +20,7 @@
 #ifndef LOGINSERVICE_H
 #define LOGINSERVICE_H
 
-#include <QTimer>
-
 #include "service.h"
-
-class QDBusInterface;
 
 class LoginService : public Service
 {
@@ -33,6 +29,15 @@ class LoginService : public Service
     Q_PLUGIN_METADATA(IID "Orbital.Service")
 
 public:
+    class Backend
+    {
+    public:
+        virtual ~Backend() {}
+
+        virtual void poweroff() = 0;
+        virtual void reboot() = 0;
+    };
+
     LoginService();
     ~LoginService();
 
@@ -56,7 +61,7 @@ private slots:
     void doRequest();
 
 private:
-    QDBusInterface *m_interface;
+    Backend *m_backend;
     void (LoginService::*m_request)();
     bool m_requestHandled;
 };

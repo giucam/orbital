@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -17,29 +17,33 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QDBusInterface>
-#include <QProcess>
+#include <QTimer>
 
 #include "loginservice.h"
 #include "client.h"
+#include "clibackend.h"
+#ifdef USE_LOGIND
+#include "logindbackend.h"
+#endif
 
 LoginService::LoginService()
             : Service()
-            , m_interface(nullptr)
+            , m_backend(nullptr)
 {
 }
 
 LoginService::~LoginService()
 {
-    delete m_interface;
+    delete m_backend;
 }
 
 void LoginService::init()
 {
-    m_interface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
-                                     "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
-    if (!m_interface || !m_interface->isValid()) {
-        m_interface = nullptr;
+#ifdef USE_LOGIND
+    m_backend = LogindBackend::create();
+#endif
+    if (!m_backend) {
+        m_backend = CliBackend::create();
     }
 }
 
@@ -51,22 +55,16 @@ void LoginService::logOut()
 void LoginService::poweroff()
 {
     client()->quit();
-    if (m_interface) {
-        m_interface->call("PowerOff", true);
-    } else {
-        // try the dumb fallback
-        QProcess::execute("shutdown -h now");
+    if (m_backend) {
+        m_backend->poweroff();
     }
 }
 
 void LoginService::reboot()
 {
     client()->quit();
-    if (m_interface) {
-        m_interface->call("Reboot", true);
-    } else {
-        // try the dumb fallback
-        QProcess::execute("shutdown -r now");
+    if (m_backend) {
+        m_backend->reboot();
     }
 }
 
