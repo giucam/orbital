@@ -7,7 +7,7 @@ shell plugin, as the compositor side but theoretically it could be made
 working with any other Wayland compositor, as long as it implements the
 necessary protocol.
 Its goal is to produce a light and self-contained shell running on Wayland,
-without many dependencies aside Nuclear and Qt.
+without mandatory dependencies aside Nuclear and Qt, but with some optional ones.
 
 ## Dependencies
 Orbital depends on two things: [Nuclear](https://github.com/nuclide/nuclear) and Qt 5.2.
@@ -17,6 +17,10 @@ will not be good.
 You also need QtWayland, preferably from git (branch 'stable') as Qt does not
 provide a Wayland backend by default. You do not need QtCompositor, the
 platform plugin is enough.
+There are also some optional dependencies: currently Orbital can use Solid from
+KDE Frameworks 5, ALSA and Logind, but it can also work without them, losing some
+functionality. You can enable or disable these dependencies by passing some options
+to cmake: `-Duse_alsa=ON/OFF`, `-Duse_logind=ON/OFF` and `-Duse_solid=ON/OFF`.
 
 ## Building Orbital
 To compile Orbital run this commands from the repository root directory:
