@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -22,8 +22,6 @@
 
 #include <QQmlListProperty>
 
-#include <solid/device.h>
-
 #include "service.h"
 
 class Device : public QObject
@@ -33,7 +31,7 @@ class Device : public QObject
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(QString iconName READ iconName CONSTANT)
     Q_PROPERTY(Type type READ type CONSTANT)
-    Q_PROPERTY(bool mounted READ mounted NOTIFY mountedChanged)
+    Q_PROPERTY(bool mounted READ isMounted NOTIFY mountedChanged)
 public:
     enum class Type {
         None,
@@ -41,23 +39,30 @@ public:
     };
     Q_ENUMS(Type)
 
-    Device(const Solid::Device &dev);
+    Device(const QString &udi);
+    virtual ~Device() {}
 
-    Q_INVOKABLE bool umount();
-    Q_INVOKABLE bool mount();
+    Q_INVOKABLE virtual bool umount() = 0;
+    Q_INVOKABLE virtual bool mount() = 0;
 
-    QString udi() const;
-    QString name() const;
-    QString iconName() const;
+    QString udi() const { return m_udi; }
+    QString name() const { return m_name; }
+    QString iconName() const { return m_icon; }
     Type type() const { return m_type; }
-    bool mounted() const;
+    virtual bool isMounted() const = 0;
+
+    void setType(Type t);
+    void setName(const QString &name);
+    void setIconName(const QString &name);
 
 signals:
     void mountedChanged();
 
 private:
-    Solid::Device m_device;
     Type m_type;
+    QString m_udi;
+    QString m_name;
+    QString m_icon;
 };
 
 class HardwareService : public Service
@@ -68,6 +73,19 @@ class HardwareService : public Service
 
     Q_PROPERTY(QQmlListProperty<Device> devices READ devices NOTIFY devicesChanged)
 public:
+    class Backend
+    {
+    public:
+        Backend(HardwareService *hw);
+        virtual ~Backend() {}
+
+        void deviceAdded(Device *dev);
+        void deviceRemoved(const QString &udi);
+
+    private:
+        HardwareService *m_hw;
+    };
+
     HardwareService();
     ~HardwareService();
 
@@ -81,7 +99,8 @@ signals:
     void deviceRemoved(Device *device);
 
 private:
-    QList<Device *> m_devices;
+    Backend *m_backend;
+    QMap<QString, Device *> m_devices;
 
     static int devicesCount(QQmlListProperty<Device> *prop);
     static Device *devicesAt(QQmlListProperty<Device> *prop, int index);

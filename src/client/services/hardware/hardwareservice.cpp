@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -20,108 +20,56 @@
 #include <QDebug>
 #include <QtQml>
 
-#include <solid/devicenotifier.h>
-#include <solid/storageaccess.h>
-
 #include "hardwareservice.h"
+#include "clibackend.h"
+#ifdef USE_SOLID
+#include "solidbackend.h"
+#endif
 
-Device::Device(const Solid::Device &dev)
+Device::Device(const QString &udi)
       : QObject()
-      , m_device(dev)
       , m_type(Type::None)
+      , m_udi(udi)
 {
-    if (Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>()) {
-        m_type = Type::Storage;
-        connect(access, &Solid::StorageAccess::setupDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
-            emit mountedChanged();
-        });
-        connect(access, &Solid::StorageAccess::teardownDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
-            emit mountedChanged();
-        });
-    }
 }
 
-bool Device::umount()
+void Device::setType(Type t)
 {
-    if (m_type != Type::Storage) {
-        return false;
-    }
-
-    Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>();
-    return access->teardown();
+    m_type = t;
 }
 
-bool Device::mount()
+void Device::setName(const QString &name)
 {
-    if (m_type != Type::Storage) {
-        return false;
-    }
-
-    Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>();
-    return access->setup();
+    m_name = name;
 }
 
-QString Device::udi() const
+void Device::setIconName(const QString &name)
 {
-    return m_device.udi();
-}
-
-QString Device::name() const
-{
-    return m_device.description();
-}
-
-QString Device::iconName() const
-{
-    return m_device.icon();
-}
-
-bool Device::mounted() const
-{
-    if (m_type != Type::Storage) {
-        return false;
-    }
-
-    const Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>();
-    return access->isAccessible();
+    m_icon = name;
 }
 
 
 
 HardwareService::HardwareService()
                : Service()
+               , m_backend(nullptr)
 {
     qmlRegisterUncreatableType<Device>("Orbital", 1, 0, "Device", "Cannot create Device");
 }
 
 HardwareService::~HardwareService()
 {
+    delete m_backend;
     qDeleteAll(m_devices);
 }
 
 void HardwareService::init()
 {
-    Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
-    connect(notifier, &Solid::DeviceNotifier::deviceAdded, [this](const QString &udi) {
-        Device *d = new Device(Solid::Device(udi));
-        m_devices << d;
-        emit devicesChanged();
-        emit deviceAdded(d);
-    });
-    connect(notifier, &Solid::DeviceNotifier::deviceRemoved, [this](const QString &udi) {
-        for (Device *d: m_devices) {
-            if (d->udi() == udi) {
-                m_devices.removeOne(d);
-                d->deleteLater();
-                emit devicesChanged();
-                emit deviceRemoved(d);
-                return;
-            }
-        }
-    });
-
-    for (Solid::Device &device: Solid::Device::allDevices()) {
-        m_devices << new Device(device);
+#ifdef USE_SOLID
+    m_backend = SolidBackend::create(this);
+#endif
+    if (!m_backend) {
+        m_backend = CliBackend::create(this);
     }
 }
 
@@ -139,5 +87,29 @@ int HardwareService::devicesCount(QQmlListProperty<Device> *prop)
 Device *HardwareService::devicesAt(QQmlListProperty<Device> *prop, int index)
 {
     HardwareService *h = static_cast<HardwareService *>(prop->object);
-    return h->m_devices.at(index);
+    return h->m_devices.values().at(index);
+}
+
+
+
+HardwareService::Backend::Backend(HardwareService *hw)
+                        : m_hw(hw)
+{
+}
+
+void HardwareService::Backend::deviceAdded(Device *dev)
+{
+    m_hw->m_devices.insert(dev->udi(), dev);
+    emit m_hw->devicesChanged();
+    emit m_hw->deviceAdded(dev);
+}
+
+void HardwareService::Backend::deviceRemoved(const QString &udi)
+{
+    Device *d = m_hw->m_devices.value(udi);
+
+    m_hw->m_devices.remove(udi);
+    emit m_hw->devicesChanged();
+    emit m_hw->deviceRemoved(d);
+    d->deleteLater();
 }

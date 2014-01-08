@@ -9,16 +9,20 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
+set(SOURCES hardwareservice.cpp clibackend.cpp)
+
 if(${KF5Solid_FOUND})
     get_property(include TARGET KF5::Solid PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
     include_directories(${include})
-
-    set(SOURCES hardwareservice.cpp)
-
-    add_library(hardwareservice SHARED ${SOURCES})
-    qt5_use_modules(hardwareservice Core Qml)
-    target_link_libraries(hardwareservice KF5::Solid)
-    install(TARGETS hardwareservice DESTINATION lib/orbital/services)
+    list(APPEND SOURCES solidbackend.cpp)
+    list(APPEND defines "USE_SOLID")
+    list(APPEND libs KF5::Solid)
 elseif (${use_solid} MATCHES ON)
     message("WARNING: Cannot find KF5 Solid. You can download it from https://projects.kde.org/projects/frameworks/solid/repository\n")
 endif()
+
+add_library(hardwareservice SHARED ${SOURCES})
+qt5_use_modules(hardwareservice Core Qml)
+target_link_libraries(hardwareservice ${libs})
+set_target_properties(hardwareservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
+install(TARGETS hardwareservice DESTINATION lib/orbital/services)
