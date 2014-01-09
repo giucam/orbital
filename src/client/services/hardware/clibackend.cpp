@@ -18,10 +18,33 @@
  */
 
 #include <QProcess>
+#include <QDebug>
 
 #include "clibackend.h"
 
 //TODO: signal new and removed devices and signal a device has been (u)mounted
+
+static int run(const QString &cmd, QString *out = nullptr)
+{
+    QProcess proc;
+    QString c = cmd;
+    c.replace("\"", "\\\"");
+    proc.start(QString("/bin/sh"), QStringList() << "-c" << c);
+    proc.waitForFinished();
+    if (out) {
+        *out = proc.readAllStandardOutput();
+    }
+    return proc.exitCode();
+}
+
+static QProcess *start(const QString &cmd)
+{
+    QProcess *proc = new QProcess;
+    QString c = cmd;
+    c.replace("\"", "\\\"");
+    proc->start(QString("/bin/sh"), QStringList() << "-c" << c);
+    return proc;
+}
 
 CliDevice::CliDevice(const QString &udi)
            : Device(udi)
@@ -35,8 +58,16 @@ bool CliDevice::umount()
         return false;
     }
 
-    //TODO
-    return false;
+    QProcess *proc = start(QString("udisksctl unmount -b %1").arg(udi()));
+//     QProcess *proc = start(QString("umount %1").arg(udi()));
+    QObject::connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc](int exitCode) {
+        if (exitCode == 0) {
+            emit this->mountedChanged();
+        }
+        delete proc;
+    });
+
+    return true;
 }
 
 bool CliDevice::mount()
@@ -45,16 +76,16 @@ bool CliDevice::mount()
         return false;
     }
 
-    //TODO
-    return false;
-}
+    QProcess *proc = start(QString("udisksctl mount -b %1").arg(udi()));
+//     QProcess *proc = start(QString("mkdir ~/`basename %1` && mount %1 ~/`basename %1`").arg(udi()));
+    QObject::connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc](int exitCode) {
+        if (exitCode == 0) {
+            emit this->mountedChanged();
+        }
+        delete proc;
+    });
 
-static QString run(const QString &cmd)
-{
-    QProcess proc;
-    proc.start(QString("/bin/sh -c \"%1\"").arg(cmd));
-    proc.waitForFinished();
-    return proc.readAllStandardOutput();
+    return true;
 }
 
 bool CliDevice::isMounted() const
@@ -63,7 +94,8 @@ bool CliDevice::isMounted() const
         return false;
     }
 
-    QString out = run(QString("cat /proc/mounts | grep %1").arg(udi()));
+    QString out;
+    run(QString("findmnt %1").arg(udi()), &out);
     return !out.isEmpty();
 }
 
@@ -81,13 +113,27 @@ CliBackend *CliBackend::create(HardwareService *hw)
         return nullptr;
     }
 
-    QString out = run("cat /proc/partitions | grep -iE '[0-9]+ +[a-z0-9:_-]+' | grep -oiE '[a-z]+[0-9:_-]$'");
+    QString out;
+    run("lsblk -pPo NAME,FSTYPE | grep -iE 'FSTYPE=\".+\"' | grep  -Po '(?<=NAME=\").+?(?=\")'", &out);
     QStringList list = out.split("\n");
     list.removeLast();
     for (const QString &c: list) {
+        bool isSwap = run(QString("lsblk -o FSTYPE %1 | grep swap").arg(c)) == 0;
         Device *d = new CliDevice(c);
-        d->setName(c);
-        d->setType(Device::Type::Storage);
+        if (!isSwap) {
+            d->setType(Device::Type::Storage);
+            bool isOptical = run(QString("lsblk -o TYPE  %1 | grep rom").arg(c)) == 0;
+            if (isOptical) {
+                d->setIconName("media-optical");
+            } else {
+                bool isRemovable = run(QString("lsblk -o RM  %1 | grep 1").arg(c)) == 0;
+                d->setIconName(isRemovable ? "drive-removable-media" : "drive-harddisk");
+            }
+
+            QString label;
+            run(QString("lsblk -no LABEL %1 | awk 1 ORS=''").arg(c), &label);
+            label.isEmpty() ? d->setName(c) : d->setName(label);
+        }
         cli->deviceAdded(d);
     }
 
