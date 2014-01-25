@@ -77,6 +77,7 @@ static const char *defaultConfig =
 "        <option name=\"effects/fademoving_effect.enabled\" value=\"1\"/>\n"
 "        <option name=\"desktop_shell.move_window\" value=\"button:super+button_left\"/>\n"
 "        <option name=\"desktop_shell.resize_window\" value=\"button:super+button_middle\"/>\n"
+"        <option name=\"desktop_shell.close_window\" value=\"key:alt+f4\"/>\n"
 "        <option name=\"desktop_shell.previous_workspace\" value=\"key:ctrl+left\"/>\n"
 "        <option name=\"desktop_shell.next_workspace\" value=\"key:ctrl+right\"/>\n"
 "        <option name=\"desktop_shell.quit\" value=\"key:ctrl+alt+backspace\"/>\n"
