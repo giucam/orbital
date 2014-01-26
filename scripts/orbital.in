@@ -15,7 +15,7 @@ fi
 configpath="$configpath/orbital"
 mkdir -p $configpath > /dev/null
 
-while getopts S: name
+while getopts S:v name
 do
     case $name in
         S)  if [ $OPTARG -eq $OPTARG 2> /dev/null ]; then
@@ -24,6 +24,8 @@ do
                 echo "Invalid socket number. Must be an integer."
                 exit 1
             fi;;
+        v)  echo "Version: 0.1"
+            exit 0;;
         ?)  printf "Usage: %s: [-Svalue]\n" $0
             exit 2;;
     esac
