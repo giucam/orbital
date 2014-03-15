@@ -30,9 +30,11 @@ StyleItem::StyleItem(QQuickItem *p)
          : QQuickItem(p)
          , m_component(nullptr)
          , m_item(nullptr)
+         , m_acceptChildren(false)
          , m_child(new QQuickItem(this))
 {
     memset(m_margins, 0, 4 * sizeof(qreal));
+    m_acceptChildren = true;
 }
 
 void StyleItem::setComponent(QQmlComponent *c)
@@ -82,7 +84,7 @@ void StyleItem::setComponent(QQmlComponent *c)
 
 void StyleItem::itemChange(ItemChange change, const ItemChangeData &value)
 {
-    if (change == QQuickItem::ItemChildAddedChange && value.item != m_child && value.item != m_item) {
+    if (m_acceptChildren && change == QQuickItem::ItemChildAddedChange && value.item != m_child && value.item != m_item) {
         value.item->setParentItem(m_child);
     }
 

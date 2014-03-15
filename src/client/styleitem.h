@@ -88,6 +88,7 @@ private:
 
     QQmlComponent *m_component;
     StyleComponent *m_item;
+    bool m_acceptChildren;
     QQuickItem *m_child;
     qreal m_margins[4];
 
