@@ -74,7 +74,8 @@ void ToolTip::hide()
         return;
     }
 
-    delete m_window;
+    m_window->hide();
+    m_window->deleteLater();
     m_window = nullptr;
     parentItem()->window()->removeEventFilter(this);
 
