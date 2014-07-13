@@ -194,10 +194,9 @@ Element {
 
         Rectangle {
             id: config
-            property var rect: bkg.screen ? bkg.screen.availableRect : bkg
             y: bkg.height
-            x: rect.x
-            width: rect.width
+            x: 0
+            width: bkg.width
             height: 230
             color: CurrentStyle.backgroundColor
             z: 100
@@ -211,7 +210,7 @@ Element {
                 State {
                     name: "open"
                     when: config.open
-                    PropertyChanges { target: config; y: rect.y + rect.height - config.height }
+                    PropertyChanges { target: config; y: bkg.height - config.height }
                     StateChangeScript { script: browser.path = bkg.imageSource }
                 }
             ]
@@ -451,9 +450,8 @@ Element {
 
         MouseArea {
             id: configButtons
-            property var rect: bkg.screen ? bkg.screen.availableRect : parent
-            x: rect.x + rect.width - width - 5
-            y: rect.y + rect.height - height - 5
+            x: bkg.width - width - 5
+            y: bkg.height - height - 5
             width: 50
             height:20
             z: 101
