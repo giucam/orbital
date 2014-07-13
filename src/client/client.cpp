@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -443,6 +443,12 @@ const wl_registry_listener Client::s_registryListener = {
     [](void *, wl_registry *registry, uint32_t id) {}
 };
 
+void Client::handlePing(desktop_shell *shell, uint32_t serial)
+{
+    desktop_shell_pong(shell, serial);
+    wl_display_flush(m_display);
+}
+
 void Client::handleLoad(desktop_shell *shell)
 {
     QMetaObject::invokeMethod(this, "create");
@@ -546,6 +552,7 @@ void Client::handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, 
 }
 
 const desktop_shell_listener Client::s_shellListener = {
+    wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
     wrapInterface(&Client::handleConfigure),
     wrapInterface(&Client::handlePrepareLockSurface),

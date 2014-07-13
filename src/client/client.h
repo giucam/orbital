@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -125,6 +125,7 @@ private slots:
 
 private:
     void handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
+    void handlePing(desktop_shell *shell, uint32_t serial);
     void handleLoad(desktop_shell *shell);
     void handleConfigure(desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
     void handlePrepareLockSurface(desktop_shell *desktop_shell);
