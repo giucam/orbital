@@ -202,10 +202,7 @@ void Client::create()
     }
 
     // wait until all the objects have finished what they're doing before sending the ready event
-    while (QCoreApplication::hasPendingEvents()) {
-        QCoreApplication::processEvents();
-    }
-    ready();
+    QTimer::singleShot(0, this, SLOT(ready()));
 }
 
 void Client::setBackground(QQuickWindow *window, QScreen *screen)
