@@ -21,14 +21,22 @@ int main(int argc, char **argv)
     QCommandLineOption socketOption(QStringList() << "S" << "socket", "Socket name");
     parser.addOption(socketOption);
 
-    QCommandLineOption backendOption(QStringList() << "B" << "backend", "Backend plugin",
-                                     QLatin1String("name"), QLatin1String("x11-backend"));
+    QCommandLineOption backendOption(QStringList() << "B" << "backend", "Backend plugin", QLatin1String("name"));
     parser.addOption(backendOption);
 
     parser.process(app);
 
+    QString backendKey;
+    if (parser.isSet(backendOption)) {
+        backendKey = parser.value(backendOption);
+    } else if (getenv("DISPLAY")) {
+        backendKey ="x11-backend";
+    } else {
+        backendKey ="drm-backend";
+    }
+
     Orbital::BackendFactory::searchPlugins();
-    Orbital::Backend *backend = Orbital::BackendFactory::createBackend(parser.value(backendOption));
+    Orbital::Backend *backend = Orbital::BackendFactory::createBackend(backendKey);
     if (!backend) {
         return 1;
     }
