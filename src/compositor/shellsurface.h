@@ -39,7 +39,7 @@ public:
 
     State state() const;
     void setToplevel();
-    void move(Seat *seat, uint32_t serial);
+    void move(Seat *seat);
 
 private:
     void configure(int x, int y);

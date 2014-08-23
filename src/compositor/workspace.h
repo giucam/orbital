@@ -52,6 +52,8 @@ public:
 
 private:
     Workspace *m_workspace;
+    int m_width;
+    int m_height;
     Layer *m_layer;
     DummySurface *m_root;
     QList<View *> m_views;

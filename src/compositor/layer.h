@@ -21,6 +21,8 @@ public:
 
     void addView(View *view);
 
+    void setMask(int x, int y, int w, int h);
+
 private:
     weston_layer *m_layer;
 

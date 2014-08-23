@@ -45,6 +45,8 @@ void Workspace::append(Layer *layer)
 
 WorkspaceView::WorkspaceView(Workspace *ws, int w, int h)
              : m_workspace(ws)
+             , m_width(w)
+             , m_height(h)
              , m_layer(new Layer)
 {
     m_root = ws->compositor()->createDummySurface(w, h);
@@ -56,6 +58,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, int w, int h)
 void WorkspaceView::setPos(int x, int y)
 {
     m_root->setPos(x, y);
+    m_layer->setMask(x, y, m_width, m_height);
 }
 
 void WorkspaceView::append(Layer *layer)

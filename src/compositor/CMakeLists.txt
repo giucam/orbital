@@ -45,3 +45,4 @@ set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 install(TARGETS orbital DESTINATION bin)
 
 add_subdirectory(x11-backend)
+add_subdirectory(drm-backend)

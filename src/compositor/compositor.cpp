@@ -1,4 +1,8 @@
 
+#include <unistd.h>
+#include <sys/stat.h>
+#include <linux/input.h>
+
 #include <QDebug>
 #include <QSocketNotifier>
 #include <QCoreApplication>
@@ -19,19 +23,33 @@ namespace Orbital {
 
 static int log(const char *fmt, va_list ap)
 {
-//     return vprintf(fmt, ap);
+    return vprintf(fmt, ap);
     return 0;
 }
 
 static void terminate(weston_compositor *)
 {
+    qDebug() << "Orbital exiting...";
     QCoreApplication::quit();
 }
+
+static void
+terminate_binding(struct weston_seat *seat, uint32_t time, uint32_t key,
+          void *data)
+{
+    terminate(NULL);
+}
+
+struct Listener {
+    wl_listener listener;
+    Compositor *compositor;
+};
 
 Compositor::Compositor(Backend *backend)
           : QObject()
           , m_display(wl_display_create())
           , m_compositor(nullptr)
+          , m_listener(new Listener)
           , m_backend(backend)
 {
     m_timer.setInterval(0);
@@ -46,13 +64,63 @@ Compositor::~Compositor()
 
     wl_display_destroy(m_display);
 
+    delete m_listener;
     delete m_backend;
     delete m_rootLayer;
 }
 
+static void compositorDestroyed(wl_listener *listener, void *data)
+{
+}
+
+static const char xdg_error_message[] =
+    "fatal: environment variable XDG_RUNTIME_DIR is not set.\n";
+
+static const char xdg_wrong_message[] =
+    "fatal: environment variable XDG_RUNTIME_DIR\n"
+    "is set to \"%s\", which is not a directory.\n";
+
+static const char xdg_wrong_mode_message[] =
+    "warning: XDG_RUNTIME_DIR \"%s\" is not configured\n"
+    "correctly.  Unix access mode must be 0700 (current mode is %o),\n"
+    "and must be owned by the user (current owner is UID %d).\n";
+
+static const char xdg_detail_message[] =
+    "Refer to your distribution on how to get it, or\n"
+    "http://www.freedesktop.org/wiki/Specifications/basedir-spec\n"
+    "on how to implement it.\n";
+
+static void
+verify_xdg_runtime_dir(void)
+{
+    char *dir = getenv("XDG_RUNTIME_DIR");
+    struct stat s;
+
+    if (!dir) {
+        weston_log(xdg_error_message);
+        weston_log_continue(xdg_detail_message);
+        exit(EXIT_FAILURE);
+    }
+
+    if (stat(dir, &s) || !S_ISDIR(s.st_mode)) {
+        weston_log(xdg_wrong_message, dir);
+        weston_log_continue(xdg_detail_message);
+        exit(EXIT_FAILURE);
+    }
+
+    if ((s.st_mode & 0777) != 0700 || s.st_uid != getuid()) {
+        weston_log(xdg_wrong_mode_message,
+               dir, s.st_mode & 0777, s.st_uid);
+        weston_log_continue(xdg_detail_message);
+    }
+}
+
+
 bool Compositor::init(const QString &socketName)
 {
     weston_log_set_handler(log, log);
+
+    verify_xdg_runtime_dir();
 
     m_compositor = weston_compositor_create(m_display);
 
@@ -65,9 +133,14 @@ bool Compositor::init(const QString &socketName)
     m_compositor->kb_repeat_rate = 40;
     m_compositor->kb_repeat_delay = 400;
     m_compositor->terminate = terminate;
+
+    m_listener->listener.notify = compositorDestroyed;
+    m_listener->compositor = this;
+    wl_signal_add(&m_compositor->destroy_signal, &m_listener->listener);
 //     text_backend_init(m_compositor, "");
 
     if (!m_backend->init(m_compositor)) {
+        weston_compositor_shutdown(m_compositor);
         return false;
     }
 
@@ -97,6 +170,10 @@ bool Compositor::init(const QString &socketName)
 //     connect(sockNot, &QSocketNotifier::activated, this, &Compositor::processEvents);
 //     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
 //     connect(dispatcher, &QAbstractEventDispatcher::aboutToBlock, this, &Compositor::processEvents);
+
+    weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
+                          (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
+                          terminate_binding, m_compositor);
 
     weston_output *o;
     wl_list_for_each(o, &m_compositor->output_list, link) {
@@ -136,6 +213,28 @@ QList<Output *> Compositor::outputs() const
 DummySurface *Compositor::createDummySurface(int w, int h)
 {
     return new DummySurface(weston_surface_create(m_compositor), w, h);
+}
+
+View *Compositor::pickView(double x, double y, double *vx, double *vy) const
+{
+    wl_fixed_t fx = wl_fixed_from_double(x);
+    wl_fixed_t fy = wl_fixed_from_double(y);
+    wl_fixed_t fvx, fvy;
+    weston_view *v = weston_compositor_pick_view(m_compositor, fx, fy, &fvx, &fvy);
+
+    if (vx)
+        *vx = wl_fixed_to_double(fvx);
+    if (vy)
+        *vy = wl_fixed_to_double(fvy);
+
+    return View::fromView(v);
+}
+
+Compositor *Compositor::fromCompositor(weston_compositor *c)
+{
+    wl_listener *listener = wl_signal_get(&c->destroy_signal, compositorDestroyed);
+    Q_ASSERT(listener);
+    return reinterpret_cast<Listener *>(listener)->compositor;
 }
 
 }

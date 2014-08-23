@@ -38,7 +38,7 @@ void ShellView::configure()
     WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
     wsv->configure(this);
     setOutput(m_designedOutput);
-    setPos(0, 0);
+    setPos(0, 100);
     update();
 }
 

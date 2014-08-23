@@ -1,3 +1,4 @@
+#include <QDebug>
 
 #include <weston/compositor.h>
 
@@ -7,10 +8,23 @@
 
 namespace Orbital {
 
+struct Listener {
+    wl_listener listener;
+    View *view;
+};
+
+static void viewDestroyed(wl_listener *listener, void *data)
+{
+}
+
 View::View(weston_view *view)
     : m_view(view)
+    , m_listener(new Listener)
     , m_output(nullptr)
 {
+    m_listener->listener.notify = viewDestroyed;
+    m_listener->view = this;
+    wl_signal_add(&view->destroy_signal, &m_listener->listener);
 }
 
 View::~View()
@@ -21,6 +35,16 @@ View::~View()
 bool View::isMapped() const
 {
     return weston_view_is_mapped(m_view);
+}
+
+double View::x() const
+{
+    return m_view->geometry.x;
+}
+
+double View::y() const
+{
+    return m_view->geometry.y;
 }
 
 void View::setOutput(Output *o)
@@ -49,6 +73,13 @@ void View::update()
 Output *View::output() const
 {
     return m_output;
+}
+
+View *View::fromView(weston_view *v)
+{
+    wl_listener *listener = wl_signal_get(&v->destroy_signal, viewDestroyed);
+    Q_ASSERT(listener);
+    return reinterpret_cast<Listener *>(listener)->view;
 }
 
 }

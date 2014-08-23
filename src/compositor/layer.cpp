@@ -32,4 +32,9 @@ void Layer::addView(View *view)
     weston_layer_entry_insert(&m_layer->view_list, &view->m_view->layer_link);
 }
 
+void Layer::setMask(int x, int y, int w, int h)
+{
+    weston_layer_set_mask(m_layer, x, y, w, h);
+}
+
 }

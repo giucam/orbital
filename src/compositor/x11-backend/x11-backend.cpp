@@ -49,7 +49,7 @@ bool X11Backend::init(weston_compositor *c)
     x11_backend_create_output(b, 0, 0, 500,500,
                               fullscreen, no_input, "Orbital compositor",
                               WL_OUTPUT_TRANSFORM_NORMAL, 1);
-    x11_backend_create_output(b, 500, 0, 600,600,
+    x11_backend_create_output(b, 500, 0, 500,500,
                             fullscreen, no_input, "Orbital compositor <2>",
                             WL_OUTPUT_TRANSFORM_NORMAL, 1);
 
