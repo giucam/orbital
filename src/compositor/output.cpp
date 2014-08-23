@@ -49,44 +49,46 @@ void Output::viewWorkspace(Workspace *ws)
     m_currentWsv = view;
 }
 
+class Surface {
+public:
+    Surface(weston_surface *s, Output *o)
+    {
+        s->configure_private = this;
+        s->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
+            Surface *o = static_cast<Surface *>(s->configure_private);
+            // TODO: Find out if and how to remove this
+            o->view->update();
+        };
+
+        weston_view *v = weston_view_create(s);
+        view = new View(v);
+        view->setOutput(o);
+    }
+
+    View *view;
+};
+
 void Output::setBackground(weston_surface *surface)
 {
-    surface->configure_private = this;
-    surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
-        Output *o = static_cast<Output *>(s->configure_private);
-        // TODO: Find out if and how to remove this
-        o->m_background->update();
-    };
-    surface->output = m_output;
-    weston_view *v = weston_view_create(surface);
-    m_background = new View(v);
-    m_background->setOutput(this);
-    m_backgroundLayer->addView(m_background);
-    m_background->setTransformParent(m_transformRoot);
+    Surface *s = new Surface(surface, this);
+    m_backgroundLayer->addView(s->view);
+    s->view->setTransformParent(m_transformRoot);
 }
 
 void Output::setPanel(weston_surface *surface, int pos)
 {
-    surface->configure_private = this;
-    surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) { };
-    surface->output = m_output;
-    weston_view *v = weston_view_create(surface);
-    View *view = new View(v);
-    view->setOutput(this);
-    m_panelsLayer->addView(view);
-    view->setTransformParent(m_transformRoot);
+    Surface *s = new Surface(surface, this);
+    m_panelsLayer->addView(s->view);
+    s->view->setTransformParent(m_transformRoot);
 }
 
 void Output::setOverlay(weston_surface *surface)
 {
-    surface->configure_private = this;
-    surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) { };
-    surface->output = m_output;
-    weston_view *v = weston_view_create(surface);
-    View *view = new View(v);
-    view->setOutput(this);
-    m_compositor->overlayLayer()->addView(view);
-    view->setTransformParent(m_transformRoot);
+    pixman_region32_fini(&surface->pending.input);
+    pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
+    Surface *s = new Surface(surface, this);
+    m_compositor->overlayLayer()->addView(s->view);
+    s->view->setTransformParent(m_transformRoot);
 }
 
 int Output::id() const
