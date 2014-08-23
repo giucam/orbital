@@ -49,8 +49,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, int w, int h)
              , m_height(h)
              , m_layer(new Layer)
 {
-    m_root = ws->compositor()->createDummySurface(w, h);
-    m_layer->addView(m_root);
+    m_root = ws->compositor()->createDummySurface(0, 0);
 
     setPos(-10000, 0); //FIXME
 }
@@ -59,6 +58,11 @@ void WorkspaceView::setPos(int x, int y)
 {
     m_root->setPos(x, y);
     m_layer->setMask(x, y, m_width, m_height);
+}
+
+void WorkspaceView::addTransformChild(View *view)
+{
+    view->setTransformParent(m_root);
 }
 
 void WorkspaceView::append(Layer *layer)

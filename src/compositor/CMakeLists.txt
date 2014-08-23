@@ -22,16 +22,13 @@ set(SOURCES
     dummysurface.cpp
     seat.cpp
     wlshell/wlshell.cpp
-    wlshell/wlshellsurface.cpp)
+    wlshell/wlshellsurface.cpp
+    desktop-shell/desktop-shell.cpp)
 
-# wayland_add_protocol_server(SOURCES
-#     ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml
-#     desktop-shell
-# )
-# wayland_add_protocol_client(SOURCES
-#     ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-settings.xml
-#     settings
-# )
+wayland_add_protocol_server(SOURCES
+    ../../protocol/desktop-shell.xml
+    desktop-shell
+)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

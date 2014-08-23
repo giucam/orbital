@@ -16,6 +16,10 @@ Layer::Layer(Layer *p)
 {
     weston_layer_init(m_layer, nullptr);
     wl_list_init(&m_layer->link);
+
+    if (p) {
+        append(p);
+    }
 }
 
 void Layer::append(Layer *l)

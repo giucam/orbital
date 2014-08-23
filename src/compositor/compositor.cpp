@@ -1,5 +1,6 @@
 
 #include <unistd.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <linux/input.h>
 
@@ -7,6 +8,7 @@
 #include <QSocketNotifier>
 #include <QCoreApplication>
 #include <QAbstractEventDispatcher>
+#include <QProcess>
 
 #include <weston/compositor.h>
 
@@ -67,6 +69,10 @@ Compositor::~Compositor()
     delete m_listener;
     delete m_backend;
     delete m_rootLayer;
+    delete m_overlayLayer;
+    delete m_panelsLayer;
+    delete m_appsLayer;
+    delete m_backgroundLayer;
 }
 
 static void compositorDestroyed(wl_listener *listener, void *data)
@@ -130,6 +136,11 @@ bool Compositor::init(const QString &socketName)
         return false;
 
     m_rootLayer = new Layer(&m_compositor->cursor_layer);
+    m_overlayLayer = new Layer(m_rootLayer);
+    m_panelsLayer = new Layer(m_overlayLayer);
+    m_appsLayer = new Layer(m_panelsLayer);
+    m_backgroundLayer = new Layer(m_appsLayer);
+
     m_compositor->kb_repeat_rate = 40;
     m_compositor->kb_repeat_delay = 400;
     m_compositor->terminate = terminate;
@@ -205,6 +216,26 @@ Layer *Compositor::rootLayer() const
     return m_rootLayer;
 }
 
+Layer *Compositor::overlayLayer() const
+{
+    return m_overlayLayer;
+}
+
+Layer *Compositor::panelsLayer() const
+{
+    return m_panelsLayer;
+}
+
+Layer *Compositor::appsLayer() const
+{
+    return m_appsLayer;
+}
+
+Layer *Compositor::backgroundLayer() const
+{
+    return m_backgroundLayer;
+}
+
 QList<Output *> Compositor::outputs() const
 {
     return m_outputs;
@@ -230,11 +261,55 @@ View *Compositor::pickView(double x, double y, double *vx, double *vy) const
     return View::fromView(v);
 }
 
+ChildProcess *Compositor::launchProcess(const QString &path)
+{
+    qDebug("Launching '%s'...", qPrintable(path));
+    int sv[2];
+    socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    int fd = dup(sv[1]);
+    env.insert("WAYLAND_SOCKET", QString::number(fd));
+    env.insert("QT_QPA_PLATFORM", "wayland");
+    close(sv[1]);
+
+    QProcess *process = new QProcess;
+    process->setProcessChannelMode(QProcess::ForwardedChannels);
+    process->setProcessEnvironment(env);
+    process->setProgram(path);
+    process->start();
+
+    wl_client *client = wl_client_create(m_compositor->wl_display, sv[0]);
+    if (!client) {
+        close(sv[0]);
+        qDebug("wl_client_create failed while launching '%s'.", qPrintable(path));
+        return nullptr;
+    }
+
+    return new ChildProcess(process, client);
+}
+
 Compositor *Compositor::fromCompositor(weston_compositor *c)
 {
     wl_listener *listener = wl_signal_get(&c->destroy_signal, compositorDestroyed);
     Q_ASSERT(listener);
     return reinterpret_cast<Listener *>(listener)->compositor;
+}
+
+
+
+// -- ChildProcess
+
+ChildProcess::ChildProcess(QProcess *proc, wl_client *client)
+            : QObject()
+            , m_process(proc)
+            , m_client(client)
+{
+    connect(proc, (void (QProcess::*)(int))&QProcess::finished, [](int exitCode) { qDebug()<<"FINISHED"<<exitCode; });
+}
+
+wl_client *ChildProcess::client() const
+{
+    return m_client;
 }
 
 }

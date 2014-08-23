@@ -47,7 +47,7 @@ static const char *defaultConfig =
 "        <Screen>\n"
 "            <element type=\"background\" id=\"1\">\n"
 "                <property name=\"color\" value=\"black\"/>\n"
-"                <property name=\"imageSource\" value=\"/usr/share/weston/pattern.png\"/>\n"
+"                <property name=\"imageSource\" value=\"/usr/local/share/weston/pattern.png\"/>\n"
 "                <property name=\"imageFillMode\" value=\"4\"/>\n"
 "            </element>\n"
 "            <element type=\"panel\" id=\"2\">\n"

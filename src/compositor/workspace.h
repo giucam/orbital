@@ -48,6 +48,7 @@ public:
 
     void configure(View *view);
     void setPos(int x, int y);
+    void addTransformChild(View *view);
     void append(Layer *layer);
 
 private:

@@ -56,6 +56,7 @@ void View::setOutput(Output *o)
 void View::setPos(int x, int y)
 {
     weston_view_set_position(m_view, x, y);
+    weston_view_geometry_dirty(m_view);
 }
 
 void View::setTransformParent(View *p)
@@ -66,7 +67,6 @@ void View::setTransformParent(View *p)
 
 void View::update()
 {
-    weston_view_geometry_dirty(m_view);
     weston_view_update_transform(m_view);
 }
 

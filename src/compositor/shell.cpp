@@ -6,6 +6,7 @@
 #include "shellsurface.h"
 
 #include "wlshell/wlshell.h"
+#include "desktop-shell/desktop-shell.h"
 
 namespace Orbital {
 
@@ -14,6 +15,7 @@ Shell::Shell(Compositor *c)
      , m_compositor(c)
 {
     addInterface(new WlShell(this, m_compositor));
+    addInterface(new DesktopShell(this));
 }
 
 Compositor *Shell::compositor() const
@@ -23,7 +25,7 @@ Compositor *Shell::compositor() const
 
 void Shell::addWorkspace(Workspace *ws)
 {
-    ws->append(m_compositor->rootLayer());
+    ws->append(m_compositor->appsLayer());
     m_workspaces << ws;
 }
 

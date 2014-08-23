@@ -16,7 +16,7 @@ public:
     ~DummySurface();
 
 private:
-    explicit DummySurface(weston_surface *s, int width, int height);
+    DummySurface(weston_surface *s, int width, int height);
 
     weston_surface *m_surface;
 
