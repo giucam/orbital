@@ -36,6 +36,7 @@ set(SOURCES
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")
 list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
+list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
@@ -46,3 +47,12 @@ install(TARGETS orbital DESTINATION bin)
 
 add_subdirectory(x11-backend)
 add_subdirectory(drm-backend)
+
+
+add_executable(orbital-launch orbital-launch.cpp)
+target_link_libraries(orbital-launch weston-launcher)
+set_target_properties(orbital-launch PROPERTIES COMPILE_DEFINITIONS "${defines}")
+
+install(TARGETS orbital-launch
+        DESTINATION bin
+        PERMISSIONS SETUID OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
