@@ -1,4 +1,6 @@
 
+#include <QDebug>
+
 #include <weston/compositor.h>
 
 #include "shellview.h"
@@ -29,16 +31,26 @@ void ShellView::setDesignedOutput(Output *o)
     m_designedOutput = o;
 }
 
-void ShellView::configure()
+void ShellView::configureToplevel()
 {
-    if (m_surface->state() == ShellSurface::State::None) {
-        return;
+    if (!isMapped()) {
+        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        wsv->configure(this);
+        setOutput(m_designedOutput);
+        setPos(0, 100);
     }
+    update();
+}
 
-    WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
-    wsv->configure(this);
-    setOutput(m_designedOutput);
-    setPos(0, 100);
+void ShellView::configurePopup(ShellView *parent, int x, int y)
+{
+    if (!isMapped()) {
+        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        wsv->configure(this);
+        setTransformParent(parent);
+        setOutput(m_designedOutput);
+        setPos(x, y);
+    }
     update();
 }
 

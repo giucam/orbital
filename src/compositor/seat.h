@@ -14,6 +14,7 @@ class Compositor;
 class PointerGrab;
 class Pointer;
 class View;
+class ShellSurface;
 
 class Seat
 {
@@ -24,6 +25,8 @@ public:
     Compositor *compositor() const;
     Pointer *pointer() const;
 
+    void grabPopup(ShellSurface *surf);
+
     static Seat *fromResource(wl_resource *res);
 
 private:
@@ -31,6 +34,8 @@ private:
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
+
+    PointerGrab *m_popupGrab;
 };
 
 class Pointer
@@ -50,11 +55,17 @@ public:
 
     View *pickView(double *x = nullptr, double *y = nullptr) const;
 
+    void setFocus(View *view, double x, double y);
+    View *focus() const;
     void move(double x, double y);
+    void sendMotion(uint32_t time);
+    void sendButton(uint32_t time, Button button, ButtonState state);
     int buttonCount() const;
     double x() const;
     double y() const;
+
     uint32_t grabSerial() const;
+    uint32_t grabTime() const;
 
 private:
     Seat *m_seat;
@@ -80,6 +91,7 @@ protected:
     virtual void motion(uint32_t time, double x, double y) {}
     virtual void button(uint32_t time, Pointer::Button button, Pointer::ButtonState state) {}
     virtual void cancel() {}
+    virtual void ended() {}
 //     void setCursor(Cursor cursor);
 //     void unsetCursor();
 

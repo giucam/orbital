@@ -70,6 +70,11 @@ void View::update()
     weston_view_update_transform(m_view);
 }
 
+wl_client *View::client() const
+{
+    return m_view->surface->resource ? wl_resource_get_client(m_view->surface->resource) : nullptr;
+}
+
 Output *View::output() const
 {
     return m_output;

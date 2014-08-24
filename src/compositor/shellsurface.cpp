@@ -22,15 +22,15 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_nextState(State::None)
 {
     surface->configure_private = this;
-    surface->configure = [](weston_surface *s, int32_t x, int32_t y) {
-        static_cast<ShellSurface *>(s->configure_private)->configure(x, y);
-    };
+    surface->configure = staticConfigure;
 
     for (Output *o: shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this, weston_view_create(m_surface));
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
     }
+
+    connect(this, &ShellSurface::popupDone, [this]() { m_nextState = State::None; });
 }
 
 ShellSurface::~ShellSurface()
@@ -53,6 +53,11 @@ Workspace *ShellSurface::workspace() const
     return m_workspace;
 }
 
+wl_client *ShellSurface::client() const
+{
+    return m_surface->resource ? wl_resource_get_client(m_surface->resource) : nullptr;
+}
+
 bool ShellSurface::isMapped() const
 {
     return weston_surface_is_mapped(m_surface);
@@ -66,6 +71,16 @@ ShellSurface::State ShellSurface::state() const
 void ShellSurface::setToplevel()
 {
     m_nextState = State::Toplevel;
+}
+
+void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
+{
+    m_parent = parent;
+    m_popup.x = x;
+    m_popup.y = y;
+    m_popup.seat = seat;
+
+    m_nextState = State::Popup;
 }
 
 void ShellSurface::move(Seat *seat)
@@ -123,14 +138,39 @@ void ShellSurface::move(Seat *seat)
 //     moveStartSignal(this);
 }
 
+void ShellSurface::staticConfigure(weston_surface *s, int32_t x, int32_t y)
+{
+    static_cast<ShellSurface *>(s->configure_private)->configure(x, y);
+}
+
 void ShellSurface::configure(int x, int y)
 {
     updateState();
 
-//     qDebug()<<"configure"<<this<<x<<y;
+    if (m_state == State::None) {
+        return;
+    }
+
     m_shell->configure(this);
-    for (ShellView *view: m_views) {
-        view->configure();
+
+    if (m_state == State::Toplevel) {
+        for (ShellView *view: m_views) {
+            view->configureToplevel();
+        }
+    } else if (m_state == State::Popup) {
+        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
+        if (!parent) {
+            qWarning("Trying to map a popup without a ShellSurface parent.");
+            return;
+        }
+
+        for (Output *o: m_shell->compositor()->outputs()) {
+            ShellView *view = viewForOutput(o);
+            ShellView *parentView = parent->viewForOutput(o);
+
+            view->configurePopup(parentView, m_popup.x, m_popup.y);
+        }
+        m_popup.seat->grabPopup(this);
     }
     weston_surface_damage(m_surface);
 }
@@ -138,6 +178,14 @@ void ShellSurface::configure(int x, int y)
 void ShellSurface::updateState()
 {
     m_state = m_nextState;
+}
+
+ShellSurface *ShellSurface::fromSurface(weston_surface *s)
+{
+    if (s->configure == staticConfigure) {
+        return static_cast<ShellSurface *>(s->configure_private);
+    }
+    return nullptr;
 }
 
 }

@@ -41,6 +41,8 @@ public:
     Layer *backgroundLayer() const;
     QList<Output *> outputs() const;
 
+    uint32_t serial() const;
+
     DummySurface *createDummySurface(int width, int height);
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);

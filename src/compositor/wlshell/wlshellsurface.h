@@ -15,11 +15,12 @@ class WlShellSurface : public Interface
 {
     Q_OBJECT
 public:
-    WlShellSurface(WlShell *shell, wl_client *client, uint32_t id);
+    WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *client, uint32_t id);
 
 private:
     void resourceDestroyed();
     ShellSurface *shellSurface() const;
+    void popupDone();
 
     void pong(uint32_t serial);
     void move(wl_resource *seat_resource, uint32_t serial);

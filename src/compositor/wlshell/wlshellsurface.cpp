@@ -10,7 +10,7 @@
 namespace Orbital {
 
 
-WlShellSurface::WlShellSurface(WlShell *shell, wl_client *client, uint32_t id)
+WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *client, uint32_t id)
               : Interface()
               , m_wlShell(shell)
 {
@@ -32,11 +32,13 @@ WlShellSurface::WlShellSurface(WlShell *shell, wl_client *client, uint32_t id)
                                    [](wl_resource *resource) {
                                        static_cast<WlShellSurface *>(wl_resource_get_user_data(resource))->resourceDestroyed();
                                    });
+
+    connect(shsurf, &ShellSurface::popupDone, this, &WlShellSurface::popupDone);
 }
 
 void WlShellSurface::resourceDestroyed()
 {
-
+    delete this;
 }
 
 ShellSurface *WlShellSurface::shellSurface() const
@@ -80,9 +82,17 @@ void WlShellSurface::setFullscreen(uint32_t method, uint32_t framerate, wl_resou
 
 }
 
-void WlShellSurface::setPopup(wl_resource *seat_resource, uint32_t serial, wl_resource *parent_resource, int32_t x, int32_t y, uint32_t flags)
+void WlShellSurface::setPopup(wl_resource *seatResource, uint32_t serial, wl_resource *parentResource, int32_t x, int32_t y, uint32_t flags)
 {
+    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
+    Seat *seat = Seat::fromResource(seatResource);
 
+    if (serial != seat->pointer()->grabSerial()) {
+        wl_shell_surface_send_popup_done(m_resource);
+        return;
+    }
+
+    shellSurface()->setPopup(parent, seat, x, y);
 }
 
 void WlShellSurface::setMaximized(wl_resource *output_resource)
@@ -98,6 +108,11 @@ void WlShellSurface::setTitle(const char *title)
 void WlShellSurface::setClass(const char *className)
 {
 
+}
+
+void WlShellSurface::popupDone()
+{
+    wl_shell_surface_send_popup_done(m_resource);
 }
 
 };

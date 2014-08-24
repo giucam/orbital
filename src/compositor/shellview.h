@@ -20,7 +20,8 @@ public:
     ShellSurface *surface() const;
 
     void setDesignedOutput(Output *o);
-    void configure();
+    void configureToplevel();
+    void configurePopup(ShellView *parent, int x, int y);
 
 private:
     ShellSurface *m_surface;

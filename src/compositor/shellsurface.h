@@ -8,6 +8,7 @@
 #include "interface.h"
 #include "utils.h"
 
+struct wl_client;
 struct weston_surface;
 
 namespace Orbital
@@ -28,7 +29,8 @@ public:
 
     enum class State {
         None = 0,
-        Toplevel = 1
+        Toplevel = 1,
+        Popup
     };
     Q_DECLARE_FLAGS(States, State)
 
@@ -36,12 +38,20 @@ public:
     bool isMapped() const;
     void setWorkspace(Workspace *ws);
     Workspace *workspace() const;
+    wl_client *client() const;
 
     State state() const;
     void setToplevel();
+    void setPopup(weston_surface *parent, Seat *seat, int x, int y);
     void move(Seat *seat);
 
+    static ShellSurface *fromSurface(weston_surface *s);
+
+signals:
+    void popupDone();
+
 private:
+    static void staticConfigure(weston_surface *s, int x, int y);
     void configure(int x, int y);
     void updateState();
 
@@ -52,6 +62,13 @@ private:
 
     State m_state;
     State m_nextState;
+
+    weston_surface *m_parent;
+    struct {
+        int x;
+        int y;
+        Seat *seat;
+    } m_popup;
 };
 
 }

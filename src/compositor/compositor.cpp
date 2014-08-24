@@ -250,6 +250,11 @@ DummySurface *Compositor::createDummySurface(int w, int h)
     return new DummySurface(weston_surface_create(m_compositor), w, h);
 }
 
+uint32_t Compositor::serial() const
+{
+    return wl_display_get_serial(m_compositor->wl_display);
+}
+
 View *Compositor::pickView(double x, double y, double *vx, double *vy) const
 {
     wl_fixed_t fx = wl_fixed_from_double(x);

@@ -2,6 +2,7 @@
 #ifndef ORBITAL_VIEW_H
 #define ORBITAL_VIEW_H
 
+struct wl_client;
 struct weston_view;
 
 namespace Orbital
@@ -10,6 +11,7 @@ namespace Orbital
 class Output;
 class Layer;
 class WorkspaceView;
+class Pointer;
 struct Listener;
 
 class View
@@ -28,6 +30,7 @@ public:
     void update();
 
     Output *output() const;
+    wl_client *client() const;
 
     static View *fromView(weston_view *v);
 
@@ -37,7 +40,7 @@ private:
     Output *m_output;
 
     friend Layer;
-    friend WorkspaceView;
+    friend Pointer;
 };
 
 }

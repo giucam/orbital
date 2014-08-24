@@ -48,7 +48,7 @@ ShellSurface *WlShell::getShellSurface(wl_client *client, wl_resource *resource,
 
     ShellSurface *shsurf = new ShellSurface(m_shell, surface);
 
-    WlShellSurface *wlss = new WlShellSurface(this, client, id);
+    WlShellSurface *wlss = new WlShellSurface(this, shsurf, client, id);
     shsurf->addInterface(wlss);
 //     wlss->responsivenessChangedSignal.connect(this, &WlShell::surfaceResponsiveness);
 //
