@@ -48,7 +48,6 @@ void DesktopShellWorkspace::init(wl_client *client)
 
 void DesktopShellWorkspace::sendActivatedState()
 {
-    qDebug()<<m_active;
     for (Output *out: m_active) {
         wl_resource *res = out->resource(wl_resource_get_client(m_resource));
         desktop_shell_workspace_send_activated(m_resource, res);
