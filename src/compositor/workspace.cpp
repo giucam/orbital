@@ -15,11 +15,11 @@
 namespace Orbital {
 
 Workspace::Workspace(Shell *shell)
-         : QObject(shell)
+         : Object(shell)
          , m_shell(shell)
 {
     for (Output *o: shell->compositor()->outputs()) {
-        WorkspaceView *view = new WorkspaceView(this, o->width(), o->height());
+        WorkspaceView *view = new WorkspaceView(this, o, o->width(), o->height());
         m_views.insert(o->id(), view);
     }
 }
@@ -43,15 +43,16 @@ void Workspace::append(Layer *layer)
 
 
 
-WorkspaceView::WorkspaceView(Workspace *ws, int w, int h)
+WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              : m_workspace(ws)
+             , m_output(o)
              , m_width(w)
              , m_height(h)
              , m_layer(new Layer)
 {
     m_root = ws->compositor()->createDummySurface(0, 0);
 
-    setPos(-10000, 0); //FIXME
+    setPos(0, 0); //FIXME
 }
 
 void WorkspaceView::setPos(int x, int y)
@@ -60,9 +61,19 @@ void WorkspaceView::setPos(int x, int y)
     m_layer->setMask(x, y, m_width, m_height);
 }
 
-void WorkspaceView::addTransformChild(View *view)
+void WorkspaceView::attach(View *view, int x, int y)
 {
-    view->setTransformParent(m_root);
+    m_root->setTransformParent(view);
+    m_layer->setMask(x, y, m_width, m_height);
+
+    emit m_workspace->activated(m_output);
+}
+
+void WorkspaceView::detach()
+{
+    setPos(0, 0);
+    m_layer->setMask(0, 0, 0, 0);
+    emit m_workspace->deactivated(m_output);
 }
 
 void WorkspaceView::append(Layer *layer)

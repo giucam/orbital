@@ -146,7 +146,7 @@ public:
     static void loadElementsList();
     static void cleanupElementsList();
     static const QMap<QString, ElementInfo *> &elementsInfo() { return s_elements; }
-    static Element *create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id = -1);
+    static Element *create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, const QString &name, int id = -1);
 
     Q_INVOKABLE void publish(const QPointF &offset = QPointF());
     Q_INVOKABLE void closeSettings();

@@ -8,6 +8,8 @@
 #include "compositor.h"
 #include "utils.h"
 #include "output.h"
+#include "workspace.h"
+#include "desktop-shell-workspace.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -49,6 +51,14 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);
+    m_resource = resource;
+
+    for (Workspace *ws: m_shell->workspaces()) {
+        DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
+        dws->init(m_client->client());
+        desktop_shell_send_workspace_added(m_resource, dws->resource());
+        dws->sendActivatedState();
+    }
 
     desktop_shell_send_load(resource);
 }
@@ -176,9 +186,13 @@ void DesktopShell::addWorkspace()
 
 }
 
-void DesktopShell::selectWorkspace(wl_resource *workspace_resource)
+void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *workspaceResource)
 {
-
+    Output *output = Output::fromResource(outputResource);
+    DesktopShellWorkspace *dws = DesktopShellWorkspace::fromResource(workspaceResource);
+    Workspace *ws = dws->workspace();
+    qDebug()<<"select"<<output<<ws;
+    output->viewWorkspace(ws);
 }
 
 void DesktopShell::quit()

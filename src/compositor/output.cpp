@@ -33,6 +33,8 @@ Output::Output(weston_output *out)
       , m_background(nullptr)
       , m_currentWsv(nullptr)
 {
+    m_transformRoot->setPos(out->x, out->y);
+
     m_panelsLayer->append(m_compositor->panelsLayer());
     m_backgroundLayer->append(m_compositor->backgroundLayer());
 
@@ -43,10 +45,14 @@ Output::Output(weston_output *out)
 
 void Output::viewWorkspace(Workspace *ws)
 {
+    if (m_currentWsv) {
+        m_currentWsv->detach();
+    }
     WorkspaceView *view = ws->viewForOutput(this);
-    view->setPos(m_output->x, m_output->y);
-    view->addTransformChild(m_transformRoot);
+    view->attach(m_transformRoot, m_output->x, m_output->y);
     m_currentWsv = view;
+
+    weston_output_schedule_repaint(m_output);
 }
 
 class Surface {
@@ -104,6 +110,18 @@ int Output::width() const
 int Output::height() const
 {
     return m_output->height;
+}
+
+wl_resource *Output::resource(wl_client *client) const
+{
+    wl_resource *resource;
+    wl_resource_for_each(resource, &m_output->resource_list) {
+        if (wl_resource_get_client(resource) == client) {
+            return resource;
+        }
+    }
+
+    return nullptr;
 }
 
 Output *Output::fromResource(wl_resource *res)

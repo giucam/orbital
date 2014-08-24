@@ -440,6 +440,7 @@ Element {
                     anchors.topMargin: 10
                     width: parent.width
                     height: 50
+                    screen: bkg.screen
                 }
             }
 

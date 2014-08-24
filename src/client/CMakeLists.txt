@@ -61,7 +61,7 @@ set(SOURCES
     compositorsettings.cpp)
 
 wayland_add_protocol_client(SOURCES
-    ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml
+    ../../protocol/desktop-shell.xml
     desktop-shell
 )
 wayland_add_protocol_client(SOURCES

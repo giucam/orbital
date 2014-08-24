@@ -53,6 +53,7 @@ class Service;
 class StyleInfo;
 class Element;
 class CompositorSettings;
+class UiScreen;
 
 class Binding : public QObject
 {
@@ -106,7 +107,7 @@ public slots:
     void restoreWindows();
     void addWorkspace(int n);
     void removeWorkspace(int n);
-    void selectWorkspace(Workspace *ws);
+    void selectWorkspace(UiScreen *screen, Workspace *ws);
 
 signals:
     void windowsChanged();
@@ -131,7 +132,7 @@ private:
     void handlePrepareLockSurface(desktop_shell *desktop_shell);
     void handleGrabCursor(desktop_shell *desktop_shell, uint32_t cursor);
     void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
-    void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws, int active);
+    void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws);
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
 
     static const wl_registry_listener s_registryListener;

@@ -34,7 +34,7 @@ private:
     void restoreWindows();
     void createGrab(uint32_t id);
     void addWorkspace();
-    void selectWorkspace(wl_resource *workspaceResource);
+    void selectWorkspace(wl_resource *outputResource, wl_resource *workspaceResource);
     void quit();
     void addTrustedClient(int32_t fd, const char *interface);
     void pong(uint32_t serial);

@@ -19,9 +19,11 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import QtQuick.Window 2.1
 
 Item {
     id: elementsChooser
+    property QtObject screen: null
 
     Column {
         anchors.fill: parent
@@ -44,8 +46,10 @@ Item {
                     MouseArea {
                         anchors.fill: parent
                         onPressed: {
-                            var newElem = Ui.createElement(modelData.name);
-                            newElem.publish();
+                            if (screen) {
+                                var newElem = Ui.createElement(modelData.name, screen);
+                                newElem.publish();
+                            }
                         }
                     }
                 }

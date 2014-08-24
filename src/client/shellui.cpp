@@ -154,9 +154,9 @@ void ShellUI::setNumWorkspaces(int n)
     }
 }
 
-Element *ShellUI::createElement(const QString &name)
+Element *ShellUI::createElement(const QString &name, UiScreen *screen)
 {
-    Element *elm = Element::create(this, m_engine, name);
+    Element *elm = Element::create(this, screen, m_engine, name);
     return elm;
 }
 

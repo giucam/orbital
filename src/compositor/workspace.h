@@ -2,8 +2,9 @@
 #ifndef ORBITAL_WORKSPACE_H
 #define ORBITAL_WORKSPACE_H
 
-#include <QObject>
 #include <QHash>
+
+#include "interface.h"
 
 namespace Orbital {
 
@@ -16,7 +17,7 @@ class Output;
 class Compositor;
 class DummySurface;
 
-class Workspace : public QObject
+class Workspace : public Object
 {
     Q_OBJECT
 //     Q_PROPERTY(int x READ x WRITE setX)
@@ -34,6 +35,10 @@ public:
     void setX(int x);
     void setY(int y);
 
+signals:
+    void activated(Output *output);
+    void deactivated(Output *output);
+
 private:
     Shell *m_shell;
     int m_x;
@@ -44,15 +49,19 @@ private:
 class WorkspaceView
 {
 public:
-    explicit WorkspaceView(Workspace *ws, int w, int h);
+    explicit WorkspaceView(Workspace *ws, Output *o, int w, int h);
 
     void configure(View *view);
-    void setPos(int x, int y);
-    void addTransformChild(View *view);
     void append(Layer *layer);
 
+    void attach(View *view, int x, int y);
+    void detach();
+
 private:
+    void setPos(int x, int y);
+
     Workspace *m_workspace;
+    Output *m_output;
     int m_width;
     int m_height;
     Layer *m_layer;

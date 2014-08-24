@@ -19,6 +19,7 @@ public:
 
     Compositor *compositor() const;
     void addWorkspace(Workspace *ws);
+    QList<Workspace *> workspaces() const;
 
     void configure(ShellSurface *shsurf);
 

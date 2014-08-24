@@ -1,0 +1,268 @@
+<protocol name="desktop">
+
+    <interface name="desktop_shell" version="1">
+        <description summary="create desktop widgets and helpers">
+            Traditional user interfaces can rely on this interface to define the
+            foundations of typical desktops. Currently it's possible to set up
+            background, panels and locking surfaces.
+        </description>
+
+        <request name="set_background">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+
+        <request name="set_panel">
+            <arg name="id" type="new_id" interface="desktop_shell_panel"/>
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="position" type="uint"/>
+        </request>
+
+        <request name="set_lock_surface">
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+
+        <request name="set_popup">
+            <arg name="id" type="new_id" interface="desktop_shell_surface"/>
+            <arg name="parent" type="object" interface="wl_surface"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="x" type="int"/>
+            <arg name="y" type="int"/>
+        </request>
+
+        <request name="unlock"/>
+
+        <request name="set_grab_surface">
+            <description summary="set grab surface">
+                The surface set by this request will receive a fake
+                pointer.enter event during grabs at position 0, 0 and is
+                expected to set an appropriate cursor image as described by
+                the grab_cursor event sent just before the enter event.
+            </description>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+
+        <request name="desktop_ready">
+            <description summary="desktop is ready to be shown">
+                Tell the server, that enough desktop elements have been drawn
+                to make the desktop look ready for use. During start-up, the
+                server can wait for this request with a black screen before
+                starting to fade in the desktop, for instance. If the client
+                parts of a desktop take a long time to initialize, we avoid
+                showing temporary garbage.
+            </description>
+        </request>
+
+        <request name="add_key_binding">
+            <arg name="id" type="new_id" interface="desktop_shell_binding"/>
+            <arg name="key" type="uint"/>
+            <arg name="modifiers" type="uint"/>
+        </request>
+
+        <request name="add_overlay">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+
+        <request name="minimize_windows"/>
+        <request name="restore_windows"/>
+
+        <request name="start_grab">
+            <arg name="id" type="new_id" interface="desktop_shell_grab"/>
+        </request>
+
+        <request name="add_workspace"/>
+        <request name="select_workspace">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="workspace" type="object" interface="desktop_shell_workspace"/>
+        </request>
+
+        <request name="quit"/>
+
+        <request name="add_trusted_client">
+            <arg name="fd" type="fd"/>
+            <arg name="interface" type="string"/>
+        </request>
+
+        <request name="pong">
+            <arg name="serial" type="uint"/>
+        </request>
+
+        <event name="ping">
+            <arg name="serial" type="uint"/>
+        </event>
+
+        <event name="load"/>
+
+        <!-- We'll fold most of wl_shell into this interface and then
+            they'll share the configure event.  -->
+        <event name="configure">
+            <arg name="edges" type="uint"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="width" type="int"/>
+            <arg name="height" type="int"/>
+        </event>
+
+        <event name="prepare_lock_surface">
+            <description summary="tell the client to create, set the lock surface">
+                Tell the shell we want it to create and set the lock surface, which is
+                a GUI asking the user to unlock the screen. The lock surface is
+                announced with 'set_lock_surface'. Whether or not the shell actually
+                implements locking, it MUST send 'unlock' request to let the normal
+                desktop resume.
+            </description>
+        </event>
+
+        <event name="grab_cursor">
+            <description summary="tell client what cursor to show during a grab">
+                This event will be sent immediately before a fake enter event on the
+                grab surface.
+            </description>
+            <arg name="cursor" type="uint"/>
+        </event>
+
+        <event name="window_added">
+            <arg name="id" type="new_id" interface="desktop_shell_window"/>
+            <arg name="title" type="string"/>
+            <arg name="window_state" type="int"/>
+        </event>
+
+        <event name="workspace_added">
+            <arg name="workspace" type="new_id" interface="desktop_shell_workspace"/>
+        </event>
+
+        <event name="desktop_rect">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="x" type="int"/>
+            <arg name="y" type="int"/>
+            <arg name="width" type="int"/>
+            <arg name="height" type="int"/>
+        </event>
+
+        <enum name="window_state">
+            <entry name="inactive" value="0"/>
+            <entry name="active" value="1"/>
+            <entry name="minimized" value="2"/>
+        </enum>
+
+        <enum name="cursor">
+            <entry name="none" value="0"/>
+
+            <entry name="resize_top" value="1"/>
+            <entry name="resize_bottom" value="2"/>
+
+            <entry name="arrow" value="3"/>
+
+            <entry name="resize_left" value="4"/>
+            <entry name="resize_top_left" value="5"/>
+            <entry name="resize_bottom_left" value="6"/>
+
+            <entry name="move" value="7"/>
+
+            <entry name="resize_right" value="8"/>
+            <entry name="resize_top_right" value="9"/>
+            <entry name="resize_bottom_right" value="10"/>
+
+            <entry name="busy" value="11"/>
+        </enum>
+
+        <enum name="panel_position">
+            <entry name="top" value="0"/>
+            <entry name="left" value="1"/>
+            <entry name="bottom" value="2"/>
+            <entry name="right" value="3"/>
+        </enum>
+
+    </interface>
+
+    <interface name="desktop_shell_binding" version="1">
+        <event name="triggered"/>
+    </interface>
+
+    <interface name="screensaver" version="1">
+        <description summary="interface for implementing screensavers">
+            Only one client can bind this interface at a time.
+        </description>
+
+        <request name="set_surface">
+            <description summary="set the surface type as a screensaver">
+                A screensaver surface is normally hidden, and only visible after an
+                idle timeout.
+            </description>
+
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="output" type="object" interface="wl_output"/>
+        </request>
+
+    </interface>
+
+    <interface name="desktop_shell_window" version="1">
+        <request name="set_state">
+            <arg name="state" type="int"/>
+        </request>
+        <request name="close"/>
+
+        <event name="set_title">
+            <arg name="title" type="string"/>
+        </event>
+        <event name="state_changed">
+            <arg name="value" type="int"/>
+        </event>
+        <event name="removed"/>
+    </interface>
+
+    <interface name="desktop_shell_grab" version="1">
+        <request name="end"/>
+
+        <event name="focus">
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="sx" type="fixed"/>
+            <arg name="sy" type="fixed"/>
+        </event>
+        <event name="motion">
+            <arg name="time" type="uint"/>
+            <arg name="sx" type="fixed"/>
+            <arg name="sy" type="fixed"/>
+        </event>
+        <event name="button">
+            <arg name="time" type="uint"/>
+            <arg name="button" type="uint"/>
+            <arg name="state" type="uint"/>
+        </event>
+    </interface>
+
+    <interface name="desktop_shell_workspace" version="1">
+        <request name="remove"/>
+        <event name="activated">
+            <arg name="output" type="object" interface="wl_output"/>
+        </event>
+        <event name="deactivated">
+            <arg name="output" type="object" interface="wl_output"/>
+        </event>
+    </interface>
+
+    <interface name="desktop_shell_surface" version="1">
+        <event name="popup_close"/>
+    </interface>
+
+    <interface name="desktop_shell_panel" version="1">
+        <request name="move"/>
+        <request name="set_position">
+            <arg name="position" type="uint"/>
+        </request>
+
+        <event name="moved">
+            <arg name="position" type="uint"/>
+        </event>
+    </interface>
+
+    <interface name="desktop_shell_splash" version="1">
+        <request name="set_surface">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+        <event name="done"/>
+    </interface>
+
+</protocol>

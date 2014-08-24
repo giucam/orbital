@@ -17,14 +17,17 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include "workspace.h"
 #include "wayland-desktop-shell-client-protocol.h"
 #include "utils.h"
+#include "client.h"
+#include "uiscreen.h"
 
 Workspace::Workspace(desktop_shell_workspace *ws, QObject *p)
          : QObject(p)
          , m_workspace(ws)
-         , m_active(false)
 {
     desktop_shell_workspace_add_listener(ws, &m_workspace_listener, this);
 }
@@ -35,15 +38,21 @@ Workspace::~Workspace()
     desktop_shell_workspace_destroy(m_workspace);
 }
 
-void Workspace::handleActivated(desktop_shell_workspace *ws)
+bool Workspace::isActiveForScreen(UiScreen *screen) const
 {
-    m_active = true;
+    wl_output *out = Client::client()->nativeOutput(screen->screen());
+    return m_active.contains(out);
+}
+
+void Workspace::handleActivated(desktop_shell_workspace *ws, wl_output *out)
+{
+    m_active.insert(out);
     emit activeChanged();
 }
 
-void Workspace::handleDeactivated(desktop_shell_workspace *ws)
+void Workspace::handleDeactivated(desktop_shell_workspace *ws, wl_output *out)
 {
-    m_active = false;
+    m_active.remove(out);
     emit activeChanged();
 }
 

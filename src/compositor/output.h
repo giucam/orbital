@@ -33,6 +33,7 @@ public:
     int width() const;
     int height() const;
 
+    wl_resource *resource(wl_client *client) const;
     static Output *fromResource(wl_resource *res);
 
 private:

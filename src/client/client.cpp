@@ -397,9 +397,9 @@ void Client::removeWorkspace(int n)
     }
 }
 
-void Client::selectWorkspace(Workspace *ws)
+void Client::selectWorkspace(UiScreen *screen, Workspace *ws)
 {
-    desktop_shell_select_workspace(m_shell, ws->m_workspace);
+    desktop_shell_select_workspace(m_shell, nativeOutput(screen->screen()), ws->m_workspace);
 }
 
 QQuickWindow *Client::findWindow(wl_surface *surface) const
@@ -524,10 +524,9 @@ void Client::handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_windo
     emit windowAdded(w);
 }
 
-void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *workspace, int active)
+void Client::handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *workspace)
 {
     Workspace *ws = new Workspace(workspace);
-    ws->m_active = active;
 
     m_workspaces << ws;
     ws->moveToThread(QCoreApplication::instance()->thread());

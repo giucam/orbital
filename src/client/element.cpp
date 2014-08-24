@@ -379,7 +379,7 @@ void Element::settingsVisibleChanged(bool visible)
     }
 }
 
-Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name, int id)
+Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, const QString &name, int id)
 {
     QElapsedTimer timer;
     timer.start();
@@ -414,6 +414,7 @@ Element *Element::create(ShellUI *shell, QQmlEngine *engine, const QString &name
     elm->m_typeName = name;
     elm->m_shell = shell;
     elm->m_info = info;
+    elm->m_screen = screen;
 
     c.completeCreate();
 

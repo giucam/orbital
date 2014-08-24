@@ -68,7 +68,7 @@ public:
     Q_INVOKABLE void setOverrideCursorShape(Qt::CursorShape shape);
     Q_INVOKABLE void restoreOverrideCursorShape();
 
-    Q_INVOKABLE Element *createElement(const QString &name);
+    Q_INVOKABLE Element *createElement(const QString &name, UiScreen *screen);
     Q_INVOKABLE void toggleConfigMode();
 
     UiScreen *findScreen(wl_output *output) const;

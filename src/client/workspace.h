@@ -21,29 +21,32 @@
 #define WORKSPACE_H
 
 #include <QObject>
+#include <QSet>
 
+struct wl_output;
 struct desktop_shell_workspace;
 struct desktop_shell_workspace_listener;
+
+class UiScreen;
 
 class Workspace : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool active READ active NOTIFY activeChanged)
 public:
     Workspace(desktop_shell_workspace *ws, QObject *p = nullptr);
     ~Workspace();
 
-    bool active() const { return m_active; }
+    Q_INVOKABLE bool isActiveForScreen(UiScreen *screen) const;
 
 signals:
     void activeChanged();
 
 private:
-    void handleActivated(desktop_shell_workspace *ws);
-    void handleDeactivated(desktop_shell_workspace *ws);
+    void handleActivated(desktop_shell_workspace *ws, wl_output *output);
+    void handleDeactivated(desktop_shell_workspace *ws, wl_output *output);
 
     desktop_shell_workspace *m_workspace;
-    bool m_active;
+    QSet<wl_output *> m_active;
 
     static const desktop_shell_workspace_listener m_workspace_listener;
 

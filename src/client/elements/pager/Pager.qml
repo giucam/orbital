@@ -69,18 +69,27 @@ Element {
                     height: grid.itemH
                     width: grid.itemW
 
+                    Connections {
+                        target: modelData
+                        onActiveChanged: updateActive()
+                    }
+
+                    function updateActive() {
+                        si.item.active = modelData.isActiveForScreen(pager.screen)
+                    }
+
                     StyleItem {
                         id: si
                         anchors.fill: parent
                         component: CurrentStyle.pagerWorkspace
-
-                        Binding { target: si.item; property: "active"; value: modelData.active }
                     }
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: Client.selectWorkspace(modelData)
+                        onClicked: Client.selectWorkspace(pager.screen, modelData)
                     }
+
+                    Component.onCompleted: updateActive()
                 }
             }
         }
