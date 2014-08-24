@@ -6,6 +6,7 @@
 
 #include <QHash>
 #include <QObject>
+#include <QRect>
 
 #include "interface.h"
 #include "utils.h"
@@ -36,6 +37,17 @@ public:
         Toplevel = 1,
         Popup = 2
     };
+    enum class Edges {
+        None = 0,
+        Top = 1,
+        Bottom = 2,
+        Left = 4,
+        Right = 8,
+        TopLeft = Top | Left,
+        BottomLeft = Bottom | Left,
+        TopRight = Top | Right,
+        BottomRight = Bottom | Right
+    };
 
     ShellView *viewForOutput(Output *o);
     bool isMapped() const;
@@ -48,6 +60,9 @@ public:
     void setPopup(weston_surface *parent, Seat *seat, int x, int y);
     void setMaximized();
     void move(Seat *seat);
+    void resize(Seat *seat, Edges edges);
+
+    QRect surfaceTreeBoundingBox() const;
 
     static ShellSurface *fromSurface(weston_surface *s);
 
@@ -58,12 +73,16 @@ private:
     static void staticConfigure(weston_surface *s, int x, int y);
     void configure(int x, int y);
     void updateState();
+    void sendConfigure(int w, int h);
 
     Shell *m_shell;
     weston_surface *m_surface;
     std::function<void (weston_surface *, int, int)> m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;
+    Edges m_resizeEdges;
+    bool m_resizing;
+    int m_height, m_width;
 
     Type m_type;
     Type m_nextType;
@@ -81,6 +100,7 @@ private:
 
 }
 
-DECLARE_OPERATORS_FOR_FLAGS(Orbital::ShellSurface::State)
+DECLARE_OPERATORS_FOR_FLAGS(Orbital::ShellSurface::Type)
+DECLARE_OPERATORS_FOR_FLAGS(Orbital::ShellSurface::Edges)
 
 #endif

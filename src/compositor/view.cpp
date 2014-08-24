@@ -70,6 +70,19 @@ void View::setTransformParent(View *p)
     weston_view_update_transform(m_view);
 }
 
+QPointF View::mapFromGlobal(const QPointF &p)
+{
+    wl_fixed_t x, y;
+    wl_fixed_t vx, vy;
+
+    x = wl_fixed_from_double(p.x());
+    y = wl_fixed_from_double(p.y());
+
+    weston_view_from_global_fixed(m_view, x, y, &vx, &vy);
+
+    return QPointF(wl_fixed_to_double(vx), wl_fixed_to_double(vy));
+}
+
 void View::update()
 {
     weston_view_update_transform(m_view);

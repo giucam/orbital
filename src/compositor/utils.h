@@ -49,6 +49,9 @@ constexpr static auto createWrapper(R (T::*func)(Args...)) -> Wrapper<R, T, Args
 #define wrapInterface(method) createWrapper(method).forward<method>
 
 
-#define DECLARE_OPERATORS_FOR_FLAGS(F)
+#define DECLARE_OPERATORS_FOR_FLAGS(F) \
+    inline int operator&(F a, F b) { \
+        return (int)a & (int)b; \
+    }
 
 #endif

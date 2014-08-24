@@ -67,6 +67,7 @@ public:
 
     uint32_t grabSerial() const;
     uint32_t grabTime() const;
+    QPointF grabPos() const;
 
 private:
     Seat *m_seat;

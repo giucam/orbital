@@ -22,7 +22,7 @@ public:
     ShellSurface *surface() const;
 
     void setDesignedOutput(Output *o);
-    void configureToplevel(bool maximized);
+    void configureToplevel(bool maximized, int dx, int dy);
     void configurePopup(ShellView *parent, int x, int y);
 
 private:

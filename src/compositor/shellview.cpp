@@ -33,9 +33,9 @@ void ShellView::setDesignedOutput(Output *o)
     m_designedOutput = o;
 }
 
-void ShellView::configureToplevel(bool maximized)
+void ShellView::configureToplevel(bool maximized, int dx, int dy)
 {
-    bool updatePos = !isMapped() || m_maximized != maximized;
+    bool updatePos = !isMapped() || m_maximized != maximized || dx || dy;
     m_maximized = maximized;
 
     if (!isMapped()) {
@@ -57,6 +57,8 @@ void ShellView::configureToplevel(bool maximized)
             if (m_posSaved) {
                 pos = m_savedPos;
                 m_posSaved = false;
+            } else if (dx || dy) {
+                pos = QPointF(x() + dx, y() + dy);
             } else {
                 pos = QPointF(20, 100);
             }

@@ -30,6 +30,7 @@ public:
     void setPos(double x, double y);
     void setPos(const QPointF &p) { setPos(p.x(), p.y()); }
     void setTransformParent(View *p);
+    QPointF mapFromGlobal(const QPointF &p);
 
     void update();
 

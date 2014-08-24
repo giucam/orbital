@@ -66,9 +66,15 @@ void WlShellSurface::move(wl_resource *seatResource, uint32_t serial)
     shellSurface()->move(seat);
 }
 
-void WlShellSurface::resize(wl_resource *seat_resource, uint32_t serial, uint32_t edges)
+void WlShellSurface::resize(wl_resource *seatResource, uint32_t serial, uint32_t edges)
 {
+    Seat *seat = Seat::fromResource(seatResource);
 
+    if (seat->pointer()->buttonCount() == 0 || seat->pointer()->grabSerial() != serial) {
+        return;
+    }
+
+    shellSurface()->resize(seat, (ShellSurface::Edges)edges);
 }
 
 void WlShellSurface::setToplevel()
