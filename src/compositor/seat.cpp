@@ -92,6 +92,11 @@ double Pointer::y() const
     return wl_fixed_to_double(m_pointer->y);
 }
 
+uint32_t Pointer::grabSerial() const
+{
+    return m_pointer->grab_serial;
+}
+
 // -- PointerGrab
 
 struct Grab {

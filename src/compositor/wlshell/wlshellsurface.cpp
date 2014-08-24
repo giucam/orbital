@@ -49,9 +49,15 @@ void WlShellSurface::pong(uint32_t serial)
 
 }
 
-void WlShellSurface::move(wl_resource *seat, uint32_t serial)
+void WlShellSurface::move(wl_resource *seatResource, uint32_t serial)
 {
-    shellSurface()->move(Seat::fromResource(seat));
+    Seat *seat = Seat::fromResource(seatResource);
+
+    if (seat->pointer()->buttonCount() == 0 || seat->pointer()->grabSerial() != serial) {
+        return;
+    }
+
+    shellSurface()->move(seat);
 }
 
 void WlShellSurface::resize(wl_resource *seat_resource, uint32_t serial, uint32_t edges)

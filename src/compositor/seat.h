@@ -54,6 +54,7 @@ public:
     int buttonCount() const;
     double x() const;
     double y() const;
+    uint32_t grabSerial() const;
 
 private:
     Seat *m_seat;
