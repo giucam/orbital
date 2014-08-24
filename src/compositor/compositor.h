@@ -32,6 +32,7 @@ public:
     ~Compositor();
 
     bool init(const QString &socket);
+    void quit();
 
     Layer *rootLayer() const;
     Layer *overlayLayer() const;

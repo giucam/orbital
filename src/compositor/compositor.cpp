@@ -29,17 +29,15 @@ static int log(const char *fmt, va_list ap)
     return 0;
 }
 
-static void terminate(weston_compositor *)
+static void terminate(weston_compositor *c)
 {
-    qDebug() << "Orbital exiting...";
-    QCoreApplication::quit();
+    Compositor::fromCompositor(c)->quit();
 }
 
-static void
-terminate_binding(struct weston_seat *seat, uint32_t time, uint32_t key,
-          void *data)
+static void terminate_binding(weston_seat *seat, uint32_t time, uint32_t key, void *data)
 {
-    terminate(NULL);
+    Compositor *c = static_cast<Compositor *>(data);
+    c->quit();
 }
 
 struct Listener {
@@ -184,7 +182,7 @@ bool Compositor::init(const QString &socketName)
 
     weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
-                          terminate_binding, m_compositor);
+                          terminate_binding, this);
 
     weston_output *o;
     wl_list_for_each(o, &m_compositor->output_list, link) {
@@ -203,6 +201,12 @@ bool Compositor::init(const QString &socketName)
     }
 
     return true;
+}
+
+void Compositor::quit()
+{
+    qDebug() << "Orbital exiting...";
+    QCoreApplication::quit();
 }
 
 void Compositor::processEvents()

@@ -197,7 +197,7 @@ void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *wor
 
 void DesktopShell::quit()
 {
-
+    m_shell->compositor()->quit();
 }
 
 void DesktopShell::addTrustedClient(int32_t fd, const char *interface)
