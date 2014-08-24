@@ -86,6 +86,7 @@ void Output::setPanel(weston_surface *surface, int pos)
     Surface *s = new Surface(surface, this);
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot);
+    m_panels << s->view;
 }
 
 void Output::setOverlay(weston_surface *surface)
@@ -110,6 +111,30 @@ int Output::width() const
 int Output::height() const
 {
     return m_output->height;
+}
+
+QRect Output::geometry() const
+{
+    return QRect(m_output->x, m_output->y, m_output->width, m_output->height);
+}
+
+QRect Output::availableGeometry() const
+{
+    pixman_region32_t area;
+    pixman_region32_init_rect(&area, 0, 0, m_output->width, m_output->height);
+
+    for (View *view: m_panels) {
+        weston_surface *surface = view->surface();
+        pixman_region32_t surf;
+        pixman_region32_init(&surf);
+        pixman_region32_copy(&surf, &surface->input);
+        pixman_region32_translate(&surf, view->x(), view->y());
+        pixman_region32_subtract(&area, &area, &surf);
+        pixman_region32_fini(&surf);
+    }
+    pixman_box32_t *box = pixman_region32_extents(&area);
+    pixman_region32_fini(&area);
+    return QRect(box->x1, box->y1, box->x2 - box->x1, box->y2 - box->y1);
 }
 
 wl_resource *Output::resource(wl_client *client) const

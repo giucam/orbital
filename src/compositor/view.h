@@ -2,6 +2,8 @@
 #ifndef ORBITAL_VIEW_H
 #define ORBITAL_VIEW_H
 
+#include <QRectF>
+
 struct wl_client;
 struct weston_view;
 
@@ -23,14 +25,17 @@ public:
     bool isMapped() const;
     double x() const;
     double y() const;
+    QRectF geometry() const;
     void setOutput(Output *o);
-    void setPos(int x, int y);
+    void setPos(double x, double y);
+    void setPos(const QPointF &p) { setPos(p.x(), p.y()); }
     void setTransformParent(View *p);
 
     void update();
 
     Output *output() const;
     wl_client *client() const;
+    weston_surface *surface() const;
 
     static View *fromView(weston_view *v);
 

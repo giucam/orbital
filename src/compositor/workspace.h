@@ -56,6 +56,7 @@ public:
 
     void attach(View *view, int x, int y);
     void detach();
+    bool isAttached() const;
 
 private:
     void setPos(int x, int y);
@@ -67,6 +68,7 @@ private:
     Layer *m_layer;
     DummySurface *m_root;
     QList<View *> m_views;
+    bool m_attached;
 };
 
 }

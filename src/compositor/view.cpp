@@ -47,13 +47,18 @@ double View::y() const
     return m_view->geometry.y;
 }
 
+QRectF View::geometry() const
+{
+    return QRectF(m_view->geometry.x, m_view->geometry.y, m_view->surface->width, m_view->surface->height);
+}
+
 void View::setOutput(Output *o)
 {
     m_output = o;
     m_view->output = o->m_output;
 }
 
-void View::setPos(int x, int y)
+void View::setPos(double x, double y)
 {
     weston_view_set_position(m_view, x, y);
     weston_view_geometry_dirty(m_view);
@@ -78,6 +83,11 @@ wl_client *View::client() const
 Output *View::output() const
 {
     return m_output;
+}
+
+weston_surface *View::surface() const
+{
+    return m_view->surface;
 }
 
 View *View::fromView(weston_view *v)

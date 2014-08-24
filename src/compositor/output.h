@@ -3,6 +3,7 @@
 #define ORBITAL_OUTPUT_H
 
 #include <QObject>
+#include <QRect>
 
 struct wl_resource;
 struct weston_output;
@@ -32,7 +33,8 @@ public:
     int id() const;
     int width() const;
     int height() const;
-
+    QRect geometry() const;
+    QRect availableGeometry() const;
     wl_resource *resource(wl_client *client) const;
     static Output *fromResource(wl_resource *res);
 
@@ -44,6 +46,7 @@ private:
     Layer *m_backgroundLayer;
     DummySurface *m_transformRoot;
     View *m_background;
+    QList<View *> m_panels;
     WorkspaceView *m_currentWsv;
 
     friend View;

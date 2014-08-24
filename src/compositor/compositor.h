@@ -22,6 +22,7 @@ class Output;
 class DummySurface;
 class View;
 class ChildProcess;
+class Seat;
 struct Listener;
 
 class Compositor : public QObject
@@ -40,6 +41,7 @@ public:
     Layer *appsLayer() const;
     Layer *backgroundLayer() const;
     QList<Output *> outputs() const;
+    QList<Seat *> seats() const;
 
     uint32_t serial() const;
 

@@ -2,6 +2,8 @@
 #ifndef ORBITAL_SHELLSURFACE_H
 #define ORBITAL_SHELLSURFACE_H
 
+#include <functional>
+
 #include <QHash>
 #include <QObject>
 
@@ -10,6 +12,7 @@
 
 struct wl_client;
 struct weston_surface;
+struct weston_shell_client;
 
 namespace Orbital
 {
@@ -27,12 +30,12 @@ public:
     ShellSurface(Shell *shell, weston_surface *surface);
     ~ShellSurface();
 
-    enum class State {
+    typedef std::function<void (weston_surface *, int, int)> ConfigureSender;
+    enum class Type {
         None = 0,
         Toplevel = 1,
-        Popup
+        Popup = 2
     };
-    Q_DECLARE_FLAGS(States, State)
 
     ShellView *viewForOutput(Output *o);
     bool isMapped() const;
@@ -40,9 +43,10 @@ public:
     Workspace *workspace() const;
     wl_client *client() const;
 
-    State state() const;
+    void setConfigureSender(ConfigureSender sender);
     void setToplevel();
     void setPopup(weston_surface *parent, Seat *seat, int x, int y);
+    void setMaximized();
     void move(Seat *seat);
 
     static ShellSurface *fromSurface(weston_surface *s);
@@ -57,11 +61,12 @@ private:
 
     Shell *m_shell;
     weston_surface *m_surface;
+    std::function<void (weston_surface *, int, int)> m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;
 
-    State m_state;
-    State m_nextState;
+    Type m_type;
+    Type m_nextType;
 
     weston_surface *m_parent;
     struct {
@@ -69,6 +74,9 @@ private:
         int y;
         Seat *seat;
     } m_popup;
+    struct {
+        bool maximized;
+    } m_toplevel;
 };
 
 }

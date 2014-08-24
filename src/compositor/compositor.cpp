@@ -20,6 +20,7 @@
 #include "workspace.h"
 #include "output.h"
 #include "dummysurface.h"
+#include "seat.h"
 
 namespace Orbital {
 
@@ -243,6 +244,16 @@ Layer *Compositor::backgroundLayer() const
 QList<Output *> Compositor::outputs() const
 {
     return m_outputs;
+}
+
+QList<Seat *> Compositor::seats() const
+{
+    QList<Seat *> seats;
+    weston_seat *seat;
+    wl_list_for_each(seat, &m_compositor->seat_list, link) {
+        seats << Seat::fromSeat(seat);
+    }
+    return seats;
 }
 
 DummySurface *Compositor::createDummySurface(int w, int h)

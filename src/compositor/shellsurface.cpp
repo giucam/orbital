@@ -18,8 +18,10 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             : Object(shell)
             , m_shell(shell)
             , m_surface(surface)
-            , m_state(State::None)
-            , m_nextState(State::None)
+            , m_configureSender(nullptr)
+            , m_type(Type::None)
+            , m_nextType(Type::None)
+            , m_toplevel({ false })
 {
     surface->configure_private = this;
     surface->configure = staticConfigure;
@@ -30,7 +32,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
         m_views.insert(o->id(), view);
     }
 
-    connect(this, &ShellSurface::popupDone, [this]() { m_nextState = State::None; });
+    connect(this, &ShellSurface::popupDone, [this]() { m_nextType = Type::None; });
 }
 
 ShellSurface::~ShellSurface()
@@ -63,14 +65,15 @@ bool ShellSurface::isMapped() const
     return weston_surface_is_mapped(m_surface);
 }
 
-ShellSurface::State ShellSurface::state() const
+void ShellSurface::setConfigureSender(ConfigureSender sender)
 {
-    return m_state;
+    m_configureSender = sender;
 }
 
 void ShellSurface::setToplevel()
 {
-    m_nextState = State::Toplevel;
+    m_nextType = Type::Toplevel;
+    m_toplevel.maximized = false;
 }
 
 void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
@@ -80,7 +83,50 @@ void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
     m_popup.y = y;
     m_popup.seat = seat;
 
-    m_nextState = State::Popup;
+    m_nextType = Type::Popup;
+}
+
+void ShellSurface::setMaximized()
+{
+    m_nextType = Type::Toplevel;
+    m_toplevel.maximized = true;
+
+    struct Out {
+        Output *output;
+        int vote;
+    };
+    QList<Out> candidates;
+    for (Output *o: m_shell->compositor()->outputs()) {
+        WorkspaceView *ws = m_workspace->viewForOutput(o);
+        candidates.append({ o, ws->isAttached() ? 10 : 0 });
+    }
+
+    Output *output = nullptr;
+    if (candidates.isEmpty()) {
+        return;
+    } else if (candidates.size() == 1) {
+        output = candidates.first().output;
+    } else {
+        QList<Seat *> seats = m_shell->compositor()->seats();
+        for (Out &o: candidates) {
+            for (Seat *s: seats) {
+                if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
+                    o.vote++;
+                }
+            }
+        }
+        Out *out = nullptr;
+        for (Out &o: candidates) {
+            if (!out || out->vote < o.vote) {
+                out = &o;
+            }
+        }
+        output = out->output;
+    }
+
+    QRect rect = output->availableGeometry();
+    qDebug() << "Maximizing surface on output" << output << "with rect" << rect;
+    m_configureSender(m_surface, rect.width(), rect.height());
 }
 
 void ShellSurface::move(Seat *seat)
@@ -147,17 +193,17 @@ void ShellSurface::configure(int x, int y)
 {
     updateState();
 
-    if (m_state == State::None) {
+    if (m_type == Type::None) {
         return;
     }
 
     m_shell->configure(this);
 
-    if (m_state == State::Toplevel) {
+    if (m_type == Type::Toplevel) {
         for (ShellView *view: m_views) {
-            view->configureToplevel();
+            view->configureToplevel(m_toplevel.maximized);
         }
-    } else if (m_state == State::Popup) {
+    } else if (m_type == Type::Popup) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
             qWarning("Trying to map a popup without a ShellSurface parent.");
@@ -177,7 +223,7 @@ void ShellSurface::configure(int x, int y)
 
 void ShellSurface::updateState()
 {
-    m_state = m_nextState;
+    m_type = m_nextType;
 }
 
 ShellSurface *ShellSurface::fromSurface(weston_surface *s)

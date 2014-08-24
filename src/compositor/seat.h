@@ -27,6 +27,7 @@ public:
 
     void grabPopup(ShellSurface *surf);
 
+    static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
 
 private:

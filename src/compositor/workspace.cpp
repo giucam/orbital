@@ -49,6 +49,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              , m_width(w)
              , m_height(h)
              , m_layer(new Layer)
+             , m_attached(false)
 {
     m_root = ws->compositor()->createDummySurface(0, 0);
 
@@ -66,6 +67,7 @@ void WorkspaceView::attach(View *view, int x, int y)
     m_root->setTransformParent(view);
     m_layer->setMask(x, y, m_width, m_height);
 
+    m_attached = true;
     emit m_workspace->activated(m_output);
 }
 
@@ -73,7 +75,13 @@ void WorkspaceView::detach()
 {
     setPos(0, 0);
     m_layer->setMask(0, 0, 0, 0);
+    m_attached = false;
     emit m_workspace->deactivated(m_output);
+}
+
+bool WorkspaceView::isAttached() const
+{
+    return m_attached;
 }
 
 void WorkspaceView::append(Layer *layer)

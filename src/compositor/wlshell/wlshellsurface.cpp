@@ -33,11 +33,15 @@ WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *
                                        static_cast<WlShellSurface *>(wl_resource_get_user_data(resource))->resourceDestroyed();
                                    });
 
+    shsurf->setConfigureSender([this](weston_surface *s, int w, int h) {
+        wl_shell_surface_send_configure(m_resource, 0, w, h);
+    });
     connect(shsurf, &ShellSurface::popupDone, this, &WlShellSurface::popupDone);
 }
 
 void WlShellSurface::resourceDestroyed()
 {
+    shellSurface()->setConfigureSender(nullptr);
     delete this;
 }
 
@@ -95,9 +99,9 @@ void WlShellSurface::setPopup(wl_resource *seatResource, uint32_t serial, wl_res
     shellSurface()->setPopup(parent, seat, x, y);
 }
 
-void WlShellSurface::setMaximized(wl_resource *output_resource)
+void WlShellSurface::setMaximized(wl_resource *outputResource)
 {
-
+    shellSurface()->setMaximized();
 }
 
 void WlShellSurface::setTitle(const char *title)

@@ -116,15 +116,20 @@ void Seat::grabPopup(ShellSurface *surf)
     static_cast<PopupGrab *>(m_popupGrab)->surfaces << surf;
 }
 
-Seat *Seat::fromResource(wl_resource *res)
+Seat *Seat::fromSeat(weston_seat *s)
 {
-    weston_seat *s = static_cast<weston_seat *>(wl_resource_get_user_data(res));
     wl_listener *listener = wl_signal_get(&s->destroy_signal, seatDestroyed);
     if (!listener) {
         return new Seat(Compositor::fromCompositor(s->compositor), s);
     }
 
     return reinterpret_cast<Listener *>(listener)->seat;
+}
+
+Seat *Seat::fromResource(wl_resource *res)
+{
+    weston_seat *s = static_cast<weston_seat *>(wl_resource_get_user_data(res));
+    return fromSeat(s);
 }
 
 

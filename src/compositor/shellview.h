@@ -2,6 +2,8 @@
 #ifndef ORBITAL_SHELLVIEW_H
 #define ORBITAL_SHELLVIEW_H
 
+#include <QPoint>
+
 #include "view.h"
 
 namespace Orbital {
@@ -20,12 +22,15 @@ public:
     ShellSurface *surface() const;
 
     void setDesignedOutput(Output *o);
-    void configureToplevel();
+    void configureToplevel(bool maximized);
     void configurePopup(ShellView *parent, int x, int y);
 
 private:
     ShellSurface *m_surface;
     Output *m_designedOutput;
+    QPointF m_savedPos;
+    bool m_posSaved;
+    bool m_maximized;
 };
 
 }
