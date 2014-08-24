@@ -39,6 +39,21 @@ private:
     PointerGrab *m_popupGrab;
 };
 
+enum class PointerCursor: unsigned int {
+    None = 0,
+    ResizeTop = 1,
+    ResizeBottom = 2,
+    Arrow = 3,
+    ResizeLeft = 4,
+    ResizeTopLeft = ResizeTop | ResizeLeft,
+    ResizeBottomLeft = ResizeBottom | ResizeLeft,
+    Move = 7,
+    ResizeRight = 8,
+    ResizeTopRight = ResizeTop | ResizeRight,
+    ResizeBottomRight = ResizeBottom | ResizeRight,
+    Busy = 11
+};
+
 class Pointer
 {
 public:
@@ -83,10 +98,11 @@ public:
     virtual ~PointerGrab();
 
     void start(Seat *seat);
-//     void start(weston_seat *seat, Cursor c);
+    void start(Seat *seat, PointerCursor c);
     void end();
 
     Pointer *pointer() const;
+    void setCursor(PointerCursor cursor);
 
 protected:
     virtual void focus() {}

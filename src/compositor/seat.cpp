@@ -9,6 +9,7 @@
 #include "compositor.h"
 #include "shellsurface.h"
 #include "view.h"
+#include "shell.h"
 
 namespace Orbital {
 
@@ -285,6 +286,12 @@ void PointerGrab::start(Seat *seat)
     weston_pointer_start_grab(m_seat->pointer()->m_pointer, &m_grab->base);
 }
 
+void PointerGrab::start(Seat *seat, PointerCursor cursor)
+{
+    start(seat);
+    setCursor(cursor);
+}
+
 void PointerGrab::end()
 {
     if (m_seat) {
@@ -299,5 +306,9 @@ Pointer *PointerGrab::pointer() const
     return m_seat->pointer();
 }
 
+void PointerGrab::setCursor(PointerCursor cursor)
+{
+    m_seat->compositor()->shell()->setGrabCursor(pointer(), cursor);
+}
 
 }

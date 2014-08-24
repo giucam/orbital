@@ -14,6 +14,7 @@ namespace Orbital {
 Shell::Shell(Compositor *c)
      : Object()
      , m_compositor(c)
+     , m_grabCursorSetter(nullptr)
 {
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
@@ -36,11 +37,23 @@ QList<Workspace *> Shell::workspaces() const
     return m_workspaces;
 }
 
+void Shell::setGrabCursor(Pointer *pointer, PointerCursor c)
+{
+    if (m_grabCursorSetter) {
+        m_grabCursorSetter(pointer, c);
+    }
+}
+
 void Shell::configure(ShellSurface *shsurf)
 {
     if (!shsurf->isMapped()) {
         shsurf->setWorkspace(m_workspaces.first());
     }
+}
+
+void Shell::setGrabCursorSetter(GrabCursorSetter s)
+{
+    m_grabCursorSetter = s;
 }
 
 }

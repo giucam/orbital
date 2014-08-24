@@ -9,6 +9,8 @@
 #include "utils.h"
 #include "output.h"
 #include "workspace.h"
+#include "view.h"
+#include "seat.h"
 #include "desktop-shell-workspace.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -18,8 +20,16 @@ DesktopShell::DesktopShell(Shell *shell)
        : Interface(shell)
        , Global(shell->compositor(), &desktop_shell_interface, 1)
        , m_shell(shell)
+       , m_grabView(nullptr)
 {
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-client");
+
+    shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
+}
+
+DesktopShell::~DesktopShell()
+{
+    m_shell->setGrabCursorSetter(nullptr);
 }
 
 void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
@@ -61,6 +71,12 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     }
 
     desktop_shell_send_load(resource);
+}
+
+void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
+{
+    p->setFocus(m_grabView, 0, 0);
+    desktop_shell_send_grab_cursor(m_resource, (uint32_t)c);
 }
 
 void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfaceResource)
@@ -144,9 +160,17 @@ void DesktopShell::unlock()
 
 }
 
-void DesktopShell::setGrabSurface(wl_resource *surface_resource)
+void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
 {
+    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    if (m_grabView) {
+        if (surface == m_grabView->surface()) {
+            return;
+        }
+        delete m_grabView;
+    }
 
+    m_grabView = new View(weston_view_create(surface));
 }
 
 void DesktopShell::desktopReady()

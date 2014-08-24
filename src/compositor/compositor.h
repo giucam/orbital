@@ -35,6 +35,7 @@ public:
     bool init(const QString &socket);
     void quit();
 
+    Shell *shell() const;
     Layer *rootLayer() const;
     Layer *overlayLayer() const;
     Layer *panelsLayer() const;

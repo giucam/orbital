@@ -216,6 +216,11 @@ void Compositor::processEvents()
     wl_event_loop_dispatch(m_loop, -1);
 }
 
+Shell *Compositor::shell() const
+{
+    return m_shell;
+}
+
 Layer *Compositor::rootLayer() const
 {
     return m_rootLayer;

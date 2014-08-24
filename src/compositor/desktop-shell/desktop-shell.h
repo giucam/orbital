@@ -10,17 +10,23 @@ namespace Orbital {
 
 class Shell;
 class ChildProcess;
+class View;
+class Pointer;
+enum class PointerCursor: unsigned int;
 
 class DesktopShell : public Interface, public Global
 {
     Q_OBJECT
 public:
     explicit DesktopShell(Shell *shell);
+    ~DesktopShell();
 
 protected:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
 
 private:
+    void setGrabCursor(Pointer *p, PointerCursor c);
+
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);
     void setLockSurface(wl_resource *surfaceResource);
@@ -42,6 +48,7 @@ private:
     Shell *m_shell;
     ChildProcess *m_client;
     wl_resource *m_resource;
+    View *m_grabView;
 };
 
 }

@@ -185,7 +185,7 @@ void ShellSurface::move(Seat *seat)
     move->shsurf = this;
 //     m_runningGrab = move;
 
-    move->start(seat);
+    move->start(seat, PointerCursor::Move);
 //     moveStartSignal(this);
 }
 
@@ -255,8 +255,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     grab->shsurf = this;
     grab->view = seat->pointer()->pickView();
 
-    grab->start(seat);
-//     grab->start(ws, (Cursor)e);
+    grab->start(seat, (PointerCursor)e);
 }
 
 /*
