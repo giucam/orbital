@@ -45,6 +45,7 @@ public:
     double y() const;
     QRectF geometry() const;
     void setOutput(Output *o);
+    void setAlpha(double alpha);
     void setPos(double x, double y);
     void setPos(const QPointF &p) { setPos(p.x(), p.y()); }
     void setTransformParent(View *p);

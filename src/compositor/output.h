@@ -50,6 +50,8 @@ public:
     void setOverlay(weston_surface *surface);
 
     int id() const;
+    int x() const;
+    int y() const;
     int width() const;
     int height() const;
     QRect geometry() const;

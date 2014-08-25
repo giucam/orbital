@@ -77,6 +77,12 @@ void View::setOutput(Output *o)
     m_view->output = o->m_output;
 }
 
+
+void View::setAlpha(double a)
+{
+    m_view->alpha = a;
+}
+
 void View::setPos(double x, double y)
 {
     weston_view_set_position(m_view, x, y);

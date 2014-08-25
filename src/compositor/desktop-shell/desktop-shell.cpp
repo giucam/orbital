@@ -30,6 +30,7 @@
 #include "view.h"
 #include "seat.h"
 #include "desktop-shell-workspace.h"
+#include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -39,7 +40,10 @@ DesktopShell::DesktopShell(Shell *shell)
             , Global(shell->compositor(), &desktop_shell_interface, 1)
             , m_shell(shell)
             , m_grabView(nullptr)
+            , m_splash(new DesktopShellSplash(shell))
 {
+    m_shell->addInterface(m_splash);
+
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-client");
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
@@ -193,7 +197,7 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
 
 void DesktopShell::desktopReady()
 {
-
+    m_splash->hide();
 }
 
 void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)

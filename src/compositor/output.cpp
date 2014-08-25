@@ -121,6 +121,16 @@ int Output::id() const
     return m_output->id;
 }
 
+int Output::x() const
+{
+    return m_output->x;
+}
+
+int Output::y() const
+{
+    return m_output->y;
+}
+
 int Output::width() const
 {
     return m_output->width;

@@ -30,6 +30,7 @@ class Shell;
 class ChildProcess;
 class View;
 class Pointer;
+class DesktopShellSplash;
 enum class PointerCursor: unsigned int;
 
 class DesktopShell : public Interface, public Global
@@ -67,6 +68,7 @@ private:
     ChildProcess *m_client;
     wl_resource *m_resource;
     View *m_grabView;
+    DesktopShellSplash *m_splash;
 };
 
 }
