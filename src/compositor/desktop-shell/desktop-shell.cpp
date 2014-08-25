@@ -35,10 +35,10 @@
 namespace Orbital {
 
 DesktopShell::DesktopShell(Shell *shell)
-       : Interface(shell)
-       , Global(shell->compositor(), &desktop_shell_interface, 1)
-       , m_shell(shell)
-       , m_grabView(nullptr)
+            : Interface(shell)
+            , Global(shell->compositor(), &desktop_shell_interface, 1)
+            , m_shell(shell)
+            , m_grabView(nullptr)
 {
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-client");
 
