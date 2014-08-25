@@ -92,11 +92,11 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         } else {
             QQuickWindow *window = m_client->window(elm);
 
+            window->setScreen(m_screen);
             window->setWidth(elm->width());
             window->setHeight(elm->height());
             window->setColor(Qt::transparent);
             window->setFlags(Qt::BypassWindowManagerHint);
-            window->setScreen(m_screen);
             window->show();
             window->create();
 

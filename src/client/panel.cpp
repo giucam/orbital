@@ -31,11 +31,11 @@ Panel::Panel(QScreen *screen, Element *elm)
      , m_element(elm)
 {
     elm->setParentItem(contentItem());
+    setScreen(screen);
     setWidth(elm->width());
     setHeight(elm->height());
     setColor(Qt::transparent);
     setFlags(Qt::BypassWindowManagerHint);
-    setScreen(screen);
     show();
     create();
 
