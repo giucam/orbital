@@ -21,6 +21,7 @@ set(SOURCES
     output.cpp
     dummysurface.cpp
     seat.cpp
+    animation.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp

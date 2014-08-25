@@ -35,6 +35,7 @@ class View;
 class Layer;
 class WorkspaceView;
 class DummySurface;
+class Animation;
 struct Listener;
 
 class Output : public QObject
@@ -68,6 +69,7 @@ private:
     WorkspaceView *m_currentWsv;
 
     friend View;
+    friend Animation;
 };
 
 }
