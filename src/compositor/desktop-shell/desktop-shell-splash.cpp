@@ -48,6 +48,7 @@ public:
     ~Splash()
     {
         delete fadeAnimation;
+        delete view;
     }
 
     void fadeOut()
