@@ -57,6 +57,7 @@ public:
     void unmap();
 
     Output *output() const;
+    Layer *layer() const;
     wl_client *client() const;
     weston_surface *surface() const;
 

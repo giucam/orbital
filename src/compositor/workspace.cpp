@@ -29,6 +29,7 @@
 #include "output.h"
 #include "compositor.h"
 #include "dummysurface.h"
+#include "shellview.h"
 
 namespace Orbital {
 

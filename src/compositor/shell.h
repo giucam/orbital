@@ -23,7 +23,6 @@
 #include <functional>
 
 #include "interface.h"
-#include "seat.h"
 
 namespace Orbital {
 
@@ -31,6 +30,9 @@ class Compositor;
 class Layer;
 class Workspace;
 class ShellSurface;
+class Pointer;
+class Binding;
+class Seat;
 enum class PointerCursor: unsigned int;
 
 class Shell : public Object
@@ -51,9 +53,12 @@ public:
     void setGrabCursorSetter(GrabCursorSetter s);
 
 private:
+    void giveFocus(Seat *s);
+
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
     GrabCursorSetter m_grabCursorSetter;
+    Binding *m_focusBinding;
 };
 
 }

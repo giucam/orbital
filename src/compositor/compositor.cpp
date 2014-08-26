@@ -39,6 +39,7 @@
 #include "output.h"
 #include "dummysurface.h"
 #include "seat.h"
+#include "binding.h"
 
 namespace Orbital {
 
@@ -329,6 +330,11 @@ ChildProcess *Compositor::launchProcess(const QString &path)
     }
 
     return new ChildProcess(process, client);
+}
+
+ButtonBinding *Compositor::createButtonBinding(PointerButton button)
+{
+    return new ButtonBinding(m_compositor, button, this);
 }
 
 Compositor *Compositor::fromCompositor(weston_compositor *c)

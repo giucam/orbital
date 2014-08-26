@@ -24,16 +24,28 @@
 
 namespace Orbital {
 
+struct Wrapper {
+    weston_layer layer;
+    Layer *parent;
+};
+
 Layer::Layer(weston_layer *l)
-     : m_layer(l)
+     : m_layer(new Wrapper)
 {
+    m_layer->parent = this;
+
+    weston_layer_init(&m_layer->layer, nullptr);
+    wl_list_init(&m_layer->layer.link);
+    wl_list_insert(&l->link, &m_layer->layer.link);
 }
 
 Layer::Layer(Layer *p)
-     : m_layer(new weston_layer)
+     : m_layer(new Wrapper)
 {
-    weston_layer_init(m_layer, nullptr);
-    wl_list_init(&m_layer->link);
+    m_layer->parent = this;
+
+    weston_layer_init(&m_layer->layer, nullptr);
+    wl_list_init(&m_layer->layer.link);
 
     if (p) {
         append(p);
@@ -42,8 +54,8 @@ Layer::Layer(Layer *p)
 
 void Layer::append(Layer *l)
 {
-    wl_list_remove(&m_layer->link);
-    wl_list_insert(&l->m_layer->link, &m_layer->link);
+    wl_list_remove(&m_layer->layer.link);
+    wl_list_insert(&l->m_layer->layer.link, &m_layer->layer.link);
 }
 
 void Layer::addView(View *view)
@@ -51,12 +63,24 @@ void Layer::addView(View *view)
     if (view->m_view->layer_link.link.prev) {
         weston_layer_entry_remove(&view->m_view->layer_link);
     }
-    weston_layer_entry_insert(&m_layer->view_list, &view->m_view->layer_link);
+    weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
+}
+
+void Layer::restackView(View *view)
+{
+    weston_layer_entry_remove(&view->m_view->layer_link);
+    weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
+    weston_view_damage_below(view->m_view);
 }
 
 void Layer::setMask(int x, int y, int w, int h)
 {
-    weston_layer_set_mask(m_layer, x, y, w, h);
+    weston_layer_set_mask(&m_layer->layer, x, y, w, h);
+}
+
+Layer *Layer::fromLayer(weston_layer *l)
+{
+    return reinterpret_cast<Wrapper *>(l)->parent;
 }
 
 }

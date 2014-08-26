@@ -154,7 +154,7 @@ void ShellSurface::move(Seat *seat)
                 view->setPos(moveX, moveY);
             }
         }
-        void button(uint32_t time, Pointer::Button button, Pointer::ButtonState state) override
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
             if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
     //             shsurf->moveEndSignal(shsurf);
@@ -225,7 +225,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
 
             shsurf->sendConfigure(w, h);
         }
-        void button(uint32_t time, Pointer::Button button, Pointer::ButtonState state) override
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
             if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
                 end();
@@ -270,6 +270,11 @@ void ShellSurface::unmap()
     for (ShellView *v: m_views) {
         v->cleanupAndUnmap();
     }
+}
+
+bool ShellSurface::isFullscreen() const
+{
+    return m_type == Type::Toplevel && m_toplevel.fullscreen;
 }
 
 /*

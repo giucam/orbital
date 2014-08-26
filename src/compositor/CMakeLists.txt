@@ -23,6 +23,7 @@ set(SOURCES
     seat.cpp
     animation.cpp
     transform.cpp
+    binding.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp

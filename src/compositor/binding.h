@@ -17,40 +17,44 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_LAYER_H
-#define ORBITAL_LAYER_H
+#ifndef ORBITAL_BINDING_H
+#define ORBITAL_BINDING_H
 
 #include <QObject>
 
-struct weston_layer;
+#include <wayland-server.h>
+
+struct weston_binding;
+struct weston_compositor;
 
 namespace Orbital {
 
-class View;
-struct Wrapper;
+class Seat;
+enum class PointerButton : unsigned char;
 
-class Layer : public QObject
+class Binding : public QObject
 {
     Q_OBJECT
 public:
-    explicit Layer(weston_layer *layer);
-    explicit Layer(Layer *p = nullptr);
+    explicit Binding(QObject *p = nullptr);
+    virtual ~Binding();
 
-    void append(Layer *l);
+protected:
+    weston_binding *m_binding;
+};
 
-    void addView(View *view);
-    void restackView(View *view);
+class ButtonBinding : public Binding
+{
+    Q_OBJECT
+public:
+    ButtonBinding(weston_compositor *c, PointerButton b, QObject *p = nullptr);
 
-    void setMask(int x, int y, int w, int h);
+public:
 
-    static Layer *fromLayer(weston_layer *layer);
-
-private:
-    Wrapper *m_layer;
-
+signals:
+    void triggered(Seat *seat, uint32_t time, PointerButton button);
 };
 
 }
 
 #endif
-

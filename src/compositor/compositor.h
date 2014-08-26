@@ -41,7 +41,9 @@ class DummySurface;
 class View;
 class ChildProcess;
 class Seat;
+class ButtonBinding;
 struct Listener;
+enum class PointerButton : unsigned char;
 
 class Compositor : public QObject
 {
@@ -67,6 +69,8 @@ public:
     DummySurface *createDummySurface(int width, int height);
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
+
+    ButtonBinding *createButtonBinding(PointerButton button);
 
     static Compositor *fromCompositor(weston_compositor *c);
 

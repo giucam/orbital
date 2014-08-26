@@ -25,7 +25,7 @@
 namespace Orbital {
 
 template<class R, class T, class... Args>
-struct Wrapper {
+struct InterfaceWrapper {
     template<R (T::*F)(wl_client *, wl_resource *, Args...)>
     static void forward(wl_client *client, wl_resource *resource, Args... args) {
         (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(client, resource, args...);
@@ -37,13 +37,13 @@ struct Wrapper {
 };
 
 template<class R, class T, class... Args>
-constexpr static auto createWrapper(R (T::*func)(wl_client *client, wl_resource *resource, Args...)) -> Wrapper<R, T, Args...> {
-    return Wrapper<R, T, Args...>();
+constexpr static auto createWrapper(R (T::*func)(wl_client *client, wl_resource *resource, Args...)) -> InterfaceWrapper<R, T, Args...> {
+    return InterfaceWrapper<R, T, Args...>();
 }
 
 template<class R, class T, class... Args>
-constexpr static auto createWrapper(R (T::*func)(Args...)) -> Wrapper<R, T, Args...> {
-    return Wrapper<R, T, Args...>();
+constexpr static auto createWrapper(R (T::*func)(Args...)) -> InterfaceWrapper<R, T, Args...> {
+    return InterfaceWrapper<R, T, Args...>();
 }
 
 }

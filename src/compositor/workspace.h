@@ -44,7 +44,6 @@ public:
     Workspace(Shell *shell);
 
     Compositor *compositor() const;
-    void addSurface(ShellSurface *shsurf);
     WorkspaceView *viewForOutput(Output *o);
     void append(Layer *layer);
 

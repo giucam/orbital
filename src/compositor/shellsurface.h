@@ -84,6 +84,8 @@ public:
     void resize(Seat *seat, Edges edges);
     void unmap();
 
+    bool isFullscreen() const;
+
     QRect surfaceTreeBoundingBox() const;
 
     static ShellSurface *fromSurface(weston_surface *s);

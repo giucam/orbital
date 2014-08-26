@@ -25,6 +25,7 @@
 #include "output.h"
 #include "workspace.h"
 #include "transform.h"
+#include "layer.h"
 
 namespace Orbital {
 
@@ -132,6 +133,15 @@ void View::unmap()
 wl_client *View::client() const
 {
     return m_view->surface->resource ? wl_resource_get_client(m_view->surface->resource) : nullptr;
+}
+
+Layer *View::layer() const
+{
+    weston_layer *layer = m_view->layer_link.layer;
+    if (layer) {
+        return Layer::fromLayer(layer);
+    }
+    return nullptr;
 }
 
 Output *View::output() const

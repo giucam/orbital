@@ -17,40 +17,33 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_LAYER_H
-#define ORBITAL_LAYER_H
+#include <weston/compositor.h>
 
-#include <QObject>
-
-struct weston_layer;
+#include "binding.h"
+#include "seat.h"
 
 namespace Orbital {
 
-class View;
-struct Wrapper;
-
-class Layer : public QObject
+Binding::Binding(QObject *p)
+       : QObject(p)
+       , m_binding(nullptr)
 {
-    Q_OBJECT
-public:
-    explicit Layer(weston_layer *layer);
-    explicit Layer(Layer *p = nullptr);
-
-    void append(Layer *l);
-
-    void addView(View *view);
-    void restackView(View *view);
-
-    void setMask(int x, int y, int w, int h);
-
-    static Layer *fromLayer(weston_layer *layer);
-
-private:
-    Wrapper *m_layer;
-
-};
-
 }
 
-#endif
+Binding::~Binding()
+{
+    weston_binding_destroy(m_binding);
+}
 
+
+ButtonBinding::ButtonBinding(weston_compositor *c, PointerButton b, QObject *p)
+             : Binding(p)
+{
+    auto handler = [](weston_seat *s, uint32_t time, uint32_t button, void *data) {
+        Seat *seat = Seat::fromSeat(s);
+        emit static_cast<ButtonBinding *>(data)->triggered(seat, time, rawToPointerButton(button));
+    };
+    m_binding = weston_compositor_add_button_binding(c, pointerButtonToRaw(b), (weston_keyboard_modifier)0, handler, this);
+}
+
+}

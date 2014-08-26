@@ -43,6 +43,7 @@ public:
     Compositor *compositor() const;
     Pointer *pointer() const;
 
+    void activate(weston_surface *surface);
     void grabPopup(ShellSurface *surf);
 
     static Seat *fromSeat(weston_seat *seat);
@@ -72,17 +73,21 @@ enum class PointerCursor: unsigned int {
     Busy = 11
 };
 
+enum class PointerButton : unsigned char {
+    Left,
+    Right,
+    Middle
+};
+
+uint32_t pointerButtonToRaw(PointerButton b);
+PointerButton rawToPointerButton(uint32_t b);
+
 class Pointer
 {
 public:
     enum class ButtonState {
         Released = 0,
         Pressed = 1
-    };
-    enum class Button {
-        Left,
-        Right,
-        Middle
     };
 
     explicit Pointer(Seat *seat, weston_pointer *pointer);
@@ -93,11 +98,12 @@ public:
     View *focus() const;
     void move(double x, double y);
     void sendMotion(uint32_t time);
-    void sendButton(uint32_t time, Button button, ButtonState state);
+    void sendButton(uint32_t time, PointerButton button, ButtonState state);
     int buttonCount() const;
     double x() const;
     double y() const;
 
+    bool isGrabActive() const;
     uint32_t grabSerial() const;
     uint32_t grabTime() const;
     QPointF grabPos() const;
@@ -125,7 +131,7 @@ public:
 protected:
     virtual void focus() {}
     virtual void motion(uint32_t time, double x, double y) {}
-    virtual void button(uint32_t time, Pointer::Button button, Pointer::ButtonState state) {}
+    virtual void button(uint32_t time, PointerButton button, Pointer::ButtonState state) {}
     virtual void cancel() {}
     virtual void ended() {}
 //     void setCursor(Cursor cursor);

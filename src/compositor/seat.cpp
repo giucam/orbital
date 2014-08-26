@@ -68,6 +68,11 @@ Pointer *Seat::pointer() const
     return m_pointer;
 }
 
+void Seat::activate(weston_surface *surface)
+{
+    weston_surface_activate(surface, m_seat);
+}
+
 void Seat::grabPopup(ShellSurface *surf)
 {
     class PopupGrab : public PointerGrab
@@ -102,7 +107,7 @@ void Seat::grabPopup(ShellSurface *surf)
             pointer()->move(x, y);
             pointer()->sendMotion(time);
         }
-        void button(uint32_t time, Pointer::Button button, Pointer::ButtonState state) override
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
             if (pointer()->focus()) {
                 pointer()->sendButton(time, button, state);
@@ -197,19 +202,12 @@ void Pointer::sendMotion(uint32_t time)
     }
 }
 
-void Pointer::sendButton(uint32_t time, Pointer::Button button, Pointer::ButtonState state)
+void Pointer::sendButton(uint32_t time, PointerButton button, Pointer::ButtonState state)
 {
-    uint32_t btn;
-    switch (button) {
-        case Button::Left: btn = BTN_LEFT; break;
-        case Button::Right: btn = BTN_RIGHT; break;
-        case Button::Middle: btn = BTN_MIDDLE; break;
-    }
-
     wl_resource *resource;
     uint32_t serial = m_seat->compositor()->serial();
     wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
-        wl_pointer_send_button(resource, serial, time, btn, (uint32_t)state);
+        wl_pointer_send_button(resource, serial, time, pointerButtonToRaw(button), (uint32_t)state);
     }
 }
 
@@ -226,6 +224,11 @@ double Pointer::x() const
 double Pointer::y() const
 {
     return wl_fixed_to_double(m_pointer->y);
+}
+
+bool Pointer::isGrabActive() const
+{
+    return m_pointer->grab != &m_pointer->default_grab;
 }
 
 uint32_t Pointer::grabSerial() const
@@ -270,16 +273,7 @@ PointerGrab::PointerGrab()
             fromGrab(base)->motion(time, wl_fixed_to_double(x), wl_fixed_to_double(y));
         },
         [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state) {
-            Pointer::Button btn;
-            switch (button) {
-                case BTN_LEFT: btn = Pointer::Button::Left; break;
-                case BTN_RIGHT: btn = Pointer::Button::Right; break;
-                case BTN_MIDDLE: btn = Pointer::Button::Middle; break;
-                default:
-                    qWarning("Unknown mouse button: %d\n", button);
-                    return;
-            }
-            fromGrab(base)->button(time, btn, (Pointer::ButtonState)state);
+            fromGrab(base)->button(time, rawToPointerButton(button), (Pointer::ButtonState)state);
         },
         [](weston_pointer_grab *base)                                                 { fromGrab(base)->cancel(); }
     };
@@ -327,6 +321,30 @@ Pointer *PointerGrab::pointer() const
 void PointerGrab::setCursor(PointerCursor cursor)
 {
     m_seat->compositor()->shell()->setGrabCursor(pointer(), cursor);
+}
+
+uint32_t pointerButtonToRaw(PointerButton button)
+{
+    uint32_t btn;
+    switch (button) {
+        case PointerButton::Left: btn = BTN_LEFT; break;
+        case PointerButton::Right: btn = BTN_RIGHT; break;
+        case PointerButton::Middle: btn = BTN_MIDDLE; break;
+    }
+    return btn;
+}
+
+PointerButton rawToPointerButton(uint32_t button)
+{
+    switch (button) {
+        case BTN_LEFT: return PointerButton::Left;
+        case BTN_RIGHT: return PointerButton::Right;
+        case BTN_MIDDLE: return PointerButton::Middle;
+        default:
+            break;
+    }
+    qWarning("Unknown mouse button: %d\n", button);
+    return (PointerButton)0xffff;
 }
 
 }

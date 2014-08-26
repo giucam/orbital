@@ -17,11 +17,17 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include "shell.h"
 #include "compositor.h"
 #include "layer.h"
 #include "workspace.h"
 #include "shellsurface.h"
+#include "seat.h"
+#include "binding.h"
+#include "view.h"
+#include "shellview.h"
 
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
@@ -36,6 +42,10 @@ Shell::Shell(Compositor *c)
 {
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
+
+    ButtonBinding *binding = c->createButtonBinding(PointerButton::Left);
+    connect(binding, &ButtonBinding::triggered, this, &Shell::giveFocus);
+    m_focusBinding = binding;
 }
 
 Compositor *Shell::compositor() const
@@ -72,6 +82,32 @@ void Shell::configure(ShellSurface *shsurf)
 void Shell::setGrabCursorSetter(GrabCursorSetter s)
 {
     m_grabCursorSetter = s;
+}
+
+void Shell::giveFocus(Seat *seat)
+{
+    if (seat->pointer()->isGrabActive()) {
+        return;
+    }
+
+    View *focus = seat->pointer()->focus();
+    if (!focus) {
+        return;
+    }
+
+    seat->activate(focus->surface());
+
+    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+    if (shsurf && shsurf->isFullscreen()) {
+        return;
+    }
+
+    if (shsurf) {
+        for (Output *o: compositor()->outputs()) {
+            ShellView *view = shsurf->viewForOutput(o);
+            view->layer()->restackView(view);
+        }
+    }
 }
 
 }
