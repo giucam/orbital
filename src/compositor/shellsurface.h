@@ -83,6 +83,7 @@ public:
     void move(Seat *seat);
     void resize(Seat *seat, Edges edges);
     void unmap();
+    void sendPopupDone();
 
     bool isFullscreen() const;
 

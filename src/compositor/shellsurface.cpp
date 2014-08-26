@@ -40,6 +40,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_resizeEdges(Edges::None)
             , m_type(Type::None)
             , m_nextType(Type::None)
+            , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
 {
     surface->configure_private = this;
@@ -50,8 +51,6 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
     }
-
-    connect(this, &ShellSurface::popupDone, [this]() { m_nextType = Type::None; });
 }
 
 ShellSurface::~ShellSurface()
@@ -272,6 +271,13 @@ void ShellSurface::unmap()
     }
 }
 
+void ShellSurface::sendPopupDone()
+{
+    m_nextType = Type::None;
+    m_popup.seat = nullptr;
+    emit popupDone();
+}
+
 bool ShellSurface::isFullscreen() const
 {
     return m_type == Type::Toplevel && m_toplevel.fullscreen;
@@ -312,6 +318,14 @@ void ShellSurface::staticConfigure(weston_surface *s, int32_t x, int32_t y)
 
 void ShellSurface::configure(int x, int y)
 {
+    if (m_surface->width == 0 && m_popup.seat) {
+        m_popup.seat->ungrabPopup(this);
+    }
+
+    if (m_surface->width == 0) {
+        return;
+    }
+
     updateState();
 
     if (m_type == Type::None) {

@@ -73,71 +73,81 @@ void Seat::activate(weston_surface *surface)
     weston_surface_activate(surface, m_seat);
 }
 
+class Seat::PopupGrab : public PointerGrab
+{
+public:
+    PopupGrab(Seat *s, wl_client *c)
+        : seat(s)
+        , client(c)
+    {
+        start(s);
+
+        /* We must make sure here that this popup was opened after
+         * a mouse press, and not just by moving around with other
+         * popups already open. */
+        if (pointer()->buttonCount() == 0) {
+            initialUp = false;
+        }
+    }
+    void focus() override
+    {
+        double sx, sy;
+        View *view = pointer()->pickView(&sx, &sy);
+
+        if (view && view->client() ==client) {
+            pointer()->setFocus(view, sx, sy);
+        } else {
+            pointer()->setFocus(nullptr, 0, 0);
+        }
+    }
+    void motion(uint32_t time, double x, double y) override
+    {
+        pointer()->move(x, y);
+        pointer()->sendMotion(time);
+    }
+    void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+    {
+        if (pointer()->focus()) {
+            pointer()->sendButton(time, button, state);
+        } else if (state == Pointer::ButtonState::Released && (initialUp || time - pointer()->grabTime() > 500)) {
+            end();
+        }
+
+        if (state == Pointer::ButtonState::Released) {
+            initialUp = true;
+        }
+    }
+    void ended() override
+    {
+        for (ShellSurface *shsurf: surfaces) {
+            shsurf->sendPopupDone();
+        }
+        seat->m_popupGrab = nullptr;
+        delete this;
+    }
+
+    Seat *seat;
+    wl_client *client;
+    QSet<ShellSurface *> surfaces;
+    bool initialUp;
+};
+
 void Seat::grabPopup(ShellSurface *surf)
 {
-    class PopupGrab : public PointerGrab
-    {
-    public:
-        PopupGrab(Seat *s, wl_client *c)
-            : seat(s)
-            , client(c)
-        {
-            start(s);
-
-            /* We must make sure here that this popup was opened after
-             * a mouse press, and not just by moving around with other
-             * popups already open. */
-            if (pointer()->buttonCount() == 0) {
-                initialUp = false;
-            }
-        }
-        void focus() override
-        {
-            double sx, sy;
-            View *view = pointer()->pickView(&sx, &sy);
-
-            if (view && view->client() ==client) {
-                pointer()->setFocus(view, sx, sy);
-            } else {
-                pointer()->setFocus(nullptr, 0, 0);
-            }
-        }
-        void motion(uint32_t time, double x, double y) override
-        {
-            pointer()->move(x, y);
-            pointer()->sendMotion(time);
-        }
-        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
-        {
-            if (pointer()->focus()) {
-                pointer()->sendButton(time, button, state);
-            } else if (state == Pointer::ButtonState::Released && (initialUp || time - pointer()->grabTime() > 500)) {
-                end();
-            }
-
-            if (state == Pointer::ButtonState::Released) {
-                initialUp = true;
-            }
-        }
-        void ended() override
-        {
-            for (ShellSurface *shsurf: surfaces) {
-                shsurf->popupDone();
-            }
-            seat->m_popupGrab = nullptr;
-            delete this;
-        }
-
-        Seat *seat;
-        wl_client *client;
-        QList<ShellSurface *> surfaces;
-        bool initialUp;
-    };
-
     if (!m_popupGrab) {
         m_popupGrab = new PopupGrab(this, surf->client());
     }
-    static_cast<PopupGrab *>(m_popupGrab)->surfaces << surf;
+    m_popupGrab->surfaces.insert(surf);
+}
+
+void Seat::ungrabPopup(ShellSurface *shsurf)
+{
+    if (m_popupGrab) {
+        m_popupGrab->surfaces.remove(shsurf);
+        if (m_popupGrab->surfaces.isEmpty()) {
+            m_popupGrab->end();
+        }
+    }
 }
 
 Seat *Seat::fromSeat(weston_seat *s)

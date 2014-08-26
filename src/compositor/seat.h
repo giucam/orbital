@@ -45,17 +45,20 @@ public:
 
     void activate(weston_surface *surface);
     void grabPopup(ShellSurface *surf);
+    void ungrabPopup(ShellSurface *surf);
 
     static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
 
 private:
+    class PopupGrab;
+
     Compositor *m_compositor;
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
 
-    PointerGrab *m_popupGrab;
+    PopupGrab *m_popupGrab;
 };
 
 enum class PointerCursor: unsigned int {
