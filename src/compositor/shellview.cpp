@@ -113,7 +113,9 @@ void ShellView::configurePopup(ShellView *parent, int x, int y)
 
 void ShellView::cleanupAndUnmap()
 {
-    m_blackSurface->unmap();
+    if (m_blackSurface) {
+        m_blackSurface->unmap();
+    }
     unmap();
 }
 
