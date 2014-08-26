@@ -73,6 +73,11 @@ void Output::viewWorkspace(Workspace *ws)
     weston_output_schedule_repaint(m_output);
 }
 
+Workspace *Output::currentWorkspace() const
+{
+    return m_currentWsv->workspace();
+}
+
 class Surface {
 public:
     Surface(weston_surface *s, Output *o)

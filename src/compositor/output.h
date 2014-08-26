@@ -45,6 +45,8 @@ public:
     explicit Output(weston_output *out);
 
     void viewWorkspace(Workspace *ws);
+    Workspace *currentWorkspace() const;
+
     void setBackground(weston_surface *surface);
     void setPanel(weston_surface *surface, int pos);
     void setOverlay(weston_surface *surface);

@@ -53,12 +53,6 @@ WorkspaceView *Workspace::viewForOutput(Output *o)
     return m_views.value(o->id());
 }
 
-void Workspace::append(Layer *layer)
-{
-    for (WorkspaceView *v: m_views) {
-        v->append(layer);
-    }
-}
 
 
 
@@ -68,23 +62,31 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              , m_width(w)
              , m_height(h)
              , m_layer(new Layer)
+             , m_fullscreenLayer(new Layer)
              , m_attached(false)
 {
     m_root = ws->compositor()->createDummySurface(0, 0);
 
+    m_layer->append(ws->compositor()->appsLayer());
+    m_fullscreenLayer->append(ws->compositor()->rootLayer());
+
     setPos(0, 0); //FIXME
+    m_layer->setMask(0, 0, 0, 0);
+    m_fullscreenLayer->setMask(0, 0, 0, 0);
 }
 
 void WorkspaceView::setPos(int x, int y)
 {
     m_root->setPos(x, y);
     m_layer->setMask(x, y, m_width, m_height);
+    m_fullscreenLayer->setMask(x, y, m_width, m_height);
 }
 
 void WorkspaceView::attach(View *view, int x, int y)
 {
     m_root->setTransformParent(view);
     m_layer->setMask(x, y, m_width, m_height);
+    m_fullscreenLayer->setMask(x, y, m_width, m_height);
 
     m_attached = true;
     emit m_workspace->activated(m_output);
@@ -94,6 +96,7 @@ void WorkspaceView::detach()
 {
     setPos(0, 0);
     m_layer->setMask(0, 0, 0, 0);
+    m_fullscreenLayer->setMask(0, 0, 0, 0);
     m_attached = false;
     emit m_workspace->deactivated(m_output);
 }
@@ -101,11 +104,6 @@ void WorkspaceView::detach()
 bool WorkspaceView::isAttached() const
 {
     return m_attached;
-}
-
-void WorkspaceView::append(Layer *layer)
-{
-    m_layer->append(layer);
 }
 
 void WorkspaceView::configure(View *view)
@@ -116,8 +114,8 @@ void WorkspaceView::configure(View *view)
 
 void WorkspaceView::configureFullscreen(View *view, View *blackSurface)
 {
-    m_workspace->compositor()->rootLayer()->addView(blackSurface);
-    m_workspace->compositor()->rootLayer()->addView(view);
+    m_fullscreenLayer->addView(blackSurface);
+    m_fullscreenLayer->addView(view);
     view->setTransformParent(m_root);
     blackSurface->setTransformParent(m_root);
 }

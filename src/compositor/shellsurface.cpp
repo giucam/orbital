@@ -333,6 +333,9 @@ void ShellSurface::configure(int x, int y)
     }
 
     m_shell->configure(this);
+    if (!m_workspace) {
+        return;
+    }
 
     if (m_type == Type::Toplevel) {
         int dy = 0;

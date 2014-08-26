@@ -45,7 +45,6 @@ public:
 
     Compositor *compositor() const;
     WorkspaceView *viewForOutput(Output *o);
-    void append(Layer *layer);
 
     int x() const;
     int y() const;
@@ -70,11 +69,12 @@ public:
 
     void configure(View *view);
     void configureFullscreen(View *view, View *blackSurface);
-    void append(Layer *layer);
 
     void attach(View *view, int x, int y);
     void detach();
     bool isAttached() const;
+
+    Workspace *workspace() const { return m_workspace; }
 
 private:
     void setPos(int x, int y);
@@ -84,6 +84,7 @@ private:
     int m_width;
     int m_height;
     Layer *m_layer;
+    Layer *m_fullscreenLayer;
     DummySurface *m_root;
     QList<View *> m_views;
     bool m_attached;

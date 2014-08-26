@@ -28,6 +28,7 @@
 #include "binding.h"
 #include "view.h"
 #include "shellview.h"
+#include "output.h"
 
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
@@ -55,7 +56,6 @@ Compositor *Shell::compositor() const
 
 void Shell::addWorkspace(Workspace *ws)
 {
-    ws->append(m_compositor->appsLayer());
     ws->addInterface(new DesktopShellWorkspace(ws));
     m_workspaces << ws;
 }
@@ -75,7 +75,40 @@ void Shell::setGrabCursor(Pointer *pointer, PointerCursor c)
 void Shell::configure(ShellSurface *shsurf)
 {
     if (!shsurf->isMapped()) {
-        shsurf->setWorkspace(m_workspaces.first());
+        struct Out {
+            Output *output;
+            int vote;
+        };
+        QList<Out> candidates;
+
+        for (Output *o: compositor()->outputs()) {
+            candidates.append({ o, 0 });
+        }
+
+        Output *output = nullptr;
+        if (candidates.isEmpty()) {
+            return;
+        } else if (candidates.size() == 1) {
+            output = candidates.first().output;
+        } else {
+            QList<Seat *> seats = compositor()->seats();
+            for (Out &o: candidates) {
+                for (Seat *s: seats) {
+                    if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
+                        o.vote++;
+                    }
+                }
+            }
+            Out *out = nullptr;
+            for (Out &o: candidates) {
+                if (!out || out->vote < o.vote) {
+                    out = &o;
+                }
+            }
+            output = out->output;
+        }
+
+        shsurf->setWorkspace(output->currentWorkspace());
     }
 }
 
