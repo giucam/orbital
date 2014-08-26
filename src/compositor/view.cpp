@@ -24,6 +24,7 @@
 #include "view.h"
 #include "output.h"
 #include "workspace.h"
+#include "transform.h"
 
 namespace Orbital {
 
@@ -40,6 +41,7 @@ View::View(weston_view *view)
     : m_view(view)
     , m_listener(new Listener)
     , m_output(nullptr)
+    , m_transform(nullptr)
 {
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
@@ -95,6 +97,15 @@ void View::setTransformParent(View *p)
     weston_view_update_transform(m_view);
 }
 
+void View::setTransform(const Transform &tr)
+{
+    if (!m_transform) {
+        m_transform = new Transform;
+        m_transform->setView(m_view);
+    }
+    *m_transform = tr;
+}
+
 QPointF View::mapFromGlobal(const QPointF &p)
 {
     wl_fixed_t x, y;
@@ -111,6 +122,11 @@ QPointF View::mapFromGlobal(const QPointF &p)
 void View::update()
 {
     weston_view_update_transform(m_view);
+}
+
+void View::unmap()
+{
+    weston_layer_entry_remove(&m_view->layer_link);
 }
 
 wl_client *View::client() const

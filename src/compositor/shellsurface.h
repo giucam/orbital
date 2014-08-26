@@ -41,6 +41,7 @@ class ShellView;
 class Workspace;
 class Output;
 class Seat;
+class Compositor;
 
 class ShellSurface : public Object
 {
@@ -70,6 +71,7 @@ public:
     ShellView *viewForOutput(Output *o);
     bool isMapped() const;
     void setWorkspace(Workspace *ws);
+    Compositor *compositor() const;
     Workspace *workspace() const;
     wl_client *client() const;
 
@@ -77,8 +79,10 @@ public:
     void setToplevel();
     void setPopup(weston_surface *parent, Seat *seat, int x, int y);
     void setMaximized();
+    void setFullscreen();
     void move(Seat *seat);
     void resize(Seat *seat, Edges edges);
+    void unmap();
 
     QRect surfaceTreeBoundingBox() const;
 
@@ -92,6 +96,7 @@ private:
     void configure(int x, int y);
     void updateState();
     void sendConfigure(int w, int h);
+    Output *selectOutput();
 
     Shell *m_shell;
     weston_surface *m_surface;
@@ -113,7 +118,14 @@ private:
     } m_popup;
     struct {
         bool maximized;
+        bool fullscreen;
     } m_toplevel;
+
+    struct {
+        QSize size;
+        bool maximized;
+        bool fullscreen;
+    } m_state;
 };
 
 }

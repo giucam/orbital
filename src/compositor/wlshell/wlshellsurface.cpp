@@ -60,6 +60,7 @@ WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *
 void WlShellSurface::resourceDestroyed()
 {
     shellSurface()->setConfigureSender(nullptr);
+    shellSurface()->unmap();
     delete this;
 }
 
@@ -105,9 +106,10 @@ void WlShellSurface::setTransient(wl_resource *parent_resource, int x, int y, ui
 
 }
 
-void WlShellSurface::setFullscreen(uint32_t method, uint32_t framerate, wl_resource *output_resource)
+void WlShellSurface::setFullscreen(uint32_t method, uint32_t framerate, wl_resource *outputResource)
 {
-
+    // blatantly ignore the output and method for now
+    shellSurface()->setFullscreen();
 }
 
 void WlShellSurface::setPopup(wl_resource *seatResource, uint32_t serial, wl_resource *parentResource, int32_t x, int32_t y, uint32_t flags)

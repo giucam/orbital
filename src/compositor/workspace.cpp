@@ -109,10 +109,16 @@ void WorkspaceView::append(Layer *layer)
 
 void WorkspaceView::configure(View *view)
 {
-    if (!view->isMapped()) {
-        m_layer->addView(view);
-        view->setTransformParent(m_root);
-    }
+    m_layer->addView(view);
+    view->setTransformParent(m_root);
+}
+
+void WorkspaceView::configureFullscreen(View *view, View *blackSurface)
+{
+    m_workspace->compositor()->rootLayer()->addView(blackSurface);
+    m_workspace->compositor()->rootLayer()->addView(view);
+    view->setTransformParent(m_root);
+    blackSurface->setTransformParent(m_root);
 }
 
 }

@@ -40,7 +40,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_resizeEdges(Edges::None)
             , m_type(Type::None)
             , m_nextType(Type::None)
-            , m_toplevel({ false })
+            , m_toplevel({ false, false })
 {
     surface->configure_private = this;
     surface->configure = staticConfigure;
@@ -56,7 +56,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
 
 ShellSurface::~ShellSurface()
 {
-
+    qDeleteAll(m_views);
 }
 
 ShellView *ShellSurface::viewForOutput(Output *o)
@@ -67,6 +67,11 @@ ShellView *ShellSurface::viewForOutput(Output *o)
 void ShellSurface::setWorkspace(Workspace *ws)
 {
     m_workspace = ws;
+}
+
+Compositor *ShellSurface::compositor() const
+{
+    return m_shell->compositor();
 }
 
 Workspace *ShellSurface::workspace() const
@@ -93,6 +98,7 @@ void ShellSurface::setToplevel()
 {
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
+    m_toplevel.fullscreen = false;
 }
 
 void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
@@ -109,42 +115,25 @@ void ShellSurface::setMaximized()
 {
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = true;
+    m_toplevel.fullscreen = false;
 
-    struct Out {
-        Output *output;
-        int vote;
-    };
-    QList<Out> candidates;
-    for (Output *o: m_shell->compositor()->outputs()) {
-        WorkspaceView *ws = m_workspace->viewForOutput(o);
-        candidates.append({ o, ws->isAttached() ? 10 : 0 });
-    }
-
-    Output *output = nullptr;
-    if (candidates.isEmpty()) {
-        return;
-    } else if (candidates.size() == 1) {
-        output = candidates.first().output;
-    } else {
-        QList<Seat *> seats = m_shell->compositor()->seats();
-        for (Out &o: candidates) {
-            for (Seat *s: seats) {
-                if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
-                    o.vote++;
-                }
-            }
-        }
-        Out *out = nullptr;
-        for (Out &o: candidates) {
-            if (!out || out->vote < o.vote) {
-                out = &o;
-            }
-        }
-        output = out->output;
-    }
+    Output *output = selectOutput();
 
     QRect rect = output->availableGeometry();
     qDebug() << "Maximizing surface on output" << output << "with rect" << rect;
+    sendConfigure(rect.width(), rect.height());
+}
+
+void ShellSurface::setFullscreen()
+{
+    m_nextType = Type::Toplevel;
+    m_toplevel.fullscreen = true;
+    m_toplevel.maximized = false;
+
+    Output *output = selectOutput();
+
+    QRect rect = output->availableGeometry();
+    qDebug() << "Fullscrening surface on output" << output << "with rect" << rect;
     sendConfigure(rect.width(), rect.height());
 }
 
@@ -276,6 +265,13 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     grab->start(seat, (PointerCursor)e);
 }
 
+void ShellSurface::unmap()
+{
+    for (ShellView *v: m_views) {
+        v->cleanupAndUnmap();
+    }
+}
+
 /*
  * Returns the bounding box of a surface and all its sub-surfaces,
  * in the surface coordinates system. */
@@ -334,8 +330,15 @@ void ShellSurface::configure(int x, int y)
             m_width = rect.width();
         }
 
+        QSize newSize = surfaceTreeBoundingBox().size();
+        bool map = !isMapped() || m_state.maximized != m_toplevel.maximized || m_state.fullscreen != m_toplevel.fullscreen ||
+                   m_state.size != newSize;
+        m_state.size = newSize;
+        m_state.maximized = m_toplevel.maximized;
+        m_state.fullscreen = m_toplevel.fullscreen;
+
         for (ShellView *view: m_views) {
-            view->configureToplevel(m_toplevel.maximized, dx, dy);
+            view->configureToplevel(map, m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
@@ -365,6 +368,43 @@ void ShellSurface::sendConfigure(int w, int h)
     if (m_configureSender) {
         m_configureSender(m_surface, w, h);
     }
+}
+
+Output *ShellSurface::selectOutput()
+{
+    struct Out {
+        Output *output;
+        int vote;
+    };
+    QList<Out> candidates;
+    for (Output *o: m_shell->compositor()->outputs()) {
+        WorkspaceView *ws = m_workspace->viewForOutput(o);
+        candidates.append({ o, ws->isAttached() ? 10 : 0 });
+    }
+
+    Output *output = nullptr;
+    if (candidates.isEmpty()) {
+        return nullptr;
+    } else if (candidates.size() == 1) {
+        output = candidates.first().output;
+    } else {
+        QList<Seat *> seats = m_shell->compositor()->seats();
+        for (Out &o: candidates) {
+            for (Seat *s: seats) {
+                if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
+                    o.vote++;
+                }
+            }
+        }
+        Out *out = nullptr;
+        for (Out &o: candidates) {
+            if (!out || out->vote < o.vote) {
+                out = &o;
+            }
+        }
+        output = out->output;
+    }
+    return output;
 }
 
 ShellSurface *ShellSurface::fromSurface(weston_surface *s)

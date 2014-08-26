@@ -32,6 +32,7 @@ class Output;
 class Layer;
 class WorkspaceView;
 class Pointer;
+class Transform;
 struct Listener;
 
 class View
@@ -49,9 +50,11 @@ public:
     void setPos(double x, double y);
     void setPos(const QPointF &p) { setPos(p.x(), p.y()); }
     void setTransformParent(View *p);
+    void setTransform(const Transform &tr);
     QPointF mapFromGlobal(const QPointF &p);
 
     void update();
+    void unmap();
 
     Output *output() const;
     wl_client *client() const;
@@ -63,6 +66,7 @@ private:
     weston_view *m_view;
     Listener *m_listener;
     Output *m_output;
+    Transform *m_transform;
 
     friend Layer;
     friend Pointer;

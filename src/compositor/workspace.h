@@ -70,6 +70,7 @@ public:
     explicit WorkspaceView(Workspace *ws, Output *o, int w, int h);
 
     void configure(View *view);
+    void configureFullscreen(View *view, View *blackSurface);
     void append(Layer *layer);
 
     void attach(View *view, int x, int y);

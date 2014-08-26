@@ -17,43 +17,33 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_SHELLVIEW_H
-#define ORBITAL_SHELLVIEW_H
+#ifndef ORBITAL_TRANSFORM_H
+#define ORBITAL_TRANSFORM_H
 
-#include <QPoint>
-
-#include "view.h"
+#include <weston/compositor.h>
 
 namespace Orbital {
 
-class ShellSurface;
-class Output;
-class Layer;
-class DummySurface;
-class WorkspaceView;
+class View;
 
-class ShellView : public View
-{
+class Transform {
 public:
-    explicit ShellView(ShellSurface *shsurf, weston_view *view);
-    ~ShellView();
+    Transform();
+    Transform(const Transform &t);
 
-    ShellSurface *surface() const;
+    void reset();
+    void scale(double x, double y);
+    void translate(double x, double y);
 
-    void setDesignedOutput(Output *o);
-    void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
-    void configurePopup(ShellView *parent, int x, int y);
-
-    void cleanupAndUnmap();
+    Transform &operator=(const Transform &t);
 
 private:
-    void mapFullscreen();
+    void setView(weston_view *v);
 
-    ShellSurface *m_surface;
-    Output *m_designedOutput;
-    QPointF m_savedPos;
-    bool m_posSaved;
-    DummySurface *m_blackSurface;
+    weston_transform m_transform;
+    weston_view *m_view;
+
+    friend View;
 };
 
 }
