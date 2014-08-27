@@ -78,7 +78,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
                 m_posSaved = false;
             } else if (dx || dy) {
                 setPos(x() + dx, y() + dy);
-            } else {
+            } else if (!isMapped()) {
                 setPos(20, 100);
             }
         }

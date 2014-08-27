@@ -71,6 +71,7 @@ private:
 
     friend Layer;
     friend Pointer;
+    friend class XWayland;
 };
 
 }

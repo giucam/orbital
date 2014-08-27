@@ -29,6 +29,7 @@
 #include "view.h"
 #include "shellview.h"
 #include "output.h"
+#include "xwayland.h"
 
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
@@ -41,6 +42,7 @@ Shell::Shell(Compositor *c)
      , m_compositor(c)
      , m_grabCursorSetter(nullptr)
 {
+    addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
 

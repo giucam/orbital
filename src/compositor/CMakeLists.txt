@@ -24,6 +24,7 @@ set(SOURCES
     animation.cpp
     transform.cpp
     binding.cpp
+    xwayland.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp
@@ -42,7 +43,7 @@ list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server weston pixman-1)
+target_link_libraries(orbital wayland-server weston weston-xwayland pixman-1)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)

@@ -85,6 +85,8 @@ public:
     void unmap();
     void sendPopupDone();
 
+    void setTitle(const QString &title);
+
     bool isFullscreen() const;
 
     QRect surfaceTreeBoundingBox() const;
@@ -129,6 +131,8 @@ private:
         bool maximized;
         bool fullscreen;
     } m_state;
+
+    friend class XWayland;
 };
 
 }

@@ -92,6 +92,7 @@ private:
     QTimer m_timer;
 
     friend class Global;
+    friend class XWayland;
 };
 
 class ChildProcess : public QObject

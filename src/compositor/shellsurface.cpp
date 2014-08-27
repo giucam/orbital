@@ -278,6 +278,11 @@ void ShellSurface::sendPopupDone()
     emit popupDone();
 }
 
+void ShellSurface::setTitle(const QString &t)
+{
+
+}
+
 bool ShellSurface::isFullscreen() const
 {
     return m_type == Type::Toplevel && m_toplevel.fullscreen;
