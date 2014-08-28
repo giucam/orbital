@@ -60,12 +60,12 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
 {
     if (map || dx || dy) {
         if (maximized) {
-            QRect rect = m_designedOutput->availableGeometry();
-            setPos(rect.topLeft());
             if (!m_posSaved) {
                 m_savedPos = QPointF(x(), y());
                 m_posSaved = true;
             }
+            QRect rect = m_designedOutput->availableGeometry();
+            setPos(rect.topLeft());
         } else if (fullscreen) {
             if (!m_posSaved) {
                 m_savedPos = QPointF(x(), y());
