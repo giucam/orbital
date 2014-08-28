@@ -32,10 +32,22 @@
 namespace Orbital
 {
 
+struct Listener {
+    wl_listener listener;
+    ShellSurface *surface;
+};
+
+void ShellSurface::surfaceDestroyed(wl_listener *listener, void *data)
+{
+    ShellSurface *surface = reinterpret_cast<Listener *>(listener)->surface;
+    delete surface;
+}
+
 ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             : Object(shell)
             , m_shell(shell)
             , m_surface(surface)
+            , m_listener(new Listener)
             , m_configureSender(nullptr)
             , m_resizeEdges(Edges::None)
             , m_type(Type::None)
@@ -43,6 +55,10 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
 {
+    m_listener->listener.notify = surfaceDestroyed;
+    m_listener->surface = this;
+    wl_signal_add(&surface->destroy_signal, &m_listener->listener);
+
     surface->configure_private = this;
     surface->configure = staticConfigure;
 
@@ -55,6 +71,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
 
 ShellSurface::~ShellSurface()
 {
+    wl_list_remove(&m_listener->listener.link);
     qDeleteAll(m_views);
 }
 

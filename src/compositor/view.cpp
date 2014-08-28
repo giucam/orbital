@@ -34,8 +34,11 @@ struct Listener {
     View *view;
 };
 
-static void viewDestroyed(wl_listener *listener, void *data)
+void View::viewDestroyed(wl_listener *listener, void *data)
 {
+    View *view = reinterpret_cast<Listener *>(listener)->view;
+    view->m_view = nullptr;
+    delete view;
 }
 
 View::View(weston_view *view)
@@ -51,7 +54,12 @@ View::View(weston_view *view)
 
 View::~View()
 {
-    weston_view_destroy(m_view);
+    wl_list_remove(&m_listener->listener.link);
+    if (m_view) {
+        weston_view_destroy(m_view);
+    }
+    delete m_listener;
+    delete m_transform;
 }
 
 bool View::isMapped() const

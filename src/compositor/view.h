@@ -64,6 +64,8 @@ public:
     static View *fromView(weston_view *v);
 
 private:
+    static void viewDestroyed(wl_listener *listener, void *data);
+
     weston_view *m_view;
     Listener *m_listener;
     Output *m_output;

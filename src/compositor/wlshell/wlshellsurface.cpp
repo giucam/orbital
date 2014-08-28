@@ -57,8 +57,16 @@ WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *
     connect(shsurf, &ShellSurface::popupDone, this, &WlShellSurface::popupDone);
 }
 
+WlShellSurface::~WlShellSurface()
+{
+    if (m_resource) {
+        wl_resource_set_destructor(m_resource, nullptr);
+    }
+}
+
 void WlShellSurface::resourceDestroyed()
 {
+    m_resource = nullptr;
     shellSurface()->setConfigureSender(nullptr);
     shellSurface()->unmap();
     delete this;

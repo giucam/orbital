@@ -34,6 +34,7 @@ class WlShellSurface : public Interface
     Q_OBJECT
 public:
     WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *client, uint32_t id);
+    ~WlShellSurface();
 
 private:
     void resourceDestroyed();
