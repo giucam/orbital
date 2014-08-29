@@ -28,6 +28,7 @@
 #include "shellsurface.h"
 #include "view.h"
 #include "shell.h"
+#include "global.h"
 
 namespace Orbital {
 

@@ -42,8 +42,10 @@ class View;
 class ChildProcess;
 class Seat;
 class ButtonBinding;
+class KeyBinding;
 struct Listener;
 enum class PointerButton : unsigned char;
+enum class KeyboardModifiers : unsigned char;
 
 class Compositor : public QObject
 {
@@ -70,7 +72,8 @@ public:
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
 
-    ButtonBinding *createButtonBinding(PointerButton button);
+    ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
+    KeyBinding *createKeyBinding(uint32_t key, KeyboardModifiers modifiers);
 
     static Compositor *fromCompositor(weston_compositor *c);
 

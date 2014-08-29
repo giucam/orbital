@@ -33,6 +33,7 @@ class PointerGrab;
 class Pointer;
 class View;
 class ShellSurface;
+enum class PointerButton : unsigned char;
 
 class Seat
 {
@@ -75,15 +76,6 @@ enum class PointerCursor: unsigned int {
     ResizeBottomRight = ResizeBottom | ResizeRight,
     Busy = 11
 };
-
-enum class PointerButton : unsigned char {
-    Left,
-    Right,
-    Middle
-};
-
-uint32_t pointerButtonToRaw(PointerButton b);
-PointerButton rawToPointerButton(uint32_t b);
 
 class Pointer
 {

@@ -21,6 +21,7 @@
 
 #include "binding.h"
 #include "seat.h"
+#include "global.h"
 
 namespace Orbital {
 
@@ -36,14 +37,26 @@ Binding::~Binding()
 }
 
 
-ButtonBinding::ButtonBinding(weston_compositor *c, PointerButton b, QObject *p)
+ButtonBinding::ButtonBinding(weston_compositor *c, PointerButton b, KeyboardModifiers modifiers, QObject *p)
              : Binding(p)
 {
     auto handler = [](weston_seat *s, uint32_t time, uint32_t button, void *data) {
         Seat *seat = Seat::fromSeat(s);
         emit static_cast<ButtonBinding *>(data)->triggered(seat, time, rawToPointerButton(button));
     };
-    m_binding = weston_compositor_add_button_binding(c, pointerButtonToRaw(b), (weston_keyboard_modifier)0, handler, this);
+    m_binding = weston_compositor_add_button_binding(c, pointerButtonToRaw(b), (weston_keyboard_modifier)modifiers, handler, this);
+}
+
+
+
+KeyBinding::KeyBinding(weston_compositor *c, uint32_t key, KeyboardModifiers modifiers, QObject *p)
+          : Binding(p)
+{
+    auto handler = [](weston_seat *s, uint32_t time, uint32_t key, void *data) {
+        Seat *seat = Seat::fromSeat(s);
+        emit static_cast<KeyBinding *>(data)->triggered(seat, time, key);
+    };
+    m_binding = weston_compositor_add_key_binding(c, key, (weston_keyboard_modifier)modifiers, handler, this);
 }
 
 }

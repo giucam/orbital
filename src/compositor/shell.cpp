@@ -30,6 +30,7 @@
 #include "shellview.h"
 #include "output.h"
 #include "xwayland.h"
+#include "global.h"
 
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
@@ -46,7 +47,7 @@ Shell::Shell(Compositor *c)
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
 
-    ButtonBinding *binding = c->createButtonBinding(PointerButton::Left);
+    ButtonBinding *binding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     connect(binding, &ButtonBinding::triggered, this, &Shell::giveFocus);
     m_focusBinding = binding;
 }

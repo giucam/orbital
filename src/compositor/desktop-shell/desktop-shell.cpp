@@ -29,6 +29,7 @@
 #include "workspace.h"
 #include "view.h"
 #include "seat.h"
+#include "binding.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
@@ -202,7 +203,31 @@ void DesktopShell::desktopReady()
 
 void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
 {
+    class Binding : public QObject
+    {
+    public:
+        ~Binding() {
+            resource = nullptr;
+            delete binding;
+        }
 
+        void triggered(Seat *seat, uint32_t time, uint32_t key)
+        {
+            desktop_shell_binding_send_triggered(resource);
+        }
+
+        wl_resource *resource;
+        KeyBinding *binding;
+    };
+
+    Binding *b = new Binding;
+    b->resource = wl_resource_create(m_client->client(), &desktop_shell_binding_interface, wl_resource_get_version(m_resource), id);
+    wl_resource_set_implementation(b->resource, nullptr, b, [](wl_resource *r) {
+        delete static_cast<Binding *>(wl_resource_get_user_data(r));
+    });
+
+    b->binding = m_shell->compositor()->createKeyBinding(key, (KeyboardModifiers)modifiers);
+    connect(b->binding, &KeyBinding::triggered, b, &Binding::triggered);
 }
 
 void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceResource)

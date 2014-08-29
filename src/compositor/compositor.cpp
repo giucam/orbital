@@ -332,9 +332,14 @@ ChildProcess *Compositor::launchProcess(const QString &path)
     return new ChildProcess(process, client);
 }
 
-ButtonBinding *Compositor::createButtonBinding(PointerButton button)
+ButtonBinding *Compositor::createButtonBinding(PointerButton button, KeyboardModifiers modifiers)
 {
-    return new ButtonBinding(m_compositor, button, this);
+    return new ButtonBinding(m_compositor, button, modifiers, this);
+}
+
+KeyBinding *Compositor::createKeyBinding(uint32_t key, KeyboardModifiers modifiers)
+{
+    return new KeyBinding(m_compositor, key, modifiers, this);
 }
 
 Compositor *Compositor::fromCompositor(weston_compositor *c)
