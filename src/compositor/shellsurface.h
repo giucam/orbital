@@ -55,7 +55,8 @@ public:
     enum class Type {
         None = 0,
         Toplevel = 1,
-        Popup = 2
+        Popup = 2,
+        Transient = 3
     };
     enum class Edges {
         None = 0,
@@ -78,6 +79,7 @@ public:
 
     void setConfigureSender(ConfigureSender sender);
     void setToplevel();
+    void setTransient(weston_surface *parent, int x, int y, bool inactive);
     void setPopup(weston_surface *parent, Seat *seat, int x, int y);
     void setMaximized();
     void setFullscreen();
@@ -132,6 +134,11 @@ private:
         bool maximized;
         bool fullscreen;
     } m_toplevel;
+    struct {
+        int x;
+        int y;
+        bool inactive;
+    } m_transient;
 
     struct {
         QSize size;

@@ -43,6 +43,7 @@ public:
     void setDesignedOutput(Output *o);
     void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
     void configurePopup(ShellView *parent, int x, int y);
+    void configureTransient(ShellView *parent, int x, int y);
 
     void cleanupAndUnmap();
 

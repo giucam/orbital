@@ -111,6 +111,18 @@ void ShellView::configurePopup(ShellView *parent, int x, int y)
     update();
 }
 
+void ShellView::configureTransient(ShellView *parent, int x, int y)
+{
+    if (!isMapped()) {
+        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        wsv->configure(this);
+        setTransformParent(parent);
+        setOutput(m_designedOutput);
+        setPos(x, y);
+    }
+    update();
+}
+
 void ShellView::cleanupAndUnmap()
 {
     if (m_blackSurface) {

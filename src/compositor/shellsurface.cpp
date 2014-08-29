@@ -54,6 +54,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_nextType(Type::None)
             , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
+            , m_transient({ 0, 0, false })
 {
     m_listener->listener.notify = surfaceDestroyed;
     m_listener->surface = this;
@@ -115,6 +116,16 @@ void ShellSurface::setToplevel()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
     m_toplevel.fullscreen = false;
+}
+
+void ShellSurface::setTransient(weston_surface *parent, int x, int y, bool inactive)
+{
+    m_parent = parent;
+    m_transient.x = x;
+    m_transient.y = y;
+    m_transient.inactive = inactive;
+
+    m_nextType = Type::Transient;
 }
 
 void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
@@ -410,6 +421,18 @@ void ShellSurface::configure(int x, int y)
             view->configurePopup(parentView, m_popup.x, m_popup.y);
         }
         m_popup.seat->grabPopup(this);
+    } else if (m_type == Type::Transient) {
+        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
+        if (!parent) {
+            qWarning("Trying to map a popup without a ShellSurface parent.");
+            return;
+        }
+        for (Output *o: m_shell->compositor()->outputs()) {
+            ShellView *view = viewForOutput(o);
+            ShellView *parentView = parent->viewForOutput(o);
+
+            view->configureTransient(parentView, m_transient.x, m_transient.y);
+        }
     }
     weston_surface_damage(m_surface);
 }
