@@ -38,11 +38,13 @@ public slots:
     void end();
 
 signals:
+    void ended();
     void focus(wl_surface *surface, int x, int y);
     void motion(uint32_t time, int x, int y);
     void button(uint32_t time, uint32_t button, uint32_t state);
 
 private:
+    void handleEnded(desktop_shell_grab *grab);
     void handleFocus(desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y);
     void handleMotion(desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y);
     void handleButton(desktop_shell_grab *grab, uint32_t time , uint32_t button, uint32_t state);

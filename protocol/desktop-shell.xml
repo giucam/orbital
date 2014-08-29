@@ -215,6 +215,7 @@
     <interface name="desktop_shell_grab" version="1">
         <request name="end"/>
 
+        <event name="ended"/>
         <event name="focus">
             <arg name="surface" type="object" interface="wl_surface"/>
             <arg name="sx" type="fixed"/>

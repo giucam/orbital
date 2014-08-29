@@ -286,9 +286,16 @@ void DesktopShell::createGrab(uint32_t id)
             }
             desktop_shell_grab_send_button(resource, time, pointerButtonToRaw(button), (int)state);
         }
+        void ended() override
+        {
+            if (resource) {
+                desktop_shell_grab_send_ended(resource);
+            }
+        }
 
         void terminate()
         {
+            resource = nullptr;
             end();
         }
 

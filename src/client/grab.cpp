@@ -41,6 +41,11 @@ void Grab::end()
     desktop_shell_grab_end(m_grab);
 }
 
+void Grab::handleEnded(desktop_shell_grab *grab)
+{
+    emit ended();
+}
+
 void Grab::handleFocus(desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {
     emit focus(surface, wl_fixed_to_int(x), wl_fixed_to_int(y));
@@ -57,6 +62,7 @@ void Grab::handleButton(desktop_shell_grab *grab, uint32_t time , uint32_t btn, 
 }
 
 const struct desktop_shell_grab_listener Grab::s_desktop_shell_grab_listener = {
+    wrapInterface(&Grab::handleEnded),
     wrapInterface(&Grab::handleFocus),
     wrapInterface(&Grab::handleMotion),
     wrapInterface(&Grab::handleButton)
