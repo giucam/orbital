@@ -252,6 +252,11 @@ uint32_t Pointer::grabTime() const
     return m_pointer->grab_time;
 }
 
+PointerButton Pointer::grabButton() const
+{
+    return rawToPointerButton(m_pointer->grab_button);
+}
+
 QPointF Pointer::grabPos() const
 {
     return QPointF(wl_fixed_to_double(m_pointer->grab_x), wl_fixed_to_double(m_pointer->grab_y));

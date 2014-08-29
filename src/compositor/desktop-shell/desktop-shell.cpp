@@ -30,6 +30,7 @@
 #include "view.h"
 #include "seat.h"
 #include "binding.h"
+#include "global.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
@@ -249,7 +250,75 @@ void DesktopShell::restoreWindows()
 
 void DesktopShell::createGrab(uint32_t id)
 {
+    class ClientGrab : public PointerGrab
+    {
+    public:
+        void focus() override
+        {
+            double sx, sy;
+            View *view = pointer()->pickView(&sx, &sy);
+            if (currentFocus != view) {
+                currentFocus = view;
+                desktop_shell_grab_send_focus(resource, view->surface()->resource, wl_fixed_from_double(sx), wl_fixed_from_double(sy));
+            }
+        }
+        void motion(uint32_t time, double x, double y) override
+        {
+            pointer()->move(x, y);
 
+            QPointF p(pointer()->x(), pointer()->y());
+            if (currentFocus) {
+                p = currentFocus->mapFromGlobal(p);
+            }
+            desktop_shell_grab_send_motion(resource, time, wl_fixed_from_double(p.x()), wl_fixed_from_double(p.y()));
+        }
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+        {
+            // Send the event to the application as normal if the mouse was pressed initially.
+            // The application has to know the button was released, otherwise its internal state
+            // will be inconsistent with the physical button state.
+            // Eat the other events, as the app doesn't need to know them.
+            // NOTE: this works only if there is only 1 button pressed initially. i can know how many button
+            // are pressed but weston currently has no API to determine which ones they are.
+            if (pressed && button == pointer()->grabButton()) {
+                pointer()->sendButton(time, button, state);
+                pressed = false;
+            }
+            desktop_shell_grab_send_button(resource, time, pointerButtonToRaw(button), (int)state);
+        }
+
+        void terminate()
+        {
+            end();
+        }
+
+        wl_resource *resource;
+        View *currentFocus;
+        bool pressed;
+    };
+
+    static const struct desktop_shell_grab_interface desktop_shell_grab_implementation = {
+        wrapInterface(&ClientGrab::terminate)
+    };
+
+
+    ClientGrab *grab = new ClientGrab;
+    wl_resource *res = wl_resource_create(m_client->client(), &desktop_shell_grab_interface, wl_resource_get_version(m_resource), id);
+    wl_resource_set_implementation(res, &desktop_shell_grab_implementation, grab, [](wl_resource *res) {
+        delete static_cast<ClientGrab *>(wl_resource_get_user_data(res));
+    });
+
+    Seat *seat = m_shell->compositor()->seats().first();
+    grab->resource = res;
+    grab->pressed = seat->pointer()->buttonCount() > 0;
+
+    double sx, sy;
+    View *view = seat->pointer()->pickView(&sx, &sy);
+    grab->currentFocus = view;
+    grab->start(seat);
+
+    seat->pointer()->setFocus(view, sx, sy);
+    desktop_shell_grab_send_focus(grab->resource, view->surface()->resource, sx, sy);
 }
 
 void DesktopShell::addWorkspace()

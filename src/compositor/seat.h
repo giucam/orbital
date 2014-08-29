@@ -101,6 +101,7 @@ public:
     bool isGrabActive() const;
     uint32_t grabSerial() const;
     uint32_t grabTime() const;
+    PointerButton grabButton() const;
     QPointF grabPos() const;
 
 private:
