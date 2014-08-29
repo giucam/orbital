@@ -272,7 +272,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     m_resizeEdges = edges;
 
 
-    QRect rect = surfaceTreeBoundingBox();
+    QRect rect = geometry();
     grab->width = m_width = rect.width();
     grab->height = m_height = rect.height();
     grab->shsurf = this;
@@ -300,9 +300,22 @@ void ShellSurface::setTitle(const QString &t)
 
 }
 
+void ShellSurface::setGeometry(int x, int y, int w, int h)
+{
+    m_nextGeometry = QRect(x, y, w, h);
+}
+
 bool ShellSurface::isFullscreen() const
 {
     return m_type == Type::Toplevel && m_toplevel.fullscreen;
+}
+
+QRect ShellSurface::geometry() const
+{
+    if (m_geometry.isValid()) {
+        return m_geometry;
+    }
+    return surfaceTreeBoundingBox();
 }
 
 /*
@@ -362,8 +375,8 @@ void ShellSurface::configure(int x, int y)
     if (m_type == Type::Toplevel) {
         int dy = 0;
         int dx = 0;
+        QRect rect = geometry();
         if ((int)m_resizeEdges) {
-            QRect rect = surfaceTreeBoundingBox();
             if (m_resizeEdges & Edges::Top) {
                 dy = m_height - rect.height();
             }
@@ -374,10 +387,9 @@ void ShellSurface::configure(int x, int y)
             m_width = rect.width();
         }
 
-        QSize newSize = surfaceTreeBoundingBox().size();
         bool map = !isMapped() || m_state.maximized != m_toplevel.maximized || m_state.fullscreen != m_toplevel.fullscreen ||
-                   m_state.size != newSize;
-        m_state.size = newSize;
+                   m_state.size != rect.size();
+        m_state.size = rect.size();
         m_state.maximized = m_toplevel.maximized;
         m_state.fullscreen = m_toplevel.fullscreen;
 
@@ -405,6 +417,7 @@ void ShellSurface::configure(int x, int y)
 void ShellSurface::updateState()
 {
     m_type = m_nextType;
+    m_geometry = m_nextGeometry;
 }
 
 void ShellSurface::sendConfigure(int w, int h)

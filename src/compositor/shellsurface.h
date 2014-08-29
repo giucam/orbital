@@ -87,8 +87,10 @@ public:
     void sendPopupDone();
 
     void setTitle(const QString &title);
+    void setGeometry(int x, int y, int w, int h);
 
     bool isFullscreen() const;
+    QRect geometry() const;
 
     QRect surfaceTreeBoundingBox() const;
 
@@ -114,6 +116,8 @@ private:
     Edges m_resizeEdges;
     bool m_resizing;
     int m_height, m_width;
+    QRect m_geometry;
+    QRect m_nextGeometry;
 
     Type m_type;
     Type m_nextType;
