@@ -47,6 +47,11 @@ void LoginService::init()
     }
 }
 
+void LoginService::abort()
+{
+    emit aborted();
+}
+
 void LoginService::logOut()
 {
     client()->quit();

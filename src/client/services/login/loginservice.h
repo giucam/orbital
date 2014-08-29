@@ -44,6 +44,7 @@ public:
     void init();
 
 public slots:
+    void abort();
     void logOut();
     void poweroff();
     void reboot();
@@ -56,6 +57,7 @@ signals:
     void logOutRequested();
     void poweroffRequested();
     void rebootRequested();
+    void aborted();
 
 private slots:
     void doRequest();

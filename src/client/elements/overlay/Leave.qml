@@ -101,15 +101,18 @@ Item {
         onLogOutRequested: startTimeout(0)
         onPoweroffRequested: startTimeout(1)
         onRebootRequested: startTimeout(2)
+        onAborted: {
+            timer.stop();
+            leave.grab.end();
+            leave.grab.destroy();
+            leave.opacity = 0;
+        }
     }
 
     Connections {
         target: leave.grab
         onButton: {
-            timer.stop();
-            leave.grab.end();
-            leave.grab.destroy();
-            leave.opacity = 0;
+            service.abort();
         }
     }
 }
