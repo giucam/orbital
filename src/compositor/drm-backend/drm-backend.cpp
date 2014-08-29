@@ -17,27 +17,94 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+#include <QHash>
+#include <QFile>
+#include <QXmlStreamReader>
+#include <QStandardPaths>
+
 #include <weston/compositor-drm.h>
 
 #include "drm-backend.h"
 
 namespace Orbital {
 
+QHash<QString, QString> outputs;
+
 DrmBackend::DrmBackend()
 {
 
 }
 
+static bool parseModeline(const QString &s, drmModeModeInfo *mode)
+{
+    char hsync[16];
+    char vsync[16];
+    float fclock;
+
+    mode->type = DRM_MODE_TYPE_USERDEF;
+    mode->hskew = 0;
+    mode->vscan = 0;
+    mode->vrefresh = 0;
+    mode->flags = 0;
+
+    if (sscanf(qPrintable(s), "%f %hd %hd %hd %hd %hd %hd %hd %hd %15s %15s",
+           &fclock,
+           &mode->hdisplay,
+           &mode->hsync_start,
+           &mode->hsync_end,
+           &mode->htotal,
+           &mode->vdisplay,
+           &mode->vsync_start,
+           &mode->vsync_end,
+           &mode->vtotal, hsync, vsync) != 11)
+        return false;
+
+    mode->clock = fclock * 1000;
+    if (strcmp(hsync, "+hsync") == 0)
+        mode->flags |= DRM_MODE_FLAG_PHSYNC;
+    else if (strcmp(hsync, "-hsync") == 0)
+        mode->flags |= DRM_MODE_FLAG_NHSYNC;
+    else
+        return false;
+
+    if (strcmp(vsync, "+vsync") == 0)
+        mode->flags |= DRM_MODE_FLAG_PVSYNC;
+    else if (strcmp(vsync, "-vsync") == 0)
+        mode->flags |= DRM_MODE_FLAG_NVSYNC;
+    else
+        return false;
+
+    return true;
+}
+
 static struct drm_backend_output_data *request_output_data(struct drm_backend *b, const char *name)
 {
     struct drm_backend_output_data *data;
-    char *s;
-
     data = (drm_backend_output_data *)zalloc(sizeof *data);
     if (data == NULL)
         return NULL;
 
-    data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+    if (outputs.contains(name)) {
+        QString mode = outputs.value(name);
+        if (mode == QLatin1String("off")) {
+            data->mode.config = DRM_OUTPUT_CONFIG_OFF;
+        } else if (mode == QLatin1String("preferred")) {
+            data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+        } else if (mode == QLatin1String("current")) {
+            data->mode.config = DRM_OUTPUT_CONFIG_CURRENT;
+        } else if (sscanf(qPrintable(mode), "%dx%d", &data->mode.width, &data->mode.height) == 2) {
+            data->mode.config = DRM_OUTPUT_CONFIG_MODE;
+        } else if (parseModeline(mode, &data->mode.modeline)) {
+            data->mode.config = DRM_OUTPUT_CONFIG_MODELINE;
+        } else {
+            qWarning("Invalid mode '%s' for output '%s'.", qPrintable(mode), name);
+            data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+        }
+    } else {
+        data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+    }
+
     data->scale = 1;
     data->transform = WL_OUTPUT_TRANSFORM_NORMAL;
     data->format = NULL;
@@ -69,8 +136,32 @@ static void configureDevice(struct weston_compositor *compositor, struct libinpu
 
 bool DrmBackend::init(weston_compositor *c)
 {
-    struct weston_config_section *section;
     struct drm_backend_parameters param = { 0, };
+
+    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configFile = path + "/orbital/orbital.conf";
+
+    QFile file(configFile);
+    QByteArray data;
+    if (file.open(QIODevice::ReadOnly)) {
+        data = file.readAll();
+        file.close();
+    }
+
+    QXmlStreamReader xml(data);
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.isStartElement()) {
+            if (xml.name() == "Output") {
+                QXmlStreamAttributes attribs = xml.attributes();
+                QString name = attribs.value("name").toString();
+                QString mode = attribs.value("mode").toString();
+
+                outputs.insert(name, mode);
+            }
+        }
+    }
+
 
     param.tty = 1;
     param.format = NULL;
