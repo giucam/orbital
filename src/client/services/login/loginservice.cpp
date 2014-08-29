@@ -49,6 +49,7 @@ void LoginService::init()
 
 void LoginService::abort()
 {
+    m_request = nullptr;
     emit aborted();
 }
 
@@ -104,7 +105,7 @@ void LoginService::requestHandled()
 
 void LoginService::doRequest()
 {
-    if (!m_requestHandled) {
+    if (!m_requestHandled && m_request) {
         (this->*m_request)();
     }
 }
