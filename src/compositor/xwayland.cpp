@@ -77,7 +77,10 @@ spawn_xserver(struct weston_xserver *wxs)
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->setProcessEnvironment(env);
 
-    process->connect(process, (void (QProcess::*)(int))&QProcess::finished, [wxs](int exitCode) { weston_xserver_exited(wxs, exitCode); });
+    process->connect(process, (void (QProcess::*)(int))&QProcess::finished, [wxs, process](int exitCode) {
+        weston_xserver_exited(wxs, exitCode);
+        delete process;
+    });
     process->start(wxs->xserver_path, QStringList() <<
               display <<
               "-rootless" <<
