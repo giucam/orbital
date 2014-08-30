@@ -210,7 +210,7 @@ bool Compositor::init(const QString &socketName)
     }
 
     m_shell = new Shell(this);
-    Workspace *ws = m_shell->addWorkspace();
+    Workspace *ws = m_shell->createWorkspace();
     for (Output *o: m_outputs) {
         o->viewWorkspace(ws);
     }

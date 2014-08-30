@@ -58,7 +58,7 @@ ShellSurface *WlShell::getShellSurface(wl_client *client, wl_resource *resource,
         return nullptr;
     }
 
-    ShellSurface *shsurf = new ShellSurface(m_shell, surface);
+    ShellSurface *shsurf = m_shell->createShellSurface(surface);
     WlShellSurface *wlss = new WlShellSurface(this, shsurf, client, id);
     shsurf->addInterface(wlss);
 

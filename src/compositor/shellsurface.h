@@ -91,14 +91,18 @@ public:
     void setTitle(const QString &title);
     void setGeometry(int x, int y, int w, int h);
 
+    Type type() const { return m_type; }
     bool isFullscreen() const;
     QRect geometry() const;
+    QString title() const;
 
     QRect surfaceTreeBoundingBox() const;
 
     static ShellSurface *fromSurface(weston_surface *s);
 
 signals:
+    void mapped();
+    void titleChanged();
     void popupDone();
 
 private:
@@ -120,6 +124,7 @@ private:
     int m_height, m_width;
     QRect m_geometry;
     QRect m_nextGeometry;
+    QString m_title;
 
     Type m_type;
     Type m_nextType;

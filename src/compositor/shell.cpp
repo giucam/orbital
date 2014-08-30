@@ -35,6 +35,7 @@
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
+#include "desktop-shell/desktop-shell-window.h"
 
 namespace Orbital {
 
@@ -57,7 +58,7 @@ Compositor *Shell::compositor() const
     return m_compositor;
 }
 
-Workspace *Shell::addWorkspace()
+Workspace *Shell::createWorkspace()
 {
     Workspace *ws = new Workspace(this);
     ws->addInterface(new DesktopShellWorkspace(ws));
@@ -65,9 +66,22 @@ Workspace *Shell::addWorkspace()
     return ws;
 }
 
+ShellSurface *Shell::createShellSurface(weston_surface *s)
+{
+    ShellSurface *surf = new ShellSurface(this, s);
+    surf->addInterface(new DesktopShellWindow(findInterface<DesktopShell>()));
+    m_surfaces << surf;
+    return surf;
+}
+
 QList<Workspace *> Shell::workspaces() const
 {
     return m_workspaces;
+}
+
+QList<ShellSurface *> Shell::surfaces() const
+{
+    return m_surfaces;
 }
 
 void Shell::setGrabCursor(Pointer *pointer, PointerCursor c)

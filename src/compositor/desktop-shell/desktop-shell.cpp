@@ -32,8 +32,10 @@
 #include "binding.h"
 #include "global.h"
 #include "layer.h"
+#include "shellsurface.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
+#include "desktop-shell-window.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -56,6 +58,11 @@ DesktopShell::DesktopShell(Shell *shell)
 DesktopShell::~DesktopShell()
 {
     m_shell->setGrabCursorSetter(nullptr);
+}
+
+wl_client *DesktopShell::client() const
+{
+    return m_client->client();
 }
 
 void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
@@ -94,6 +101,12 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         dws->init(m_client->client(), 0);
         desktop_shell_send_workspace_added(m_resource, dws->resource());
         dws->sendActivatedState();
+    }
+    for (ShellSurface *shsurf: m_shell->surfaces()) {
+        DesktopShellWindow *w = shsurf->findInterface<DesktopShellWindow>();
+        if (w) {
+            w->recreate();
+        }
     }
 
     desktop_shell_send_load(resource);
@@ -445,7 +458,7 @@ void DesktopShell::createGrab(uint32_t id)
 
 void DesktopShell::addWorkspace(uint32_t id)
 {
-    Workspace *ws = m_shell->addWorkspace();
+    Workspace *ws = m_shell->createWorkspace();
     DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
     dws->init(m_client->client(), id);
     dws->sendActivatedState();

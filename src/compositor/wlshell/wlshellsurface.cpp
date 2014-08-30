@@ -141,7 +141,7 @@ void WlShellSurface::setMaximized(wl_resource *outputResource)
 
 void WlShellSurface::setTitle(const char *title)
 {
-
+    shellSurface()->setTitle(title);
 }
 
 void WlShellSurface::setClass(const char *className)

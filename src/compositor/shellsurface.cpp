@@ -308,7 +308,10 @@ void ShellSurface::sendPopupDone()
 
 void ShellSurface::setTitle(const QString &t)
 {
-
+    if (m_title != t) {
+        m_title = t;
+        emit titleChanged();
+    }
 }
 
 void ShellSurface::setGeometry(int x, int y, int w, int h)
@@ -327,6 +330,11 @@ QRect ShellSurface::geometry() const
         return m_geometry;
     }
     return surfaceTreeBoundingBox();
+}
+
+QString ShellSurface::title() const
+{
+    return m_title;
 }
 
 /*
@@ -378,6 +386,7 @@ void ShellSurface::configure(int x, int y)
         return;
     }
 
+    bool wasMapped = isMapped();
     m_shell->configure(this);
     if (!m_workspace) {
         return;
@@ -437,6 +446,10 @@ void ShellSurface::configure(int x, int y)
         }
     }
     weston_surface_damage(m_surface);
+
+    if (!wasMapped && isMapped()) {
+        emit mapped();
+    }
 }
 
 void ShellSurface::updateState()

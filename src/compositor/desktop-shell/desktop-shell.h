@@ -40,6 +40,9 @@ public:
     explicit DesktopShell(Shell *shell);
     ~DesktopShell();
 
+    wl_client *client() const;
+    inline wl_resource *resource() const { return m_resource; }
+
 protected:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
 

@@ -29,6 +29,7 @@ set(SOURCES
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp
     desktop-shell/desktop-shell-splash.cpp
+    desktop-shell/desktop-shell-window.cpp
     desktop-shell/desktop-shell-workspace.cpp)
 
 wayland_add_protocol_server(SOURCES

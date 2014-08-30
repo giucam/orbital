@@ -24,6 +24,8 @@
 
 #include "interface.h"
 
+struct weston_surface;
+
 namespace Orbital {
 
 class Compositor;
@@ -44,8 +46,10 @@ public:
     explicit Shell(Compositor *c);
 
     Compositor *compositor() const;
-    Workspace *addWorkspace();
+    Workspace *createWorkspace();
+    ShellSurface *createShellSurface(weston_surface *surface);
     QList<Workspace *> workspaces() const;
+    QList<ShellSurface *> surfaces() const;
 
     void setGrabCursor(Pointer *pointer, PointerCursor c);
     void configure(ShellSurface *shsurf);
@@ -57,6 +61,7 @@ private:
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
+    QList<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;
     Binding *m_focusBinding;
 };
