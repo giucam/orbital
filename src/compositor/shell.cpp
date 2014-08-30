@@ -31,6 +31,7 @@
 #include "output.h"
 #include "xwayland.h"
 #include "global.h"
+#include "pager.h"
 
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
@@ -43,6 +44,7 @@ Shell::Shell(Compositor *c)
      : Object()
      , m_compositor(c)
      , m_grabCursorSetter(nullptr)
+     , m_pager(new Pager(c))
 {
     addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
@@ -58,10 +60,16 @@ Compositor *Shell::compositor() const
     return m_compositor;
 }
 
+Pager *Shell::pager() const
+{
+    return m_pager;
+}
+
 Workspace *Shell::createWorkspace()
 {
-    Workspace *ws = new Workspace(this);
-    ws->addInterface(new DesktopShellWorkspace(ws));
+    Workspace *ws = new Workspace(this, m_workspaces.count());
+    ws->addInterface(new DesktopShellWorkspace(this, ws));
+    m_pager->addWorkspace(ws);
     m_workspaces << ws;
     return ws;
 }

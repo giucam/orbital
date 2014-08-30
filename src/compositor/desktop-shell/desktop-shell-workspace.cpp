@@ -25,17 +25,19 @@
 #include "workspace.h"
 #include "utils.h"
 #include "output.h"
+#include "shell.h"
+#include "pager.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
 
-DesktopShellWorkspace::DesktopShellWorkspace(Workspace *ws)
+DesktopShellWorkspace::DesktopShellWorkspace(Shell *shell, Workspace *ws)
                      : Interface()
+                     , m_shell(shell)
                      , m_workspace(ws)
                      , m_resource(nullptr)
 {
-    connect(m_workspace, &Workspace::activated, this, &DesktopShellWorkspace::activated);
-    connect(m_workspace, &Workspace::deactivated, this, &DesktopShellWorkspace::deactivated);
+    connect(shell->pager(), &Pager::workspaceActivated, this, &DesktopShellWorkspace::workspaceActivated);
 }
 
 void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
@@ -61,23 +63,22 @@ DesktopShellWorkspace *DesktopShellWorkspace::fromResource(wl_resource *res)
     return static_cast<DesktopShellWorkspace *>(wl_resource_get_user_data(res));
 }
 
-void DesktopShellWorkspace::activated(Output *out)
+void DesktopShellWorkspace::workspaceActivated(Workspace *w, Output *out)
 {
-    m_active.insert(out);
+    if (w == m_workspace) {
+        m_active.insert(out);
 
-    if (m_resource) {
-        wl_resource *res = out->resource(wl_resource_get_client(m_resource));
-        desktop_shell_workspace_send_activated(m_resource, res);
-    }
-}
+        if (m_resource) {
+            wl_resource *res = out->resource(wl_resource_get_client(m_resource));
+            desktop_shell_workspace_send_activated(m_resource, res);
+        }
+    } else if (m_active.contains(out)) {
+        m_active.remove(out);
 
-void DesktopShellWorkspace::deactivated(Output *out)
-{
-    m_active.remove(out);
-
-    if (m_resource) {
-        wl_resource *res = out->resource(wl_resource_get_client(m_resource));
-        desktop_shell_workspace_send_deactivated(m_resource, res);
+        if (m_resource) {
+            wl_resource *res = out->resource(wl_resource_get_client(m_resource));
+            desktop_shell_workspace_send_deactivated(m_resource, res);
+        }
     }
 }
 

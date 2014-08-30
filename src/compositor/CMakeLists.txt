@@ -25,6 +25,7 @@ set(SOURCES
     transform.cpp
     binding.cpp
     xwayland.cpp
+    pager.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp

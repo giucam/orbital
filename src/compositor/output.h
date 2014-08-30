@@ -36,6 +36,7 @@ class Layer;
 class WorkspaceView;
 class DummySurface;
 class Animation;
+class Pager;
 struct Listener;
 
 class Output : public QObject
@@ -44,7 +45,6 @@ class Output : public QObject
 public:
     explicit Output(weston_output *out);
 
-    void viewWorkspace(Workspace *ws);
     Workspace *currentWorkspace() const;
 
     void setBackground(weston_surface *surface);
@@ -70,10 +70,11 @@ private:
     DummySurface *m_transformRoot;
     View *m_background;
     QList<View *> m_panels;
-    WorkspaceView *m_currentWsv;
+    Workspace *m_currentWs;
 
     friend View;
     friend Animation;
+    friend Pager;
 };
 
 }

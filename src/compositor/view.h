@@ -23,6 +23,7 @@
 #include <QRectF>
 
 struct wl_client;
+struct wl_listener;
 struct weston_view;
 
 namespace Orbital
@@ -44,6 +45,7 @@ public:
     bool isMapped() const;
     double x() const;
     double y() const;
+    QPointF pos() const;
     QRectF geometry() const;
     void setOutput(Output *o);
     void setAlpha(double alpha);

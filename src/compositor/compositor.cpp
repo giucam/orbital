@@ -40,6 +40,7 @@
 #include "dummysurface.h"
 #include "seat.h"
 #include "binding.h"
+#include "pager.h"
 
 namespace Orbital {
 
@@ -212,7 +213,7 @@ bool Compositor::init(const QString &socketName)
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
     for (Output *o: m_outputs) {
-        o->viewWorkspace(ws);
+        m_shell->pager()->activate(ws, o);
     }
 
     return true;

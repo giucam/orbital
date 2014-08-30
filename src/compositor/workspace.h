@@ -34,6 +34,7 @@ class WorkspaceView;
 class Output;
 class Compositor;
 class DummySurface;
+class Pager;
 
 class Workspace : public Object
 {
@@ -41,22 +42,21 @@ class Workspace : public Object
 //     Q_PROPERTY(int x READ x WRITE setX)
 //     Q_PROPERTY(int y READ y WRITE setY)
 public:
-    Workspace(Shell *shell);
+    Workspace(Shell *shell, int id);
 
     Compositor *compositor() const;
+    Pager *pager() const;
     WorkspaceView *viewForOutput(Output *o);
 
+    int id() const;
     int x() const;
     int y() const;
     void setX(int x);
     void setY(int y);
 
-signals:
-    void activated(Output *output);
-    void deactivated(Output *output);
-
 private:
     Shell *m_shell;
+    int m_id;
     int m_x;
     int m_y;
     QHash<int, WorkspaceView *> m_views;
@@ -72,7 +72,7 @@ public:
 
     void attach(View *view, int x, int y);
     void detach();
-    bool isAttached() const;
+    void setMask(const QRect &rect);
 
     Workspace *workspace() const { return m_workspace; }
 
@@ -88,6 +88,8 @@ private:
     DummySurface *m_root;
     QList<View *> m_views;
     bool m_attached;
+
+    friend Pager;
 };
 
 }

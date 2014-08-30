@@ -33,6 +33,7 @@
 #include "global.h"
 #include "layer.h"
 #include "shellsurface.h"
+#include "pager.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
@@ -470,7 +471,9 @@ void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *wor
     DesktopShellWorkspace *dws = DesktopShellWorkspace::fromResource(workspaceResource);
     Workspace *ws = dws->workspace();
     qDebug()<<"select"<<output<<ws;
-    output->viewWorkspace(ws);
+//     output->viewWorkspace(ws);
+
+    m_shell->pager()->activate(ws, output);
 }
 
 void DesktopShell::quit()

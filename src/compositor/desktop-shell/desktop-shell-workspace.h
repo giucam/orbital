@@ -31,12 +31,13 @@ namespace Orbital {
 
 class Workspace;
 class Output;
+class Shell;
 
 class DesktopShellWorkspace : public Interface
 {
     Q_OBJECT
 public:
-    DesktopShellWorkspace(Workspace *ws);
+    DesktopShellWorkspace(Shell *shell, Workspace *ws);
 
     void init(wl_client *client, uint32_t id);
     void sendActivatedState();
@@ -46,10 +47,10 @@ public:
     static DesktopShellWorkspace *fromResource(wl_resource *resource);
 
 private:
-    void activated(Output *out);
-    void deactivated(Output *out);
+    void workspaceActivated(Workspace *ws, Output *o);
     void removed(wl_client *client, wl_resource *res);
 
+    Shell *m_shell;
     Workspace *m_workspace;
     wl_resource *m_resource;
     QSet<Output *> m_active;

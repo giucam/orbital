@@ -49,7 +49,7 @@ Output::Output(weston_output *out)
       , m_backgroundLayer(new Layer)
       , m_transformRoot(m_compositor->createDummySurface(0, 0))
       , m_background(nullptr)
-      , m_currentWsv(nullptr)
+      , m_currentWs(nullptr)
 {
     m_transformRoot->setPos(out->x, out->y);
 
@@ -61,21 +61,9 @@ Output::Output(weston_output *out)
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
 }
 
-void Output::viewWorkspace(Workspace *ws)
-{
-    if (m_currentWsv) {
-        m_currentWsv->detach();
-    }
-    WorkspaceView *view = ws->viewForOutput(this);
-    view->attach(m_transformRoot, m_output->x, m_output->y);
-    m_currentWsv = view;
-
-    weston_output_schedule_repaint(m_output);
-}
-
 Workspace *Output::currentWorkspace() const
 {
-    return m_currentWsv->workspace();
+    return m_currentWs;
 }
 
 class Surface {

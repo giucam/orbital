@@ -35,6 +35,7 @@ class ShellSurface;
 class Pointer;
 class Binding;
 class Seat;
+class Pager;
 enum class PointerCursor: unsigned int;
 
 class Shell : public Object
@@ -46,6 +47,7 @@ public:
     explicit Shell(Compositor *c);
 
     Compositor *compositor() const;
+    Pager *pager() const;
     Workspace *createWorkspace();
     ShellSurface *createShellSurface(weston_surface *surface);
     QList<Workspace *> workspaces() const;
@@ -64,6 +66,7 @@ private:
     QList<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;
     Binding *m_focusBinding;
+    Pager *m_pager;
 };
 
 }

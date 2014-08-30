@@ -28,6 +28,7 @@
 #include "output.h"
 #include "compositor.h"
 #include "seat.h"
+#include "pager.h"
 
 namespace Orbital
 {
@@ -473,8 +474,7 @@ Output *ShellSurface::selectOutput()
     };
     QList<Out> candidates;
     for (Output *o: m_shell->compositor()->outputs()) {
-        WorkspaceView *ws = m_workspace->viewForOutput(o);
-        candidates.append({ o, ws->isAttached() ? 10 : 0 });
+        candidates.append({ o, m_shell->pager()->isWorkspaceActive(m_workspace, o) ? 10 : 0 });
     }
 
     Output *output = nullptr;

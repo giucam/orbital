@@ -30,12 +30,14 @@
 #include "compositor.h"
 #include "dummysurface.h"
 #include "shellview.h"
+#include "pager.h"
 
 namespace Orbital {
 
-Workspace::Workspace(Shell *shell)
+Workspace::Workspace(Shell *shell, int id)
          : Object(shell)
          , m_shell(shell)
+         , m_id(id)
 {
     for (Output *o: shell->compositor()->outputs()) {
         WorkspaceView *view = new WorkspaceView(this, o, o->width(), o->height());
@@ -48,9 +50,19 @@ Compositor *Workspace::compositor() const
     return m_shell->compositor();
 }
 
+Pager *Workspace::pager() const
+{
+    return m_shell->pager();
+}
+
 WorkspaceView *Workspace::viewForOutput(Output *o)
 {
     return m_views.value(o->id());
+}
+
+int Workspace::id() const
+{
+    return m_id;
 }
 
 
@@ -63,16 +75,13 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              , m_height(h)
              , m_layer(new Layer)
              , m_fullscreenLayer(new Layer)
-             , m_attached(false)
 {
     m_root = ws->compositor()->createDummySurface(0, 0);
 
     m_layer->append(ws->compositor()->appsLayer());
     m_fullscreenLayer->append(ws->compositor()->rootLayer());
 
-    setPos(0, 0); //FIXME
-    m_layer->setMask(0, 0, 0, 0);
-    m_fullscreenLayer->setMask(0, 0, 0, 0);
+    setMask(QRect());
 }
 
 void WorkspaceView::setPos(int x, int y)
@@ -82,28 +91,10 @@ void WorkspaceView::setPos(int x, int y)
     m_fullscreenLayer->setMask(x, y, m_width, m_height);
 }
 
-void WorkspaceView::attach(View *view, int x, int y)
+void WorkspaceView::setMask(const QRect &r)
 {
-    m_root->setTransformParent(view);
-    m_layer->setMask(x, y, m_width, m_height);
-    m_fullscreenLayer->setMask(x, y, m_width, m_height);
-
-    m_attached = true;
-    emit m_workspace->activated(m_output);
-}
-
-void WorkspaceView::detach()
-{
-    setPos(0, 0);
-    m_layer->setMask(0, 0, 0, 0);
-    m_fullscreenLayer->setMask(0, 0, 0, 0);
-    m_attached = false;
-    emit m_workspace->deactivated(m_output);
-}
-
-bool WorkspaceView::isAttached() const
-{
-    return m_attached;
+    m_layer->setMask(r.x(), r.y(), r.width(), r.height());
+    m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
 }
 
 void WorkspaceView::configure(View *view)

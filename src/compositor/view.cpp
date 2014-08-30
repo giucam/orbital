@@ -77,6 +77,11 @@ double View::y() const
     return m_view->geometry.y;
 }
 
+QPointF View::pos() const
+{
+    return QPointF(x(), y());
+}
+
 QRectF View::geometry() const
 {
     return QRectF(m_view->geometry.x, m_view->geometry.y, m_view->surface->width, m_view->surface->height);
