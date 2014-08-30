@@ -168,11 +168,6 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    QProcess *proc = createTrustedClient("desktop_shell_splash");
-    proc->start(LIBEXEC_PATH "/orbital-splash");
-    wl_display_flush(m_display); //Make sure the server receives the fd asap
-    connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });
-
     // win + print_screen FIXME: make this configurable
     connect(addKeyBinding(KEY_SYSRQ, 1 << 2), &Binding::triggered, this, &Client::takeScreenshot);
 
