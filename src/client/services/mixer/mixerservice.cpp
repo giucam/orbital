@@ -18,7 +18,9 @@
  */
 
 #include <linux/input.h>
+
 #include <QDebug>
+#include <qmath.h>
 
 #include "mixerservice.h"
 #include "client.h"
@@ -26,6 +28,7 @@
 #ifdef HAVE_ALSA
 #include "alsamixer.h"
 #endif
+#include "pulseaudiomixer.h"
 
 MixerService::MixerService()
             : Service()
@@ -44,15 +47,20 @@ MixerService::~MixerService()
 
 void MixerService::init()
 {
+    m_backend = PulseAudioMixer::create(this);
+    if (!m_backend) {
 #ifdef HAVE_ALSA
-    m_backend = AlsaMixer::create(this);
+        m_backend = AlsaMixer::create(this);
 #endif
+    }
     if (!m_backend) {
         qWarning() << "MixerService: could not load a mixer backend.";
         return;
     }
 
     m_backend->getBoundaries(&m_min, &m_max);
+    m_step = (m_max - m_min) / 50;
+    qDebug()<<m_min<<m_max;
 
     m_upBinding = client()->addKeyBinding(KEY_VOLUMEUP, 0);
     m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
@@ -71,24 +79,24 @@ void MixerService::changeMaster(int change)
 void MixerService::increaseMaster()
 {
     if (m_backend) {
-        m_backend->setRawVol(m_backend->rawVol() + 2);
-        emit masterChanged();
+        long v = qBound(m_min, m_backend->rawVol() + m_step, m_max);
+        m_backend->setRawVol(v);
     }
 }
 
 void MixerService::decreaseMaster()
 {
     if (m_backend) {
-        m_backend->setRawVol(m_backend->rawVol() - 2);
-        emit masterChanged();
+        long v = qBound(m_min, m_backend->rawVol() - m_step, m_max);
+        m_backend->setRawVol(v);
     }
 }
 
 void MixerService::setMaster(int volume)
 {
     if (m_backend) {
-        m_backend->setRawVol((float)volume * (float)m_max / 100.f);
-        emit masterChanged();
+        int v = qBound(m_min, (int)((double)volume * (double)m_max / 100.), m_max);
+        m_backend->setRawVol(v);
     }
 }
 
@@ -114,7 +122,6 @@ void MixerService::setMuted(bool muted)
 {
     if (m_backend) {
         m_backend->setMuted(muted);
-        emit mutedChanged();
     }
 }
 

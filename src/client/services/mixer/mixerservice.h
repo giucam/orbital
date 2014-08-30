@@ -29,7 +29,7 @@ class Backend
 public:
     virtual ~Backend() {}
 
-    virtual void getBoundaries(long *min, long *max) const = 0;
+    virtual void getBoundaries(int *min, int *max) const = 0;
     virtual int rawVol() const = 0;
     virtual void setRawVol(int vol) = 0;
     virtual bool muted() const = 0;
@@ -66,8 +66,9 @@ signals:
     void bindingTriggered();
 
 private:
-    long m_min;
-    long m_max;
+    int m_min;
+    int m_max;
+    int m_step;
 
     Backend *m_backend;
     Binding *m_upBinding;

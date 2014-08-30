@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -17,19 +17,23 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ALSAMIXER_H
-#define ALSAMIXER_H
+#ifndef PULSEAUDIOMIXER_H
+#define PULSEAUDIOMIXER_H
 
-#include <alsa/asoundlib.h>
+#include <pulse/pulseaudio.h>
 
 #include "mixerservice.h"
 
-class AlsaMixer : public Backend
+struct pa_glib_mainloop;
+
+struct Sink;
+
+class PulseAudioMixer : public Backend
 {
 public:
-    ~AlsaMixer();
+    ~PulseAudioMixer();
 
-    static AlsaMixer *create(MixerService *mixer);
+    static PulseAudioMixer *create(MixerService *mixer);
 
     void getBoundaries(int *min, int *max) const override;
 
@@ -39,14 +43,17 @@ public:
     void setMuted(bool muted) override;
 
 private:
-    AlsaMixer(MixerService *mixer);
+    PulseAudioMixer(MixerService *mixer);
+    void contextStateCallback(pa_context *c);
+    void subscribeCallback(pa_context *c, pa_subscription_event_type_t t, uint32_t index);
+    void sinkCallback(pa_context *c, const pa_sink_info *i, int eol);
+    void cleanup();
 
     MixerService *m_mixer;
-    snd_mixer_t *m_handle;
-    snd_mixer_selem_id_t *m_sid;
-    snd_mixer_elem_t *m_elem;
-    long m_min;
-    long m_max;
+    pa_glib_mainloop *m_mainLoop;
+    pa_mainloop_api *m_mainloopApi;
+    pa_context *m_context;
+    Sink *m_sink;
 };
 
 #endif

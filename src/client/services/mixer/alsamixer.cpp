@@ -20,8 +20,8 @@
 #include "alsamixer.h"
 #include "client.h"
 
-const char *card = "default";
-const char *selem_name = "Master";
+static const char *card = "default";
+static const char *selem_name = "Master";
 
 AlsaMixer::AlsaMixer(MixerService *m)
          : Backend()
@@ -59,7 +59,7 @@ AlsaMixer::~AlsaMixer()
     snd_mixer_close(m_handle);
 }
 
-void AlsaMixer::getBoundaries(long *min, long *max) const
+void AlsaMixer::getBoundaries(int *min, int *max) const
 {
     *min = m_min;
     *max = m_max;
@@ -67,9 +67,8 @@ void AlsaMixer::getBoundaries(long *min, long *max) const
 
 void AlsaMixer::setRawVol(int volume)
 {
-    if (volume > m_max) volume = m_max;
-    if (volume < m_min) volume = m_min;
     snd_mixer_selem_set_playback_volume_all(m_elem, volume);
+    emit m_mixer->masterChanged();
 }
 
 int AlsaMixer::rawVol() const
@@ -89,4 +88,5 @@ bool AlsaMixer::muted() const
 void AlsaMixer::setMuted(bool muted)
 {
     snd_mixer_selem_set_playback_switch_all(m_elem, !muted);
+    emit m_mixer->mutedChanged();
 }
