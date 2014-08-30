@@ -72,7 +72,9 @@
             <arg name="id" type="new_id" interface="desktop_shell_grab"/>
         </request>
 
-        <request name="add_workspace"/>
+        <request name="add_workspace">
+            <arg name="id" type="new_id" interface="desktop_shell_workspace"/>
+        </request>
         <request name="select_workspace">
             <arg name="output" type="object" interface="wl_output"/>
             <arg name="workspace" type="object" interface="desktop_shell_workspace"/>

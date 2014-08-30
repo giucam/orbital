@@ -38,7 +38,7 @@ class DesktopShellWorkspace : public Interface
 public:
     DesktopShellWorkspace(Workspace *ws);
 
-    void init(wl_client *client);
+    void init(wl_client *client, uint32_t id);
     void sendActivatedState();
     wl_resource *resource() const { return m_resource; }
     Workspace *workspace() const { return m_workspace; }

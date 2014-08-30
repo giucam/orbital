@@ -38,13 +38,13 @@ DesktopShellWorkspace::DesktopShellWorkspace(Workspace *ws)
     connect(m_workspace, &Workspace::deactivated, this, &DesktopShellWorkspace::deactivated);
 }
 
-void DesktopShellWorkspace::init(wl_client *client)
+void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
 {
     const struct desktop_shell_workspace_interface implementation = {
         wrapInterface(&DesktopShellWorkspace::removed)
     };
 
-    m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, 0);
+    m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
     wl_resource_set_implementation(m_resource, &implementation, this, 0);
 }
 

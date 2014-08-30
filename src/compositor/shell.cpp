@@ -57,10 +57,12 @@ Compositor *Shell::compositor() const
     return m_compositor;
 }
 
-void Shell::addWorkspace(Workspace *ws)
+Workspace *Shell::addWorkspace()
 {
+    Workspace *ws = new Workspace(this);
     ws->addInterface(new DesktopShellWorkspace(ws));
     m_workspaces << ws;
+    return ws;
 }
 
 QList<Workspace *> Shell::workspaces() const

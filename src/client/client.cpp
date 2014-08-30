@@ -379,7 +379,11 @@ void Client::restoreWindows()
 void Client::addWorkspace(int n)
 {
     if (m_workspaces.size() <= n) {
-        desktop_shell_add_workspace(m_shell);
+        desktop_shell_workspace *workspace = desktop_shell_add_workspace(m_shell);
+
+        Workspace *ws = new Workspace(workspace);
+        m_workspaces << ws;
+        emit workspacesChanged();
     }
 }
 

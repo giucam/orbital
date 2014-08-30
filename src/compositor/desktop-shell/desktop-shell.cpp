@@ -90,7 +90,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
 
     for (Workspace *ws: m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
-        dws->init(m_client->client());
+        dws->init(m_client->client(), 0);
         desktop_shell_send_workspace_added(m_resource, dws->resource());
         dws->sendActivatedState();
     }
@@ -442,9 +442,12 @@ void DesktopShell::createGrab(uint32_t id)
     desktop_shell_grab_send_focus(grab->resource, view->surface()->resource, sx, sy);
 }
 
-void DesktopShell::addWorkspace()
+void DesktopShell::addWorkspace(uint32_t id)
 {
-
+    Workspace *ws = m_shell->addWorkspace();
+    DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
+    dws->init(m_client->client(), id);
+    dws->sendActivatedState();
 }
 
 void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *workspaceResource)

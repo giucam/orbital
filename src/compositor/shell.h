@@ -44,7 +44,7 @@ public:
     explicit Shell(Compositor *c);
 
     Compositor *compositor() const;
-    void addWorkspace(Workspace *ws);
+    Workspace *addWorkspace();
     QList<Workspace *> workspaces() const;
 
     void setGrabCursor(Pointer *pointer, PointerCursor c);

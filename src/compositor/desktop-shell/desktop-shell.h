@@ -58,7 +58,7 @@ private:
     void minimizeWindows();
     void restoreWindows();
     void createGrab(uint32_t id);
-    void addWorkspace();
+    void addWorkspace(uint32_t id);
     void selectWorkspace(wl_resource *outputResource, wl_resource *workspaceResource);
     void quit();
     void addTrustedClient(int32_t fd, const char *interface);
