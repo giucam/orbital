@@ -28,6 +28,7 @@
 #include "transform.h"
 #include "compositor.h"
 #include "dummysurface.h"
+#include "layer.h"
 
 namespace Orbital {
 
@@ -102,8 +103,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
 void ShellView::configurePopup(ShellView *parent, int x, int y)
 {
     if (!isMapped()) {
-        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
-        wsv->configure(this);
+        parent->layer()->addView(this);
         setTransformParent(parent);
         setOutput(m_designedOutput);
         setPos(x, y);
@@ -114,8 +114,7 @@ void ShellView::configurePopup(ShellView *parent, int x, int y)
 void ShellView::configureTransient(View *parent, int x, int y)
 {
     if (!isMapped()) {
-        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
-        wsv->configure(this);
+        parent->layer()->addView(this);
         setTransformParent(parent);
         setOutput(m_designedOutput);
         setPos(x, y);
