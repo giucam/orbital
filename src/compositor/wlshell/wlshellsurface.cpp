@@ -109,9 +109,10 @@ void WlShellSurface::setToplevel()
     shellSurface()->setToplevel();
 }
 
-void WlShellSurface::setTransient(wl_resource *parent_resource, int x, int y, uint32_t flags)
+void WlShellSurface::setTransient(wl_resource *parentResource, int x, int y, uint32_t flags)
 {
-
+    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
+    shellSurface()->setTransient(parent, x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
 }
 
 void WlShellSurface::setFullscreen(uint32_t method, uint32_t framerate, wl_resource *outputResource)

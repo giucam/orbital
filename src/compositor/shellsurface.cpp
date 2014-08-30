@@ -424,14 +424,16 @@ void ShellSurface::configure(int x, int y)
     } else if (m_type == Type::Transient) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
-            qWarning("Trying to map a popup without a ShellSurface parent.");
-            return;
-        }
-        for (Output *o: m_shell->compositor()->outputs()) {
-            ShellView *view = viewForOutput(o);
-            ShellView *parentView = parent->viewForOutput(o);
-
+            View *parentView = View::fromView(container_of(m_parent->views.next, weston_view, surface_link));
+            ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
+        } else {
+            for (Output *o: m_shell->compositor()->outputs()) {
+                ShellView *view = viewForOutput(o);
+                ShellView *parentView = parent->viewForOutput(o);
+
+                view->configureTransient(parentView, m_transient.x, m_transient.y);
+            }
         }
     }
     weston_surface_damage(m_surface);

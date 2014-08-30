@@ -111,7 +111,7 @@ void ShellView::configurePopup(ShellView *parent, int x, int y)
     update();
 }
 
-void ShellView::configureTransient(ShellView *parent, int x, int y)
+void ShellView::configureTransient(View *parent, int x, int y)
 {
     if (!isMapped()) {
         WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
