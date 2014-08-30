@@ -244,6 +244,7 @@
     </interface>
 
     <interface name="desktop_shell_surface" version="1">
+        <request name="destroy" type="destructor"/>
         <event name="popup_close"/>
     </interface>
 

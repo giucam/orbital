@@ -117,13 +117,16 @@ void Popup::show()
 void Popup::hide()
 {
     hideEvent();
-    desktop_shell_surface_destroy(m_shsurf);
 }
 
 void Popup::hideEvent()
 {
     m_window->hide();
     emit visibleChanged();
+    if (m_shsurf) {
+        desktop_shell_surface_destroy(m_shsurf);
+        m_shsurf = nullptr;
+    }
 }
 
 void Popup::close(desktop_shell_surface *s)

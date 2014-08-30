@@ -20,6 +20,8 @@
 #ifndef ORBITAL_SEAT_H
 #define ORBITAL_SEAT_H
 
+#include <QPointF>
+
 struct wl_resource;
 struct weston_seat;
 struct weston_pointer;
@@ -89,7 +91,9 @@ public:
 
     View *pickView(double *x = nullptr, double *y = nullptr) const;
 
+    void setFocus(View *view);
     void setFocus(View *view, double x, double y);
+    inline void setFocus(View *view, const QPointF &p) { setFocus(view, p.x(), p.y()); }
     View *focus() const;
     void move(double x, double y);
     void sendMotion(uint32_t time);

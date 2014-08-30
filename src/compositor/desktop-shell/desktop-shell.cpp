@@ -31,6 +31,7 @@
 #include "seat.h"
 #include "binding.h"
 #include "global.h"
+#include "layer.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
@@ -174,9 +175,122 @@ void DesktopShell::setLockSurface(wl_resource *surface_resource)
 
 }
 
-void DesktopShell::setPopup(uint32_t id, wl_resource *parent_resource, wl_resource *surface_resource, int x, int y)
-{
+class PopupGrab;
+struct Popup {
+    ~Popup();
 
+    wl_resource *resource;
+    View *view;
+    View *parent;
+    PopupGrab *grab;
+    int32_t x, y;
+    wl_listener destroyListener;
+};
+
+class PopupGrab : public PointerGrab {
+public:
+    void focus() override
+    {
+        double sx, sy;
+        View *v = pointer()->pickView(&sx, &sy);
+
+        inside = v == popup->view;
+        if (inside) {
+            pointer()->setFocus(v, sx, sy);
+        }
+    }
+    void motion(uint32_t time, double x, double y) override
+    {
+        pointer()->move(x, y);
+        pointer()->sendMotion(time);
+    }
+    void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+    {
+        pointer()->sendButton(time, button, state);
+
+        // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
+        // there is a bug in QQuickWindow, which hangs up the process.
+        if (!inside && state == Pointer::ButtonState::Released && time - creationTime > 500) {
+            desktop_shell_surface_send_popup_close(popup->resource);
+            end();
+        }
+    }
+
+    Popup *popup;
+    bool inside;
+    uint32_t creationTime;
+};
+
+Popup::~Popup() {
+    delete grab;
+    view->surface()->configure_private = nullptr;
+    weston_surface_unmap(view->surface());
+    wl_list_remove(&destroyListener.link);
+    delete view;
+}
+
+static void configurePopup(weston_surface *es, int32_t sx, int32_t sy)
+{
+    if (es->width == 0)
+        return;
+
+    Popup *p = static_cast<Popup *>(es->configure_private);
+    if (!p->view->layer()) {
+        p->view->setTransformParent(p->parent);
+        p->view->setPos(p->x, p->y);
+
+        Layer *layer = p->parent->layer();
+        layer->addView(p->view);
+        weston_compositor_schedule_repaint(es->compositor);
+    }
+}
+
+void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y)
+{
+    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
+    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
+
+    if (surface->configure && surface->configure != configurePopup) {
+        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "The surface has a role already");
+        wl_resource_destroy(resource);
+        return;
+    }
+
+    if (surface->configure_private) {
+        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "Cannot create two popup surfaces for the same wl_surface");
+        wl_resource_destroy(resource);
+        return;
+    }
+
+    Popup *popup = new Popup;
+    popup->x = x;
+    popup->y = y;
+    popup->resource = resource;
+    popup->view = new View(weston_view_create(surface));
+    popup->parent = View::fromView(container_of(parent->views.next, weston_view, surface_link));
+    popup->destroyListener.notify = [](wl_listener *, void *d) { delete static_cast<Popup *>(static_cast<weston_surface *>(d)->configure_private); };
+    wl_signal_add(&surface->destroy_signal, &popup->destroyListener);
+
+    surface->configure = configurePopup;
+    surface->configure_private = popup;
+    surface->output = parent->output;
+
+    static const struct desktop_shell_surface_interface implementation = {
+        [](wl_client *, wl_resource *r) { wl_resource_destroy(r); }
+    };
+    wl_resource_set_implementation(resource, &implementation, popup, [](wl_resource *r) {
+        delete static_cast<Popup *>(wl_resource_get_user_data(r));
+    });
+
+    Seat *seat = m_shell->compositor()->seats().first();
+    PopupGrab *grab = new PopupGrab;
+    popup->grab = grab;
+    grab->popup = popup;
+    grab->creationTime = seat->pointer()->grabTime();
+
+    seat->pointer()->setFocus(popup->view);
+    grab->start(seat);
 }
 
 void DesktopShell::unlock()

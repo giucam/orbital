@@ -182,6 +182,11 @@ View *Pointer::pickView(double *vx, double *vy) const
     return m_seat->compositor()->pickView(x(), y(), vx, vy);
 }
 
+void Pointer::setFocus(View *view)
+{
+    setFocus(view, view->mapFromGlobal(QPointF(x(), y())));
+}
+
 void Pointer::setFocus(View *view, double x, double y)
 {
     wl_fixed_t fx = wl_fixed_from_double(x);
