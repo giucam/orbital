@@ -1,4 +1,8 @@
 #!/bin/sh
 
+if [ -z "$DBUS_SESSION_BUS_ADDRESS" ] && type dbus-launch >/dev/null; then
+    eval `dbus-launch --sh-syntax`
+fi
+
 # Start the right shell
 exec @CMAKE_INSTALL_PREFIX@/libexec/orbital-client

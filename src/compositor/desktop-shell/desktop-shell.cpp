@@ -46,7 +46,7 @@ DesktopShell::DesktopShell(Shell *shell)
 {
     m_shell->addInterface(m_splash);
 
-    m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-client");
+    m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
 }
