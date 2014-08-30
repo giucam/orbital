@@ -102,14 +102,22 @@ class ChildProcess : public QObject
 {
     Q_OBJECT
 public:
+    ~ChildProcess();
 
+    void setAutoRestart(bool enabled);
     wl_client *client() const;
 
 private:
-    ChildProcess(QProcess *proc, wl_client *client);
+    ChildProcess(wl_display *display, const QString &program);
+    void start();
+    void finished(int code);
 
+    wl_display *m_display;
+    QString m_program;
     QProcess *m_process;
+    int m_socketFd;
     wl_client *m_client;
+    bool m_autoRestart;
 
     friend Compositor;
 

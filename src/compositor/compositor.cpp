@@ -303,28 +303,9 @@ View *Compositor::pickView(double x, double y, double *vx, double *vy) const
 ChildProcess *Compositor::launchProcess(const QString &path)
 {
     qDebug("Launching '%s'...", qPrintable(path));
-    int sv[2];
-    socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    int fd = dup(sv[1]);
-    env.insert("WAYLAND_SOCKET", QString::number(fd));
-    env.insert("QT_QPA_PLATFORM", "wayland");
-    close(sv[1]);
-
-    QProcess *process = new QProcess;
-    process->setProcessChannelMode(QProcess::ForwardedChannels);
-    process->setProcessEnvironment(env);
-    process->setProgram(path);
-    process->start();
-
-    wl_client *client = wl_client_create(m_compositor->wl_display, sv[0]);
-    if (!client) {
-        close(sv[0]);
-        qDebug("wl_client_create failed while launching '%s'.", qPrintable(path));
-        return nullptr;
-    }
-
-    return new ChildProcess(process, client);
+    ChildProcess *p = new ChildProcess(m_compositor->wl_display, path);
+    p->start();
+    return p;
 }
 
 ButtonBinding *Compositor::createButtonBinding(PointerButton button, KeyboardModifiers modifiers)
@@ -348,17 +329,73 @@ Compositor *Compositor::fromCompositor(weston_compositor *c)
 
 // -- ChildProcess
 
-ChildProcess::ChildProcess(QProcess *proc, wl_client *client)
+ChildProcess::ChildProcess(wl_display *dpy, const QString &program)
             : QObject()
-            , m_process(proc)
-            , m_client(client)
+            , m_display(dpy)
+            , m_program(program)
+            , m_process(nullptr)
+            , m_client(nullptr)
+            , m_autoRestart(false)
 {
-    connect(proc, (void (QProcess::*)(int))&QProcess::finished, [](int exitCode) { qDebug()<<"FINISHED"<<exitCode; });
+}
+
+ChildProcess::~ChildProcess()
+{
+    if (m_process) {
+        delete m_process;
+        close(m_socketFd);
+    }
+}
+
+void ChildProcess::setAutoRestart(bool enabled)
+{
+    m_autoRestart = enabled;
 }
 
 wl_client *ChildProcess::client() const
 {
     return m_client;
+}
+
+void ChildProcess::start()
+{
+    int sv[2];
+    socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    int fd = dup(sv[1]);
+    env.insert("WAYLAND_SOCKET", QString::number(fd));
+    env.insert("QT_QPA_PLATFORM", "wayland");
+    close(sv[1]);
+
+    m_client = wl_client_create(m_display, sv[0]);
+    if (!m_client) {
+        close(sv[0]);
+        qDebug("wl_client_create failed while launching '%s'.", qPrintable(m_program));
+        return;
+    }
+
+    m_process = new QProcess;
+    m_process->setProcessChannelMode(QProcess::ForwardedChannels);
+    m_process->setProcessEnvironment(env);
+    m_process->start(m_program);
+    connect(m_process, (void (QProcess::*)(int))&QProcess::finished, this, &ChildProcess::finished);
+    m_socketFd = sv[0];
+}
+
+void ChildProcess::finished(int code)
+{
+    if (m_process) {
+        m_process->deleteLater();
+        m_process = nullptr;
+        close(m_socketFd);
+    }
+
+    if (m_autoRestart) {
+        qDebug("%s exited with exit code '%d'. Restarting it...", qPrintable(m_program), code);
+        start();
+    } else {
+        qDebug("%s exited with exit code '%d'.", qPrintable(m_program), code);
+    }
 }
 
 }

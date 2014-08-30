@@ -48,6 +48,7 @@ DesktopShell::DesktopShell(Shell *shell)
     m_shell->addInterface(m_splash);
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
+    m_client->setAutoRestart(true);
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
 }
