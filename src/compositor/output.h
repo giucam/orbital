@@ -44,6 +44,7 @@ class Output : public QObject
     Q_OBJECT
 public:
     explicit Output(weston_output *out);
+    ~Output();
 
     Workspace *currentWorkspace() const;
 

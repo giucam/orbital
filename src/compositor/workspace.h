@@ -45,6 +45,7 @@ class Workspace : public Object
 //     Q_PROPERTY(int y READ y WRITE setY)
 public:
     Workspace(Shell *shell, int id);
+    ~Workspace();
 
     Compositor *compositor() const;
     Pager *pager() const;
@@ -67,7 +68,8 @@ private:
 class WorkspaceView
 {
 public:
-    explicit WorkspaceView(Workspace *ws, Output *o, int w, int h);
+    WorkspaceView(Workspace *ws, Output *o, int w, int h);
+    ~WorkspaceView();
 
     void configure(View *view);
     void configureFullscreen(View *view, View *blackSurface);

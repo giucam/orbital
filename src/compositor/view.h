@@ -65,6 +65,9 @@ public:
 
     static View *fromView(weston_view *v);
 
+protected:
+    void disconnectDestroyListener();
+
 private:
     static void viewDestroyed(wl_listener *listener, void *data);
 

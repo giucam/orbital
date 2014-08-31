@@ -30,6 +30,7 @@ struct weston_compositor;
 struct weston_surface;
 
 class QProcess;
+class QObjectCleanupHandler;
 
 namespace Orbital {
 
@@ -93,6 +94,7 @@ private:
     Layer *m_backgroundLayer;
     QList<Output *> m_outputs;
     QTimer m_timer;
+    QObjectCleanupHandler *m_bindingsCleanupHandler;
 
     friend class Global;
     friend class XWayland;

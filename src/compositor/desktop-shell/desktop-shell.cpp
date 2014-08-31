@@ -58,7 +58,7 @@ DesktopShell::DesktopShell(Shell *shell)
 
 DesktopShell::~DesktopShell()
 {
-    m_shell->setGrabCursorSetter(nullptr);
+    delete m_grabView;
 }
 
 wl_client *DesktopShell::client() const

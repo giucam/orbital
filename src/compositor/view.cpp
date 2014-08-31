@@ -38,7 +38,14 @@ void View::viewDestroyed(wl_listener *listener, void *data)
 {
     View *view = reinterpret_cast<Listener *>(listener)->view;
     view->m_view = nullptr;
+    wl_list_remove(&listener->link);
     delete view;
+}
+
+void View::disconnectDestroyListener()
+{
+    wl_list_remove(&m_listener->listener.link);
+    m_view = nullptr;
 }
 
 View::View(weston_view *view)
@@ -54,8 +61,8 @@ View::View(weston_view *view)
 
 View::~View()
 {
-    wl_list_remove(&m_listener->listener.link);
     if (m_view) {
+        wl_list_remove(&m_listener->listener.link);
         weston_view_destroy(m_view);
     }
     delete m_listener;

@@ -41,6 +41,7 @@ DummySurface::DummySurface(weston_surface *s, int w, int h)
 
 DummySurface::~DummySurface()
 {
+    disconnectDestroyListener();
     weston_surface_destroy(m_surface);
 }
 

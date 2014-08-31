@@ -60,6 +60,14 @@ Output::Output(weston_output *out)
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
 }
 
+Output::~Output()
+{
+    wl_list_remove(&m_listener->listener.link);
+    delete m_listener;
+    delete m_panelsLayer;
+    delete m_transformRoot;
+}
+
 Workspace *Output::currentWorkspace() const
 {
     return m_currentWs;

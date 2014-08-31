@@ -27,6 +27,7 @@
 #include <QCoreApplication>
 #include <QAbstractEventDispatcher>
 #include <QProcess>
+#include <QObjectCleanupHandler>
 
 #include <weston/compositor.h>
 
@@ -72,6 +73,7 @@ Compositor::Compositor(Backend *backend)
           , m_compositor(nullptr)
           , m_listener(new Listener)
           , m_backend(backend)
+          , m_bindingsCleanupHandler(new QObjectCleanupHandler)
 {
     m_timer.setInterval(0);
     connect(&m_timer, &QTimer::timeout, this, &Compositor::processEvents);
@@ -80,11 +82,9 @@ Compositor::Compositor(Backend *backend)
 
 Compositor::~Compositor()
 {
-    if (m_compositor)
-        weston_compositor_destroy(m_compositor);
-
-    wl_display_destroy(m_display);
-
+    delete m_bindingsCleanupHandler;
+    delete m_shell;
+    wl_list_remove(&m_listener->listener.link);
     delete m_listener;
     delete m_backend;
     delete m_rootLayer;
@@ -92,6 +92,11 @@ Compositor::~Compositor()
     delete m_panelsLayer;
     delete m_appsLayer;
     delete m_backgroundLayer;
+
+    if (m_compositor)
+        weston_compositor_destroy(m_compositor);
+
+    wl_display_destroy(m_display);
 }
 
 static void compositorDestroyed(wl_listener *listener, void *data)
@@ -311,12 +316,16 @@ ChildProcess *Compositor::launchProcess(const QString &path)
 
 ButtonBinding *Compositor::createButtonBinding(PointerButton button, KeyboardModifiers modifiers)
 {
-    return new ButtonBinding(m_compositor, button, modifiers, this);
+    ButtonBinding *b = new ButtonBinding(m_compositor, button, modifiers, this);
+    m_bindingsCleanupHandler->add(b);
+    return b;
 }
 
 KeyBinding *Compositor::createKeyBinding(uint32_t key, KeyboardModifiers modifiers)
 {
-    return new KeyBinding(m_compositor, key, modifiers, this);
+    KeyBinding *b = new KeyBinding(m_compositor, key, modifiers, this);
+    m_bindingsCleanupHandler->add(b);
+    return b;
 }
 
 Compositor *Compositor::fromCompositor(weston_compositor *c)

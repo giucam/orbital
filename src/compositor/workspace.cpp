@@ -45,6 +45,13 @@ Workspace::Workspace(Shell *shell, int id)
     }
 }
 
+Workspace::~Workspace()
+{
+    for (WorkspaceView *wsv: m_views) {
+        delete wsv;
+    }
+}
+
 Compositor *Workspace::compositor() const
 {
     return m_shell->compositor();
@@ -85,6 +92,14 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
     m_fullscreenLayer->append(ws->compositor()->rootLayer());
 
     setMask(QRect());
+}
+WorkspaceView::~WorkspaceView()
+{
+    delete m_root;
+    delete m_background;
+    delete m_backgroundLayer;
+    delete m_layer;
+    delete m_fullscreenLayer;
 }
 
 void WorkspaceView::setBackground(weston_surface *s)

@@ -55,6 +55,14 @@ Shell::Shell(Compositor *c)
     m_focusBinding = binding;
 }
 
+Shell::~Shell()
+{
+    for (Workspace *w: m_workspaces) {
+        delete w;
+    }
+    delete m_pager;
+}
+
 Compositor *Shell::compositor() const
 {
     return m_compositor;

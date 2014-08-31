@@ -45,6 +45,7 @@ public:
     typedef std::function<void (Pointer *, PointerCursor)> GrabCursorSetter;
 
     explicit Shell(Compositor *c);
+    ~Shell();
 
     Compositor *compositor() const;
     Pager *pager() const;
