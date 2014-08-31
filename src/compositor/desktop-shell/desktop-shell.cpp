@@ -94,7 +94,9 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::pong)
     };
 
-    wl_resource_set_implementation(resource, &implementation, this, nullptr);
+    wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *res) {
+        static_cast<DesktopShell *>(wl_resource_get_user_data(res))->clientExited();
+    });
     m_resource = resource;
 
     for (Workspace *ws: m_shell->workspaces()) {
@@ -111,6 +113,11 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     }
 
     desktop_shell_send_load(resource);
+}
+
+void DesktopShell::clientExited()
+{
+    m_grabView = nullptr;
 }
 
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)

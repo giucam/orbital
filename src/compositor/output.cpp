@@ -184,15 +184,20 @@ wl_resource *Output::resource(wl_client *client) const
     return nullptr;
 }
 
-Output *Output::fromResource(wl_resource *res)
+Output *Output::fromOutput(weston_output *o)
 {
-    weston_output *o = static_cast<weston_output *>(wl_resource_get_user_data(res));
     wl_listener *listener = wl_signal_get(&o->destroy_signal, outputDestroyed);
     if (!listener) {
         return new Output(o);
     }
 
     return reinterpret_cast<Listener *>(listener)->output;
+}
+
+Output *Output::fromResource(wl_resource *res)
+{
+    weston_output *o = static_cast<weston_output *>(wl_resource_get_user_data(res));
+    return fromOutput(o);
 }
 
 }

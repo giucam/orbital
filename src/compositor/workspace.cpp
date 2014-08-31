@@ -108,7 +108,12 @@ void WorkspaceView::setBackground(weston_surface *s)
         return;
     }
 
-    delete m_background;
+    if (m_background) {
+        weston_surface_destroy(m_background->surface());
+    }
+    // increase the ref count for the background, so to keep it alive when the shell client
+    // crashes, until a new one is set
+    s->ref_count++;
     m_background = new View(weston_view_create(s));
     m_background->setTransformParent(m_root);
     m_backgroundLayer->addView(m_background);

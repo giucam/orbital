@@ -78,8 +78,12 @@ public:
 
     static Compositor *fromCompositor(weston_compositor *c);
 
+signals:
+    void outputRemoved(Output *output);
+
 private:
     void processEvents();
+    void outputDestroyed();
 
     wl_display *m_display;
     wl_event_loop *m_loop;

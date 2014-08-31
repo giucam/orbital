@@ -166,6 +166,10 @@ Layer *View::layer() const
 
 Output *View::output() const
 {
+    if (!m_view->output) {
+        return nullptr;
+    }
+    return Output::fromOutput(m_view->output);
     return m_output;
 }
 

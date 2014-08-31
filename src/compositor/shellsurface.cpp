@@ -44,6 +44,15 @@ void ShellSurface::surfaceDestroyed(wl_listener *listener, void *data)
     delete surface;
 }
 
+void ShellSurface::parentSurfaceDestroyed(wl_listener *listener, void *data)
+{
+    ShellSurface *surface = reinterpret_cast<Listener *>(listener)->surface;
+    surface->m_parent = nullptr;
+    surface->m_nextType = Type::None;
+    wl_list_remove(&surface->m_parentListener->listener.link);
+    wl_list_init(&surface->m_parentListener->listener.link);
+}
+
 ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             : Object(shell)
             , m_shell(shell)
@@ -53,6 +62,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_resizeEdges(Edges::None)
             , m_type(Type::None)
             , m_nextType(Type::None)
+            , m_parentListener(new Listener)
             , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
             , m_transient({ 0, 0, false })
@@ -60,6 +70,10 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
     m_listener->listener.notify = surfaceDestroyed;
     m_listener->surface = this;
     wl_signal_add(&surface->destroy_signal, &m_listener->listener);
+
+    m_parentListener->listener.notify = parentSurfaceDestroyed;
+    m_parentListener->surface = this;
+    wl_list_init(&m_parentListener->listener.link);
 
     surface->configure_private = this;
     surface->configure = staticConfigure;
@@ -69,6 +83,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
     }
+    connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
 }
 
 ShellSurface::~ShellSurface()
@@ -117,6 +132,8 @@ void ShellSurface::setToplevel()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
     m_toplevel.fullscreen = false;
+    wl_list_remove(&m_parentListener->listener.link);
+    wl_list_init(&m_parentListener->listener.link);
 }
 
 void ShellSurface::setTransient(weston_surface *parent, int x, int y, bool inactive)
@@ -125,6 +142,7 @@ void ShellSurface::setTransient(weston_surface *parent, int x, int y, bool inact
     m_transient.x = x;
     m_transient.y = y;
     m_transient.inactive = inactive;
+    wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
 
     m_nextType = Type::Transient;
 }
@@ -135,6 +153,7 @@ void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
     m_popup.x = x;
     m_popup.y = y;
     m_popup.seat = seat;
+    wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
 
     m_nextType = Type::Popup;
 }
@@ -500,6 +519,13 @@ Output *ShellSurface::selectOutput()
         output = out->output;
     }
     return output;
+}
+
+void ShellSurface::outputRemoved(Output *o)
+{
+    View *v = viewForOutput(o);
+    m_views.remove(o->id());
+    delete v;
 }
 
 ShellSurface *ShellSurface::fromSurface(weston_surface *s)

@@ -27,6 +27,7 @@
 #include "output.h"
 #include "shell.h"
 #include "pager.h"
+#include "compositor.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -38,6 +39,7 @@ DesktopShellWorkspace::DesktopShellWorkspace(Shell *shell, Workspace *ws)
                      , m_resource(nullptr)
 {
     connect(shell->pager(), &Pager::workspaceActivated, this, &DesktopShellWorkspace::workspaceActivated);
+    connect(shell->compositor(), &Compositor::outputRemoved, this, &DesktopShellWorkspace::outputRemoved);
 }
 
 void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
@@ -80,6 +82,11 @@ void DesktopShellWorkspace::workspaceActivated(Workspace *w, Output *out)
             desktop_shell_workspace_send_deactivated(m_resource, res);
         }
     }
+}
+
+void DesktopShellWorkspace::outputRemoved(Output *o)
+{
+    m_active.remove(o);
 }
 
 void DesktopShellWorkspace::removed(wl_client *client, wl_resource *res)

@@ -107,11 +107,13 @@ signals:
 
 private:
     static void surfaceDestroyed(wl_listener *listener, void *data);
+    static void parentSurfaceDestroyed(wl_listener *listener, void *data);
     static void staticConfigure(weston_surface *s, int x, int y);
     void configure(int x, int y);
     void updateState();
     void sendConfigure(int w, int h);
     Output *selectOutput();
+    void outputRemoved(Output *output);
 
     Shell *m_shell;
     weston_surface *m_surface;
@@ -129,6 +131,7 @@ private:
     Type m_type;
     Type m_nextType;
 
+    Listener *m_parentListener;
     weston_surface *m_parent;
     struct {
         int x;

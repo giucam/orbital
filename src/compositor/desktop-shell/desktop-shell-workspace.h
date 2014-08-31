@@ -48,6 +48,7 @@ public:
 
 private:
     void workspaceActivated(Workspace *ws, Output *o);
+    void outputRemoved(Output *o);
     void removed(wl_client *client, wl_resource *res);
 
     Shell *m_shell;

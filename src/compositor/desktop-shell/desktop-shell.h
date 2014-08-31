@@ -47,6 +47,7 @@ protected:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
 
 private:
+    void clientExited();
     void setGrabCursor(Pointer *p, PointerCursor c);
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
