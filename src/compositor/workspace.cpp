@@ -73,26 +73,35 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              , m_output(o)
              , m_width(w)
              , m_height(h)
+             , m_backgroundLayer(new Layer)
              , m_layer(new Layer)
              , m_fullscreenLayer(new Layer)
+             , m_background(nullptr)
 {
     m_root = ws->compositor()->createDummySurface(0, 0);
 
+    m_backgroundLayer->append(ws->compositor()->backgroundLayer());
     m_layer->append(ws->compositor()->appsLayer());
     m_fullscreenLayer->append(ws->compositor()->rootLayer());
 
     setMask(QRect());
 }
 
-void WorkspaceView::setPos(int x, int y)
+void WorkspaceView::setBackground(weston_surface *s)
 {
-    m_root->setPos(x, y);
-    m_layer->setMask(x, y, m_width, m_height);
-    m_fullscreenLayer->setMask(x, y, m_width, m_height);
+    if (m_background && m_background->surface() == s) {
+        return;
+    }
+
+    delete m_background;
+    m_background = new View(weston_view_create(s));
+    m_background->setTransformParent(m_root);
+    m_backgroundLayer->addView(m_background);
 }
 
 void WorkspaceView::setMask(const QRect &r)
 {
+    m_backgroundLayer->setMask(r.x(), r.y(), r.width(), r.height());
     m_layer->setMask(r.x(), r.y(), r.width(), r.height());
     m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
 }

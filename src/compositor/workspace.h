@@ -24,6 +24,8 @@
 
 #include "interface.h"
 
+struct weston_surface;
+
 namespace Orbital {
 
 class Shell;
@@ -70,22 +72,21 @@ public:
     void configure(View *view);
     void configureFullscreen(View *view, View *blackSurface);
 
-    void attach(View *view, int x, int y);
-    void detach();
+    void setBackground(weston_surface *surface);
     void setMask(const QRect &rect);
 
     Workspace *workspace() const { return m_workspace; }
 
 private:
-    void setPos(int x, int y);
-
     Workspace *m_workspace;
     Output *m_output;
     int m_width;
     int m_height;
+    Layer *m_backgroundLayer;
     Layer *m_layer;
     Layer *m_fullscreenLayer;
     DummySurface *m_root;
+    View *m_background;
     QList<View *> m_views;
     bool m_attached;
 

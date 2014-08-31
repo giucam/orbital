@@ -27,6 +27,7 @@
 #include "layer.h"
 #include "compositor.h"
 #include "dummysurface.h"
+#include "shell.h"
 
 namespace Orbital {
 
@@ -46,7 +47,6 @@ Output::Output(weston_output *out)
       , m_output(out)
       , m_listener(new Listener)
       , m_panelsLayer(new Layer)
-      , m_backgroundLayer(new Layer)
       , m_transformRoot(m_compositor->createDummySurface(0, 0))
       , m_background(nullptr)
       , m_currentWs(nullptr)
@@ -54,7 +54,6 @@ Output::Output(weston_output *out)
     m_transformRoot->setPos(out->x, out->y);
 
     m_panelsLayer->append(m_compositor->panelsLayer());
-    m_backgroundLayer->append(m_compositor->backgroundLayer());
 
     m_listener->listener.notify = outputDestroyed;
     m_listener->output = this;
@@ -87,9 +86,16 @@ public:
 
 void Output::setBackground(weston_surface *surface)
 {
-    Surface *s = new Surface(surface, this);
-    m_backgroundLayer->addView(s->view);
-    s->view->setTransformParent(m_transformRoot);
+    surface->configure_private = this;
+    surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
+        Output *o = static_cast<Output *>(s->configure_private);
+        weston_output_schedule_repaint(o->m_output);
+    };
+
+    for (Workspace *ws: m_compositor->shell()->workspaces()) {
+        WorkspaceView *wsv = ws->viewForOutput(this);
+        wsv->setBackground(surface);
+    }
 }
 
 void Output::setPanel(weston_surface *surface, int pos)

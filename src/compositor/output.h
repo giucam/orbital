@@ -66,7 +66,6 @@ private:
     weston_output *m_output;
     Listener *m_listener;
     Layer *m_panelsLayer;
-    Layer *m_backgroundLayer;
     DummySurface *m_transformRoot;
     View *m_background;
     QList<View *> m_panels;
