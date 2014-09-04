@@ -50,6 +50,7 @@ Output::Output(weston_output *out)
       , m_transformRoot(m_compositor->createDummySurface(0, 0))
       , m_background(nullptr)
       , m_currentWs(nullptr)
+      , m_backgroundSurface(nullptr)
 {
     m_transformRoot->setPos(out->x, out->y);
 
@@ -62,6 +63,10 @@ Output::Output(weston_output *out)
 
 Output::~Output()
 {
+    if (m_backgroundSurface) {
+        m_backgroundSurface->configure_private = nullptr;
+    }
+
     wl_list_remove(&m_listener->listener.link);
     delete m_listener;
     delete m_panelsLayer;
@@ -75,6 +80,7 @@ Workspace *Output::currentWorkspace() const
 
 class Surface {
 public:
+    // TODO: delete this
     Surface(weston_surface *s, Output *o)
     {
         s->configure_private = this;
@@ -94,11 +100,18 @@ public:
 
 void Output::setBackground(weston_surface *surface)
 {
+    if (m_backgroundSurface) {
+        m_backgroundSurface->configure_private = nullptr;
+    }
+    m_backgroundSurface = surface;
     surface->configure_private = this;
     surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
-        Output *o = static_cast<Output *>(s->configure_private);
-        weston_output_schedule_repaint(o->m_output);
+        if (s->configure_private) {
+            Output *o = static_cast<Output *>(s->configure_private);
+            weston_output_schedule_repaint(o->m_output);
+        }
     };
+
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(this);

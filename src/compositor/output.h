@@ -73,6 +73,7 @@ private:
     View *m_background;
     QList<View *> m_panels;
     Workspace *m_currentWs;
+    weston_surface *m_backgroundSurface;
 
     friend View;
     friend Animation;
