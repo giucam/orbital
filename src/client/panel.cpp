@@ -19,6 +19,7 @@
 
 #include <QDebug>
 #include <QCoreApplication>
+#include <QScreen>
 
 #include "wayland-desktop-shell-client-protocol.h"
 #include "panel.h"
@@ -47,6 +48,12 @@ Panel::Panel(QScreen *screen, Element *elm)
     connect(elm, &QQuickItem::widthChanged, [this]() { setWidth(m_element->width()); });
     connect(elm, &QQuickItem::heightChanged, [this]() { setHeight(m_element->height()); });
     connect(elm, &Element::inputRegionChanged, [this]() { Client::client()->setInputRegion(this, m_element->inputRegion()); });
+    connect(screen, &QObject::destroyed, [this]() { delete this; });
+}
+
+Panel::~Panel()
+{
+    desktop_shell_panel_destroy(m_panel);
 }
 
 void Panel::move()

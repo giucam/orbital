@@ -213,7 +213,7 @@ desktop_shell_panel *Client::setPanel(QQuickWindow *window, QScreen *screen, int
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
     wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
     if (!m_uiWindows.contains(window)) {
-        m_uiWindows << window;
+        addUiWindow(window);
     }
 
     return desktop_shell_set_panel(m_shell, output, wlSurface, location);
@@ -577,9 +577,15 @@ QQuickWindow *Client::window(Element *elm)
     QQuickWindow *window = new QQuickWindow();
     elm->setParentItem(window->contentItem());
     window->setProperty("element", QVariant::fromValue(elm));
-    m_uiWindows << window;
+    addUiWindow(window);
 
     return window;
+}
+
+void Client::addUiWindow(QQuickWindow *window)
+{
+    m_uiWindows << window;
+    connect(window, &QObject::destroyed, [this](QObject *o) { m_uiWindows.removeOne(static_cast<QQuickWindow *>(o)); });
 }
 
 QQuickWindow *Client::createUiWindow()

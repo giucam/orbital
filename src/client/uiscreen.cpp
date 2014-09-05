@@ -28,6 +28,7 @@
 #include <QQmlContext>
 #include <QQmlProperty>
 #include <QQuickWindow>
+#include <QScreen>
 
 #include "client.h"
 #include "element.h"
@@ -92,6 +93,7 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         } else {
             QQuickWindow *window = m_client->window(elm);
 
+            connect(m_screen, &QObject::destroyed, [window]() { qDebug()<<window;delete window; });
             window->setScreen(m_screen);
             window->setWidth(elm->width());
             window->setHeight(elm->height());

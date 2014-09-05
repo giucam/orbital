@@ -134,6 +134,7 @@ private:
     void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
     void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws);
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
+    void addUiWindow(QQuickWindow *w);
 
     static const wl_registry_listener s_registryListener;
     static const desktop_shell_listener s_shellListener;

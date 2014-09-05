@@ -36,6 +36,7 @@ class Panel : public QQuickWindow
     Q_OBJECT
 public:
     Panel(QScreen *screen, Element *elm);
+    ~Panel();
 
     void move();
     void setLocation(Element::Location loc);
