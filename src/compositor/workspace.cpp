@@ -128,8 +128,10 @@ void WorkspaceView::setMask(const QRect &r)
 
 void WorkspaceView::configure(View *view)
 {
-    m_layer->addView(view);
-    view->setTransformParent(m_root);
+    if (view->layer() != m_layer) {
+        m_layer->addView(view);
+        view->setTransformParent(m_root);
+    }
 }
 
 void WorkspaceView::configureFullscreen(View *view, View *blackSurface)
