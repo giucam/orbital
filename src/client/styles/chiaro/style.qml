@@ -34,11 +34,10 @@ Style {
     }
 
     panelBorder: StyleComponent {
-        LinearGradient {
+        Rectangle {
             id: gradient
             anchors.fill: parent
-            start: location == 2 ? Qt.point(0, height) : (location == 3 ? Qt.point(width, 0) : Qt.point(0, 0))
-            end: location == 1 ? Qt.point(width, 0) : (location == 0 || location == 4 ? Qt.point(0, height) : Qt.point(0, 0))
+
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#f0202020" }
                 GradientStop { position: 1.0; color: "#00000000" }
