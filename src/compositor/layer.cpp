@@ -17,6 +17,8 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include <weston/compositor.h>
 
 #include "layer.h"
@@ -66,11 +68,35 @@ void Layer::addView(View *view)
     weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
 }
 
-void Layer::restackView(View *view)
+void Layer::raiseOnTop(View *view)
 {
     weston_layer_entry_remove(&view->m_view->layer_link);
     weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
     weston_view_damage_below(view->m_view);
+}
+
+void Layer::lower(View *view)
+{
+    weston_layer_entry *next;
+    if (wl_list_empty(&view->m_view->layer_link.link)) {
+        next = &m_layer->layer.view_list;
+    } else {
+        next = container_of(view->m_view->layer_link.link.next, weston_layer_entry, link);
+    }
+    weston_layer_entry_remove(&view->m_view->layer_link);
+
+    weston_layer_entry_insert(next, &view->m_view->layer_link);
+    weston_view_damage_below(view->m_view);
+}
+
+View *Layer::topView() const
+{
+    if (wl_list_empty(&m_layer->layer.view_list.link)) {
+        return nullptr;
+    }
+
+    weston_view *v = container_of(m_layer->layer.view_list.link.next, weston_view, layer_link.link);
+    return View::fromView(v);
 }
 
 void Layer::setMask(int x, int y, int w, int h)

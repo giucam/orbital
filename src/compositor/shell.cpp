@@ -50,9 +50,10 @@ Shell::Shell(Compositor *c)
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
 
-    ButtonBinding *binding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
-    connect(binding, &ButtonBinding::triggered, this, &Shell::giveFocus);
-    m_focusBinding = binding;
+    m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
+    m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
+    connect(m_focusBinding, &ButtonBinding::triggered, this, &Shell::giveFocus);
+    connect(m_raiseBinding, &ButtonBinding::triggered, this, &Shell::raise);
 }
 
 Shell::~Shell()
@@ -61,6 +62,8 @@ Shell::~Shell()
         delete w;
     }
     delete m_pager;
+    delete m_focusBinding;
+    delete m_raiseBinding;
 }
 
 Compositor *Shell::compositor() const
@@ -165,6 +168,34 @@ void Shell::giveFocus(Seat *seat)
 
     seat->activate(focus->surface());
 
+    // TODO: make this a proper config option
+    static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
+    if (!useSeparateRaise) {
+        ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+        if (shsurf && shsurf->isFullscreen()) {
+            return;
+        }
+
+        if (shsurf) {
+            for (Output *o: compositor()->outputs()) {
+                ShellView *view = shsurf->viewForOutput(o);
+                view->layer()->raiseOnTop(view);
+            }
+        }
+    }
+}
+
+void Shell::raise(Seat *seat)
+{
+    if (seat->pointer()->isGrabActive()) {
+        return;
+    }
+
+    View *focus = seat->pointer()->focus();
+    if (!focus) {
+        return;
+    }
+
     ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
     if (shsurf && shsurf->isFullscreen()) {
         return;
@@ -173,7 +204,11 @@ void Shell::giveFocus(Seat *seat)
     if (shsurf) {
         for (Output *o: compositor()->outputs()) {
             ShellView *view = shsurf->viewForOutput(o);
-            view->layer()->restackView(view);
+            if (view->layer()->topView() == view) {
+                view->layer()->lower(view);
+            } else {
+                view->layer()->raiseOnTop(view);
+            }
         }
     }
 }

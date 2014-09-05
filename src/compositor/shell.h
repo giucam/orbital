@@ -33,7 +33,7 @@ class Layer;
 class Workspace;
 class ShellSurface;
 class Pointer;
-class Binding;
+class ButtonBinding;
 class Seat;
 class Pager;
 enum class PointerCursor: unsigned int;
@@ -61,12 +61,14 @@ public:
 
 private:
     void giveFocus(Seat *s);
+    void raise(Seat *s);
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
     QList<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;
-    Binding *m_focusBinding;
+    ButtonBinding *m_focusBinding;
+    ButtonBinding *m_raiseBinding;
     Pager *m_pager;
 };
 

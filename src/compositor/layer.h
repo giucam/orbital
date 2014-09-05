@@ -39,7 +39,10 @@ public:
     void append(Layer *l);
 
     void addView(View *view);
-    void restackView(View *view);
+    void raiseOnTop(View *view);
+    void lower(View *view);
+
+    View *topView() const;
 
     void setMask(int x, int y, int w, int h);
 
