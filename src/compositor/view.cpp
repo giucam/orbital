@@ -114,7 +114,7 @@ void View::setPos(double x, double y)
 
 void View::setTransformParent(View *p)
 {
-    weston_view_set_transform_parent(m_view, p->m_view);
+    weston_view_set_transform_parent(m_view, p ? p->m_view : nullptr);
     weston_view_update_transform(m_view);
 }
 
