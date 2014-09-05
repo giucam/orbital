@@ -31,9 +31,15 @@ enum class KeyboardModifiers : unsigned char {
 };
 
 enum class PointerButton : unsigned char {
-    Left,
-    Right,
-    Middle
+    Left = 0,
+    Right = 1,
+    Middle = 2,
+    Side = 3,
+    Extra = 4,
+    Forward = 5,
+    Back = 6,
+    Task = 7,
+    Extra2 = 8,
 };
 
 uint32_t pointerButtonToRaw(PointerButton b);

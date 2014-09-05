@@ -346,26 +346,17 @@ void PointerGrab::setCursor(PointerCursor cursor)
 
 uint32_t pointerButtonToRaw(PointerButton button)
 {
-    uint32_t btn;
-    switch (button) {
-        case PointerButton::Left: btn = BTN_LEFT; break;
-        case PointerButton::Right: btn = BTN_RIGHT; break;
-        case PointerButton::Middle: btn = BTN_MIDDLE; break;
-    }
-    return btn;
+    return (uint32_t)button + 0x110;
 }
 
 PointerButton rawToPointerButton(uint32_t button)
 {
-    switch (button) {
-        case BTN_LEFT: return PointerButton::Left;
-        case BTN_RIGHT: return PointerButton::Right;
-        case BTN_MIDDLE: return PointerButton::Middle;
-        default:
-            break;
+    if (button < pointerButtonToRaw(PointerButton::Left) || button > pointerButtonToRaw(PointerButton::Extra2)) {
+        qWarning("Unknown mouse button: %d\n", button);
+        return (PointerButton)button;
     }
-    qWarning("Unknown mouse button: %d\n", button);
-    return (PointerButton)0xffff;
+
+    return (PointerButton)(button - 0x110);
 }
 
 }
