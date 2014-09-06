@@ -83,7 +83,6 @@ Compositor::Compositor(Backend *backend)
 
 Compositor::~Compositor()
 {
-    delete m_bindingsCleanupHandler;
     delete m_shell;
     wl_list_remove(&m_listener->listener.link);
     wl_list_remove(&m_listener->outputMovedSignal.link);
@@ -94,6 +93,7 @@ Compositor::~Compositor()
     delete m_panelsLayer;
     delete m_appsLayer;
     delete m_backgroundLayer;
+    delete m_bindingsCleanupHandler;
 
     if (m_compositor)
         weston_compositor_destroy(m_compositor);

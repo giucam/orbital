@@ -32,6 +32,7 @@ class View;
 class Pointer;
 class DesktopShellSplash;
 enum class PointerCursor: unsigned int;
+struct Listener;
 
 class DesktopShell : public Interface, public Global
 {
@@ -73,6 +74,7 @@ private:
     wl_resource *m_resource;
     View *m_grabView;
     DesktopShellSplash *m_splash;
+    Listener *m_listener;
 };
 
 }

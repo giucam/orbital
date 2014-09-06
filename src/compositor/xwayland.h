@@ -32,6 +32,7 @@ class XWayland : public Interface
 {
 public:
     XWayland(Shell *shell);
+    ~XWayland();
 
 private:
     Shell *m_shell;

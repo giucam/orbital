@@ -29,6 +29,7 @@
 
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QDebug>
 
 #include <weston/xwayland.h>
 
@@ -49,6 +50,8 @@ public:
         signal(SIGUSR1, SIG_IGN);
     }
 };
+
+static Process *s_process = nullptr;
 
 static pid_t
 spawn_xserver(struct weston_xserver *wxs)
@@ -73,15 +76,18 @@ spawn_xserver(struct weston_xserver *wxs)
     QString unix_fd = QString::number(dup(wxs->unix_fd));
     QString wm_fd = QString::number(dup(wm[1]));
 
-    Process *process = new Process;
-    process->setProcessChannelMode(QProcess::ForwardedChannels);
-    process->setProcessEnvironment(env);
+    s_process = new Process;
+    s_process->setProcessChannelMode(QProcess::ForwardedChannels);
+    s_process->setProcessEnvironment(env);
 
-    process->connect(process, (void (QProcess::*)(int))&QProcess::finished, [wxs, process](int exitCode) {
+    s_process->connect(s_process, (void (QProcess::*)(int))&QProcess::finished, [wxs](int exitCode) {
         weston_xserver_exited(wxs, exitCode);
-        delete process;
+        if (s_process) {
+            delete s_process;
+            s_process = nullptr;
+        }
     });
-    process->start(wxs->xserver_path, QStringList() <<
+    s_process->start(wxs->xserver_path, QStringList() <<
               display <<
               "-rootless" <<
               "-listen" << abstract_fd <<
@@ -95,7 +101,7 @@ spawn_xserver(struct weston_xserver *wxs)
     close(wm[1]);
     wxs->wm_fd = wm[0];
 
-    return process->processId();
+    return s_process->processId();
 }
 
 XWayland::XWayland(Shell *shell)
@@ -144,6 +150,18 @@ XWayland::XWayland(Shell *shell)
         _this->setGeometry(x, y, w, h);
     };
 #undef _this
+}
+
+XWayland::~XWayland()
+{
+    if (s_process) {
+        Process *proc = s_process;
+        s_process = nullptr;
+
+        proc->kill();
+        proc->waitForFinished();
+        delete proc;
+    }
 }
 
 }

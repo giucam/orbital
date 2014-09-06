@@ -41,14 +41,28 @@
 
 namespace Orbital {
 
+struct Listener {
+    wl_listener grabSurfaceDestroy;
+    DesktopShell *shell;
+};
+
 DesktopShell::DesktopShell(Shell *shell)
             : Interface(shell)
             , Global(shell->compositor(), &desktop_shell_interface, 1)
             , m_shell(shell)
             , m_grabView(nullptr)
             , m_splash(new DesktopShellSplash(shell))
+            , m_listener(new Listener)
 {
     m_shell->addInterface(m_splash);
+    m_listener->shell = this;
+    wl_list_init(&m_listener->grabSurfaceDestroy.link);
+    m_listener->grabSurfaceDestroy.notify = [](wl_listener *l, void *d) {
+        DesktopShell *shell = reinterpret_cast<Listener *>(l)->shell;
+        wl_list_remove(&shell->m_listener->grabSurfaceDestroy.link);
+        wl_list_init(&shell->m_listener->grabSurfaceDestroy.link);
+        shell->m_grabView = nullptr;
+    };
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
@@ -58,6 +72,8 @@ DesktopShell::DesktopShell(Shell *shell)
 
 DesktopShell::~DesktopShell()
 {
+    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
+    delete m_listener;
     delete m_grabView;
 }
 
@@ -118,6 +134,8 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
 void DesktopShell::clientExited()
 {
     m_grabView = nullptr;
+    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
+    wl_list_init(&m_listener->grabSurfaceDestroy.link);
 }
 
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
@@ -331,6 +349,9 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
     }
 
     m_grabView = new View(weston_view_create(surface));
+    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
+    wl_list_init(&m_listener->grabSurfaceDestroy.link);
+    wl_signal_add(&surface->destroy_signal, &m_listener->grabSurfaceDestroy);
 }
 
 void DesktopShell::desktopReady()
