@@ -68,6 +68,7 @@ static void terminate_binding(weston_seat *seat, uint32_t time, uint32_t key, vo
 
 struct Listener {
     wl_listener listener;
+    wl_listener outputCreatedSignal;
     wl_listener outputMovedSignal;
     Compositor *compositor;
 };
@@ -120,6 +121,7 @@ Compositor::~Compositor()
 {
     delete m_shell;
     wl_list_remove(&m_listener->listener.link);
+    wl_list_remove(&m_listener->outputCreatedSignal.link);
     wl_list_remove(&m_listener->outputMovedSignal.link);
     delete m_listener;
     delete m_backend;
@@ -210,9 +212,15 @@ bool Compositor::init(const QString &socketName)
     m_listener->listener.notify = compositorDestroyed;
     wl_signal_add(&m_compositor->destroy_signal, &m_listener->listener);
     m_listener->outputMovedSignal.notify = [](wl_listener *l, void *data) {
-            emit Output::fromOutput(static_cast<weston_output *>(data))->moved();
+        emit Output::fromOutput(static_cast<weston_output *>(data))->moved();
     };
     wl_signal_add(&m_compositor->output_moved_signal, &m_listener->outputMovedSignal);
+    m_listener->outputCreatedSignal.notify = [](wl_listener *l, void *data) {
+        Listener *listener = container_of(l, Listener, outputCreatedSignal);
+        Output *o = Output::fromOutput(static_cast<weston_output *>(data));
+        emit listener->compositor->outputCreated(o);
+    };
+    wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);
 //     text_backend_init(m_compositor, "");
 
     if (!m_backend->init(m_compositor)) {

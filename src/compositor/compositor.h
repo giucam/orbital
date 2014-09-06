@@ -80,6 +80,7 @@ public:
     static Compositor *fromCompositor(weston_compositor *c);
 
 signals:
+    void outputCreated(Output *output);
     void outputRemoved(Output *output);
 
 private:
