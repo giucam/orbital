@@ -31,6 +31,7 @@ struct weston_surface;
 
 class QProcess;
 class QObjectCleanupHandler;
+class QSocketNotifier;
 
 namespace Orbital {
 
@@ -84,6 +85,7 @@ signals:
 private:
     void processEvents();
     void outputDestroyed();
+    void handleSignal();
 
     wl_display *m_display;
     wl_event_loop *m_loop;
@@ -99,6 +101,7 @@ private:
     QList<Output *> m_outputs;
     QTimer m_timer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
+    QSocketNotifier *m_signalsNotifier;
 
     friend class Global;
     friend class XWayland;

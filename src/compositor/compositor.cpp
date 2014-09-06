@@ -18,6 +18,7 @@
  */
 
 #include <unistd.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <linux/input.h>
@@ -44,6 +45,8 @@
 #include "pager.h"
 
 namespace Orbital {
+
+static int s_signalsFd[2];
 
 static int log(const char *fmt, va_list ap)
 {
@@ -79,6 +82,27 @@ Compositor::Compositor(Backend *backend)
     m_timer.setInterval(0);
     connect(&m_timer, &QTimer::timeout, this, &Compositor::processEvents);
     m_timer.start();
+
+    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, s_signalsFd)) {
+        qFatal("Couldn't create signals socketpair");
+    }
+
+    m_signalsNotifier = new QSocketNotifier(s_signalsFd[1], QSocketNotifier::Read, this);
+    connect(m_signalsNotifier, &QSocketNotifier::activated, this, &Compositor::handleSignal);
+
+    struct sigaction sigint, sigterm;
+
+    sigint.sa_handler = [](int) { char a = 1; ::write(s_signalsFd[0], &a, sizeof(a)); };
+    sigemptyset(&sigint.sa_mask);
+    sigint.sa_flags = 0;
+    sigint.sa_flags |= SA_RESTART;
+    sigterm.sa_handler = [](int) { char a = 1; ::write(s_signalsFd[0], &a, sizeof(a)); };
+    sigemptyset(&sigterm.sa_mask);
+    sigterm.sa_flags = 0;
+    sigterm.sa_flags |= SA_RESTART;
+
+    sigaction(SIGINT, &sigint, 0);
+    sigaction(SIGTERM, &sigterm, 0);
 }
 
 Compositor::~Compositor()
@@ -348,6 +372,14 @@ void Compositor::outputDestroyed()
     Output *o = static_cast<Output *>(sender());
     m_outputs.removeOne(o);
     emit outputRemoved(o);
+}
+
+void Compositor::handleSignal()
+{
+    char tmp;
+    ::read(s_signalsFd[1], &tmp, sizeof(tmp));
+
+    quit();
 }
 
 
