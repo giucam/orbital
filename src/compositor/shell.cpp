@@ -58,6 +58,7 @@ Shell::Shell(Compositor *c)
 
 Shell::~Shell()
 {
+    qDeleteAll(m_surfaces);
     for (Workspace *w: m_workspaces) {
         delete w;
     }
