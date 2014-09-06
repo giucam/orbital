@@ -28,6 +28,7 @@
 #include "compositor.h"
 #include "dummysurface.h"
 #include "shell.h"
+#include "pager.h"
 
 namespace Orbital {
 
@@ -59,6 +60,8 @@ Output::Output(weston_output *out)
     m_listener->listener.notify = outputDestroyed;
     m_listener->output = this;
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
+
+    connect(this, &Output::moved, this, &Output::onMoved);
 }
 
 Output::~Output()
@@ -134,6 +137,7 @@ void Output::setOverlay(weston_surface *surface)
     Surface *s = new Surface(surface, this);
     m_compositor->overlayLayer()->addView(s->view);
     s->view->setTransformParent(m_transformRoot);
+    m_overlays << s->view;
 }
 
 int Output::id() const
@@ -211,6 +215,21 @@ Output *Output::fromResource(wl_resource *res)
 {
     weston_output *o = static_cast<weston_output *>(wl_resource_get_user_data(res));
     return fromOutput(o);
+}
+
+void Output::onMoved()
+{
+    // when an output is removed weston rearranges the remaimining ones and the views, so be sure
+    // to move them back where they should be
+    m_transformRoot->setPos(x(), y());
+
+    for (View *view: m_panels) {
+        view->setPos(0, 0);
+    }
+    for (View *view: m_overlays) {
+        view->setPos(0, 0);
+    }
+    m_compositor->shell()->pager()->updateWorkspacesPosition(this);
 }
 
 }

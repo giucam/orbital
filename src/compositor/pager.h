@@ -29,6 +29,7 @@ class Compositor;
 class DummySurface;
 class Workspace;
 class Output;
+class WorkspaceView;
 
 class Pager : public QObject
 {
@@ -39,11 +40,14 @@ public:
     void addWorkspace(Workspace *ws);
     void activate(Workspace *ws, Output *output);
     bool isWorkspaceActive(Workspace *ws, Output *output) const;
+    void updateWorkspacesPosition(Output *o);
 
 signals:
     void workspaceActivated(Workspace *ws, Output *o);
 
 private:
+    void activate(WorkspaceView *wsv, Output *o, bool animate);
+
     class Root;
 
     Compositor *m_compositor;

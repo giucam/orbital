@@ -17,6 +17,8 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include "pager.h"
 #include "compositor.h"
 #include "workspace.h"
@@ -79,19 +81,8 @@ void Pager::addWorkspace(Workspace *ws)
 
 void Pager::activate(Workspace *ws, Output *output)
 {
-    Root *root = m_roots.value(output->id());
     WorkspaceView *wsv = ws->viewForOutput(output);
-    double dx = wsv->m_root->x();
-    double dy = wsv->m_root->y();
-
-    root->animation.setStart(0);
-    root->animation.setTarget(1);
-    root->start = root->ds->pos();
-    root->end = QPointF(output->x() - dx, output->y() - dy);
-    root->animation.run(output, 200);
-
-    root->active = wsv;
-    output->m_currentWs = ws;
+    activate(wsv, output, true);
     emit workspaceActivated(wsv->workspace(), output);
 }
 
@@ -99,6 +90,32 @@ bool Pager::isWorkspaceActive(Workspace *ws, Output *output) const
 {
     Root *root = m_roots.value(output->id());
     return root->active && root->active->workspace() == ws;
+}
+
+void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
+{
+    Root *root = m_roots.value(output->id());
+    double dx = wsv->m_root->x();
+    double dy = wsv->m_root->y();
+
+    root->start = root->ds->pos();
+    root->end = QPointF(output->x() - dx, output->y() - dy);
+    if (animate) {
+        root->animation.setStart(0);
+        root->animation.setTarget(1);
+        root->animation.run(output, 200);
+    } else {
+        root->updateAnim(1);
+    }
+
+    root->active = wsv;
+    output->m_currentWs = wsv->workspace();
+}
+
+void Pager::updateWorkspacesPosition(Output *output)
+{
+    Root *root = m_roots.value(output->id());
+    activate(root->active, output, false);
 }
 
 }

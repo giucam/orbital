@@ -64,7 +64,12 @@ public:
     static Output *fromOutput(weston_output *out);
     static Output *fromResource(wl_resource *res);
 
+signals:
+    void moved();
+
 private:
+    void onMoved();
+
     Compositor *m_compositor;
     weston_output *m_output;
     Listener *m_listener;
@@ -72,6 +77,7 @@ private:
     DummySurface *m_transformRoot;
     View *m_background;
     QList<View *> m_panels;
+    QList<View *> m_overlays;
     Workspace *m_currentWs;
     weston_surface *m_backgroundSurface;
 
