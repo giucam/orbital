@@ -47,6 +47,7 @@
 namespace Orbital {
 
 static int s_signalsFd[2];
+static int s_forceExit = 0;
 
 static int log(const char *fmt, va_list ap)
 {
@@ -92,11 +93,21 @@ Compositor::Compositor(Backend *backend)
 
     struct sigaction sigint, sigterm;
 
-    sigint.sa_handler = [](int) { char a = 1; ::write(s_signalsFd[0], &a, sizeof(a)); };
+    auto handler = [](int) {
+        if (s_forceExit) {
+            exit(1);
+        }
+
+        char a = 1;
+        ::write(s_signalsFd[0], &a, sizeof(a));
+        s_forceExit = 1;
+    };
+
+    sigint.sa_handler = handler;
     sigemptyset(&sigint.sa_mask);
     sigint.sa_flags = 0;
     sigint.sa_flags |= SA_RESTART;
-    sigterm.sa_handler = [](int) { char a = 1; ::write(s_signalsFd[0], &a, sizeof(a)); };
+    sigterm.sa_handler = handler;
     sigemptyset(&sigterm.sa_mask);
     sigterm.sa_flags = 0;
     sigterm.sa_flags |= SA_RESTART;
