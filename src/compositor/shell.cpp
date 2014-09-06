@@ -90,6 +90,7 @@ ShellSurface *Shell::createShellSurface(weston_surface *s)
     ShellSurface *surf = new ShellSurface(this, s);
     surf->addInterface(new DesktopShellWindow(findInterface<DesktopShell>()));
     m_surfaces << surf;
+    connect(surf, &QObject::destroyed, [this](QObject *o) { m_surfaces.removeOne(static_cast<ShellSurface *>(o)); });
     return surf;
 }
 
