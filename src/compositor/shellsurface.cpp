@@ -142,6 +142,9 @@ void ShellSurface::setTransient(weston_surface *parent, int x, int y, bool inact
     m_transient.x = x;
     m_transient.y = y;
     m_transient.inactive = inactive;
+
+    wl_list_remove(&m_parentListener->listener.link);
+    wl_list_init(&m_parentListener->listener.link);
     wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
 
     m_nextType = Type::Transient;
@@ -153,6 +156,9 @@ void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
     m_popup.x = x;
     m_popup.y = y;
     m_popup.seat = seat;
+
+    wl_list_remove(&m_parentListener->listener.link);
+    wl_list_init(&m_parentListener->listener.link);
     wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
 
     m_nextType = Type::Popup;
