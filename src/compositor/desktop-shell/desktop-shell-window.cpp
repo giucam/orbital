@@ -17,6 +17,8 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include "desktop-shell-window.h"
 #include "shell.h"
 #include "shellsurface.h"
@@ -36,6 +38,9 @@ DesktopShellWindow::DesktopShellWindow(DesktopShell *ds)
 
 DesktopShellWindow::~DesktopShellWindow()
 {
+    if (m_resource) {
+        desktop_shell_window_send_removed(m_resource);
+    }
     destroy();
 }
 
@@ -110,7 +115,6 @@ void DesktopShellWindow::destroy()
 {
     if (m_resource) {
         desktop_shell_window_send_removed(m_resource);
-        wl_resource_destroy(m_resource);
         m_resource = nullptr;
     }
 }
