@@ -96,8 +96,6 @@ public:
     QRect geometry() const;
     QString title() const;
 
-    QRect surfaceTreeBoundingBox() const;
-
     static ShellSurface *fromSurface(weston_surface *s);
 
 signals:
@@ -109,10 +107,13 @@ private:
     static void surfaceDestroyed(wl_listener *listener, void *data);
     static void parentSurfaceDestroyed(wl_listener *listener, void *data);
     static void staticConfigure(weston_surface *s, int x, int y);
+    QRect surfaceTreeBoundingBox() const;
     void configure(int x, int y);
+    void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
     void updateState();
     void sendConfigure(int w, int h);
     Output *selectOutput();
+    void outputCreated(Output *output);
     void outputRemoved(Output *output);
 
     Shell *m_shell;
@@ -127,6 +128,7 @@ private:
     QRect m_geometry;
     QRect m_nextGeometry;
     QString m_title;
+    bool m_forceMap;
 
     Type m_type;
     Type m_nextType;

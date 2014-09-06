@@ -60,6 +60,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_listener(new Listener)
             , m_configureSender(nullptr)
             , m_resizeEdges(Edges::None)
+            , m_forceMap(false)
             , m_type(Type::None)
             , m_nextType(Type::None)
             , m_parentListener(new Listener)
@@ -83,6 +84,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
     }
+    connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
 }
 
@@ -434,7 +436,8 @@ void ShellSurface::configure(int x, int y)
         }
 
         bool map = !isMapped() || m_state.maximized != m_toplevel.maximized || m_state.fullscreen != m_toplevel.fullscreen ||
-                   m_state.size != rect.size();
+                   m_state.size != rect.size() || m_forceMap;
+        m_forceMap = false;
         m_state.size = rect.size();
         m_state.maximized = m_toplevel.maximized;
         m_state.fullscreen = m_toplevel.fullscreen;
@@ -525,6 +528,20 @@ Output *ShellSurface::selectOutput()
         output = out->output;
     }
     return output;
+}
+
+void ShellSurface::outputCreated(Output *o)
+{
+    ShellView *view = new ShellView(this, weston_view_create(m_surface));
+    view->setDesignedOutput(o);
+
+    if (View *v = *m_views.begin()) {
+        view->setInitialPos(v->pos());
+    }
+
+    m_views.insert(o->id(), view);
+    m_forceMap = true;
+    configure(0, 0);
 }
 
 void ShellSurface::outputRemoved(Output *o)

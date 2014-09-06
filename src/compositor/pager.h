@@ -47,6 +47,7 @@ signals:
 
 private:
     void activate(WorkspaceView *wsv, Output *o, bool animate);
+    void outputCreated(Output *o);
 
     class Root;
 

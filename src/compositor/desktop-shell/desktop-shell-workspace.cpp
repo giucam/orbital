@@ -72,14 +72,18 @@ void DesktopShellWorkspace::workspaceActivated(Workspace *w, Output *out)
 
         if (m_resource) {
             wl_resource *res = out->resource(wl_resource_get_client(m_resource));
-            desktop_shell_workspace_send_activated(m_resource, res);
+            if (res) {
+                desktop_shell_workspace_send_activated(m_resource, res);
+            }
         }
     } else if (m_active.contains(out)) {
         m_active.remove(out);
 
         if (m_resource) {
             wl_resource *res = out->resource(wl_resource_get_client(m_resource));
-            desktop_shell_workspace_send_deactivated(m_resource, res);
+            if (res) {
+                desktop_shell_workspace_send_deactivated(m_resource, res);
+            }
         }
     }
 }

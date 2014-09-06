@@ -218,6 +218,8 @@ bool Compositor::init(const QString &socketName)
     m_listener->outputCreatedSignal.notify = [](wl_listener *l, void *data) {
         Listener *listener = container_of(l, Listener, outputCreatedSignal);
         Output *o = Output::fromOutput(static_cast<weston_output *>(data));
+        connect(o, &QObject::destroyed, listener->compositor, &Compositor::outputDestroyed);
+        listener->compositor->m_outputs << o;
         emit listener->compositor->outputCreated(o);
     };
     wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);

@@ -195,9 +195,18 @@ void Client::create()
         m_ui->loadScreen(i, screen);
         qDebug() << "Elements for screen" << i << "loaded after" << m_elapsedTimer.elapsed() << "ms";
     }
+    connect(qApp, &QGuiApplication::screenAdded, this, &Client::screenAdded);
 
     // wait until all the objects have finished what they're doing before sending the ready event
     QTimer::singleShot(0, this, SLOT(ready()));
+}
+
+void Client::screenAdded(QScreen *screen)
+{
+    m_elapsedTimer.start();
+    int id = QGuiApplication::screens().size() - 1;
+    m_ui->loadScreen(id, screen);
+    qDebug() << "Elements for new screen" << id << "loaded after" << m_elapsedTimer.elapsed() << "ms";
 }
 
 void Client::setBackground(QQuickWindow *window, QScreen *screen)

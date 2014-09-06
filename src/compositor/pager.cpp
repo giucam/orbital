@@ -25,6 +25,7 @@
 #include "output.h"
 #include "dummysurface.h"
 #include "animation.h"
+#include "shell.h"
 
 namespace Orbital {
 
@@ -66,6 +67,7 @@ Pager::Pager(Compositor *c)
         DummySurface *ds = c->createDummySurface(0, 0);
         m_roots.insert(o->id(), new Root(o, ds));
     }
+    connect(c, &Compositor::outputCreated, this, &Pager::outputCreated);
 }
 
 void Pager::addWorkspace(Workspace *ws)
@@ -116,6 +118,22 @@ void Pager::updateWorkspacesPosition(Output *output)
 {
     Root *root = m_roots.value(output->id());
     activate(root->active, output, false);
+}
+
+void Pager::outputCreated(Output *o)
+{
+    DummySurface *ds = m_compositor->createDummySurface(0, 0);
+    Root *root = new Root(o, ds);
+    m_roots.insert(o->id(), root);
+    for (Workspace *ws: m_compositor->shell()->workspaces()) {
+        WorkspaceView *wsv = ws->viewForOutput(o);
+        root->workspaces << wsv;
+        wsv->m_root->setTransformParent(root->ds);
+        wsv->m_root->setPos(ws->id() * o->width(), 0);
+    }
+
+    Workspace *ws = m_compositor->shell()->workspaces().first();
+    activate(ws->viewForOutput(o), o, false);
 }
 
 }

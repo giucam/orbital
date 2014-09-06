@@ -39,10 +39,7 @@ Workspace::Workspace(Shell *shell, int id)
          , m_shell(shell)
          , m_id(id)
 {
-    for (Output *o: shell->compositor()->outputs()) {
-        WorkspaceView *view = new WorkspaceView(this, o, o->width(), o->height());
-        m_views.insert(o->id(), view);
-    }
+
 }
 
 Workspace::~Workspace()
@@ -64,6 +61,12 @@ Pager *Workspace::pager() const
 
 WorkspaceView *Workspace::viewForOutput(Output *o)
 {
+    if (!m_views.contains(o->id())) {
+        WorkspaceView *view = new WorkspaceView(this, o, o->width(), o->height());
+        m_views.insert(o->id(), view);
+        return view;
+    }
+
     return m_views.value(o->id());
 }
 

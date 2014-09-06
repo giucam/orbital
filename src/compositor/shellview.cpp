@@ -36,6 +36,7 @@ ShellView::ShellView(ShellSurface *surf, weston_view *view)
          : View(view)
          , m_surface(surf)
          , m_designedOutput(nullptr)
+         , m_initialPos(-1, -1)
          , m_posSaved(false)
          , m_blackSurface(nullptr)
 {
@@ -55,6 +56,11 @@ ShellSurface *ShellView::surface() const
 void ShellView::setDesignedOutput(Output *o)
 {
     m_designedOutput = o;
+}
+
+void ShellView::setInitialPos(const QPointF &p)
+{
+    m_initialPos = p;
 }
 
 void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy)
@@ -80,7 +86,11 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
             } else if (dx || dy) {
                 setPos(x() + dx, y() + dy);
             } else if (!isMapped()) {
-                setPos(20, 100);
+                if (m_initialPos.x() < 0 || m_initialPos.y() < 0) {
+                    setPos(20, 100);
+                } else {
+                    setPos(m_initialPos);
+                }
             }
         }
     }
@@ -132,7 +142,7 @@ void ShellView::cleanupAndUnmap()
 
 void ShellView::mapFullscreen()
 {
-    const QRect rect = m_surface->surfaceTreeBoundingBox();
+    const QRect rect = m_surface->geometry();
     const int sw = rect.width();
     const int sh = rect.height();
     const int ow = m_designedOutput->width();
