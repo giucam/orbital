@@ -68,6 +68,9 @@ public:
     }
     ~Splash()
     {
+        desktop_shell_splash_destroy(m_splash);
+        wl_registry_destroy(m_registry);
+        wl_display_disconnect(m_display);
     }
 
     Q_INVOKABLE void create()
@@ -105,10 +108,7 @@ const wl_registry_listener Splash::s_registryListener = {
 
 const desktop_shell_splash_listener Splash::s_splashListener = {
     [](void *data, desktop_shell_splash *splash) {
-        desktop_shell_splash_destroy(splash);
-        wl_registry_destroy(static_cast<Splash *>(data)->m_registry);
-
-        exit(0);
+        QCoreApplication::quit();
     }
 };
 
