@@ -39,6 +39,8 @@ void Object::addInterface(Interface *iface)
     m_ifaces.push_back(iface);
     iface->m_obj = this;
     iface->added();
+
+    connect(iface, &QObject::destroyed, [this](QObject *o) { m_ifaces.removeOne(static_cast<Interface *>(o)); });
 }
 
 
