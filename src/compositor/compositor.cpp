@@ -465,6 +465,7 @@ void ChildProcess::finished(int code)
     if (m_process) {
         m_process->deleteLater();
         m_process = nullptr;
+        wl_client_destroy(m_client);
         close(m_socketFd);
     }
 
