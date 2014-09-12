@@ -421,7 +421,6 @@ ChildProcess::~ChildProcess()
 {
     if (m_process) {
         delete m_process;
-        close(m_socketFd);
     }
 }
 
@@ -465,8 +464,6 @@ void ChildProcess::finished(int code)
     if (m_process) {
         m_process->deleteLater();
         m_process = nullptr;
-        wl_client_destroy(m_client);
-        close(m_socketFd);
     }
 
     if (m_autoRestart) {
