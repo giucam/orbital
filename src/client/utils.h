@@ -20,6 +20,12 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+class QWindow;
+
+struct wl_surface;
+
+wl_surface *nativeSurface(QWindow *window);
+
 template<class T, class... Args>
 struct Wrapper {
     template<void (T::*F)(Args...)>

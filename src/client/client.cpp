@@ -176,9 +176,8 @@ void Client::create()
     m_grabWindow->resize(1, 1);
     m_grabWindow->create();
     m_grabWindow->show();
-
-    wl_surface *grabSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_grabWindow));
-    desktop_shell_set_grab_surface(m_shell, grabSurface);
+    connect(m_grabWindow, &QWindow::screenChanged, [this](QScreen *s) { setGrabSurface(); });
+    setGrabSurface();
 
     QQmlEngine *engine = new QQmlEngine(this);
     engine->rootContext()->setContextProperty("Client", this);
@@ -607,9 +606,22 @@ QQuickWindow *Client::createUiWindow()
     return window;
 }
 
+void Client::setGrabSurface()
+{
+    wl_surface *s = nativeSurface(m_grabWindow);
+    if (s) {
+        desktop_shell_set_grab_surface(m_shell, s);
+    }
+}
+
 wl_output *Client::nativeOutput(QScreen *screen)
 {
     return static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+}
+
+wl_surface *nativeSurface(QWindow *w)
+{
+    return static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", w));
 }
 
 #include "moc_client.cpp"
