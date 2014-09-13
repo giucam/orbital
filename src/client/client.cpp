@@ -171,6 +171,8 @@ void Client::create()
     // win + print_screen FIXME: make this configurable
     connect(addKeyBinding(KEY_SYSRQ, 1 << 2), &Binding::triggered, this, &Client::takeScreenshot);
 
+    connect(addKeyBinding(KEY_BACKSPACE, 1 << 2), &Binding::triggered, qApp, &QCoreApplication::quit);
+
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
     m_grabWindow->resize(1, 1);
