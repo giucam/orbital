@@ -52,6 +52,7 @@
 #include "uiscreen.h"
 #include "service.h"
 #include "style.h"
+#include "notification.h"
 #include "compositorsettings.h"
 
 Client *Client::s_client = nullptr;
@@ -82,6 +83,7 @@ Binding::~Binding()
 
 Client::Client()
       : QObject()
+      , m_notifications(nullptr)
       , m_settings(nullptr)
       , m_ui(nullptr)
       , d_ptr(new ClientPrivate(this))
@@ -106,6 +108,7 @@ Client::Client()
     qmlRegisterType<Service>();
     qmlRegisterType<Grab>();
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
+    qmlRegisterType<Notification>("Orbital", 1, 0, "Notification");
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
@@ -184,6 +187,15 @@ void Client::create()
     QQmlEngine *engine = new QQmlEngine(this);
     engine->rootContext()->setContextProperty("Client", this);
     engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+
+    // TODO: find a way to un-hardcode this
+    QQmlComponent *c = new QQmlComponent(engine, QUrl("qrc:/qml/Notifications.qml"), this);
+    if (!c->isReady()) {
+        qDebug() << c->errorString();
+    } else {
+        c->create();
+    }
+    // -- till here
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + "/orbital/orbital.conf";
@@ -430,6 +442,14 @@ desktop_shell_surface *Client::setPopup(QWindow *w, QWindow *parent)
     return desktop_shell_set_popup(m_shell, parentSurface, wlSurface, w->x(), w->y());
 }
 
+notification_surface *Client::pushNotification(QWindow *w, bool inactive)
+{
+    if (m_notifications) {
+        return notifications_manager_push_notification(m_notifications, nativeSurface(w), (int)inactive);
+    }
+    return nullptr;
+}
+
 void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);
@@ -441,6 +461,8 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
     } else if (strcmp(interface, "nuclear_settings") == 0) {
         m_settings = new CompositorSettings(static_cast<nuclear_settings *>(wl_registry_bind(registry, id, &nuclear_settings_interface, version)));
         m_settings->moveToThread(QCoreApplication::instance()->thread());
+    } else if (strcmp(interface, "notifications_manager") == 0) {
+        m_notifications = static_cast<notifications_manager *>(wl_registry_bind(registry, id, &notifications_manager_interface, 1));
     }
 }
 

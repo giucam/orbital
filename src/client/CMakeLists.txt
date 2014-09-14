@@ -58,6 +58,7 @@ set(SOURCES
     tooltip.cpp
     popup.cpp
     panel.cpp
+    notification.cpp
     compositorsettings.cpp)
 
 wayland_add_protocol_client(SOURCES
@@ -103,3 +104,4 @@ add_subdirectory(services/login)
 add_subdirectory(services/processlauncher)
 add_subdirectory(services/datetime)
 add_subdirectory(services/hardware)
+add_subdirectory(services/notifications)

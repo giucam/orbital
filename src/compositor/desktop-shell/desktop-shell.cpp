@@ -37,6 +37,7 @@
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
+#include "desktop-shell-notifications.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -54,6 +55,8 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_splash(new DesktopShellSplash(shell))
             , m_listener(new Listener)
 {
+    m_shell->addInterface(new DesktopShellNotifications(shell));
+
     m_shell->addInterface(m_splash);
     m_listener->shell = this;
     wl_list_init(&m_listener->grabSurfaceDestroy.link);

@@ -201,6 +201,11 @@ wl_resource *Output::resource(wl_client *client) const
     return nullptr;
 }
 
+View *Output::rootView() const
+{
+    return m_transformRoot;
+}
+
 Output *Output::fromOutput(weston_output *o)
 {
     wl_listener *listener = wl_signal_get(&o->destroy_signal, outputDestroyed);

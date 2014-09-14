@@ -261,6 +261,51 @@ bool Compositor::init(const QString &socketName)
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
                           terminate_binding, this);
 
+    weston_seat *s;
+    wl_list_for_each(s, &m_compositor->seat_list, link) {
+        Seat *seat = Seat::fromSeat(s);
+        class DefaultGrab : public PointerGrab
+        {
+        public:
+            void focus() override
+            {
+                if (pointer()->buttonCount() > 0) {
+                    return;
+                }
+
+                double sx, sy;
+                View *view = pointer()->pickView(&sx, &sy);
+
+                if (pointer()->focus() != view || m_sx != sx || m_sy != sy) {
+                    pointer()->setFocus(view, sx, sy);
+                }
+            }
+            void motion(uint32_t time, double x, double y) override
+            {
+                if (pointer()->focus()) {
+                    QPointF pos = pointer()->focus()->mapFromGlobal(QPointF(x, y));
+                    m_sx = pos.x();
+                    m_sy = pos.y();
+                }
+
+                pointer()->move(x, y);
+                pointer()->sendMotion(time);
+            }
+            void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+            {
+                pointer()->sendButton(time, button, state);
+
+                if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
+                    focus();
+                }
+            }
+
+            double m_sx, m_sy;
+
+        };
+        seat->pointer()->setDefaultGrab(new DefaultGrab);
+    }
+
     weston_output *o;
     wl_list_for_each(o, &m_compositor->output_list, link) {
         Output *output = new Output(o);
@@ -339,24 +384,9 @@ DummySurface *Compositor::createDummySurface(int w, int h)
     return new DummySurface(weston_surface_create(m_compositor), w, h);
 }
 
-uint32_t Compositor::serial() const
+uint32_t Compositor::nextSerial() const
 {
-    return wl_display_get_serial(m_compositor->wl_display);
-}
-
-View *Compositor::pickView(double x, double y, double *vx, double *vy) const
-{
-    wl_fixed_t fx = wl_fixed_from_double(x);
-    wl_fixed_t fy = wl_fixed_from_double(y);
-    wl_fixed_t fvx, fvy;
-    weston_view *v = weston_compositor_pick_view(m_compositor, fx, fy, &fvx, &fvy);
-
-    if (vx)
-        *vx = wl_fixed_to_double(fvx);
-    if (vy)
-        *vy = wl_fixed_to_double(fvy);
-
-    return View::fromView(v);
+    return wl_display_next_serial(m_compositor->wl_display);
 }
 
 ChildProcess *Compositor::launchProcess(const QString &path)

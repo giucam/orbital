@@ -88,9 +88,11 @@ public:
     };
 
     explicit Pointer(Seat *seat, weston_pointer *pointer);
+    ~Pointer();
 
     View *pickView(double *x = nullptr, double *y = nullptr) const;
 
+    void setDefaultGrab(PointerGrab *grab);
     void setFocus(View *view);
     void setFocus(View *view, double x, double y);
     inline void setFocus(View *view, const QPointF &p) { setFocus(view, p.x(), p.y()); }
@@ -111,8 +113,10 @@ public:
 private:
     Seat *m_seat;
     weston_pointer *m_pointer;
+    PointerGrab *m_defaultGrab;
 
     friend PointerGrab;
+    friend Seat;
 };
 
 class PointerGrab
@@ -145,7 +149,7 @@ private:
 //
 //     static const weston_pointer_grab_interface s_shellGrabInterface;
 
-//     friend class Shell;
+    friend Pointer;
 };
 
 }

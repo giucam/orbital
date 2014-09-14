@@ -43,6 +43,8 @@ struct desktop_shell_window;
 struct desktop_shell_workspace;
 struct desktop_shell_surface;
 struct desktop_shell_panel;
+struct notifications_manager;
+struct notification_surface;
 
 class Window;
 class ShellUI;
@@ -96,6 +98,7 @@ public:
 
     void setBackground(QQuickWindow *window, QScreen *screen);
     desktop_shell_panel *setPanel(QQuickWindow *window, QScreen *screen, int location);
+    notification_surface *pushNotification(QWindow *window, bool inactive);
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
     QProcess *createTrustedClient(const QString &interface);
@@ -145,6 +148,7 @@ private:
     wl_registry *m_registry;
     int m_fd;
     desktop_shell *m_shell;
+    notifications_manager *m_notifications;
     CompositorSettings *m_settings;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;

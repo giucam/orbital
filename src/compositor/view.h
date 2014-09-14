@@ -20,7 +20,10 @@
 #ifndef ORBITAL_VIEW_H
 #define ORBITAL_VIEW_H
 
+#include <QObject>
 #include <QRectF>
+
+#include <wayland-server.h>
 
 struct wl_client;
 struct wl_listener;
@@ -36,10 +39,11 @@ class Pointer;
 class Transform;
 struct Listener;
 
-class View
+class View : public QObject
 {
 public:
     explicit View(weston_view *view);
+    explicit View(weston_surface *surface);
     virtual ~View();
 
     bool isMapped() const;
@@ -47,6 +51,7 @@ public:
     double y() const;
     QPointF pos() const;
     QRectF geometry() const;
+    double alpha() const;
     void setOutput(Output *o);
     void setAlpha(double alpha);
     void setPos(double x, double y);
@@ -65,8 +70,16 @@ public:
 
     static View *fromView(weston_view *v);
 
+    bool dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y, double *vx, double *vy);
+
 protected:
     void disconnectDestroyListener();
+    /**
+     * Return false if the view should be transparent to pointer events,
+     * true otherwise.
+     */
+    virtual bool pointerEnter(const Pointer *pointer) { return true; }
+    virtual bool pointerLeave(const Pointer *pointer) { return true; }
 
 private:
     static void viewDestroyed(wl_listener *listener, void *data);
@@ -75,6 +88,10 @@ private:
     Listener *m_listener;
     Output *m_output;
     Transform *m_transform;
+    struct {
+        bool inside;
+        bool propagate;
+    } m_pointerState;
 
     friend Layer;
     friend Pointer;

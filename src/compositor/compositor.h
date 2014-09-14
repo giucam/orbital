@@ -68,10 +68,9 @@ public:
     QList<Output *> outputs() const;
     QList<Seat *> seats() const;
 
-    uint32_t serial() const;
+    uint32_t nextSerial() const;
 
     DummySurface *createDummySurface(int width, int height);
-    View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
 
     ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
@@ -106,6 +105,7 @@ private:
 
     friend class Global;
     friend class XWayland;
+    friend class Pointer;
 };
 
 class ChildProcess : public QObject

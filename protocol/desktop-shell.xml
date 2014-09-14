@@ -269,4 +269,15 @@
         <event name="done"/>
     </interface>
 
+    <interface name="notifications_manager" version="1">
+        <request name="push_notification">
+            <arg name="id" type="new_id" interface="notification_surface"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="flags" type="int"/>
+        </request>
+    </interface>
+
+    <interface name="notification_surface" version="1">
+    </interface>
+
 </protocol>

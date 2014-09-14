@@ -32,6 +32,11 @@
 
 namespace Orbital {
 
+struct Grab {
+    weston_pointer_grab base;
+    PointerGrab *parent;
+};
+
 struct Listener {
     wl_listener listener;
     Seat *seat;
@@ -174,12 +179,35 @@ Seat *Seat::fromResource(wl_resource *res)
 Pointer::Pointer(Seat *seat, weston_pointer *p)
        : m_seat(seat)
        , m_pointer(p)
+       , m_defaultGrab(nullptr)
 {
+}
+
+Pointer::~Pointer()
+{
+    delete m_defaultGrab;
 }
 
 View *Pointer::pickView(double *vx, double *vy) const
 {
-    return m_seat->compositor()->pickView(x(), y(), vx, vy);
+    weston_view *view;
+    wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
+        View *v = View::fromView(view);
+        if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, vx, vy)) {
+            return v;
+        }
+    }
+    return nullptr;
+}
+
+void Pointer::setDefaultGrab(PointerGrab *grab)
+{
+    if (!isGrabActive()) {
+        m_defaultGrab = grab;
+        m_defaultGrab->start(m_seat);
+    } else {
+        m_defaultGrab = grab;
+    }
 }
 
 void Pointer::setFocus(View *view)
@@ -198,7 +226,10 @@ View *Pointer::focus() const
 {
     weston_view *view = m_pointer->focus;
     if (view) {
-        return View::fromView(view);
+        View *v = View::fromView(view);
+        if (v) {
+            return v;
+        }
     }
     return nullptr;
 }
@@ -206,14 +237,26 @@ View *Pointer::focus() const
 void Pointer::move(double x, double y)
 {
     weston_pointer_move(m_pointer, wl_fixed_from_double(x), wl_fixed_from_double(y));
+
+    weston_view *view;
+    wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
+        View *v = View::fromView(view);
+        if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, nullptr, nullptr)) {
+            return;
+        }
+    }
 }
 
 void Pointer::sendMotion(uint32_t time)
 {
+    if (!m_pointer->focus) {
+        return;
+    }
+
     wl_resource *resource;
+    wl_fixed_t sx, sy;
+    weston_view_from_global_fixed(m_pointer->focus, m_pointer->x, m_pointer->y, &sx, &sy);
     wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
-        wl_fixed_t sx, sy;
-        weston_view_from_global_fixed(m_pointer->focus, m_pointer->x, m_pointer->y, &sx, &sy);
         wl_pointer_send_motion(resource, time, sx, sy);
     }
 }
@@ -221,7 +264,7 @@ void Pointer::sendMotion(uint32_t time)
 void Pointer::sendButton(uint32_t time, PointerButton button, Pointer::ButtonState state)
 {
     wl_resource *resource;
-    uint32_t serial = m_seat->compositor()->serial();
+    uint32_t serial = m_seat->compositor()->nextSerial();
     wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
         wl_pointer_send_button(resource, serial, time, pointerButtonToRaw(button), (uint32_t)state);
     }
@@ -244,7 +287,7 @@ double Pointer::y() const
 
 bool Pointer::isGrabActive() const
 {
-    return m_pointer->grab != &m_pointer->default_grab;
+    return m_pointer->grab != &m_pointer->default_grab && (!m_defaultGrab || m_pointer->grab != &m_defaultGrab->m_grab->base);
 }
 
 uint32_t Pointer::grabSerial() const
@@ -268,11 +311,6 @@ QPointF Pointer::grabPos() const
 }
 
 // -- PointerGrab
-
-struct Grab {
-    weston_pointer_grab base;
-    PointerGrab *parent;
-};
 
 static PointerGrab *fromGrab(weston_pointer_grab *grab)
 {
@@ -328,9 +366,15 @@ void PointerGrab::start(Seat *seat, PointerCursor cursor)
 void PointerGrab::end()
 {
     if (m_seat) {
-        weston_pointer_end_grab(m_seat->pointer()->m_pointer);
-        m_seat = nullptr;
-        ended();
+        PointerGrab *defaultGrab = pointer()->m_defaultGrab;
+        if (defaultGrab != this) {
+            weston_pointer_end_grab(m_seat->pointer()->m_pointer);
+            m_seat = nullptr;
+            ended();
+            if (defaultGrab) {
+                defaultGrab->start(defaultGrab->m_seat);
+            }
+        }
     }
 }
 

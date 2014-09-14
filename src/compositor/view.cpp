@@ -53,10 +53,16 @@ View::View(weston_view *view)
     , m_listener(new Listener)
     , m_output(nullptr)
     , m_transform(nullptr)
+    , m_pointerState({ false, false })
 {
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
     wl_signal_add(&view->destroy_signal, &m_listener->listener);
+}
+
+View::View(weston_surface *s)
+    : View(weston_view_create(s))
+{
 }
 
 View::~View()
@@ -94,6 +100,11 @@ QRectF View::geometry() const
     return QRectF(m_view->geometry.x, m_view->geometry.y, m_view->surface->width, m_view->surface->height);
 }
 
+double View::alpha() const
+{
+    return m_view->alpha;
+}
+
 void View::setOutput(Output *o)
 {
     m_output = o;
@@ -104,6 +115,7 @@ void View::setOutput(Output *o)
 void View::setAlpha(double a)
 {
     m_view->alpha = a;
+    weston_view_damage_below(m_view);
 }
 
 void View::setPos(double x, double y)
@@ -181,8 +193,38 @@ weston_surface *View::surface() const
 View *View::fromView(weston_view *v)
 {
     wl_listener *listener = wl_signal_get(&v->destroy_signal, viewDestroyed);
-    Q_ASSERT(listener);
+    if (!listener) {
+        return nullptr;
+    }
     return reinterpret_cast<Listener *>(listener)->view;
+}
+
+bool View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_t fy, double *vx, double *vy)
+{
+    int ix = wl_fixed_to_int(fx);
+    int iy = wl_fixed_to_int(fy);
+
+    if (pixman_region32_contains_point(&m_view->transform.masked_boundingbox, ix, iy, NULL)) {
+        wl_fixed_t fvx, fvy;
+        weston_view_from_global_fixed(m_view, fx, fy, &fvx, &fvy);
+        if (pixman_region32_contains_point(&m_view->surface->input, wl_fixed_to_int(fvx), wl_fixed_to_int(fvy), NULL)) {
+            if (vx) *vx = wl_fixed_to_double(fvx);
+            if (vy) *vy = wl_fixed_to_double(fvy);
+
+            if (m_pointerState.inside) {
+                return m_pointerState.propagate;
+            }
+            m_pointerState.inside = true;
+            m_pointerState.propagate = pointerEnter(pointer);
+            return m_pointerState.propagate;
+        }
+    }
+
+    if (m_pointerState.inside) {
+        m_pointerState.inside = false;
+        pointerLeave(pointer);
+    }
+    return false;
 }
 
 }
