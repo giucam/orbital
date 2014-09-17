@@ -76,6 +76,7 @@ public:
     Compositor *compositor() const;
     Workspace *workspace() const;
     wl_client *client() const;
+    weston_surface *surface() const;
 
     void setConfigureSender(ConfigureSender sender);
     void setToplevel();
@@ -93,6 +94,7 @@ public:
 
     Type type() const { return m_type; }
     bool isFullscreen() const;
+    bool isInactive() const;
     QRect geometry() const;
     QString title() const;
 

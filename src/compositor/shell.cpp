@@ -149,6 +149,10 @@ void Shell::configure(ShellSurface *shsurf)
         }
 
         shsurf->setWorkspace(output->currentWorkspace());
+
+        for (Seat *seat: m_compositor->seats()) {
+            seat->activate(shsurf->surface());
+        }
     }
 }
 

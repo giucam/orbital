@@ -119,6 +119,11 @@ wl_client *ShellSurface::client() const
     return m_surface->resource ? wl_resource_get_client(m_surface->resource) : nullptr;
 }
 
+weston_surface *ShellSurface::surface() const
+{
+    return m_surface;
+}
+
 bool ShellSurface::isMapped() const
 {
     return weston_surface_is_mapped(m_surface);
@@ -350,6 +355,11 @@ void ShellSurface::setGeometry(int x, int y, int w, int h)
 bool ShellSurface::isFullscreen() const
 {
     return m_type == Type::Toplevel && m_toplevel.fullscreen;
+}
+
+bool ShellSurface::isInactive() const
+{
+    return m_type == Type::Transient && m_transient.inactive;
 }
 
 QRect ShellSurface::geometry() const
