@@ -41,11 +41,11 @@ class UiScreen : public QObject
     Q_OBJECT
     Q_PROPERTY(QRect availableRect READ availableRect NOTIFY availableRectChanged)
 public:
-    UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen);
+    UiScreen(ShellUI *ui, Client *client, QScreen *screen, const QString &name);
     ~UiScreen();
 
     QScreen *screen() const { return m_screen; }
-    int id() const { return m_id; }
+    QString name() const { return m_name; }
 
     void loadConfig(QXmlStreamReader &xml);
     void saveConfig(QXmlStreamWriter &xml);
@@ -69,7 +69,7 @@ private:
 
     Client *m_client;
     ShellUI *m_ui;
-    int m_id;
+    QString m_name;
     QByteArray m_config;
     QScreen *m_screen;
     QRect m_rect;

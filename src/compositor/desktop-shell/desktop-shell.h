@@ -31,6 +31,7 @@ class ChildProcess;
 class View;
 class Pointer;
 class DesktopShellSplash;
+class Output;
 enum class PointerCursor: unsigned int;
 struct Listener;
 
@@ -50,6 +51,7 @@ protected:
 private:
     void clientExited();
     void setGrabCursor(Pointer *p, PointerCursor c);
+    void outputCreated(Output *o);
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);
@@ -57,7 +59,6 @@ private:
     void setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y);
     void unlock();
     void setGrabSurface(wl_resource *surfaceResource);
-    void desktopReady();
     void addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers);
     void addOverlay(wl_resource *outputResource, wl_resource *surfaceResource);
     void minimizeWindows();
@@ -68,6 +69,7 @@ private:
     void quit();
     void addTrustedClient(int32_t fd, const char *interface);
     void pong(uint32_t serial);
+    void outputLoaded(uint32_t serial);
 
     Shell *m_shell;
     ChildProcess *m_client;
@@ -75,6 +77,7 @@ private:
     View *m_grabView;
     DesktopShellSplash *m_splash;
     Listener *m_listener;
+    uint32_t m_loadSerial;
 };
 
 }

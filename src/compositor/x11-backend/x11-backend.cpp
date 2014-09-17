@@ -65,10 +65,10 @@ bool X11Backend::init(weston_compositor *c)
                      use_pixman);
 
     x11_backend_create_output(b, 0, 0, 500,500,
-                              fullscreen, no_input, "Orbital compositor",
+                              fullscreen, no_input, "X1",
                               WL_OUTPUT_TRANSFORM_NORMAL, 1);
     x11_backend_create_output(b, 500, 0, 600,500,
-                            fullscreen, no_input, "Orbital compositor <2>",
+                            fullscreen, no_input, "X2",
                             WL_OUTPUT_TRANSFORM_NORMAL, 1);
 
     return b;

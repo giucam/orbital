@@ -43,17 +43,6 @@
             <arg name="surface" type="object" interface="wl_surface"/>
         </request>
 
-        <request name="desktop_ready">
-            <description summary="desktop is ready to be shown">
-                Tell the server, that enough desktop elements have been drawn
-                to make the desktop look ready for use. During start-up, the
-                server can wait for this request with a black screen before
-                starting to fade in the desktop, for instance. If the client
-                parts of a desktop take a long time to initialize, we avoid
-                showing temporary garbage.
-            </description>
-        </request>
-
         <request name="add_key_binding">
             <arg name="id" type="new_id" interface="desktop_shell_binding"/>
             <arg name="key" type="uint"/>
@@ -88,6 +77,10 @@
         </request>
 
         <request name="pong">
+            <arg name="serial" type="uint"/>
+        </request>
+
+        <request name="output_loaded">
             <arg name="serial" type="uint"/>
         </request>
 
@@ -140,6 +133,12 @@
             <arg name="y" type="int"/>
             <arg name="width" type="int"/>
             <arg name="height" type="int"/>
+        </event>
+
+        <event name="load_output">
+            <arg name="output" type="object" interface="wl_output"/>
+            <arg name="name" type="string"/>
+            <arg name="serial" type="uint"/>
         </event>
 
         <enum name="window_state">

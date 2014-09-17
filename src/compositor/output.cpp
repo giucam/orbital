@@ -206,6 +206,11 @@ View *Output::rootView() const
     return m_transformRoot;
 }
 
+QString Output::name() const
+{
+    return QString(m_output->name);
+}
+
 Output *Output::fromOutput(weston_output *o)
 {
     wl_listener *listener = wl_signal_get(&o->destroy_signal, outputDestroyed);

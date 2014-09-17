@@ -124,8 +124,9 @@ private slots:
     void create();
     void windowDestroyed(Window *w);
     void setGrabCursor();
-    void ready();
+    void sendOutputLoaded(uint32_t serial);
     void takeScreenshot();
+    void loadOutput(QScreen *screen, const QString &name, uint32_t serial);
 
 private:
     void handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version);
@@ -137,8 +138,8 @@ private:
     void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, const char *title, int32_t state);
     void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws);
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
+    void handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const char *name, uint32_t serial);
     void addUiWindow(QQuickWindow *w);
-    void screenAdded(QScreen *screen);
     void setGrabSurface();
 
     static const wl_registry_listener s_registryListener;
@@ -150,6 +151,7 @@ private:
     desktop_shell *m_shell;
     notifications_manager *m_notifications;
     CompositorSettings *m_settings;
+    QQmlEngine *m_engine;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;

@@ -35,11 +35,11 @@
 #include "shellui.h"
 #include "panel.h"
 
-UiScreen::UiScreen(ShellUI *ui, Client *client, int id, QScreen *screen)
+UiScreen::UiScreen(ShellUI *ui, Client *client, QScreen *screen, const QString &name)
        : QObject(client)
        , m_client(client)
        , m_ui(ui)
-       , m_id(id)
+       , m_name(name)
        , m_screen(screen)
 {
 }
@@ -187,7 +187,7 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
 void UiScreen::saveConfig(QXmlStreamWriter &xml)
 {
     xml.writeStartElement("Screen");
-    xml.writeAttribute("output", QString::number(m_id));
+    xml.writeAttribute("output", m_name);
 
     saveChildren(m_children, xml);
 

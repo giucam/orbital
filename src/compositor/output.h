@@ -61,6 +61,7 @@ public:
     QRect availableGeometry() const;
     wl_resource *resource(wl_client *client) const;
     View *rootView() const;
+    QString name() const;
 
     static Output *fromOutput(weston_output *out);
     static Output *fromResource(wl_resource *res);

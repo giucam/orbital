@@ -104,13 +104,13 @@ ShellUI::~ShellUI()
     qDeleteAll(m_screens);
 }
 
-UiScreen *ShellUI::loadScreen(int s, QScreen *sc)
+UiScreen *ShellUI::loadScreen(QScreen *sc, const QString &name)
 {
     m_engine->rootContext()->setContextProperty("Ui", this);
 
-    qDebug()<<"screen"<<s;
+    qDebug()<<"screen"<<name;
 
-    UiScreen *screen = new UiScreen(this, m_client, s, sc);
+    UiScreen *screen = new UiScreen(this, m_client, sc, name);
     loadScreen(screen);
 
     m_screens << screen;
@@ -299,8 +299,8 @@ void ShellUI::loadScreen(UiScreen *screen)
         if (xml.name() == "Screen") {
             QXmlStreamAttributes attribs = xml.attributes();
             if (attribs.hasAttribute("output")) {
-                int num = attribs.value("output").toInt();
-                if (num == screen->id()) {
+                QString name = attribs.value("output").toString();
+                if (name == screen->name()) {
                     screen->loadConfig(xml);
                     loaded = true;
                     break;

@@ -54,6 +54,7 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_grabView(nullptr)
             , m_splash(new DesktopShellSplash(shell))
             , m_listener(new Listener)
+            , m_loadSerial(0)
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
 
@@ -71,6 +72,7 @@ DesktopShell::DesktopShell(Shell *shell)
     m_client->setAutoRestart(true);
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
+    connect(shell->compositor(), &Compositor::outputCreated, this, &DesktopShell::outputCreated);
 }
 
 DesktopShell::~DesktopShell()
@@ -100,7 +102,6 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::setPopup),
         wrapInterface(&DesktopShell::unlock),
         wrapInterface(&DesktopShell::setGrabSurface),
-        wrapInterface(&DesktopShell::desktopReady),
         wrapInterface(&DesktopShell::addKeyBinding),
         wrapInterface(&DesktopShell::addOverlay),
         wrapInterface(&DesktopShell::minimizeWindows),
@@ -110,7 +111,8 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::selectWorkspace),
         wrapInterface(&DesktopShell::quit),
         wrapInterface(&DesktopShell::addTrustedClient),
-        wrapInterface(&DesktopShell::pong)
+        wrapInterface(&DesktopShell::pong),
+        wrapInterface(&DesktopShell::outputLoaded)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *res) {
@@ -130,6 +132,10 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
             w->recreate();
         }
     }
+    for (Output *o: m_shell->compositor()->outputs()) {
+        m_loadSerial = m_shell->compositor()->nextSerial();
+        desktop_shell_send_load_output(resource, o->resource(m_client->client()), qPrintable(o->name()), m_loadSerial);
+    }
 
     desktop_shell_send_load(resource);
 }
@@ -145,6 +151,11 @@ void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
 {
     p->setFocus(m_grabView, 0, 0);
     desktop_shell_send_grab_cursor(m_resource, (uint32_t)c);
+}
+
+void DesktopShell::outputCreated(Output *o)
+{
+    desktop_shell_send_load_output(m_resource, o->resource(m_client->client()), qPrintable(o->name()), 0);
 }
 
 void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfaceResource)
@@ -357,11 +368,6 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
     wl_signal_add(&surface->destroy_signal, &m_listener->grabSurfaceDestroy);
 }
 
-void DesktopShell::desktopReady()
-{
-    m_splash->hide();
-}
-
 void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
 {
     class Binding : public QObject
@@ -519,6 +525,14 @@ void DesktopShell::addTrustedClient(int32_t fd, const char *interface)
 void DesktopShell::pong(uint32_t serial)
 {
 
+}
+
+void DesktopShell::outputLoaded(uint32_t serial)
+{
+    if (serial > 0 && serial == m_loadSerial) {
+        m_splash->hide();
+        m_loadSerial = 0;
+    }
 }
 
 }

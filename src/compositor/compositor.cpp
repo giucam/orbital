@@ -306,13 +306,6 @@ bool Compositor::init(const QString &socketName)
         seat->pointer()->setDefaultGrab(new DefaultGrab);
     }
 
-    weston_output *o;
-    wl_list_for_each(o, &m_compositor->output_list, link) {
-        Output *output = new Output(o);
-        connect(output, &QObject::destroyed, this, &Compositor::outputDestroyed);
-        m_outputs << output;
-    }
-
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
     for (Output *o: m_outputs) {

@@ -88,7 +88,6 @@ Client::Client()
       , m_ui(nullptr)
       , d_ptr(new ClientPrivate(this))
 {
-    m_elapsedTimer.start();
     s_client = this;
 
     QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
@@ -115,6 +114,8 @@ Client::Client()
     qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
     qmlRegisterUncreatableType<UiScreen>("Orbital", 1, 0, "UiScreen", "UiScreen is not creatable");
 
+    qRegisterMetaType<QScreen *>();
+
 #define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Icon");
     REGISTER_QMLFILE("ElementConfiguration");
@@ -138,6 +139,19 @@ Client::Client()
     Element::loadElementsList();
     Style::loadStylesList();
     ServiceFactory::searchPlugins();
+
+    m_engine = new QQmlEngine(this);
+    m_engine->rootContext()->setContextProperty("Client", this);
+    m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+
+    // TODO: find a way to un-hardcode this
+    QQmlComponent *c = new QQmlComponent(m_engine, QUrl("qrc:/qml/Notifications.qml"), this);
+    if (!c->isReady()) {
+        qDebug() << c->errorString();
+    } else {
+        c->create();
+    }
+    // -- till here
 }
 
 Client::~Client()
@@ -183,43 +197,26 @@ void Client::create()
     m_grabWindow->show();
     connect(m_grabWindow, &QWindow::screenChanged, [this](QScreen *s) { setGrabSurface(); });
     setGrabSurface();
-
-    QQmlEngine *engine = new QQmlEngine(this);
-    engine->rootContext()->setContextProperty("Client", this);
-    engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
-
-    // TODO: find a way to un-hardcode this
-    QQmlComponent *c = new QQmlComponent(engine, QUrl("qrc:/qml/Notifications.qml"), this);
-    if (!c->isReady()) {
-        qDebug() << c->errorString();
-    } else {
-        c->create();
-    }
-    // -- till here
-
-    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QString configFile = path + "/orbital/orbital.conf";
-    m_ui = new ShellUI(this, m_settings, engine, configFile);
-    wl_display_flush(m_display);
-
-    for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
-        QScreen *screen = QGuiApplication::screens().at(i);
-
-        m_ui->loadScreen(i, screen);
-        qDebug() << "Elements for screen" << i << "loaded after" << m_elapsedTimer.elapsed() << "ms";
-    }
-    connect(qApp, &QGuiApplication::screenAdded, this, &Client::screenAdded);
-
-    // wait until all the objects have finished what they're doing before sending the ready event
-    QTimer::singleShot(0, this, SLOT(ready()));
 }
 
-void Client::screenAdded(QScreen *screen)
+void Client::loadOutput(QScreen *s, const QString &name, uint32_t serial)
 {
     m_elapsedTimer.start();
-    int id = QGuiApplication::screens().size() - 1;
-    m_ui->loadScreen(id, screen);
-    qDebug() << "Elements for new screen" << id << "loaded after" << m_elapsedTimer.elapsed() << "ms";
+    if (!m_ui) {
+        QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+        QString configFile = path + "/orbital/orbital.conf";
+        m_ui = new ShellUI(this, m_settings, m_engine, configFile);
+    }
+    m_ui->loadScreen(s, name);
+    qDebug() << "Elements for new screen" << name << "loaded after" << m_elapsedTimer.elapsed() << "ms";
+
+    // wait until all the objects have finished what they're doing before sending the loaded event
+    QMetaObject::invokeMethod(this, "sendOutputLoaded", Q_ARG(uint32_t, serial));
+}
+
+void Client::sendOutputLoaded(uint32_t serial)
+{
+    desktop_shell_output_loaded(m_shell, serial);
 }
 
 void Client::setBackground(QQuickWindow *window, QScreen *screen)
@@ -277,12 +274,6 @@ QProcess *Client::createTrustedClient(const QString &interface)
 
     connect(process, (void (QProcess::*)(int))&QProcess::finished, [fd](int) { close(fd); });
     return process;
-}
-
-void Client::ready()
-{
-    desktop_shell_desktop_ready(m_shell);
-    qDebug() << "Orbital-client startup time:" << m_elapsedTimer.elapsed() << "ms";
 }
 
 void Client::takeScreenshot()
@@ -578,6 +569,22 @@ void Client::handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, 
     }
 }
 
+void Client::handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const char *name, uint32_t serial)
+{
+    QScreen *s = nullptr;
+    for (QScreen *screen: QGuiApplication::screens()) {
+        if (Client::nativeOutput(screen) == o) {
+            s = screen;
+        }
+    }
+    if (!s) {
+        qWarning("Could not find a screen for wl_output %d", wl_proxy_get_id((wl_proxy *)o));
+        return;
+    }
+
+    QMetaObject::invokeMethod(this, "loadOutput", Q_ARG(QScreen *, s), Q_ARG(QString, QString(name)), Q_ARG(uint32_t, serial));
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
@@ -586,7 +593,8 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleGrabCursor),
     wrapInterface(&Client::handleWindowAdded),
     wrapInterface(&Client::handleWorkspaceAdded),
-    wrapInterface(&Client::handleDesktopRect)
+    wrapInterface(&Client::handleDesktopRect),
+    wrapInterface(&Client::handleLoadOutput)
 };
 
 Grab *Client::createGrab()

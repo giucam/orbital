@@ -48,7 +48,7 @@ public:
     ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, const QString &configFile);
     ~ShellUI();
 
-    UiScreen *loadScreen(int id, QScreen *screen);
+    UiScreen *loadScreen(QScreen *screen, const QString &name);
     QQmlEngine *qmlEngine() const { return m_engine; }
 
     QString iconTheme() const;
