@@ -49,6 +49,27 @@ public:
         m_registry = wl_display_get_registry(m_display);
         wl_registry_add_listener(m_registry, &s_registryListener, this);
 
+        wl_callback *callback = wl_display_sync(m_display);
+        static const wl_callback_listener callbackListener = {
+            [](void *data, wl_callback *c, uint32_t) {
+                Splash *splash = reinterpret_cast<Splash *>(data);
+                if (!splash->m_splash) {
+                    qFatal("The compositor doesn't advertize the desktop_shell_splash global.");
+                }
+                wl_callback_destroy(c);
+            }
+        };
+        wl_callback_add_listener(callback, &callbackListener, this);
+    }
+    ~Splash()
+    {
+        desktop_shell_splash_destroy(m_splash);
+        wl_registry_destroy(m_registry);
+        wl_display_disconnect(m_display);
+    }
+
+    Q_INVOKABLE void create()
+    {
         QQuickWindow::setDefaultAlphaBuffer(true);
         for (QScreen *screen: QGuiApplication::screens()) {
             QQuickView *w = new QQuickView(QUrl("qrc:///splash.qml"));
@@ -61,20 +82,7 @@ public:
             m_windows << w;
         }
 
-        wl_display_roundtrip(m_display);
-        if (!m_splash) {
-            exit(1);
-        }
-    }
-    ~Splash()
-    {
-        desktop_shell_splash_destroy(m_splash);
-        wl_registry_destroy(m_registry);
-        wl_display_disconnect(m_display);
-    }
 
-    Q_INVOKABLE void create()
-    {
         desktop_shell_splash_add_listener(m_splash, &s_splashListener, this);
         for (int i = 0; i < QGuiApplication::screens().size(); ++i) {
             QScreen *screen = QGuiApplication::screens().at(i);
