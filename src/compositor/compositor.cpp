@@ -200,7 +200,8 @@ bool Compositor::init(const QString &socketName)
 
     m_rootLayer = new Layer(&m_compositor->cursor_layer);
     m_overlayLayer = new Layer(m_rootLayer);
-    m_panelsLayer = new Layer(m_overlayLayer);
+    m_fullscreenLayer = new Layer(m_overlayLayer);
+    m_panelsLayer = new Layer(m_fullscreenLayer);
     m_appsLayer = new Layer(m_panelsLayer);
     m_backgroundLayer = new Layer(m_appsLayer);
 
@@ -340,6 +341,11 @@ Layer *Compositor::rootLayer() const
 Layer *Compositor::overlayLayer() const
 {
     return m_overlayLayer;
+}
+
+Layer *Compositor::fullscreenLayer() const
+{
+    return m_fullscreenLayer;
 }
 
 Layer *Compositor::panelsLayer() const

@@ -62,6 +62,7 @@ public:
     Shell *shell() const;
     Layer *rootLayer() const;
     Layer *overlayLayer() const;
+    Layer *fullscreenLayer() const;
     Layer *panelsLayer() const;
     Layer *appsLayer() const;
     Layer *backgroundLayer() const;
@@ -95,6 +96,7 @@ private:
     Shell *m_shell;
     Layer *m_rootLayer;
     Layer *m_overlayLayer;
+    Layer *m_fullscreenLayer;
     Layer *m_panelsLayer;
     Layer *m_appsLayer;
     Layer *m_backgroundLayer;

@@ -92,7 +92,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
 
     m_backgroundLayer->append(ws->compositor()->backgroundLayer());
     m_layer->append(ws->compositor()->appsLayer());
-    m_fullscreenLayer->append(ws->compositor()->rootLayer());
+    m_fullscreenLayer->append(ws->compositor()->fullscreenLayer());
 
     setMask(QRect());
 }
