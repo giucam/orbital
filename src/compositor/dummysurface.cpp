@@ -20,6 +20,7 @@
 #include <weston/compositor.h>
 
 #include "dummysurface.h"
+#include "compositor.h"
 
 namespace Orbital {
 
@@ -37,6 +38,11 @@ DummySurface::DummySurface(weston_surface *s, int w, int h)
     pixman_region32_fini(&s->input);
     pixman_region32_init_rect(&s->input, 0, 0, w, h);
     weston_surface_damage(s);
+}
+
+DummySurface::DummySurface(Compositor *c, int w, int h)
+            : DummySurface(weston_surface_create(c->m_compositor), w, h)
+{
 }
 
 DummySurface::~DummySurface()

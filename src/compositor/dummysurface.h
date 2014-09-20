@@ -31,6 +31,7 @@ class Compositor;
 class DummySurface : public View
 {
 public:
+    DummySurface(Compositor *c, int width, int height);
     ~DummySurface();
 
 private:

@@ -108,6 +108,7 @@ private:
     friend class Global;
     friend class XWayland;
     friend class Pointer;
+    friend DummySurface;
 };
 
 class ChildProcess : public QObject

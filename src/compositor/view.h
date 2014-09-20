@@ -70,7 +70,7 @@ public:
 
     static View *fromView(weston_view *v);
 
-    bool dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y, double *vx, double *vy);
+    View *dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y, double *vx, double *vy);
 
 protected:
     void disconnectDestroyListener();
@@ -78,7 +78,7 @@ protected:
      * Return false if the view should be transparent to pointer events,
      * true otherwise.
      */
-    virtual bool pointerEnter(const Pointer *pointer) { return true; }
+    virtual View *pointerEnter(const Pointer *pointer) { return this; }
     virtual bool pointerLeave(const Pointer *pointer) { return true; }
 
 private:
@@ -90,7 +90,7 @@ private:
     Transform *m_transform;
     struct {
         bool inside;
-        bool propagate;
+        View *target;
     } m_pointerState;
 
     friend Layer;

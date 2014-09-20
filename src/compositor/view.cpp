@@ -53,7 +53,7 @@ View::View(weston_view *view)
     , m_listener(new Listener)
     , m_output(nullptr)
     , m_transform(nullptr)
-    , m_pointerState({ false, false })
+    , m_pointerState({ false, nullptr })
 {
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
@@ -200,7 +200,7 @@ View *View::fromView(weston_view *v)
     return reinterpret_cast<Listener *>(listener)->view;
 }
 
-bool View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_t fy, double *vx, double *vy)
+View *View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_t fy, double *vx, double *vy)
 {
     int ix = wl_fixed_to_int(fx);
     int iy = wl_fixed_to_int(fy);
@@ -213,11 +213,11 @@ bool View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_
             if (vy) *vy = wl_fixed_to_double(fvy);
 
             if (m_pointerState.inside) {
-                return m_pointerState.propagate;
+                return m_pointerState.target;
             }
             m_pointerState.inside = true;
-            m_pointerState.propagate = pointerEnter(pointer);
-            return m_pointerState.propagate;
+            m_pointerState.target = pointerEnter(pointer);
+            return m_pointerState.target;
         }
     }
 
@@ -225,7 +225,7 @@ bool View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_
         m_pointerState.inside = false;
         pointerLeave(pointer);
     }
-    return false;
+    return nullptr;
 }
 
 }

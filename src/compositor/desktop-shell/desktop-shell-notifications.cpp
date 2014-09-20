@@ -52,16 +52,16 @@ public:
                 delete parent;
             }
         }
-        bool pointerEnter(const Pointer *p) override
+        View *pointerEnter(const Pointer *p) override
         {
             if (!parent->inactive) {
-                return true;
+                return this;
             }
 
             alphaAnim.setStart(alpha());
             alphaAnim.setTarget(0.3);
             alphaAnim.run(output, ANIMATION_DURATION);
-            return false;
+            return nullptr;
         }
         bool pointerLeave(const Pointer *p) override
         {

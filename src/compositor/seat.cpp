@@ -193,8 +193,12 @@ View *Pointer::pickView(double *vx, double *vy) const
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
-        if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, vx, vy)) {
-            return v;
+        if (!v) {
+            continue;
+        }
+
+        if (View *target = v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, vx, vy)) {
+            return target;
         }
     }
     return nullptr;

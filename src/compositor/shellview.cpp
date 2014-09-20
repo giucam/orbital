@@ -32,6 +32,23 @@
 
 namespace Orbital {
 
+class BlackSurface : public DummySurface
+{
+public:
+    BlackSurface(Compositor *c, ShellView *p, int w, int h)
+        : DummySurface(c, w, h)
+        , parent(p)
+    {
+    }
+
+    View *pointerEnter(const Pointer *pointer) override
+    {
+        return parent;
+    }
+
+    ShellView *parent;
+};
+
 ShellView::ShellView(ShellSurface *surf, weston_view *view)
          : View(view)
          , m_surface(surf)
@@ -155,7 +172,7 @@ void ShellView::mapFullscreen()
 
     if (!m_blackSurface) {
         Compositor *c = m_surface->compositor();
-        m_blackSurface = c->createDummySurface(m_designedOutput->width(), m_designedOutput->height());
+        m_blackSurface = new BlackSurface(c, this, m_designedOutput->width(), m_designedOutput->height());
     }
 
     double outputAspect = (double)ow / (double)oh;
