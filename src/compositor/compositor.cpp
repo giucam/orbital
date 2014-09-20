@@ -436,20 +436,34 @@ void Compositor::handleSignal()
 
 // -- ChildProcess
 
+struct ChildProcess::Listener
+{
+    wl_listener listener;
+    ChildProcess *parent;
+};
+
 ChildProcess::ChildProcess(wl_display *dpy, const QString &program)
             : QObject()
             , m_display(dpy)
             , m_program(program)
-            , m_process(nullptr)
             , m_client(nullptr)
             , m_autoRestart(false)
+            , m_listener(new Listener)
 {
+    m_listener->parent = this;
+    m_listener->listener.notify = [](wl_listener *l, void *data) {
+        ChildProcess *p = reinterpret_cast<Listener *>(l)->parent;
+        p->finished();
+    };
+    wl_list_init(&m_listener->listener.link);
 }
 
 ChildProcess::~ChildProcess()
 {
-    if (m_process) {
-        delete m_process;
+    wl_list_remove(&m_listener->listener.link);
+    delete m_listener;
+    if (m_client) {
+        wl_client_destroy(m_client);
     }
 }
 
@@ -467,11 +481,26 @@ void ChildProcess::start()
 {
     int sv[2];
     socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    int fd = dup(sv[1]);
-    env.insert("WAYLAND_SOCKET", QString::number(fd));
-    env.insert("QT_QPA_PLATFORM", "wayland");
-    close(sv[1]);
+
+    class Process : public QProcess
+    {
+    public:
+        Process(int fd) : QProcess(), socket(fd) {}
+        void setupChildProcess() override
+        {
+            int fd = dup(socket);
+            setenv("WAYLAND_SOCKET", qPrintable(QString::number(fd)), 1);
+            setenv("QT_QPA_PLATFORM", "wayland", 1);
+        }
+
+        int socket;
+    };
+
+    Process *process = new Process(sv[1]);
+    process->setProcessChannelMode(QProcess::ForwardedChannels);
+    process->start(m_program);
+    connect(process, &QProcess::started, [sv]() { close(sv[1]); });
+    connect(process, (void (QProcess::*)(int))&QProcess::finished, [process](int) { delete process; });
 
     m_client = wl_client_create(m_display, sv[0]);
     if (!m_client) {
@@ -480,26 +509,20 @@ void ChildProcess::start()
         return;
     }
 
-    m_process = new QProcess;
-    m_process->setProcessChannelMode(QProcess::ForwardedChannels);
-    m_process->setProcessEnvironment(env);
-    m_process->start(m_program);
-    connect(m_process, (void (QProcess::*)(int))&QProcess::finished, this, &ChildProcess::finished);
-    m_socketFd = sv[0];
+    wl_client_add_destroy_listener(m_client, &m_listener->listener);
 }
 
-void ChildProcess::finished(int code)
+void ChildProcess::finished()
 {
-    if (m_process) {
-        m_process->deleteLater();
-        m_process = nullptr;
-    }
+    m_client = nullptr;
+    wl_list_remove(&m_listener->listener.link);
+    wl_list_init(&m_listener->listener.link);
 
     if (m_autoRestart) {
-        qDebug("%s exited with exit code '%d'. Restarting it...", qPrintable(m_program), code);
+        qDebug("%s exited. Restarting it...", qPrintable(m_program));
         start();
     } else {
-        qDebug("%s exited with exit code '%d'.", qPrintable(m_program), code);
+        qDebug("%s exited.", qPrintable(m_program));
     }
 }
 

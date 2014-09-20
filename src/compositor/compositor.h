@@ -120,16 +120,17 @@ public:
     wl_client *client() const;
 
 private:
+    struct Listener;
+
     ChildProcess(wl_display *display, const QString &program);
     void start();
-    void finished(int code);
+    void finished();
 
     wl_display *m_display;
     QString m_program;
-    QProcess *m_process;
-    int m_socketFd;
     wl_client *m_client;
     bool m_autoRestart;
+    Listener *m_listener;
 
     friend Compositor;
 
