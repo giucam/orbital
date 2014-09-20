@@ -40,6 +40,7 @@ class UiScreen : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QRect availableRect READ availableRect NOTIFY availableRectChanged)
+    Q_PROPERTY(bool loading READ loading NOTIFY loaded)
 public:
     UiScreen(ShellUI *ui, Client *client, QScreen *screen, const QString &name);
     ~UiScreen();
@@ -57,8 +58,14 @@ public:
     QRect availableRect() const { return m_rect; }
     void setAvailableRect(const QRect &r);
 
+    bool loading() const;
+
 signals:
     void availableRectChanged();
+    void loaded();
+
+private slots:
+    void screenLoaded();
 
 private:
     Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
@@ -73,6 +80,7 @@ private:
     QByteArray m_config;
     QScreen *m_screen;
     QRect m_rect;
+    bool m_loading;
 
     QHash<int, Element *> m_elements;
     QList<Element *> m_children;

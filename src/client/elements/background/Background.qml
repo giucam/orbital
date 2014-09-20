@@ -165,7 +165,7 @@ Element {
             fillMode: bkg.fillModes[bkg.imageFillMode].value
             anchors.fill: parent
             smooth: true
-            asynchronous: true
+            asynchronous: !bkg.screen.loading
         }
 
         Menu {

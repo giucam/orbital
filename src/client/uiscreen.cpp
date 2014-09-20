@@ -29,6 +29,7 @@
 #include <QQmlProperty>
 #include <QQuickWindow>
 #include <QScreen>
+#include <QTimer>
 
 #include "client.h"
 #include "element.h"
@@ -41,6 +42,7 @@ UiScreen::UiScreen(ShellUI *ui, Client *client, QScreen *screen, const QString &
        , m_ui(ui)
        , m_name(name)
        , m_screen(screen)
+       , m_loading(true)
 {
 }
 
@@ -120,6 +122,8 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         }
     }
 
+    // wait until all the objects have finished what they're doing before sending the loaded event
+    QTimer::singleShot(0, this, SLOT(screenLoaded()));
 }
 
 Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
@@ -265,4 +269,15 @@ void UiScreen::setAvailableRect(const QRect &r)
 {
     m_rect = r;
     emit availableRectChanged();
+}
+
+bool UiScreen::loading() const
+{
+    return m_loading;
+}
+
+void UiScreen::screenLoaded()
+{
+    m_loading = false;
+    emit loaded();
 }

@@ -207,11 +207,10 @@ void Client::loadOutput(QScreen *s, const QString &name, uint32_t serial)
         QString configFile = path + "/orbital/orbital.conf";
         m_ui = new ShellUI(this, m_settings, m_engine, configFile);
     }
-    m_ui->loadScreen(s, name);
-    qDebug() << "Elements for new screen" << name << "loaded after" << m_elapsedTimer.elapsed() << "ms";
+    UiScreen *screen = m_ui->loadScreen(s, name);
+    qDebug() << "Elements for screen" << name << "loaded after" << m_elapsedTimer.elapsed() << "ms";
 
-    // wait until all the objects have finished what they're doing before sending the loaded event
-    QMetaObject::invokeMethod(this, "sendOutputLoaded", Q_ARG(uint32_t, serial));
+    connect(screen, &UiScreen::loaded, [this, serial]() { sendOutputLoaded(serial); });
 }
 
 void Client::sendOutputLoaded(uint32_t serial)
