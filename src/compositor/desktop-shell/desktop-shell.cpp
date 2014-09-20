@@ -93,6 +93,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     if (client != m_client->client()) {
         wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "permission to bind desktop_shell denied");
         wl_resource_destroy(resource);
+        return;
     }
 
     static const struct desktop_shell_interface implementation = {
