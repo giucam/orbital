@@ -55,7 +55,7 @@ public:
     {
         fadeAnimation->setStart(1.f);
         fadeAnimation->setTarget(0.f);
-        fadeAnimation->run(view->output(), 200, Animation::Flags::SendDone);
+        fadeAnimation->run(view->output(), 500, Animation::Flags::SendDone);
     }
 
     void done()
