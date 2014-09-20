@@ -72,6 +72,8 @@ class Style : public QObject
     Q_PROPERTY(QQmlComponent *popup READ popup WRITE set_popup NOTIFY popupChanged)
     Q_PROPERTY(QQmlComponent *popupLauncher READ popupLauncher WRITE set_popupLauncher NOTIFY popupLauncherChanged)
 
+    Q_PROPERTY(QQmlComponent *notificationBackground READ notificationBackground WRITE set_notificationBackground NOTIFY notificationBackgroundChanged)
+
     Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
     Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
     Q_PROPERTY(QColor highlightColor READ highlightColor WRITE set_highlightColor NOTIFY highlightColorChanged)
@@ -88,6 +90,7 @@ public:
     PROPERTY(QQmlComponent *, button)
     PROPERTY(QQmlComponent *, popup)
     PROPERTY(QQmlComponent *, popupLauncher)
+    PROPERTY(QQmlComponent *, notificationBackground)
     PROPERTY(QColor, textColor)
     PROPERTY(QColor, backgroundColor)
     PROPERTY(QColor, highlightColor)
@@ -109,6 +112,7 @@ signals:
     void buttonChanged();
     void popupChanged();
     void popupLauncherChanged();
+    void notificationBackgroundChanged();
     void textColorChanged();
     void backgroundColorChanged();
     void highlightColorChanged();

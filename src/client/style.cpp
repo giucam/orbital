@@ -40,6 +40,7 @@ Style::Style(QObject *p)
      , m_button(nullptr)
      , m_popup(nullptr)
      , m_popupLauncher(nullptr)
+     , m_notificationBackground(nullptr)
 {
 
 }
