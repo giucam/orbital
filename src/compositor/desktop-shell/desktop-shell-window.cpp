@@ -37,6 +37,7 @@ DesktopShellWindow::DesktopShellWindow(DesktopShell *ds)
                   , m_desktopShell(ds)
                   , m_resource(nullptr)
                   , m_state(DESKTOP_SHELL_WINDOW_STATE_INACTIVE)
+                  , m_sendState(true)
 {
 }
 
@@ -55,6 +56,8 @@ void DesktopShellWindow::added()
     connect(shsurf(), &ShellSurface::titleChanged, this, &DesktopShellWindow::sendTitle);
     connect(shsurf(), &Surface::activated, this, &DesktopShellWindow::activated);
     connect(shsurf(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
+    connect(shsurf(), &ShellSurface::minimized, this, &DesktopShellWindow::minimized);
+    connect(shsurf(), &ShellSurface::restored, this, &DesktopShellWindow::restored);
 //     shsurf()->mappedSignal.connect(this, &DesktopShellWindow::mapped);
 //     shsurf()->unmappedSignal.connect(this, &DesktopShellWindow::destroy);
 }
@@ -99,6 +102,18 @@ void DesktopShellWindow::deactivated(Seat *)
     sendState();
 }
 
+void DesktopShellWindow::minimized()
+{
+    m_state |= DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+    sendState();
+}
+
+void DesktopShellWindow::restored()
+{
+    m_state &= ~DESKTOP_SHELL_WINDOW_STATE_MINIMIZED;
+    sendState();
+}
+
 void DesktopShellWindow::recreate()
 {
     if (m_resource) {
@@ -128,7 +143,7 @@ void DesktopShellWindow::destroy()
 
 void DesktopShellWindow::sendState()
 {
-    if (m_resource) {
+    if (m_resource && m_sendState) {
         desktop_shell_window_send_state_changed(m_resource, m_state);
     }
 }
@@ -145,25 +160,26 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int3
     ShellSurface *s = shsurf();
     Seat *seat = m_desktopShell->compositor()->seats().first();
 
-//     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-//         s->setMinimized(false);
-//     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-//         s->setMinimized(true);
-//         if (s->isActive()) {
-//             s->deactivate();
-//         }
-//     }
+    m_sendState = false;
+    if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        seat->activate(s);
+        s->restore();
+    } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        s->minimize();
+    }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         seat->activate(s);
         for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);
-            view->layer()->raiseOnTop(view);
+            if (Layer *layer = view->layer()) {
+                layer->raiseOnTop(view);
+            }
         }
     }
 
-//     m_state = state;
-//     sendState();
+    m_sendState = true;
+    sendState();
 }
 
 void DesktopShellWindow::close(wl_client *client, wl_resource *resource)

@@ -151,7 +151,9 @@ void Shell::configure(ShellSurface *shsurf)
         shsurf->setWorkspace(output->currentWorkspace());
 
         for (Seat *seat: m_compositor->seats()) {
-            seat->activate(shsurf);
+            disconnect(m_activateConnection[seat]);
+            Surface *surface = seat->activate(shsurf);
+            m_activateConnection[seat] = connect(surface, &Surface::unmapped, [this, seat]() { activateTopSurface(seat); });
         }
     }
 }
@@ -172,7 +174,11 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    seat->activate(focus->surface());
+    disconnect(m_activateConnection[seat]);
+    Surface *surface = seat->activate(focus->surface());
+    if (surface) {
+        m_activateConnection[seat] = connect(surface, &Surface::unmapped, [this, seat]() { activateTopSurface(seat); });
+    }
 
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
@@ -215,6 +221,23 @@ void Shell::raise(Seat *seat)
             } else {
                 view->layer()->raiseOnTop(view);
             }
+        }
+    }
+}
+
+void Shell::activateTopSurface(Seat *seat)
+{
+    disconnect(m_activateConnection[seat]);
+    for (Output *o: compositor()->outputs()) {
+        if (o->geometry().contains(seat->pointer()->x(), seat->pointer()->y())) {
+            Workspace *ws = o->currentWorkspace();
+            View *view = ws->topView();
+            if (!view) {
+                return;
+            }
+            Surface *s = seat->activate(view->surface());
+            m_activateConnection[seat] = connect(s, &Surface::unmapped, [this, seat]() { activateTopSurface(seat); });
+            return;
         }
     }
 }

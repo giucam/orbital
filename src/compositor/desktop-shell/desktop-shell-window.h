@@ -48,6 +48,8 @@ private:
     void surfaceTypeChanged();
     void activated(Seat *seat);
     void deactivated(Seat *seat);
+    void minimized();
+    void restored();
     void mapped();
     void destroy();
     void sendState();
@@ -58,6 +60,7 @@ private:
     DesktopShell *m_desktopShell;
     wl_resource *m_resource;
     int32_t m_state;
+    bool m_sendState;
 };
 
 }

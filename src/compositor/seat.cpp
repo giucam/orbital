@@ -75,7 +75,7 @@ Pointer *Seat::pointer() const
     return m_pointer;
 }
 
-void Seat::activate(Surface *surface)
+Surface *Seat::activate(Surface *surface)
 {
     bool isNull = !surface;
     if (surface) {
@@ -83,7 +83,7 @@ void Seat::activate(Surface *surface)
     }
 
     if ((!surface && !isNull) || surface == m_activeSurface) {
-        return;
+        return m_activeSurface;
     }
 
     weston_surface_activate(surface->surface(), m_seat);
@@ -100,6 +100,7 @@ void Seat::activate(Surface *surface)
             }
         });
     }
+    return m_activeSurface;
 }
 
 class Seat::PopupGrab : public PointerGrab

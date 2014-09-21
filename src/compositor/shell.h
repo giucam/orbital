@@ -22,6 +22,8 @@
 
 #include <functional>
 
+#include <QHash>
+
 #include "interface.h"
 
 struct weston_surface;
@@ -62,6 +64,7 @@ public:
 private:
     void giveFocus(Seat *s);
     void raise(Seat *s);
+    void activateTopSurface(Seat *seat);
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
@@ -70,6 +73,7 @@ private:
     ButtonBinding *m_focusBinding;
     ButtonBinding *m_raiseBinding;
     Pager *m_pager;
+    QHash<Seat *, QMetaObject::Connection> m_activateConnection;
 };
 
 }

@@ -293,6 +293,7 @@ void ShellSurface::unmap()
     for (ShellView *v: m_views) {
         v->cleanupAndUnmap();
     }
+    emit unmapped();
 }
 
 void ShellSurface::sendPopupDone()
@@ -300,6 +301,19 @@ void ShellSurface::sendPopupDone()
     m_nextType = Type::None;
     m_popup.seat = nullptr;
     emit popupDone();
+}
+
+void ShellSurface::minimize()
+{
+    unmap();
+    emit minimized();
+}
+
+void ShellSurface::restore()
+{
+    m_forceMap = true;
+    configure(0, 0);
+    emit restored();
 }
 
 void ShellSurface::setTitle(const QString &t)

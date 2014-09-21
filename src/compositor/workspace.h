@@ -51,6 +51,7 @@ public:
     Compositor *compositor() const;
     Pager *pager() const;
     WorkspaceView *viewForOutput(Output *o);
+    View *topView() const;
 
     int id() const;
     int x() const;
@@ -94,6 +95,7 @@ private:
     bool m_attached;
 
     friend Pager;
+    friend Workspace;
 };
 
 }

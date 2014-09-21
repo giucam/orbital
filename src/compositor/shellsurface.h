@@ -86,6 +86,8 @@ public:
     void resize(Seat *seat, Edges edges);
     void unmap();
     void sendPopupDone();
+    void minimize();
+    void restore();
 
     void setTitle(const QString &title);
     void setGeometry(int x, int y, int w, int h);
@@ -102,6 +104,8 @@ signals:
     void mapped();
     void titleChanged();
     void popupDone();
+    void minimized();
+    void restored();
 
 private:
     void parentSurfaceDestroyed();

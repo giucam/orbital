@@ -51,6 +51,7 @@ public:
     wl_client *client() const;
     weston_surface *surface() const;
 
+    void repaint();
     void damage();
     void setRole(Role *role, const ConfigureHandler &handler);
     Role *role() const;
@@ -68,6 +69,7 @@ public:
     static Surface *fromResource(wl_resource *resource);
 
 signals:
+    void unmapped();
     void activated(Seat *seat);
     void deactivated(Seat *seat);
 

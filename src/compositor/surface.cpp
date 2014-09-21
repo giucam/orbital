@@ -78,6 +78,11 @@ bool Surface::isMapped() const
     return weston_surface_is_mapped(m_surface);
 }
 
+void Surface::repaint()
+{
+    weston_surface_schedule_repaint(m_surface);
+}
+
 void Surface::damage()
 {
     weston_surface_damage(m_surface);

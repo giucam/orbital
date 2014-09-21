@@ -44,14 +44,16 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: {
             if (mouse.button == Qt.LeftButton) {
+                var state = window.state;
                 if (window.isMinimized()) {
-                    window.unminimize();
+                    state &= ~ Window.Minimized;
                 } else if (window.isActive()) {
-                    window.minimize();
+                    state |= Window.Minimized;
                 }
                 if (!window.isActive()) {
-                    window.activate();
+                    state |= Window.Active
                 }
+                window.state = state;
             } else {
                 menu.popup();
             }

@@ -47,7 +47,7 @@ public:
     Compositor *compositor() const;
     Pointer *pointer() const;
 
-    void activate(Surface *surface);
+    Surface *activate(Surface *surface);
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);
 

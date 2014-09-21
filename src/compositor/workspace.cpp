@@ -70,6 +70,12 @@ WorkspaceView *Workspace::viewForOutput(Output *o)
     return m_views.value(o->id());
 }
 
+View *Workspace::topView() const
+{
+    WorkspaceView *view = *m_views.begin();
+    return view->m_layer->topView();
+}
+
 int Workspace::id() const
 {
     return m_id;
