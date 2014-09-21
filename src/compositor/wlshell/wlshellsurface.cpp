@@ -51,7 +51,7 @@ WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *
                                        static_cast<WlShellSurface *>(wl_resource_get_user_data(resource))->resourceDestroyed();
                                    });
 
-    shsurf->setConfigureSender([this](weston_surface *s, int w, int h) {
+    shsurf->setConfigureSender([this](int w, int h) {
         wl_shell_surface_send_configure(m_resource, 0, w, h);
     });
     connect(shsurf, &ShellSurface::popupDone, this, &WlShellSurface::popupDone);

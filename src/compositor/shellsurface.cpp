@@ -447,7 +447,7 @@ void ShellSurface::updateState()
 void ShellSurface::sendConfigure(int w, int h)
 {
     if (m_configureSender) {
-        m_configureSender(surface(), w, h);
+        m_configureSender(w, h);
     }
 }
 

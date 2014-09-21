@@ -52,7 +52,7 @@ public:
     ShellSurface(Shell *shell, weston_surface *surface);
     ~ShellSurface();
 
-    typedef std::function<void (weston_surface *, int, int)> ConfigureSender;
+    typedef std::function<void (int, int)> ConfigureSender;
     enum class Type {
         None = 0,
         Toplevel = 1,
@@ -115,7 +115,7 @@ private:
     void outputRemoved(Output *output);
 
     Shell *m_shell;
-    std::function<void (weston_surface *, int, int)> m_configureSender;
+    ConfigureSender m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;
     Edges m_resizeEdges;
