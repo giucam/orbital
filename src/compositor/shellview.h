@@ -35,7 +35,7 @@ class WorkspaceView;
 class ShellView : public View
 {
 public:
-    explicit ShellView(ShellSurface *shsurf, weston_view *view);
+    explicit ShellView(ShellSurface *shsurf);
     ~ShellView();
 
     ShellSurface *surface() const;

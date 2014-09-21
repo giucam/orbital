@@ -96,6 +96,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
 
     setMask(QRect());
 }
+
 WorkspaceView::~WorkspaceView()
 {
     delete m_root;
@@ -105,19 +106,19 @@ WorkspaceView::~WorkspaceView()
     delete m_fullscreenLayer;
 }
 
-void WorkspaceView::setBackground(weston_surface *s)
+void WorkspaceView::setBackground(Surface *s)
 {
     if (m_background && m_background->surface() == s) {
         return;
     }
 
     if (m_background) {
-        weston_surface_destroy(m_background->surface());
+        m_background->surface()->deref();
     }
     // increase the ref count for the background, so to keep it alive when the shell client
     // crashes, until a new one is set
-    s->ref_count++;
-    m_background = new View(weston_view_create(s));
+    s->ref();
+    m_background = new View(s);
     m_background->setTransformParent(m_root);
     m_backgroundLayer->addView(m_background);
 }

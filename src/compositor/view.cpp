@@ -26,6 +26,7 @@
 #include "workspace.h"
 #include "transform.h"
 #include "layer.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -48,8 +49,9 @@ void View::disconnectDestroyListener()
     m_view = nullptr;
 }
 
-View::View(weston_view *view)
-    : m_view(view)
+View::View(Surface *s)
+    : m_view(weston_view_create(s->surface()))
+    , m_surface(s)
     , m_listener(new Listener)
     , m_output(nullptr)
     , m_transform(nullptr)
@@ -57,12 +59,7 @@ View::View(weston_view *view)
 {
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
-    wl_signal_add(&view->destroy_signal, &m_listener->listener);
-}
-
-View::View(weston_surface *s)
-    : View(weston_view_create(s))
-{
+    wl_signal_add(&m_view->destroy_signal, &m_listener->listener);
 }
 
 View::~View()
@@ -186,9 +183,9 @@ Output *View::output() const
     return m_output;
 }
 
-weston_surface *View::surface() const
+Surface *View::surface() const
 {
-    return m_view->surface;
+    return m_surface;
 }
 
 View *View::fromView(weston_view *v)

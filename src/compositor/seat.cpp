@@ -74,9 +74,9 @@ Pointer *Seat::pointer() const
     return m_pointer;
 }
 
-void Seat::activate(weston_surface *surface)
+void Seat::activate(Surface *surface)
 {
-    weston_surface_activate(surface, m_seat);
+    weston_surface_activate(surface->surface(), m_seat);
 }
 
 class Seat::PopupGrab : public PointerGrab

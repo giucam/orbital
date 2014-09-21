@@ -129,7 +129,7 @@ XWayland::XWayland(Shell *shell)
     };
     compositor->shell_interface.set_toplevel = [](shell_surface *shsurf) { _this->setToplevel(); };
     compositor->shell_interface.set_transient = [](shell_surface *shsurf, weston_surface *parent, int x, int y, uint32_t flags) {
-        _this->setTransient(parent, x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
+        _this->setTransient(Surface::fromSurface(parent), x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
     };
 //     compositor->shell_interface.set_fullscreen = [](shell_surface *shsurf, uint32_t method, uint32_t framerate, weston_output *output) { _this->setFullscreen((ShellSurface::FullscreenMethod)method, framerate, output);};
     compositor->shell_interface.resize = [](shell_surface *shsurf, weston_seat *ws, uint32_t edges) {

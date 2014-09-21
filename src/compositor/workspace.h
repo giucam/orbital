@@ -37,6 +37,7 @@ class Output;
 class Compositor;
 class DummySurface;
 class Pager;
+class Surface;
 
 class Workspace : public Object
 {
@@ -74,7 +75,7 @@ public:
     void configure(View *view);
     void configureFullscreen(View *view, View *blackSurface);
 
-    void setBackground(weston_surface *surface);
+    void setBackground(Surface *surface);
     void setMask(const QRect &rect);
 
     Workspace *workspace() const { return m_workspace; }

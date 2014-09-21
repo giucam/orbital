@@ -34,6 +34,7 @@ class Compositor;
 class PointerGrab;
 class Pointer;
 class View;
+class Surface;
 class ShellSurface;
 enum class PointerButton : unsigned char;
 
@@ -46,7 +47,7 @@ public:
     Compositor *compositor() const;
     Pointer *pointer() const;
 
-    void activate(weston_surface *surface);
+    void activate(Surface *surface);
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);
 

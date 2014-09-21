@@ -49,8 +49,8 @@ public:
     ShellView *parent;
 };
 
-ShellView::ShellView(ShellSurface *surf, weston_view *view)
-         : View(view)
+ShellView::ShellView(ShellSurface *surf)
+         : View(surf)
          , m_surface(surf)
          , m_designedOutput(nullptr)
          , m_initialPos(-1, -1)

@@ -42,31 +42,16 @@
 
 namespace Orbital {
 
-struct Listener {
-    wl_listener grabSurfaceDestroy;
-    DesktopShell *shell;
-};
-
 DesktopShell::DesktopShell(Shell *shell)
             : Interface(shell)
             , Global(shell->compositor(), &desktop_shell_interface, 1)
             , m_shell(shell)
             , m_grabView(nullptr)
             , m_splash(new DesktopShellSplash(shell))
-            , m_listener(new Listener)
             , m_loadSerial(0)
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
-
     m_shell->addInterface(m_splash);
-    m_listener->shell = this;
-    wl_list_init(&m_listener->grabSurfaceDestroy.link);
-    m_listener->grabSurfaceDestroy.notify = [](wl_listener *l, void *d) {
-        DesktopShell *shell = reinterpret_cast<Listener *>(l)->shell;
-        wl_list_remove(&shell->m_listener->grabSurfaceDestroy.link);
-        wl_list_init(&shell->m_listener->grabSurfaceDestroy.link);
-        shell->m_grabView = nullptr;
-    };
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
@@ -77,8 +62,6 @@ DesktopShell::DesktopShell(Shell *shell)
 
 DesktopShell::~DesktopShell()
 {
-    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
-    delete m_listener;
     delete m_grabView;
 }
 
@@ -144,8 +127,6 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
 void DesktopShell::clientExited()
 {
     m_grabView = nullptr;
-    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
-    wl_list_init(&m_listener->grabSurfaceDestroy.link);
 }
 
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
@@ -162,23 +143,23 @@ void DesktopShell::outputCreated(Output *o)
 void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfaceResource)
 {
     Output *output = Output::fromResource(outputResource);
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surface = Surface::fromResource(surfaceResource);
     output->setBackground(surface);
 }
 
 void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position)
 {
     Output *output = Output::fromResource(outputResource);
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surface = Surface::fromResource(surfaceResource);
 
-    if (surface->configure) {
+    if (!surface) {
         wl_resource_post_error(surfaceResource, WL_DISPLAY_ERROR_INVALID_OBJECT, "surface role already assigned");
         return;
     }
 
     class Panel {
     public:
-        Panel(wl_resource *res, weston_surface *s, Output *o, int p)
+        Panel(wl_resource *res, Surface *s, Output *o, int p)
             : m_resource(res)
             , m_surface(s)
             , m_output(o)
@@ -215,7 +196,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
         }
 
         wl_resource *m_resource;
-        weston_surface *m_surface;
+        Surface *m_surface;
         Output *m_output;
         int m_pos;
 //         PanelGrab *m_grab;
@@ -239,7 +220,7 @@ struct Popup {
     View *parent;
     PopupGrab *grab;
     int32_t x, y;
-    wl_listener destroyListener;
+    QMetaObject::Connection connection;
 };
 
 class PopupGrab : public PointerGrab {
@@ -278,41 +259,27 @@ public:
 
 Popup::~Popup() {
     delete grab;
-    view->surface()->configure_private = nullptr;
-    weston_surface_unmap(view->surface());
-    wl_list_remove(&destroyListener.link);
+    view->surface()->setRole(view->surface()->role(), nullptr);
+    view->unmap();
+    QObject::disconnect(connection);
     delete view;
-}
-
-static void configurePopup(weston_surface *es, int32_t sx, int32_t sy)
-{
-    if (es->width == 0)
-        return;
-
-    Popup *p = static_cast<Popup *>(es->configure_private);
-    if (!p->view->layer()) {
-        p->view->setTransformParent(p->parent);
-        p->view->setPos(p->x, p->y);
-
-        Layer *layer = p->parent->layer();
-        layer->addView(p->view);
-        weston_compositor_schedule_repaint(es->compositor);
-    }
 }
 
 void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y)
 {
-    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *parent = Surface::fromResource(parentResource);
+    Surface *surface = Surface::fromResource(surfaceResource);
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
-    if (surface->configure && surface->configure != configurePopup) {
+    static Surface::Role role;
+
+    if (!surface || (surface->role() && surface->role() != &role)) {
         wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "The surface has a role already");
         wl_resource_destroy(resource);
         return;
     }
 
-    if (surface->configure_private) {
+    if (surface->configureHandler()) {
         wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "Cannot create two popup surfaces for the same wl_surface");
         wl_resource_destroy(resource);
         return;
@@ -322,14 +289,23 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     popup->x = x;
     popup->y = y;
     popup->resource = resource;
-    popup->view = new View(weston_view_create(surface));
-    popup->parent = View::fromView(container_of(parent->views.next, weston_view, surface_link));
-    popup->destroyListener.notify = [](wl_listener *, void *d) { delete static_cast<Popup *>(static_cast<weston_surface *>(d)->configure_private); };
-    wl_signal_add(&surface->destroy_signal, &popup->destroyListener);
+    popup->view = new View(surface);
+    popup->parent = View::fromView(container_of(parent->surface()->views.next, weston_view, surface_link));
+    popup->connection = connect(surface, &QObject::destroyed, [popup]() { delete popup; });
 
-    surface->configure = configurePopup;
-    surface->configure_private = popup;
-    surface->output = parent->output;
+    surface->setRole(&role, [popup, surface](int, int) {
+        if (surface->width() == 0) {
+            return;
+        }
+
+        if (!popup->view->layer()) {
+            popup->view->setTransformParent(popup->parent);
+            popup->view->setPos(popup->x, popup->y);
+
+            Layer *layer = popup->parent->layer();
+            layer->addView(popup->view);
+        }
+    });
 
     static const struct desktop_shell_surface_interface implementation = {
         [](wl_client *, wl_resource *r) { wl_resource_destroy(r); }
@@ -355,7 +331,7 @@ void DesktopShell::unlock()
 
 void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
 {
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surface = Surface::fromResource(surfaceResource);
     if (m_grabView) {
         if (surface == m_grabView->surface()) {
             return;
@@ -363,10 +339,12 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
         delete m_grabView;
     }
 
-    m_grabView = new View(weston_view_create(surface));
-    wl_list_remove(&m_listener->grabSurfaceDestroy.link);
-    wl_list_init(&m_listener->grabSurfaceDestroy.link);
-    wl_signal_add(&surface->destroy_signal, &m_listener->grabSurfaceDestroy);
+    m_grabView = new View(surface);
+    connect(surface, &QObject::destroyed, [this](QObject *o) {
+        if (m_grabView == static_cast<View *>(o)) {
+            m_grabView = nullptr;
+        }
+    });
 }
 
 void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
@@ -401,7 +379,7 @@ void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
 void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceResource)
 {
     Output *output = Output::fromResource(outputResource);
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surface = Surface::fromResource(surfaceResource);
     output->setOverlay(surface);
 }
 
@@ -426,7 +404,8 @@ void DesktopShell::createGrab(uint32_t id)
             View *view = pointer()->pickView(&sx, &sy);
             if (currentFocus != view) {
                 currentFocus = view;
-                desktop_shell_grab_send_focus(resource, view->surface()->resource, wl_fixed_from_double(sx), wl_fixed_from_double(sy));
+                desktop_shell_grab_send_focus(resource, view->surface()->surface()->resource,
+                                              wl_fixed_from_double(sx), wl_fixed_from_double(sy));
             }
         }
         void motion(uint32_t time, double x, double y) override
@@ -492,7 +471,7 @@ void DesktopShell::createGrab(uint32_t id)
     grab->start(seat);
 
     seat->pointer()->setFocus(view, sx, sy);
-    desktop_shell_grab_send_focus(grab->resource, view->surface()->resource, sx, sy);
+    desktop_shell_grab_send_focus(grab->resource, view->surface()->surface()->resource, sx, sy);
 }
 
 void DesktopShell::addWorkspace(uint32_t id)

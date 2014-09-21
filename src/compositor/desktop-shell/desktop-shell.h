@@ -76,7 +76,6 @@ private:
     wl_resource *m_resource;
     View *m_grabView;
     DesktopShellSplash *m_splash;
-    Listener *m_listener;
     uint32_t m_loadSerial;
 };
 

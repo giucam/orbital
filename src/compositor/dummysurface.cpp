@@ -25,7 +25,8 @@
 namespace Orbital {
 
 DummySurface::DummySurface(weston_surface *s, int w, int h)
-            : View(weston_view_create(s))
+            : Surface(s)
+            , View(this)
             , m_surface(s)
 {
     s->configure = [](struct weston_surface *es, int32_t sx, int32_t sy) {};

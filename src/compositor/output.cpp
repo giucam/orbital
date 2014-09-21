@@ -29,6 +29,7 @@
 #include "dummysurface.h"
 #include "shell.h"
 #include "pager.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -67,7 +68,7 @@ Output::Output(weston_output *out)
 Output::~Output()
 {
     if (m_backgroundSurface) {
-        m_backgroundSurface->configure_private = nullptr;
+        m_backgroundSurface->setRole(m_backgroundSurface->role(), nullptr);
     }
 
     wl_list_remove(&m_listener->listener.link);
@@ -81,39 +82,36 @@ Workspace *Output::currentWorkspace() const
     return m_currentWs;
 }
 
-class Surface {
+class OutputSurface
+{
 public:
     // TODO: delete this
-    Surface(weston_surface *s, Output *o)
+    OutputSurface(Surface *s, Output *o, Surface::Role *role)
+        : surface(s)
+        , view(new View(s))
     {
-        s->configure_private = this;
-        s->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
-            Surface *o = static_cast<Surface *>(s->configure_private);
-            // TODO: Find out if and how to remove this
-            o->view->update();
-        };
+        s->setRole(role, [this](int sx, int sy) {
+            view->update();
+        });
 
-        weston_view *v = weston_view_create(s);
-        view = new View(v);
         view->setOutput(o);
     }
 
+    Surface *surface;
     View *view;
 };
 
-void Output::setBackground(weston_surface *surface)
+void Output::setBackground(Surface *surface)
 {
+    static Surface::Role role;
+
     if (m_backgroundSurface) {
-        m_backgroundSurface->configure_private = nullptr;
+        m_backgroundSurface->setRole(m_backgroundSurface->role(), nullptr);
     }
     m_backgroundSurface = surface;
-    surface->configure_private = this;
-    surface->configure = [](weston_surface *s, int32_t sx, int32_t sy) {
-        if (s->configure_private) {
-            Output *o = static_cast<Output *>(s->configure_private);
-            weston_output_schedule_repaint(o->m_output);
-        }
-    };
+    surface->setRole(&role, [this](int sx, int sy) {
+        weston_output_schedule_repaint(m_output);
+    });
 
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
@@ -122,22 +120,29 @@ void Output::setBackground(weston_surface *surface)
     }
 }
 
-void Output::setPanel(weston_surface *surface, int pos)
+void Output::setPanel(Surface *surface, int pos)
 {
-    Surface *s = new Surface(surface, this);
+    static Surface::Role role;
+    OutputSurface *s = new OutputSurface(surface, this, &role);
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot);
     m_panels << s->view;
 }
 
-void Output::setOverlay(weston_surface *surface)
+void Output::setOverlay(Surface *surface)
 {
-    pixman_region32_fini(&surface->pending.input);
-    pixman_region32_init_rect(&surface->pending.input, 0, 0, 0, 0);
-    Surface *s = new Surface(surface, this);
+    static Surface::Role role;
+    pixman_region32_fini(&surface->surface()->pending.input);
+    pixman_region32_init_rect(&surface->surface()->pending.input, 0, 0, 0, 0);
+    OutputSurface *s = new OutputSurface(surface, this, &role);
     m_compositor->overlayLayer()->addView(s->view);
     s->view->setTransformParent(m_transformRoot);
     m_overlays << s->view;
+}
+
+void Output::repaint()
+{
+    weston_output_schedule_repaint(m_output);
 }
 
 int Output::id() const
@@ -176,7 +181,7 @@ QRect Output::availableGeometry() const
     pixman_region32_init_rect(&area, 0, 0, m_output->width, m_output->height);
 
     for (View *view: m_panels) {
-        weston_surface *surface = view->surface();
+        weston_surface *surface = view->surface()->surface();
         pixman_region32_t surf;
         pixman_region32_init(&surf);
         pixman_region32_copy(&surf, &surface->input);

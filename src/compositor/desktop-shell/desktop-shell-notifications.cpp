@@ -28,6 +28,7 @@
 #include "layer.h"
 #include "view.h"
 #include "animation.h"
+#include "surface.h"
 #include "desktop-shell-notifications.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -39,7 +40,7 @@ class DesktopShellNotifications::NotificationSurface : public QObject {
 public:
     struct NSView : public View
     {
-        NSView(Output *o, NotificationSurface *p, weston_surface *s)
+        NSView(Output *o, NotificationSurface *p, Surface *s)
             : View(s)
             , output(o)
             , parent(p)
@@ -87,7 +88,7 @@ public:
         QPointF endPos;
     };
 
-    NotificationSurface(Compositor *c, weston_surface *s)
+    NotificationSurface(Compositor *c, Surface *s)
         : m_surface(s)
         , m_compositor(c)
         , initialMove(false)
@@ -101,17 +102,17 @@ public:
             c->overlayLayer()->addView(v);
         }
 
-        s->configure_private = this;
-        s->configure = [](weston_surface *s, int32_t x, int32_t y) {
-            NotificationSurface *_this = static_cast<NotificationSurface *>(s->configure_private);
-            if (!_this->manager->m_notifications.contains(_this)) {
-                _this->manager->m_notifications.prepend(_this);
-                for (NSView *v: _this->m_views) {
+        static Surface::Role role;
+
+        s->setRole(&role, [this](int x, int y) {
+            if (!manager->m_notifications.contains(this)) {
+                manager->m_notifications.prepend(this);
+                for (NSView *v: m_views) {
                     v->update();
                 }
-                _this->manager->relayout();
+                manager->relayout();
             }
-        };
+        });
 
         connect(c, &Compositor::outputCreated, this, &NotificationSurface::outputCreated);
         connect(c, &Compositor::outputRemoved, this, &NotificationSurface::outputRemoved);
@@ -123,7 +124,7 @@ public:
     void moveTo(int x, int y)
     {
         for (NSView *view: m_views) {
-            view->endPos = QPointF(x + view->output->width() - m_surface->width - 20, y + 20);
+            view->endPos = QPointF(x + view->output->width() - m_surface->width() - 20, y + 20);
             if (initialMove) {
                 view->startPos = view->pos();
                 view->moveAnim.setStart(0.);
@@ -156,7 +157,7 @@ public:
     }
 
     wl_resource *resource;
-    weston_surface *m_surface;
+    Surface *m_surface;
     Compositor *m_compositor;
     QList<NSView *> m_views;
     bool inactive;
@@ -186,7 +187,7 @@ void DesktopShellNotifications::bind(wl_client *client, uint32_t version, uint32
 void DesktopShellNotifications::pushNotification(uint32_t id, wl_resource *surfaceResource, int32_t flags)
 {
     wl_resource *resource = wl_resource_create(wl_resource_get_client(surfaceResource), &notification_surface_interface, 1, id);
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surface = Surface::fromResource(surfaceResource);
 
     NotificationSurface *surf = new NotificationSurface(m_shell->compositor(), surface);
     surf->resource = resource;
@@ -201,7 +202,7 @@ void DesktopShellNotifications::relayout()
     int margin = 10;
     for (NotificationSurface *notification: m_notifications) {
         notification->moveTo(x, y);
-        y += notification->m_surface->height + margin;
+        y += notification->m_surface->height() + margin;
     }
 }
 

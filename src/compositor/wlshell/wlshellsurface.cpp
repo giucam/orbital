@@ -111,7 +111,7 @@ void WlShellSurface::setToplevel()
 
 void WlShellSurface::setTransient(wl_resource *parentResource, int x, int y, uint32_t flags)
 {
-    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
+    Surface *parent = Surface::fromResource(parentResource);
     shellSurface()->setTransient(parent, x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
 }
 
@@ -123,7 +123,7 @@ void WlShellSurface::setFullscreen(uint32_t method, uint32_t framerate, wl_resou
 
 void WlShellSurface::setPopup(wl_resource *seatResource, uint32_t serial, wl_resource *parentResource, int32_t x, int32_t y, uint32_t flags)
 {
-    weston_surface *parent = static_cast<weston_surface *>(wl_resource_get_user_data(parentResource));
+    Surface *parent = Surface::fromResource(parentResource);
     Seat *seat = Seat::fromResource(seatResource);
 
     if (serial != seat->pointer()->grabSerial()) {

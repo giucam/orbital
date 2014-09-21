@@ -37,13 +37,13 @@ class Layer;
 class WorkspaceView;
 class Pointer;
 class Transform;
+class Surface;
 struct Listener;
 
 class View : public QObject
 {
 public:
-    explicit View(weston_view *view);
-    explicit View(weston_surface *surface);
+    explicit View(Surface *surface);
     virtual ~View();
 
     bool isMapped() const;
@@ -66,7 +66,7 @@ public:
     Output *output() const;
     Layer *layer() const;
     wl_client *client() const;
-    weston_surface *surface() const;
+    Surface *surface() const;
 
     static View *fromView(weston_view *v);
 
@@ -85,6 +85,7 @@ private:
     static void viewDestroyed(wl_listener *listener, void *data);
 
     weston_view *m_view;
+    Surface *m_surface;
     Listener *m_listener;
     Output *m_output;
     Transform *m_transform;

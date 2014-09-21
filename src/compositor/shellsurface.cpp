@@ -33,54 +33,23 @@
 namespace Orbital
 {
 
-struct Listener {
-    wl_listener listener;
-    ShellSurface *surface;
-};
-
-void ShellSurface::surfaceDestroyed(wl_listener *listener, void *data)
-{
-    ShellSurface *surface = reinterpret_cast<Listener *>(listener)->surface;
-    delete surface;
-}
-
-void ShellSurface::parentSurfaceDestroyed(wl_listener *listener, void *data)
-{
-    ShellSurface *surface = reinterpret_cast<Listener *>(listener)->surface;
-    surface->m_parent = nullptr;
-    surface->m_nextType = Type::None;
-    wl_list_remove(&surface->m_parentListener->listener.link);
-    wl_list_init(&surface->m_parentListener->listener.link);
-}
-
 ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
-            : Object(shell)
+            : Surface(surface, shell)
             , m_shell(shell)
-            , m_surface(surface)
-            , m_listener(new Listener)
             , m_configureSender(nullptr)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
             , m_type(Type::None)
             , m_nextType(Type::None)
-            , m_parentListener(new Listener)
             , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
             , m_transient({ 0, 0, false })
 {
-    m_listener->listener.notify = surfaceDestroyed;
-    m_listener->surface = this;
-    wl_signal_add(&surface->destroy_signal, &m_listener->listener);
-
-    m_parentListener->listener.notify = parentSurfaceDestroyed;
-    m_parentListener->surface = this;
-    wl_list_init(&m_parentListener->listener.link);
-
-    surface->configure_private = this;
-    surface->configure = staticConfigure;
+    static Role role;
+    setRole(&role, [this](int x, int y) { configure(x, y); });
 
     for (Output *o: shell->compositor()->outputs()) {
-        ShellView *view = new ShellView(this, weston_view_create(m_surface));
+        ShellView *view = new ShellView(this);
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
     }
@@ -90,7 +59,6 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
 
 ShellSurface::~ShellSurface()
 {
-    wl_list_remove(&m_listener->listener.link);
     qDeleteAll(m_views);
 }
 
@@ -114,21 +82,6 @@ Workspace *ShellSurface::workspace() const
     return m_workspace;
 }
 
-wl_client *ShellSurface::client() const
-{
-    return m_surface->resource ? wl_resource_get_client(m_surface->resource) : nullptr;
-}
-
-weston_surface *ShellSurface::surface() const
-{
-    return m_surface;
-}
-
-bool ShellSurface::isMapped() const
-{
-    return weston_surface_is_mapped(m_surface);
-}
-
 void ShellSurface::setConfigureSender(ConfigureSender sender)
 {
     m_configureSender = sender;
@@ -139,35 +92,30 @@ void ShellSurface::setToplevel()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
     m_toplevel.fullscreen = false;
-    wl_list_remove(&m_parentListener->listener.link);
-    wl_list_init(&m_parentListener->listener.link);
+    disconnect(m_parentDestroyConnection);
 }
 
-void ShellSurface::setTransient(weston_surface *parent, int x, int y, bool inactive)
+void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
 {
     m_parent = parent;
     m_transient.x = x;
     m_transient.y = y;
     m_transient.inactive = inactive;
 
-    wl_list_remove(&m_parentListener->listener.link);
-    wl_list_init(&m_parentListener->listener.link);
-    wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
-
+    disconnect(m_parentDestroyConnection);
+    m_parentDestroyConnection = connect(parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
     m_nextType = Type::Transient;
 }
 
-void ShellSurface::setPopup(weston_surface *parent, Seat *seat, int x, int y)
+void ShellSurface::setPopup(Surface *parent, Seat *seat, int x, int y)
 {
     m_parent = parent;
     m_popup.x = x;
     m_popup.y = y;
     m_popup.seat = seat;
 
-    wl_list_remove(&m_parentListener->listener.link);
-    wl_list_init(&m_parentListener->listener.link);
-    wl_signal_add(&parent->destroy_signal, &m_parentListener->listener);
-
+    disconnect(m_parentDestroyConnection);
+    m_parentDestroyConnection = connect(parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
     m_nextType = Type::Popup;
 }
 
@@ -375,6 +323,12 @@ QString ShellSurface::title() const
     return m_title;
 }
 
+void ShellSurface::parentSurfaceDestroyed()
+{
+    m_parent = nullptr;
+    m_nextType = Type::None;
+}
+
 /*
  * Returns the bounding box of a surface and all its sub-surfaces,
  * in the surface coordinates system. */
@@ -384,11 +338,9 @@ QRect ShellSurface::surfaceTreeBoundingBox() const
     pixman_box32_t *box;
     weston_subsurface *subsurface;
 
-    pixman_region32_init_rect(&region, 0, 0,
-                              m_surface->width,
-                              m_surface->height);
+    pixman_region32_init_rect(&region, 0, 0, width(), height());
 
-    wl_list_for_each(subsurface, &m_surface->subsurface_list, parent_link) {
+    wl_list_for_each(subsurface, &surface()->subsurface_list, parent_link) {
         pixman_region32_union_rect(&region, &region,
                                    subsurface->position.x,
                                    subsurface->position.y,
@@ -403,18 +355,13 @@ QRect ShellSurface::surfaceTreeBoundingBox() const
     return rect;
 }
 
-void ShellSurface::staticConfigure(weston_surface *s, int32_t x, int32_t y)
-{
-    static_cast<ShellSurface *>(s->configure_private)->configure(x, y);
-}
-
 void ShellSurface::configure(int x, int y)
 {
-    if (m_surface->width == 0 && m_popup.seat) {
+    if (width() == 0 && m_popup.seat) {
         m_popup.seat->ungrabPopup(this);
     }
 
-    if (m_surface->width == 0) {
+    if (width() == 0) {
         return;
     }
 
@@ -456,7 +403,7 @@ void ShellSurface::configure(int x, int y)
             view->configureToplevel(map, m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup) {
-        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
+        ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);
         if (!parent) {
             qWarning("Trying to map a popup without a ShellSurface parent.");
             return;
@@ -470,9 +417,9 @@ void ShellSurface::configure(int x, int y)
         }
         m_popup.seat->grabPopup(this);
     } else if (m_type == Type::Transient) {
-        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
+        ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);
         if (!parent) {
-            View *parentView = View::fromView(container_of(m_parent->views.next, weston_view, surface_link));
+            View *parentView = View::fromView(container_of(m_parent->surface()->views.next, weston_view, surface_link));
             ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
         } else {
@@ -484,7 +431,7 @@ void ShellSurface::configure(int x, int y)
             }
         }
     }
-    weston_surface_damage(m_surface);
+    damage();
 
     if (!wasMapped && isMapped()) {
         emit mapped();
@@ -500,7 +447,7 @@ void ShellSurface::updateState()
 void ShellSurface::sendConfigure(int w, int h)
 {
     if (m_configureSender) {
-        m_configureSender(m_surface, w, h);
+        m_configureSender(surface(), w, h);
     }
 }
 
@@ -542,7 +489,7 @@ Output *ShellSurface::selectOutput()
 
 void ShellSurface::outputCreated(Output *o)
 {
-    ShellView *view = new ShellView(this, weston_view_create(m_surface));
+    ShellView *view = new ShellView(this);
     view->setDesignedOutput(o);
 
     if (View *v = *m_views.begin()) {
@@ -563,10 +510,7 @@ void ShellSurface::outputRemoved(Output *o)
 
 ShellSurface *ShellSurface::fromSurface(weston_surface *s)
 {
-    if (s->configure == staticConfigure) {
-        return static_cast<ShellSurface *>(s->configure_private);
-    }
-    return nullptr;
+    return qobject_cast<ShellSurface *>(Surface::fromSurface(s));
 }
 
 }

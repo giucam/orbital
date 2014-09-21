@@ -28,6 +28,7 @@
 
 #include "interface.h"
 #include "utils.h"
+#include "surface.h"
 
 struct wl_client;
 struct weston_surface;
@@ -44,7 +45,7 @@ class Seat;
 class Compositor;
 struct Listener;
 
-class ShellSurface : public Object
+class ShellSurface : public Surface
 {
     Q_OBJECT
 public:
@@ -71,17 +72,14 @@ public:
     };
 
     ShellView *viewForOutput(Output *o);
-    bool isMapped() const;
     void setWorkspace(Workspace *ws);
     Compositor *compositor() const;
     Workspace *workspace() const;
-    wl_client *client() const;
-    weston_surface *surface() const;
 
     void setConfigureSender(ConfigureSender sender);
     void setToplevel();
-    void setTransient(weston_surface *parent, int x, int y, bool inactive);
-    void setPopup(weston_surface *parent, Seat *seat, int x, int y);
+    void setTransient(Surface *parent, int x, int y, bool inactive);
+    void setPopup(Surface *parent, Seat *seat, int x, int y);
     void setMaximized();
     void setFullscreen();
     void move(Seat *seat);
@@ -106,9 +104,7 @@ signals:
     void popupDone();
 
 private:
-    static void surfaceDestroyed(wl_listener *listener, void *data);
-    static void parentSurfaceDestroyed(wl_listener *listener, void *data);
-    static void staticConfigure(weston_surface *s, int x, int y);
+    void parentSurfaceDestroyed();
     QRect surfaceTreeBoundingBox() const;
     void configure(int x, int y);
     void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
@@ -119,8 +115,6 @@ private:
     void outputRemoved(Output *output);
 
     Shell *m_shell;
-    weston_surface *m_surface;
-    Listener *m_listener;
     std::function<void (weston_surface *, int, int)> m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;
@@ -135,8 +129,8 @@ private:
     Type m_type;
     Type m_nextType;
 
-    Listener *m_parentListener;
-    weston_surface *m_parent;
+    Surface *m_parent;
+    QMetaObject::Connection m_parentDestroyConnection;
     struct {
         int x;
         int y;

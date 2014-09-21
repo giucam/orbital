@@ -28,6 +28,7 @@
 #include "layer.h"
 #include "view.h"
 #include "animation.h"
+#include "surface.h"
 #include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -106,18 +107,17 @@ void DesktopShellSplash::bind(wl_client *client, uint32_t version, uint32_t id)
 
 void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resource *surfaceResource)
 {
-    weston_surface *surf = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surf = Surface::fromResource(surfaceResource);
     Output *out = Output::fromResource(outputResource);
 
     int x = out->x(), y = out->y();
+    static Surface::Role role;
 
-    surf->configure = [](weston_surface *es, int32_t x, int32_t y) {
-        if (es->output) {
-            weston_output_schedule_repaint(es->output);
-        }
-    };
+    surf->setRole(&role, [out](int x, int y) {
+        out->repaint();
+    });
 
-    View *view = new View(weston_view_create(surf));
+    View *view = new View(surf);
     view->setPos(x, y);
     m_shell->compositor()->rootLayer()->addView(view);
     view->setOutput(out);

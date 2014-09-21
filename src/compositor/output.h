@@ -25,7 +25,6 @@
 
 struct wl_resource;
 struct weston_output;
-struct weston_surface;
 
 namespace Orbital {
 
@@ -37,6 +36,7 @@ class WorkspaceView;
 class DummySurface;
 class Animation;
 class Pager;
+class Surface;
 struct Listener;
 
 class Output : public QObject
@@ -48,9 +48,11 @@ public:
 
     Workspace *currentWorkspace() const;
 
-    void setBackground(weston_surface *surface);
-    void setPanel(weston_surface *surface, int pos);
-    void setOverlay(weston_surface *surface);
+    void setBackground(Surface *surface);
+    void setPanel(Surface *surface, int pos);
+    void setOverlay(Surface *surface);
+
+    void repaint();
 
     int id() const;
     int x() const;
@@ -81,7 +83,7 @@ private:
     QList<View *> m_panels;
     QList<View *> m_overlays;
     Workspace *m_currentWs;
-    weston_surface *m_backgroundSurface;
+    Surface *m_backgroundSurface;
 
     friend View;
     friend Animation;

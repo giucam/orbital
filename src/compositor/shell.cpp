@@ -151,7 +151,7 @@ void Shell::configure(ShellSurface *shsurf)
         shsurf->setWorkspace(output->currentWorkspace());
 
         for (Seat *seat: m_compositor->seats()) {
-            seat->activate(shsurf->surface());
+            seat->activate(shsurf);
         }
     }
 }
@@ -177,7 +177,7 @@ void Shell::giveFocus(Seat *seat)
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
     if (!useSeparateRaise) {
-        ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+        ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
         if (shsurf && shsurf->isFullscreen()) {
             return;
         }
@@ -202,7 +202,7 @@ void Shell::raise(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+    ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
     if (shsurf && shsurf->isFullscreen()) {
         return;
     }

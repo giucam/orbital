@@ -21,6 +21,7 @@
 #define ORBITAL_DUMMYSURFACE_H
 
 #include "view.h"
+#include "surface.h"
 
 struct weston_surface;
 
@@ -28,7 +29,7 @@ namespace Orbital {
 
 class Compositor;
 
-class DummySurface : public View
+class DummySurface : public Surface, public View
 {
 public:
     DummySurface(Compositor *c, int width, int height);
