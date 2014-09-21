@@ -70,6 +70,7 @@ private:
     void addTrustedClient(int32_t fd, const char *interface);
     void pong(uint32_t serial);
     void outputLoaded(uint32_t serial);
+    void createActiveRegion(uint32_t id, wl_resource *parentResource, int32_t x, int32_t y, int32_t width, int32_t height);
 
     Shell *m_shell;
     ChildProcess *m_client;

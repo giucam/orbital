@@ -59,6 +59,7 @@ set(SOURCES
     popup.cpp
     panel.cpp
     notification.cpp
+    activeregion.cpp
     compositorsettings.cpp)
 
 wayland_add_protocol_client(SOURCES

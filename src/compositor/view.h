@@ -70,7 +70,7 @@ public:
 
     static View *fromView(weston_view *v);
 
-    View *dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y, double *vx, double *vy);
+    View *dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y);
 
 protected:
     void disconnectDestroyListener();

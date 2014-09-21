@@ -36,6 +36,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_role(nullptr)
        , m_configureHandler(nullptr)
        , m_listener(new Listener)
+       , m_activable(true)
 {
     if (surface->configure) {
         qFatal("Error: trying to create a Surface for an already taken weston_surface.");
@@ -103,6 +104,11 @@ Surface::ConfigureHandler Surface::configureHandler() const
     return m_configureHandler;
 }
 
+void Surface::setActivable(bool activable)
+{
+    m_activable = activable;
+}
+
 void Surface::ref()
 {
     m_surface->ref_count++;
@@ -111,6 +117,11 @@ void Surface::ref()
 void Surface::deref()
 {
     weston_surface_destroy(m_surface);
+}
+
+Surface *Surface::activate(Seat *seat)
+{
+    return this;
 }
 
 Surface *Surface::fromSurface(weston_surface *surf)

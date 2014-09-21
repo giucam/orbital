@@ -27,6 +27,8 @@
 
 int main(int argc, char **argv)
 {
+    setenv("QT_MESSAGE_PATTERN", "[orbital %{type}] %{message}", 0);
+
     QCoreApplication app(argc, argv);
     app.setApplicationName("Orbital");
     app.setApplicationVersion("0.1");

@@ -28,6 +28,7 @@ namespace Orbital {
 
 class ShellSurface;
 class DesktopShell;
+class Seat;
 
 class DesktopShellWindow : public Interface
 {
@@ -45,7 +46,8 @@ private:
     ShellSurface *shsurf();
     void create();
     void surfaceTypeChanged();
-    void activeChanged();
+    void activated(Seat *seat);
+    void deactivated(Seat *seat);
     void mapped();
     void destroy();
     void sendState();

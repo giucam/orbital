@@ -45,6 +45,7 @@ struct desktop_shell_surface;
 struct desktop_shell_panel;
 struct notifications_manager;
 struct notification_surface;
+struct active_region;
 
 class Window;
 class ShellUI;
@@ -99,6 +100,7 @@ public:
     void setBackground(QQuickWindow *window, QScreen *screen);
     desktop_shell_panel *setPanel(QQuickWindow *window, QScreen *screen, int location);
     notification_surface *pushNotification(QWindow *window, bool inactive);
+    active_region *createActiveRegion(QQuickWindow *window, const QRect &rect);
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
     QProcess *createTrustedClient(const QString &interface);

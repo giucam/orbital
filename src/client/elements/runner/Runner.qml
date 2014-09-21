@@ -35,6 +35,10 @@ Element {
         anchors.fill: parent
         anchors.margins: 2
 
+        ActiveRegion {
+            anchors.fill: parent
+        }
+
         TextInput {
             id: text
             anchors.fill: parent

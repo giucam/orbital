@@ -54,6 +54,7 @@
 #include "style.h"
 #include "notification.h"
 #include "compositorsettings.h"
+#include "activeregion.h"
 
 Client *Client::s_client = nullptr;
 
@@ -108,6 +109,7 @@ Client::Client()
     qmlRegisterType<Grab>();
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
     qmlRegisterType<Notification>("Orbital", 1, 0, "Notification");
+    qmlRegisterType<ActiveRegion>("Orbital", 1, 0, "ActiveRegion");
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
@@ -438,6 +440,12 @@ notification_surface *Client::pushNotification(QWindow *w, bool inactive)
         return notifications_manager_push_notification(m_notifications, nativeSurface(w), (int)inactive);
     }
     return nullptr;
+}
+
+active_region *Client::createActiveRegion(QQuickWindow *w, const QRect &region)
+{
+    wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", w));
+    return desktop_shell_create_active_region(m_shell, wlSurface, region.x(), region.y(), region.width(), region.height());
 }
 
 void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)

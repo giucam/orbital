@@ -61,7 +61,7 @@ private:
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
-
+    Surface *m_activeSurface;
     PopupGrab *m_popupGrab;
 };
 

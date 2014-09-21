@@ -32,6 +32,7 @@ struct weston_surface;
 namespace Orbital {
 
 class View;
+class Seat;
 struct Listener;
 
 class Surface : public Object
@@ -55,11 +56,20 @@ public:
     Role *role() const;
     ConfigureHandler configureHandler() const;
 
+    void setActivable(bool activable);
+    inline bool isActivable() const { return m_activable; }
+
     void ref();
     void deref();
 
+    virtual Surface *activate(Seat *seat);
+
     static Surface *fromSurface(weston_surface *s);
     static Surface *fromResource(wl_resource *resource);
+
+signals:
+    void activated(Seat *seat);
+    void deactivated(Seat *seat);
 
 private:
     static void configure(weston_surface *s, int32_t x, int32_t y);
@@ -68,6 +78,7 @@ private:
     Role *m_role;
     ConfigureHandler m_configureHandler;
     Listener *m_listener;
+    bool m_activable;
 
     friend View;
 };

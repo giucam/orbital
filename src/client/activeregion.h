@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Giulio Camuffo <giuliocamuffo@gmail.com>
+ * Copyright 2014 Giulio Camuffo <giuliocamuffo@gmail.com>
  *
  * This file is part of Orbital
  *
@@ -17,39 +17,28 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_DUMMYSURFACE_H
-#define ORBITAL_DUMMYSURFACE_H
+#ifndef ORBITAL_CLIENT_ACTIVE_REGION_H
+#define ORBITAL_CLIENT_ACTIVE_REGION_H
 
-#include "view.h"
-#include "surface.h"
+#include <QQuickItem>
+#include <QQmlParserStatus>
 
-struct weston_surface;
+struct active_region;
 
-namespace Orbital {
-
-class Compositor;
-
-class DummySurface : public View
+class ActiveRegion : public QQuickItem
 {
+    Q_OBJECT
 public:
-    DummySurface(Compositor *c, int width, int height);
-    DummySurface(Surface *s, int w, int h);
-    ~DummySurface();
-
-    void setSize(int width, int height);
-    void setAcceptInput(bool m_acceptInput);
+    explicit ActiveRegion(QQuickItem *p = nullptr);
+    ~ActiveRegion();
 
 protected:
-    weston_surface *createSurface(Compositor *c);
+    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
 private:
-    DummySurface(weston_surface *s, int width, int height);
+    void init();
 
-    bool m_acceptInput;
-
-    friend Compositor;
+    active_region *m_activeRegion;
 };
-
-}
 
 #endif

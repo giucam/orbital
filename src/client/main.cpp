@@ -26,7 +26,7 @@
 int main(int argc, char *argv[])
 {
     // Force Wayland platform plugin
-    setenv("QT_MESSAGE_PATTERN", "[%{type}] %{message}", 0);
+    setenv("QT_MESSAGE_PATTERN", "[orbital-client %{type}] %{message}", 1);
 
     QApplication app(argc, argv);
     Client client;

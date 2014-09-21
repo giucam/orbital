@@ -197,7 +197,7 @@ View *View::fromView(weston_view *v)
     return reinterpret_cast<Listener *>(listener)->view;
 }
 
-View *View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_t fy, double *vx, double *vy)
+View *View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed_t fy)
 {
     int ix = wl_fixed_to_int(fx);
     int iy = wl_fixed_to_int(fy);
@@ -206,9 +206,6 @@ View *View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed
         wl_fixed_t fvx, fvy;
         weston_view_from_global_fixed(m_view, fx, fy, &fvx, &fvy);
         if (pixman_region32_contains_point(&m_view->surface->input, wl_fixed_to_int(fvx), wl_fixed_to_int(fvy), NULL)) {
-            if (vx) *vx = wl_fixed_to_double(fvx);
-            if (vy) *vy = wl_fixed_to_double(fvy);
-
             if (m_pointerState.inside) {
                 return m_pointerState.target;
             }

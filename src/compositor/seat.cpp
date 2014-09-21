@@ -52,6 +52,7 @@ Seat::Seat(Compositor *c, weston_seat *s)
     , m_seat(s)
     , m_listener(new Listener)
     , m_pointer(s->pointer ? new Pointer(this, s->pointer) : nullptr)
+    , m_activeSurface(nullptr)
     , m_popupGrab(nullptr)
 {
     m_listener->listener.notify = seatDestroyed;
@@ -76,7 +77,29 @@ Pointer *Seat::pointer() const
 
 void Seat::activate(Surface *surface)
 {
+    bool isNull = !surface;
+    if (surface) {
+        surface = surface->isActivable() ? surface->activate(this) : nullptr;
+    }
+
+    if ((!surface && !isNull) || surface == m_activeSurface) {
+        return;
+    }
+
     weston_surface_activate(surface->surface(), m_seat);
+
+    if (m_activeSurface) {
+        emit m_activeSurface->deactivated(this);
+    }
+    m_activeSurface = surface;
+    if (m_activeSurface) {
+        emit m_activeSurface->activated(this);
+        QObject::connect(m_activeSurface, &QObject::destroyed, [this](QObject *o) {
+            if (m_activeSurface == static_cast<Surface *>(o)) {
+                m_activeSurface = nullptr;
+            }
+        });
+    }
 }
 
 class Seat::PopupGrab : public PointerGrab
@@ -197,7 +220,12 @@ View *Pointer::pickView(double *vx, double *vy) const
             continue;
         }
 
-        if (View *target = v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, vx, vy)) {
+        if (View *target = v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y)) {
+            if (vx || vy) {
+                QPointF pos = target->mapFromGlobal(QPointF(x(), y()));
+                if (vx) *vx = pos.x();
+                if (vy) *vy = pos.y();
+            }
             return target;
         }
     }
@@ -245,7 +273,7 @@ void Pointer::move(double x, double y)
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
-        if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y, nullptr, nullptr)) {
+        if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y)) {
             return;
         }
     }

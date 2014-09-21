@@ -84,6 +84,15 @@
             <arg name="serial" type="uint"/>
         </request>
 
+        <request name="create_active_region">
+            <arg name="id" type="new_id" interface="active_region"/>
+            <arg name="parent_surface" type="object" interface="wl_surface"/>
+            <arg name="x" type="int"/>
+            <arg name="y" type="int"/>
+            <arg name="width" type="int"/>
+            <arg name="height" type="int"/>
+        </request>
+
         <event name="ping">
             <arg name="serial" type="uint"/>
         </event>
@@ -277,6 +286,16 @@
     </interface>
 
     <interface name="notification_surface" version="1">
+    </interface>
+
+    <interface name="active_region" version="1">
+        <request name="destroy" type="destructor"/>
+        <request name="set_geometry">
+            <arg name="x" type="int"/>
+            <arg name="y" type="int"/>
+            <arg name="width" type="int"/>
+            <arg name="height" type="int"/>
+        </request>
     </interface>
 
 </protocol>

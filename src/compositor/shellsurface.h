@@ -113,6 +113,8 @@ private:
     Output *selectOutput();
     void outputCreated(Output *output);
     void outputRemoved(Output *output);
+    void connectParent();
+    void disconnectParent();
 
     Shell *m_shell;
     ConfigureSender m_configureSender;
@@ -130,7 +132,7 @@ private:
     Type m_nextType;
 
     Surface *m_parent;
-    QMetaObject::Connection m_parentDestroyConnection;
+    QList<QMetaObject::Connection> m_parentConnections;
     struct {
         int x;
         int y;

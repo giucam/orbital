@@ -388,6 +388,21 @@ uint32_t Compositor::nextSerial() const
     return wl_display_next_serial(m_compositor->wl_display);
 }
 
+View *Compositor::pickView(double x, double y, double *vx, double *vy) const
+{
+    wl_fixed_t fx = wl_fixed_from_double(x);
+    wl_fixed_t fy = wl_fixed_from_double(y);
+    wl_fixed_t fvx, fvy;
+    weston_view *v = weston_compositor_pick_view(m_compositor, fx, fy, &fvx, &fvy);
+
+    if (vx)
+        *vx = wl_fixed_to_double(fvx);
+    if (vy)
+        *vy = wl_fixed_to_double(fvy);
+
+    return View::fromView(v);
+}
+
 ChildProcess *Compositor::launchProcess(const QString &path)
 {
     qDebug("Launching '%s'...", qPrintable(path));

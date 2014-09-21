@@ -34,6 +34,7 @@
 #include "layer.h"
 #include "shellsurface.h"
 #include "pager.h"
+#include "dummysurface.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
@@ -96,7 +97,8 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::quit),
         wrapInterface(&DesktopShell::addTrustedClient),
         wrapInterface(&DesktopShell::pong),
-        wrapInterface(&DesktopShell::outputLoaded)
+        wrapInterface(&DesktopShell::outputLoaded),
+        wrapInterface(&DesktopShell::createActiveRegion)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *res) {
@@ -513,6 +515,73 @@ void DesktopShell::outputLoaded(uint32_t serial)
         m_splash->hide();
         m_loadSerial = 0;
     }
+}
+
+void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, int32_t x, int32_t y, int32_t width, int32_t height)
+{
+    wl_resource *res = wl_resource_create(m_client->client(), &active_region_interface, 1, id);
+
+    class ActiveRegion : public DummySurface
+    {
+    public:
+        class ActiveSurface : public Surface
+        {
+        public:
+            ActiveSurface(ActiveRegion *r, weston_surface *s) : Surface(s), region(r) {}
+
+            Surface *activate(Seat *seat) override
+            {
+                return region->m_parent;
+            }
+            ActiveRegion *region;
+        };
+
+        ActiveRegion(Compositor *c, wl_resource *resource, Surface *parent, int x, int y, int w, int h)
+            : DummySurface(new ActiveSurface(this, createSurface(c)), w, h)
+            , m_resource(resource)
+            , m_parent(parent)
+        {
+            setAlpha(0.);
+            m_parentView = View::fromView(container_of(parent->surface()->views.next, weston_view, surface_link));
+            setTransformParent(m_parentView);
+            setPos(x, y);
+            m_parentView->layer()->addView(this);
+
+            static const struct active_region_interface implementation = {
+                wrapInterface(&ActiveRegion::destroy),
+                wrapInterface(&ActiveRegion::setGeometry)
+            };
+            wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *r) {
+                ActiveRegion *region = static_cast<ActiveRegion *>(wl_resource_get_user_data(r));
+                delete region;
+            });
+
+            connect(parent, &QObject::destroyed, [this]() { unmap(); });
+        }
+        ~ActiveRegion()
+        {
+
+        }
+        void destroy()
+        {
+            wl_resource_destroy(m_resource);
+        }
+        void setGeometry(int32_t x, int32_t y, int32_t w, int32_t h)
+        {
+            setPos(x, y);
+            setSize(w, h);
+        }
+        View *pointerEnter(const Pointer *pointer) override
+        {
+            return m_parentView;
+        }
+
+        wl_resource *m_resource;
+        Surface *m_parent;
+        View *m_parentView;
+    };
+
+    new ActiveRegion(m_shell->compositor(), res, Surface::fromResource(parentResource), x, y, width, height);
 }
 
 }

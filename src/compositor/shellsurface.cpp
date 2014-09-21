@@ -92,7 +92,7 @@ void ShellSurface::setToplevel()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
     m_toplevel.fullscreen = false;
-    disconnect(m_parentDestroyConnection);
+    disconnectParent();
 }
 
 void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
@@ -102,8 +102,8 @@ void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
     m_transient.y = y;
     m_transient.inactive = inactive;
 
-    disconnect(m_parentDestroyConnection);
-    m_parentDestroyConnection = connect(parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
+    disconnectParent();
+    m_parentConnections << connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
     m_nextType = Type::Transient;
 }
 
@@ -114,9 +114,24 @@ void ShellSurface::setPopup(Surface *parent, Seat *seat, int x, int y)
     m_popup.y = y;
     m_popup.seat = seat;
 
-    disconnect(m_parentDestroyConnection);
-    m_parentDestroyConnection = connect(parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
+    connectParent();
     m_nextType = Type::Popup;
+}
+
+void ShellSurface::connectParent()
+{
+    disconnectParent();
+    m_parentConnections << connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
+    m_parentConnections << connect(this, &Surface::activated, m_parent, &Surface::activated);
+    m_parentConnections << connect(this, &Surface::deactivated, m_parent, &Surface::deactivated);
+}
+
+void ShellSurface::disconnectParent()
+{
+    for (auto &c: m_parentConnections) {
+        disconnect(c);
+    }
+    m_parentConnections.clear();
 }
 
 void ShellSurface::setMaximized()
@@ -370,6 +385,8 @@ void ShellSurface::configure(int x, int y)
     if (m_type == Type::None) {
         return;
     }
+
+    setActivable(m_type != Type::Transient || !m_transient.inactive);
 
     bool wasMapped = isMapped();
     m_shell->configure(this);

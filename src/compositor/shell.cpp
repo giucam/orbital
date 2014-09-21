@@ -167,7 +167,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    View *focus = seat->pointer()->focus();
+    View *focus = m_compositor->pickView(seat->pointer()->x(), seat->pointer()->y());
     if (!focus) {
         return;
     }

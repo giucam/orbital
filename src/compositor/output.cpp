@@ -93,7 +93,7 @@ public:
         s->setRole(role, [this](int sx, int sy) {
             view->update();
         });
-
+        s->setActivable(false);
         view->setOutput(o);
     }
 
@@ -112,7 +112,7 @@ void Output::setBackground(Surface *surface)
     surface->setRole(&role, [this](int sx, int sy) {
         weston_output_schedule_repaint(m_output);
     });
-
+    surface->setActivable(false);
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(this);

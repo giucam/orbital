@@ -24,32 +24,63 @@
 
 namespace Orbital {
 
-DummySurface::DummySurface(weston_surface *s, int w, int h)
-            : Surface(s)
-            , View(this)
-            , m_surface(s)
+DummySurface::DummySurface(Surface *ss, int w, int h)
+            : View(ss)
+            , m_acceptInput(true)
 {
-    s->configure = [](struct weston_surface *es, int32_t sx, int32_t sy) {};
-    s->configure_private = nullptr;
-    s->width = w;
-    s->height = h;
+    weston_surface *s = surface()->surface();
     weston_surface_set_color(s, 0.0, 0.0, 0.0, 1);
-    pixman_region32_fini(&s->opaque);
-    pixman_region32_init_rect(&s->opaque, 0, 0, w, h);
-    pixman_region32_fini(&s->input);
-    pixman_region32_init_rect(&s->input, 0, 0, w, h);
-    weston_surface_damage(s);
+    setSize(w, h);
+}
+
+DummySurface::DummySurface(weston_surface *s, int w, int h)
+            : DummySurface(new Surface(s), w, h)
+{
 }
 
 DummySurface::DummySurface(Compositor *c, int w, int h)
-            : DummySurface(weston_surface_create(c->m_compositor), w, h)
+            : DummySurface(createSurface(c), w, h)
 {
 }
 
 DummySurface::~DummySurface()
 {
     disconnectDestroyListener();
-    weston_surface_destroy(m_surface);
+    weston_surface_destroy(surface()->surface());
+}
+
+void DummySurface::setSize(int w, int h)
+{
+    weston_surface *s = surface()->surface();
+
+    weston_surface_set_size(s, w, h);
+    pixman_region32_fini(&s->opaque);
+    pixman_region32_init_rect(&s->opaque, 0, 0, w, h);
+    weston_surface_damage(s);
+
+    if (m_acceptInput) {
+        pixman_region32_fini(&s->input);
+        pixman_region32_init_rect(&s->input, 0, 0, w, h);
+    }
+}
+
+void DummySurface::setAcceptInput(bool accept)
+{
+    if (m_acceptInput == accept) {
+        return;
+    }
+
+    m_acceptInput = accept;
+    weston_surface *s = surface()->surface();
+    int w = accept ? surface()->width() : 0;
+    int h = accept ? surface()->height() : 0;
+    pixman_region32_fini(&s->input);
+    pixman_region32_init_rect(&s->input, 0, 0, w, h);
+}
+
+weston_surface *DummySurface::createSurface(Compositor *c)
+{
+    return weston_surface_create(c->m_compositor);
 }
 
 }

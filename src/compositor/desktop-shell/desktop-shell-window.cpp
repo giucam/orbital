@@ -23,6 +23,7 @@
 #include "shell.h"
 #include "shellsurface.h"
 #include "desktop-shell.h"
+#include "seat.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -49,7 +50,8 @@ void DesktopShellWindow::added()
     connect(shsurf(), &ShellSurface::mapped, this, &DesktopShellWindow::mapped);
 //     shsurf()->typeChangedSignal.connect(this, &DesktopShellWindow::surfaceTypeChanged);
     connect(shsurf(), &ShellSurface::titleChanged, this, &DesktopShellWindow::sendTitle);
-//     shsurf()->activeChangedSignal.connect(this, &DesktopShellWindow::activeChanged);
+    connect(shsurf(), &Surface::activated, this, &DesktopShellWindow::activated);
+    connect(shsurf(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
 //     shsurf()->mappedSignal.connect(this, &DesktopShellWindow::mapped);
 //     shsurf()->unmappedSignal.connect(this, &DesktopShellWindow::destroy);
 }
@@ -82,14 +84,16 @@ void DesktopShellWindow::surfaceTypeChanged()
 //     }
 }
 
-void DesktopShellWindow::activeChanged()
+void DesktopShellWindow::activated(Seat *)
 {
-//     if (shsurf()->isActive()) {
-//         m_state |= DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
-//     } else {
-//         m_state &= ~DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
-//     }
-//     sendState();
+    m_state |= DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+    sendState();
+}
+
+void DesktopShellWindow::deactivated(Seat *)
+{
+    m_state &= ~DESKTOP_SHELL_WINDOW_STATE_ACTIVE;
+    sendState();
 }
 
 void DesktopShellWindow::recreate()
