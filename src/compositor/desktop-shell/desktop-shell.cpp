@@ -66,6 +66,11 @@ DesktopShell::~DesktopShell()
     delete m_grabView;
 }
 
+Compositor *DesktopShell::compositor() const
+{
+    return m_shell->compositor();
+}
+
 wl_client *DesktopShell::client() const
 {
     return m_client->client();

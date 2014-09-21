@@ -42,6 +42,7 @@ public:
     explicit DesktopShell(Shell *shell);
     ~DesktopShell();
 
+    Compositor *compositor() const;
     wl_client *client() const;
     inline wl_resource *resource() const { return m_resource; }
 

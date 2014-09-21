@@ -24,6 +24,9 @@
 #include "shellsurface.h"
 #include "desktop-shell.h"
 #include "seat.h"
+#include "compositor.h"
+#include "shellview.h"
+#include "layer.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -139,8 +142,9 @@ void DesktopShellWindow::sendTitle()
 
 void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int32_t state)
 {
-//     ShellSurface *s = shsurf();
-//
+    ShellSurface *s = shsurf();
+    Seat *seat = m_desktopShell->compositor()->seats().first();
+
 //     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
 //         s->setMinimized(false);
 //     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
@@ -149,11 +153,15 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int3
 //             s->deactivate();
 //         }
 //     }
-//
-//     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-//         s->activate();
-//     }
-//
+
+    if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        seat->activate(s);
+        for (Output *o: m_desktopShell->compositor()->outputs()) {
+            ShellView *view = s->viewForOutput(o);
+            view->layer()->raiseOnTop(view);
+        }
+    }
+
 //     m_state = state;
 //     sendState();
 }
