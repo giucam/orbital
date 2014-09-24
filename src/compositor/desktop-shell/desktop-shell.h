@@ -20,6 +20,8 @@
 #ifndef ORBITAL_DESKTOP_SHELL_H
 #define ORBITAL_DESKTOP_SHELL_H
 
+#include <QPointer>
+
 #include "interface.h"
 
 struct wl_resource;
@@ -76,7 +78,7 @@ private:
     Shell *m_shell;
     ChildProcess *m_client;
     wl_resource *m_resource;
-    View *m_grabView;
+    QPointer<View> m_grabView;
     DesktopShellSplash *m_splash;
     uint32_t m_loadSerial;
 };

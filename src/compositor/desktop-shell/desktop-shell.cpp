@@ -347,11 +347,6 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
     }
 
     m_grabView = new View(surface);
-    connect(surface, &QObject::destroyed, [this](QObject *o) {
-        if (m_grabView == static_cast<View *>(o)) {
-            m_grabView = nullptr;
-        }
-    });
 }
 
 void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
