@@ -25,6 +25,8 @@
 class QQuickWindow;
 class QTimer;
 
+struct wl_subsurface;
+
 class ToolTip : public QQuickItem
 {
     Q_OBJECT
@@ -49,6 +51,7 @@ private:
     QQuickItem *m_content;
     QTimer *m_showTimer;
     QTimer *m_hideTimer;
+    wl_subsurface *m_subsurface;
 
     static int s_showing;
 };

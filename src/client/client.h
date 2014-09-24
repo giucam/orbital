@@ -35,6 +35,8 @@ struct wl_registry;
 struct wl_surface;
 struct wl_registry_listener;
 struct wl_output;
+struct wl_subcompositor;
+struct wl_subsurface;
 
 struct desktop_shell;
 struct desktop_shell_listener;
@@ -101,6 +103,7 @@ public:
     desktop_shell_panel *setPanel(QQuickWindow *window, QScreen *screen, int location);
     notification_surface *pushNotification(QWindow *window, bool inactive);
     active_region *createActiveRegion(QQuickWindow *window, const QRect &rect);
+    wl_subsurface *getSubsurface(QQuickWindow *window, QQuickWindow *parent);
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
     QProcess *createTrustedClient(const QString &interface);
@@ -152,6 +155,7 @@ private:
     int m_fd;
     desktop_shell *m_shell;
     notifications_manager *m_notifications;
+    wl_subcompositor *m_subcompositor;
     CompositorSettings *m_settings;
     QQmlEngine *m_engine;
     QWindow *m_grabWindow;

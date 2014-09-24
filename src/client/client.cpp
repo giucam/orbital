@@ -448,6 +448,11 @@ active_region *Client::createActiveRegion(QQuickWindow *w, const QRect &region)
     return desktop_shell_create_active_region(m_shell, wlSurface, region.x(), region.y(), region.width(), region.height());
 }
 
+wl_subsurface *Client::getSubsurface(QQuickWindow *window, QQuickWindow *parent)
+{
+    return wl_subcompositor_get_subsurface(m_subcompositor, nativeSurface(window), nativeSurface(parent));
+}
+
 void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
 {
     Q_UNUSED(version);
@@ -461,6 +466,8 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
         m_settings->moveToThread(QCoreApplication::instance()->thread());
     } else if (strcmp(interface, "notifications_manager") == 0) {
         m_notifications = static_cast<notifications_manager *>(wl_registry_bind(registry, id, &notifications_manager_interface, 1));
+    } else if (strcmp(interface, "wl_subcompositor") == 0) {
+        m_subcompositor = static_cast<wl_subcompositor *>(wl_registry_bind(registry, id, &wl_subcompositor_interface, 1));
     }
 }
 

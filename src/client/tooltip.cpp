@@ -78,6 +78,7 @@ void ToolTip::hide()
     m_window->deleteLater();
     m_window = nullptr;
     parentItem()->window()->removeEventFilter(this);
+    wl_subsurface_destroy(m_subsurface);
 
     m_hideTimer->start();
 }
@@ -94,7 +95,7 @@ void ToolTip::doShow()
     QPointF pos = parentItem()->mapToScene(QPointF(0, 0));
     m_window = new QQuickWindow();
     m_window->setTransientParent(w);
-    m_window->setFlags(Qt::ForeignWindow | Qt::WindowTransparentForInput);
+    m_window->setFlags(Qt::BypassWindowManagerHint | Qt::WindowTransparentForInput);
     m_window->setScreen(w->screen());
 
     // TODO: Better placement, maybe by adding some protocol
@@ -125,6 +126,11 @@ void ToolTip::doShow()
     m_content->setParentItem(m_window->contentItem());
 
     m_window->create();
+
+    m_subsurface = Client::client()->getSubsurface(m_window, w);
+    wl_subsurface_set_position(m_subsurface, m_window->x(), m_window->y());
+    wl_subsurface_set_desync(m_subsurface);
+
     m_window->show();
 
     ++s_showing;
