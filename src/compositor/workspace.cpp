@@ -82,7 +82,12 @@ int Workspace::id() const
 }
 
 
-
+class Root : public DummySurface
+{
+public:
+    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
+    View *view;
+};
 
 WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              : m_workspace(ws)
@@ -94,7 +99,7 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
              , m_fullscreenLayer(new Layer)
              , m_background(nullptr)
 {
-    m_root = ws->compositor()->createDummySurface(0, 0);
+    m_root = new Root(ws->compositor());
 
     m_backgroundLayer->append(ws->compositor()->backgroundLayer());
     m_layer->append(ws->compositor()->appsLayer());
@@ -112,6 +117,21 @@ WorkspaceView::~WorkspaceView()
     delete m_fullscreenLayer;
 }
 
+QPoint WorkspaceView::pos() const
+{
+    return QPoint(m_root->view->x(), m_root->view->y());
+}
+
+void WorkspaceView::setPos(int x, int y)
+{
+    m_root->view->setPos(x, y);
+}
+
+void WorkspaceView::setTransformParent(View *p)
+{
+    m_root->view->setTransformParent(p);
+}
+
 void WorkspaceView::setBackground(Surface *s)
 {
     if (m_background && m_background->surface() == s) {
@@ -125,7 +145,7 @@ void WorkspaceView::setBackground(Surface *s)
     // crashes, until a new one is set
     s->ref();
     m_background = new View(s);
-    m_background->setTransformParent(m_root);
+    m_background->setTransformParent(m_root->view);
     m_backgroundLayer->addView(m_background);
 }
 
@@ -140,7 +160,7 @@ void WorkspaceView::configure(View *view)
 {
     if (view->layer() != m_layer) {
         m_layer->addView(view);
-        view->setTransformParent(m_root);
+        view->setTransformParent(m_root->view);
     }
 }
 
@@ -148,8 +168,8 @@ void WorkspaceView::configureFullscreen(View *view, View *blackSurface)
 {
     m_fullscreenLayer->addView(blackSurface);
     m_fullscreenLayer->addView(view);
-    view->setTransformParent(m_root);
-    blackSurface->setTransformParent(m_root);
+    view->setTransformParent(m_root->view);
+    blackSurface->setTransformParent(m_root->view);
 }
 
 }

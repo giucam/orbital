@@ -378,11 +378,6 @@ QList<Seat *> Compositor::seats() const
     return seats;
 }
 
-DummySurface *Compositor::createDummySurface(int w, int h)
-{
-    return new DummySurface(weston_surface_create(m_compositor), w, h);
-}
-
 uint32_t Compositor::nextSerial() const
 {
     return wl_display_next_serial(m_compositor->wl_display);

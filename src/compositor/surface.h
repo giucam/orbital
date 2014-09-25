@@ -50,6 +50,7 @@ public:
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;
+    inline QList<View *> views() const { return m_views; }
 
     void repaint();
     void damage();
@@ -81,6 +82,7 @@ private:
     ConfigureHandler m_configureHandler;
     Listener *m_listener;
     bool m_activable;
+    QList<View *> m_views;
 
     friend View;
 };

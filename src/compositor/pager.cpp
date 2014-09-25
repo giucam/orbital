@@ -32,9 +32,16 @@ namespace Orbital {
 class Pager::Root : public QObject
 {
 public:
-    Root(Output *o, DummySurface *d)
+    class RootSurface : public DummySurface
+    {
+    public:
+        RootSurface(Compositor *c) : DummySurface(c), view(new View(this)) { }
+        View *view;
+    };
+
+    Root(Output *o, Compositor *c)
         : output(o)
-        , ds(d)
+        , ds(new RootSurface(c))
         , active(nullptr)
     {
         connect(&animation, &Animation::update, this, &Root::updateAnim);
@@ -43,17 +50,18 @@ public:
     void updateAnim(double v)
     {
         QPointF pos(start * (1. - v) + end * v);
-        ds->setPos(pos);
+        ds->view->setPos(pos);
         QRect out = output->geometry();
         for (WorkspaceView *w: workspaces) {
-            int x = pos.x() + w->m_root->x();
-            int y = pos.y() + w->m_root->y();
+            QPoint p = w->pos();
+            int x = pos.x() + p.x();
+            int y = pos.y() + p.y();
             w->setMask(out.intersected(QRect(x, y, out.width(), out.height())));
         }
     }
 
     Output *output;
-    DummySurface *ds;
+    RootSurface *ds;
     QList<WorkspaceView *> workspaces;
     WorkspaceView *active;
     Animation animation;
@@ -64,8 +72,7 @@ Pager::Pager(Compositor *c)
      : m_compositor(c)
 {
     for (Output *o: c->outputs()) {
-        DummySurface *ds = c->createDummySurface(0, 0);
-        m_roots.insert(o->id(), new Root(o, ds));
+        m_roots.insert(o->id(), new Root(o, c));
     }
     connect(c, &Compositor::outputCreated, this, &Pager::outputCreated);
 }
@@ -76,8 +83,8 @@ void Pager::addWorkspace(Workspace *ws)
         WorkspaceView *wsv = ws->viewForOutput(o);
         Root *root = m_roots.value(o->id());
         root->workspaces << wsv;
-        wsv->m_root->setTransformParent(root->ds);
-        wsv->m_root->setPos(ws->id() * o->width(), 0);
+        wsv->setTransformParent(root->ds->view);
+        wsv->setPos(ws->id() * o->width(), 0);
     }
 }
 
@@ -97,10 +104,11 @@ bool Pager::isWorkspaceActive(Workspace *ws, Output *output) const
 void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
 {
     Root *root = m_roots.value(output->id());
-    double dx = wsv->m_root->x();
-    double dy = wsv->m_root->y();
+    QPoint p = wsv->pos();
+    double dx = p.x();
+    double dy = p.y();
 
-    root->start = root->ds->pos();
+    root->start = root->ds->view->pos();
     root->end = QPointF(output->x() - dx, output->y() - dy);
     if (animate) {
         root->animation.setStart(0);
@@ -122,14 +130,13 @@ void Pager::updateWorkspacesPosition(Output *output)
 
 void Pager::outputCreated(Output *o)
 {
-    DummySurface *ds = m_compositor->createDummySurface(0, 0);
-    Root *root = new Root(o, ds);
+    Root *root = new Root(o, m_compositor);
     m_roots.insert(o->id(), root);
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
         root->workspaces << wsv;
-        wsv->m_root->setTransformParent(root->ds);
-        wsv->m_root->setPos(ws->id() * o->width(), 0);
+        wsv->setTransformParent(root->ds->view);
+        wsv->setPos(ws->id() * o->width(), 0);
     }
 
     Workspace *ws = m_compositor->shell()->workspaces().first();

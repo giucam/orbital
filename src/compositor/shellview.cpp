@@ -35,18 +35,30 @@ namespace Orbital {
 class BlackSurface : public DummySurface
 {
 public:
+    class BlackView : public View
+    {
+    public:
+        BlackView(Surface *s, ShellView *p)
+            : View(s)
+            , parent(p)
+        {
+        }
+
+        View *pointerEnter(const Pointer *pointer) override
+        {
+            return parent;
+        }
+
+        ShellView *parent;
+    };
+
     BlackSurface(Compositor *c, ShellView *p, int w, int h)
         : DummySurface(c, w, h)
-        , parent(p)
     {
+        view = new BlackView(this, p);
     }
 
-    View *pointerEnter(const Pointer *pointer) override
-    {
-        return parent;
-    }
-
-    ShellView *parent;
+    View *view;
 };
 
 ShellView::ShellView(ShellSurface *surf)
@@ -115,10 +127,10 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
     if (map) {
         WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
         if (fullscreen) {
-            wsv->configureFullscreen(this, m_blackSurface);
+            wsv->configureFullscreen(this, m_blackSurface->view);
         } else {
             if (m_blackSurface) {
-                m_blackSurface->unmap();
+                m_blackSurface->view->unmap();
             }
             wsv->configure(this);
         }
@@ -152,7 +164,7 @@ void ShellView::configureTransient(View *parent, int x, int y)
 void ShellView::cleanupAndUnmap()
 {
     if (m_blackSurface) {
-        m_blackSurface->unmap();
+        m_blackSurface->view->unmap();
     }
     unmap();
 }

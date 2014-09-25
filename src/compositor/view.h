@@ -73,7 +73,6 @@ public:
     View *dispatchPointerEvent(const Pointer *p, wl_fixed_t x, wl_fixed_t y);
 
 protected:
-    void disconnectDestroyListener();
     /**
      * Return false if the view should be transparent to pointer events,
      * true otherwise.

@@ -524,28 +524,33 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
     class ActiveRegion : public DummySurface
     {
     public:
-        class ActiveSurface : public Surface
+        class ActiveView : public View
         {
         public:
-            ActiveSurface(ActiveRegion *r, weston_surface *s) : Surface(s), region(r) {}
-
-            Surface *activate(Seat *seat) override
+            ActiveView(Surface *s, View *p)
+                : View(s), parent(p)
             {
-                return region->m_parent;
+                connect(p, &QObject::destroyed, this, &View::unmap);
             }
-            ActiveRegion *region;
+            View *pointerEnter(const Pointer *pointer) override
+            {
+                return parent;
+            }
+            View *parent;
         };
 
         ActiveRegion(Compositor *c, wl_resource *resource, Surface *parent, int x, int y, int w, int h)
-            : DummySurface(new ActiveSurface(this, createSurface(c)), w, h)
+            : DummySurface(c, w, h)
             , m_resource(resource)
             , m_parent(parent)
         {
-            setAlpha(0.);
-            m_parentView = View::fromView(container_of(parent->surface()->views.next, weston_view, surface_link));
-            setTransformParent(m_parentView);
-            setPos(x, y);
-            m_parentView->layer()->addView(this);
+            for (View *view: parent->views()) {
+                ActiveView *v = new ActiveView(this, view);
+                v->setAlpha(0.);
+                v->setTransformParent(view);
+                v->setPos(x, y);
+                view->layer()->addView(v);
+            }
 
             static const struct active_region_interface implementation = {
                 wrapInterface(&ActiveRegion::destroy),
@@ -555,12 +560,9 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
                 ActiveRegion *region = static_cast<ActiveRegion *>(wl_resource_get_user_data(r));
                 delete region;
             });
-
-            connect(parent, &QObject::destroyed, [this]() { unmap(); });
         }
         ~ActiveRegion()
         {
-
         }
         void destroy()
         {
@@ -568,17 +570,18 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
         }
         void setGeometry(int32_t x, int32_t y, int32_t w, int32_t h)
         {
-            setPos(x, y);
             setSize(w, h);
+            for (View *v: views()) {
+                v->setPos(x, y);
+            }
         }
-        View *pointerEnter(const Pointer *pointer) override
+        Surface *activate(Seat *seat) override
         {
-            return m_parentView;
+            return m_parent;
         }
 
         wl_resource *m_resource;
         Surface *m_parent;
-        View *m_parentView;
     };
 
     new ActiveRegion(m_shell->compositor(), res, Surface::fromResource(parentResource), x, y, width, height);

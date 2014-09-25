@@ -29,7 +29,7 @@ namespace Orbital {
 class ShellSurface;
 class Output;
 class Layer;
-class DummySurface;
+class BlackSurface;
 class WorkspaceView;
 
 class ShellView : public View
@@ -56,7 +56,7 @@ private:
     QPointF m_initialPos;
     QPointF m_savedPos;
     bool m_posSaved;
-    DummySurface *m_blackSurface;
+    BlackSurface *m_blackSurface;
 };
 
 }

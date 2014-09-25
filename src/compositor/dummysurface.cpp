@@ -24,34 +24,22 @@
 
 namespace Orbital {
 
-DummySurface::DummySurface(Surface *ss, int w, int h)
-            : View(ss)
+DummySurface::DummySurface(Compositor *c, int w, int h)
+            : Surface(weston_surface_create(c->m_compositor))
             , m_acceptInput(true)
 {
-    weston_surface *s = surface()->surface();
+    weston_surface *s = surface();
     weston_surface_set_color(s, 0.0, 0.0, 0.0, 1);
     setSize(w, h);
 }
 
-DummySurface::DummySurface(weston_surface *s, int w, int h)
-            : DummySurface(new Surface(s), w, h)
-{
-}
-
-DummySurface::DummySurface(Compositor *c, int w, int h)
-            : DummySurface(createSurface(c), w, h)
-{
-}
-
 DummySurface::~DummySurface()
 {
-    disconnectDestroyListener();
-    weston_surface_destroy(surface()->surface());
 }
 
 void DummySurface::setSize(int w, int h)
 {
-    weston_surface *s = surface()->surface();
+    weston_surface *s = surface();
 
     weston_surface_set_size(s, w, h);
     pixman_region32_fini(&s->opaque);
@@ -71,16 +59,11 @@ void DummySurface::setAcceptInput(bool accept)
     }
 
     m_acceptInput = accept;
-    weston_surface *s = surface()->surface();
-    int w = accept ? surface()->width() : 0;
-    int h = accept ? surface()->height() : 0;
+    weston_surface *s = surface();
+    int w = accept ? width() : 0;
+    int h = accept ? height() : 0;
     pixman_region32_fini(&s->input);
     pixman_region32_init_rect(&s->input, 0, 0, w, h);
-}
-
-weston_surface *DummySurface::createSurface(Compositor *c)
-{
-    return weston_surface_create(c->m_compositor);
 }
 
 }

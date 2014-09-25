@@ -29,18 +29,14 @@ namespace Orbital {
 
 class Compositor;
 
-class DummySurface : public View
+class DummySurface : public Surface
 {
 public:
-    DummySurface(Compositor *c, int width, int height);
-    DummySurface(Surface *s, int w, int h);
+    explicit DummySurface(Compositor *c, int width = 0, int height = 0);
     ~DummySurface();
 
     void setSize(int width, int height);
     void setAcceptInput(bool m_acceptInput);
-
-protected:
-    weston_surface *createSurface(Compositor *c);
 
 private:
     DummySurface(weston_surface *s, int width, int height);

@@ -33,7 +33,7 @@ class Workspace;
 class View;
 class Layer;
 class WorkspaceView;
-class DummySurface;
+class Root;
 class Animation;
 class Pager;
 class Surface;
@@ -78,7 +78,7 @@ private:
     weston_output *m_output;
     Listener *m_listener;
     Layer *m_panelsLayer;
-    DummySurface *m_transformRoot;
+    Root *m_transformRoot;
     View *m_background;
     QList<View *> m_panels;
     QList<View *> m_overlays;

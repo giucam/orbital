@@ -43,12 +43,6 @@ void View::viewDestroyed(wl_listener *listener, void *data)
     delete view;
 }
 
-void View::disconnectDestroyListener()
-{
-    wl_list_remove(&m_listener->listener.link);
-    m_view = nullptr;
-}
-
 View::View(Surface *s)
     : m_view(weston_view_create(s->surface()))
     , m_surface(s)
@@ -60,10 +54,13 @@ View::View(Surface *s)
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
     wl_signal_add(&m_view->destroy_signal, &m_listener->listener);
+
+    s->m_views << this;
 }
 
 View::~View()
 {
+    m_surface->m_views.removeOne(this);
     if (m_view) {
         wl_list_remove(&m_listener->listener.link);
         weston_view_destroy(m_view);

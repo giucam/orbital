@@ -43,18 +43,25 @@ static void outputDestroyed(wl_listener *listener, void *data)
     delete reinterpret_cast<Listener *>(listener)->output;
 }
 
+class Root : public DummySurface
+{
+public:
+    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
+    View *view;
+};
+
 Output::Output(weston_output *out)
       : QObject()
       , m_compositor(Compositor::fromCompositor(out->compositor))
       , m_output(out)
       , m_listener(new Listener)
       , m_panelsLayer(new Layer)
-      , m_transformRoot(m_compositor->createDummySurface(0, 0))
+      , m_transformRoot(new Root(m_compositor))
       , m_background(nullptr)
       , m_currentWs(nullptr)
       , m_backgroundSurface(nullptr)
 {
-    m_transformRoot->setPos(out->x, out->y);
+    m_transformRoot->view->setPos(out->x, out->y);
 
     m_panelsLayer->append(m_compositor->panelsLayer());
 
@@ -125,7 +132,7 @@ void Output::setPanel(Surface *surface, int pos)
     static Surface::Role role;
     OutputSurface *s = new OutputSurface(surface, this, &role);
     m_panelsLayer->addView(s->view);
-    s->view->setTransformParent(m_transformRoot);
+    s->view->setTransformParent(m_transformRoot->view);
     m_panels << s->view;
 }
 
@@ -136,7 +143,7 @@ void Output::setOverlay(Surface *surface)
     pixman_region32_init_rect(&surface->surface()->pending.input, 0, 0, 0, 0);
     OutputSurface *s = new OutputSurface(surface, this, &role);
     m_compositor->overlayLayer()->addView(s->view);
-    s->view->setTransformParent(m_transformRoot);
+    s->view->setTransformParent(m_transformRoot->view);
     m_overlays << s->view;
 }
 
@@ -208,7 +215,7 @@ wl_resource *Output::resource(wl_client *client) const
 
 View *Output::rootView() const
 {
-    return m_transformRoot;
+    return m_transformRoot->view;
 }
 
 QString Output::name() const
@@ -236,7 +243,7 @@ void Output::onMoved()
 {
     // when an output is removed weston rearranges the remaimining ones and the views, so be sure
     // to move them back where they should be
-    m_transformRoot->setPos(x(), y());
+    m_transformRoot->view->setPos(x(), y());
 
     for (View *view: m_panels) {
         view->setPos(0, 0);

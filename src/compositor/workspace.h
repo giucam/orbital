@@ -38,6 +38,7 @@ class Compositor;
 class DummySurface;
 class Pager;
 class Surface;
+class Root;
 
 class Workspace : public Object
 {
@@ -82,6 +83,10 @@ public:
     Workspace *workspace() const { return m_workspace; }
 
 private:
+    QPoint pos() const;
+    void setPos(int x, int y);
+    void setTransformParent(View *p);
+
     Workspace *m_workspace;
     Output *m_output;
     int m_width;
@@ -89,7 +94,7 @@ private:
     Layer *m_backgroundLayer;
     Layer *m_layer;
     Layer *m_fullscreenLayer;
-    DummySurface *m_root;
+    Root *m_root;
     View *m_background;
     QList<View *> m_views;
     bool m_attached;

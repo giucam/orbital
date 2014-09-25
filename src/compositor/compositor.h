@@ -71,7 +71,6 @@ public:
 
     uint32_t nextSerial() const;
 
-    DummySurface *createDummySurface(int width, int height);
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
 
