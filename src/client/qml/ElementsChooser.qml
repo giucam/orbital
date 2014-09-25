@@ -34,20 +34,33 @@ Item {
             height: 30
             spacing: 2
 
+            ListModel {
+                id: elementsModel
+
+                property var elements: Client.elementsInfo
+                onElementsChanged: {
+                    clear();
+                    for (var i = 0; i < elements.length; ++i) {
+                        if (elements[i].type == ElementInfo.Item) {
+                            append(elements[i]);
+                        }
+                    }
+                }
+            }
+
             Repeater {
-                model: Client.elementsInfo
+                model: elementsModel
 
                 Button {
-                    width: 100
+                    width: Math.min(100, elementsChooser.width / elementsModel.count - elementsList.spacing)
                     height: elementsList.height
-                    visible: modelData.type == ElementInfo.Item
-                    caption: modelData.prettyName
+                    caption: prettyName
 
                     MouseArea {
                         anchors.fill: parent
                         onPressed: {
                             if (screen) {
-                                var newElem = Ui.createElement(modelData.name, screen);
+                                var newElem = Ui.createElement(name, screen);
                                 newElem.publish();
                             }
                         }
