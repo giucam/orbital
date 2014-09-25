@@ -31,6 +31,7 @@
 #include <QCoreApplication>
 #include <QQuickWindow>
 #include <QGuiApplication>
+#include <QScreen>
 
 #include "client.h"
 #include "element.h"
@@ -114,6 +115,7 @@ UiScreen *ShellUI::loadScreen(QScreen *sc, const QString &name)
     loadScreen(screen);
 
     m_screens << screen;
+    connect(sc, &QObject::destroyed, [this, screen](QObject *) { delete screen; m_screens.removeOne(screen); });
     return screen;
 }
 
