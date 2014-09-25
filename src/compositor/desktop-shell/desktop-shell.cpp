@@ -218,60 +218,6 @@ void DesktopShell::setLockSurface(wl_resource *surface_resource)
 
 }
 
-class PopupGrab;
-struct Popup {
-    ~Popup();
-
-    wl_resource *resource;
-    View *view;
-    View *parent;
-    PopupGrab *grab;
-    int32_t x, y;
-    QMetaObject::Connection connection;
-};
-
-class PopupGrab : public PointerGrab {
-public:
-    void focus() override
-    {
-        double sx, sy;
-        View *v = pointer()->pickView(&sx, &sy);
-
-        inside = v == popup->view;
-        if (inside) {
-            pointer()->setFocus(v, sx, sy);
-        }
-    }
-    void motion(uint32_t time, double x, double y) override
-    {
-        pointer()->move(x, y);
-        pointer()->sendMotion(time);
-    }
-    void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
-    {
-        pointer()->sendButton(time, button, state);
-
-        // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
-        // there is a bug in QQuickWindow, which hangs up the process.
-        if (!inside && state == Pointer::ButtonState::Released && time - creationTime > 500) {
-            desktop_shell_surface_send_popup_close(popup->resource);
-            end();
-        }
-    }
-
-    Popup *popup;
-    bool inside;
-    uint32_t creationTime;
-};
-
-Popup::~Popup() {
-    delete grab;
-    view->surface()->setRole(view->surface()->role(), nullptr);
-    view->unmap();
-    QObject::disconnect(connection);
-    delete view;
-}
-
 void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y)
 {
     Surface *parent = Surface::fromResource(parentResource);
@@ -292,27 +238,69 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         return;
     }
 
-    Popup *popup = new Popup;
-    popup->x = x;
-    popup->y = y;
-    popup->resource = resource;
-    popup->view = new View(surface);
-    popup->parent = View::fromView(container_of(parent->surface()->views.next, weston_view, surface_link));
-    popup->connection = connect(surface, &QObject::destroyed, [popup]() { delete popup; });
+    class Popup
+    {
+    public:
+        Popup(Surface *s, Surface *p, wl_resource *r, int x, int y)
+            : surface(s)
+            , parent(p)
+            , resource(r)
+        {
+            for (View *view: parent->views()) {
+                View *v = new View(s);
+                v->setTransformParent(view);
+                v->setPos(x, y);
+                view->layer()->addView(v);
+                v->update();
 
-    surface->setRole(&role, [popup, surface](int, int) {
-        if (surface->width() == 0) {
-            return;
+                connect(view, &QObject::destroyed, v, &QObject::deleteLater);
+            }
+        }
+        ~Popup() {
+            delete grab;
         }
 
-        if (!popup->view->layer()) {
-            popup->view->setTransformParent(popup->parent);
-            popup->view->setPos(popup->x, popup->y);
+        Surface *surface;
+        Surface *parent;
+        wl_resource *resource;
+        PointerGrab *grab;
+    };
 
-            Layer *layer = popup->parent->layer();
-            layer->addView(popup->view);
+    class PopupGrab : public PointerGrab {
+    public:
+        void focus() override
+        {
+            double sx, sy;
+            View *v = pointer()->pickView(&sx, &sy);
+
+            inside = popup->surface->views().contains(v);
+            if (inside) {
+                pointer()->setFocus(v, sx, sy);
+            }
         }
-    });
+        void motion(uint32_t time, double x, double y) override
+        {
+            pointer()->move(x, y);
+            pointer()->sendMotion(time);
+        }
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+        {
+            pointer()->sendButton(time, button, state);
+
+            // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
+            // there is a bug in QQuickWindow, which hangs up the process.
+            if (!inside && state == Pointer::ButtonState::Released && time - creationTime > 500) {
+                desktop_shell_surface_send_popup_close(popup->resource);
+                end();
+            }
+        }
+
+        Popup *popup;
+        bool inside;
+        uint32_t creationTime;
+    };
+
+    Popup *popup = new Popup(surface, parent, resource, x, y);
 
     static const struct desktop_shell_surface_interface implementation = {
         [](wl_client *, wl_resource *r) { wl_resource_destroy(r); }
@@ -326,8 +314,6 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     popup->grab = grab;
     grab->popup = popup;
     grab->creationTime = seat->pointer()->grabTime();
-
-    seat->pointer()->setFocus(popup->view);
     grab->start(seat);
 }
 
