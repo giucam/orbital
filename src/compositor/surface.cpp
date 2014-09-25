@@ -22,6 +22,7 @@
 #include <weston/compositor.h>
 
 #include "surface.h"
+#include "view.h"
 
 namespace Orbital {
 
@@ -57,6 +58,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
 
 Surface::~Surface()
 {
+    qDeleteAll(m_views);
     wl_list_remove(&m_listener->listener.link);
     if (m_surface) {
         weston_surface_destroy(m_surface);
