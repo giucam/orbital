@@ -39,12 +39,11 @@ ActiveRegion::~ActiveRegion()
     }
 }
 
-void ActiveRegion::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void ActiveRegion::updateGeometry()
 {
-    QQuickItem::geometryChanged(newGeometry, oldGeometry);
-
-    if (m_activeRegion) {
-        QRect rect = mapRectToScene(QRectF(x(), y(), width(), height())).toRect();
+    QRect rect = mapRectToScene(QRectF(x(), y(), width(), height())).toRect();
+    if (rect != m_geometry) {
+        m_geometry = rect;
         active_region_set_geometry(m_activeRegion, rect.x(), rect.y(), rect.width(), rect.height());
     }
 }
@@ -54,10 +53,14 @@ void ActiveRegion::init()
     if (m_activeRegion) {
         active_region_destroy(m_activeRegion);
         m_activeRegion = nullptr;
+        disconnect(m_updateConnection);
     }
 
     if (window()) {
         QRect rect = mapRectToScene(QRectF(x(), y(), width(), height())).toRect();
         m_activeRegion = Client::client()->createActiveRegion(window(), rect);
+        m_geometry = rect;
+
+        m_updateConnection = connect(window(), &QQuickWindow::beforeRendering, this, &ActiveRegion::updateGeometry);
     }
 }

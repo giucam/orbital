@@ -32,13 +32,13 @@ public:
     explicit ActiveRegion(QQuickItem *p = nullptr);
     ~ActiveRegion();
 
-protected:
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
-
 private:
     void init();
+    void updateGeometry();
 
     active_region *m_activeRegion;
+    QMetaObject::Connection m_updateConnection;
+    QRect m_geometry;
 };
 
 #endif
