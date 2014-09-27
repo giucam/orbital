@@ -65,7 +65,6 @@ public:
     {
         desktop_shell_splash_destroy(m_splash);
         wl_registry_destroy(m_registry);
-        wl_display_disconnect(m_display);
     }
 
     Q_INVOKABLE void create()
