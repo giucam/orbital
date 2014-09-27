@@ -133,6 +133,7 @@ void Output::setPanel(Surface *surface, int pos)
     OutputSurface *s = new OutputSurface(surface, this, &role);
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
+    connect(s->view, &QObject::destroyed, [this, s]() { m_panels.removeOne(s->view); delete s; });
     m_panels << s->view;
 }
 
@@ -144,6 +145,7 @@ void Output::setOverlay(Surface *surface)
     OutputSurface *s = new OutputSurface(surface, this, &role);
     m_compositor->overlayLayer()->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
+    connect(s->view, &QObject::destroyed, [this, s]() { m_overlays.removeOne(s->view); delete s; });
     m_overlays << s->view;
 }
 
