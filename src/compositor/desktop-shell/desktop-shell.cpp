@@ -390,6 +390,9 @@ void DesktopShell::createGrab(uint32_t id)
         {
             double sx, sy;
             View *view = pointer()->pickView(&sx, &sy);
+            if (view->surface()->client() != client) {
+                return;
+            }
             if (currentFocus != view) {
                 currentFocus = view;
                 desktop_shell_grab_send_focus(resource, view->surface()->surface()->resource,
@@ -435,6 +438,7 @@ void DesktopShell::createGrab(uint32_t id)
 
         wl_resource *resource;
         View *currentFocus;
+        wl_client *client;
         bool pressed;
     };
 
@@ -456,6 +460,7 @@ void DesktopShell::createGrab(uint32_t id)
     double sx, sy;
     View *view = seat->pointer()->pickView(&sx, &sy);
     grab->currentFocus = view;
+    grab->client = m_client->client();
     grab->start(seat);
 
     seat->pointer()->setFocus(view, sx, sy);
