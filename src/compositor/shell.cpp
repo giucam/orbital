@@ -52,8 +52,10 @@ Shell::Shell(Compositor *c)
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
+    m_moveBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::Super);
     connect(m_focusBinding, &ButtonBinding::triggered, this, &Shell::giveFocus);
     connect(m_raiseBinding, &ButtonBinding::triggered, this, &Shell::raise);
+    connect(m_moveBinding, &ButtonBinding::triggered, this, &Shell::moveSurface);
 }
 
 Shell::~Shell()
@@ -65,6 +67,7 @@ Shell::~Shell()
     delete m_pager;
     delete m_focusBinding;
     delete m_raiseBinding;
+    delete m_moveBinding;
 }
 
 Compositor *Shell::compositor() const
@@ -223,6 +226,25 @@ void Shell::raise(Seat *seat)
             }
         }
     }
+}
+
+void Shell::moveSurface(Seat *seat)
+{
+    if (seat->pointer()->isGrabActive()) {
+        return;
+    }
+
+    View *focus = seat->pointer()->focus();
+    if (!focus) {
+        return;
+    }
+
+    ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
+    if (!shsurf || shsurf->isFullscreen()) {
+        return;
+    }
+
+    shsurf->move(seat);
 }
 
 void Shell::activateTopSurface(Seat *seat)
