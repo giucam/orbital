@@ -60,7 +60,6 @@ void MixerService::init()
 
     m_backend->getBoundaries(&m_min, &m_max);
     m_step = (m_max - m_min) / 50;
-    qDebug()<<m_min<<m_max;
 
     m_upBinding = client()->addKeyBinding(KEY_VOLUMEUP, 0);
     m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
