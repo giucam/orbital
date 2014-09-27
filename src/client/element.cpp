@@ -414,7 +414,8 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
     elm->m_typeName = name;
     elm->m_shell = shell;
     elm->m_info = info;
-    elm->m_screen = screen;
+    elm->m_screen = nullptr;
+    screen->addElement(elm);
 
     c.completeCreate();
 

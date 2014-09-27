@@ -22,14 +22,13 @@
 #include <QIcon>
 #include <QDebug>
 #include <QQuickItem>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQmlProperty>
 #include <QQuickWindow>
 #include <QScreen>
 #include <QTimer>
+#include <QJsonArray>
 
 #include "client.h"
 #include "element.h"
@@ -51,7 +50,7 @@ UiScreen::~UiScreen()
     qDeleteAll(m_children);
 }
 
-void UiScreen::loadConfig(QXmlStreamReader &xml)
+void UiScreen::loadConfig(QJsonObject &config)
 {
     for (Element *elm: m_elements) {
         if (elm->m_parent) {
@@ -62,23 +61,20 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
     QHash<int, Element *> oldElements = m_elements;
     m_elements.clear();
 
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "element") {
-                Element *elm = loadElement(nullptr, xml, &oldElements);
-                if (elm) {
-                    elm->setParent(this);
-                    m_children << elm;
-                }
-            }
-        } else if (xml.name() == "Screen") {
-            break;
+    QJsonArray elements = config["elements"].toArray();
+    for (auto i = elements.begin(); i != elements.end(); ++i) {
+        QJsonObject element = (*i).toObject();
+        Element *elm = loadElement(nullptr, element, &oldElements);
+        if (elm) {
+            elm->setParent(this);
+            m_children << elm;
         }
+        *i = element;
     }
+    config["elements"] = elements;
 
     for (Element *e: oldElements) {
-        delete e;
+        e->deleteLater();
         m_children.removeOne(e);
     }
 
@@ -95,7 +91,8 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
         } else {
             QQuickWindow *window = m_client->window(elm);
 
-            connect(m_screen, &QObject::destroyed, [window]() { qDebug()<<window;delete window; });
+            connect(m_screen, &QObject::destroyed, [window]() { delete window; });
+            connect(elm, &QObject::destroyed, [window]() { delete window; });
             window->setScreen(m_screen);
             window->setWidth(elm->width());
             window->setHeight(elm->height());
@@ -126,27 +123,19 @@ void UiScreen::loadConfig(QXmlStreamReader &xml)
     QTimer::singleShot(0, this, SLOT(screenLoaded()));
 }
 
-Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements)
+Element *UiScreen::loadElement(Element *parent, QJsonObject &config, QHash<int, Element *> *elements)
 {
-    QXmlStreamAttributes attribs = xml.attributes();
-    if (!attribs.hasAttribute("type")) {
+    if (!config.keys().contains("type")) {
         return nullptr;
     }
 
     bool created = false;
-    int id = attribs.value("id").toInt();
+    int id = config.contains("id") ? config["id"].toInt() : -1;
     Element *elm = (elements ? elements->take(id) : nullptr);
     if (!elm) {
-        QString type = attribs.value("type").toString();
+        QString type = config["type"].toString();
         elm = Element::create(m_ui, this, m_ui->qmlEngine(), type, id);
         if (!elm) {
-            while (!xml.atEnd()) {
-                xml.readNext();
-                if (xml.isEndElement() && xml.name() == "element") {
-                    xml.readNext();
-                    return nullptr;
-                }
-            }
             return nullptr;
         }
         connect(elm, &QObject::destroyed, this, &UiScreen::elementDestroyed);
@@ -156,78 +145,81 @@ Element *UiScreen::loadElement(Element *parent, QXmlStreamReader &xml, QHash<int
         elm->setParentElement(parent);
     }
     elm->m_properties.clear();
-    m_elements.insert(id, elm);
+    m_elements.insert(elm->m_id, elm);
+    config["id"] = elm->m_id;
 
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "element") {
-                loadElement(elm, xml, elements);
-            } else if (xml.name() == "property") {
-                QXmlStreamAttributes attribs = xml.attributes();
-                QString name = attribs.value("name").toString();
-                QString value = attribs.value("value").toString();
+    QJsonObject properties = config["properties"].toObject();
+    for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
+        QString name = i.key();
+        QVariant value = i.value().toVariant();
 
-                if (name == "location") {
-                    elm->setLocation((Element::Location)value.toInt());
-                } else {
-                    QQmlProperty::write(elm, name, value);
-                }
-                elm->addProperty(name);
-            }
+        if (name == "location") {
+            elm->setLocation((Element::Location)value.toInt());
+        } else {
+            QQmlProperty::write(elm, name, value);
         }
-        if (xml.isEndElement() && xml.name() == "element") {
-            xml.readNext();
-            if (created && parent) {
-                parent->createConfig(elm);
-                parent->createBackground(elm);
-            }
-            return (created ? elm : nullptr);
-        }
+        elm->addProperty(name);
+    }
+
+    QJsonArray children = config["elements"].toArray();
+    for (auto i = children.begin(); i != children.end(); ++i) {
+        QJsonObject cfg = (*i).toObject();
+        loadElement(elm, cfg, elements);
+        *i = cfg;
+    }
+    config["elements"] = children;
+
+    if (created && parent) {
+        parent->createConfig(elm);
+        parent->createBackground(elm);
     }
     return (created ? elm : nullptr);
 }
 
-void UiScreen::saveConfig(QXmlStreamWriter &xml)
+void UiScreen::saveConfig(QJsonObject &config)
 {
-    xml.writeStartElement("Screen");
-    xml.writeAttribute("output", m_name);
-
-    saveChildren(m_children, xml);
-
-    xml.writeEndElement();
+    saveChildren(m_children, config);
 }
 
-void UiScreen::saveElement(Element *elm, QXmlStreamWriter &xml)
+void UiScreen::saveProperties(QObject *obj, const QStringList &properties, QJsonObject &config)
 {
-    saveProperties(elm, elm->m_ownProperties, xml);
-    saveProperties(elm, elm->m_properties, xml);
-    elm->sortChildren();
-    saveChildren(elm->m_children, xml);
-}
-
-void UiScreen::saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml)
-{
+    if (properties.isEmpty()) {
+        return;
+    }
+    QJsonObject cfg = config["properties"].toObject();
     for (const QString &prop: properties) {
-        xml.writeStartElement("property");
-        xml.writeAttribute("name", prop);
-        xml.writeAttribute("value", obj->property(qPrintable(prop)).toString());
-        xml.writeEndElement();
+        QVariant value = obj->property(qPrintable(prop));
+        bool ok;
+        int v = value.toInt(&ok);
+        if (ok) {
+            cfg[prop] = v;
+        } else {
+            cfg[prop] = value.toString();
+        }
     }
+    config["properties"] = cfg;
 }
 
-void UiScreen::saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml)
+void UiScreen::saveChildren(const QList<Element *> &children, QJsonObject &config)
 {
-    for (Element *child: children) {
-        xml.writeStartElement("element");
-        xml.writeAttribute("type", child->m_typeName);
-        xml.writeAttribute("id", QString::number(child->m_id));
-
-        saveElement(child, xml);
-
-        xml.writeEndElement();
+    if (children.isEmpty()) {
+        return;
     }
 
+    QJsonArray elements;
+    for (Element *child: children) {
+        QJsonObject cfg;
+        cfg["type"] = child->m_typeName;
+//         cfg["id"] = child->m_id;
+
+        saveProperties(child, child->m_ownProperties, cfg);
+        saveProperties(child, child->m_properties, cfg);
+        child->sortChildren();
+        saveChildren(child->m_children, cfg);
+
+        elements << cfg;
+    }
+    config["elements"] = elements;
 }
 
 void UiScreen::addElement(Element *elm)

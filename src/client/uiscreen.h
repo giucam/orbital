@@ -24,9 +24,8 @@
 #include <QQmlListProperty>
 #include <QStringList>
 #include <QRect>
+#include <QJsonObject>
 
-class QXmlStreamReader;
-class QXmlStreamWriter;
 class QQmlEngine;
 class QQuickItem;
 class QScreen;
@@ -48,9 +47,8 @@ public:
     QScreen *screen() const { return m_screen; }
     QString name() const { return m_name; }
 
-    void loadConfig(QXmlStreamReader &xml);
-    void saveConfig(QXmlStreamWriter &xml);
-    void reloadConfig(QXmlStreamReader &xml);
+    void loadConfig(QJsonObject &config);
+    void saveConfig(QJsonObject &config);
 
     void addElement(Element *elm);
     void removeElement(Element *elm);
@@ -68,16 +66,14 @@ private slots:
     void screenLoaded();
 
 private:
-    Element *loadElement(Element *parent, QXmlStreamReader &xml, QHash<int, Element *> *elements);
-    void saveElement(Element *elm, QXmlStreamWriter &xml);
-    void saveProperties(QObject *obj, const QStringList &properties, QXmlStreamWriter &xml);
-    void saveChildren(const QList<Element *> &children, QXmlStreamWriter &xml);
+    Element *loadElement(Element *parent, QJsonObject &config, QHash<int, Element *> *elements);
+    void saveProperties(QObject *obj, const QStringList &properties, QJsonObject &config);
+    void saveChildren(const QList<Element *> &children, QJsonObject &config);
     void elementDestroyed(QObject *obj);
 
     Client *m_client;
     ShellUI *m_ui;
     QString m_name;
-    QByteArray m_config;
     QScreen *m_screen;
     QRect m_rect;
     bool m_loading;

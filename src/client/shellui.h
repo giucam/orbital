@@ -22,9 +22,9 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QJsonDocument>
+#include <QJsonObject>
 
-class QXmlStreamReader;
-class QXmlStreamWriter;
 class QQuickItem;
 class QQmlEngine;
 class QScreen;
@@ -82,10 +82,13 @@ signals:
 
 private:
     void loadScreen(UiScreen *s);
+    void reloadConfigFile();
 
     Client *m_client;
     CompositorSettings *m_compositorSettings;
     QString m_configFile;
+    QJsonObject m_rootConfig;
+    QJsonObject m_config;
     QByteArray m_configData;
     bool m_configMode;
     int m_cursorShape;

@@ -20,7 +20,8 @@
 #include <QDebug>
 #include <QHash>
 #include <QFile>
-#include <QXmlStreamReader>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QStandardPaths>
 
 #include <weston/compositor-drm.h>
@@ -29,7 +30,7 @@
 
 namespace Orbital {
 
-QHash<QString, QString> outputs;
+QJsonObject outputs;
 
 DrmBackend::DrmBackend()
 {
@@ -86,7 +87,7 @@ static struct drm_backend_output_data *request_output_data(struct drm_backend *b
         return NULL;
 
     if (outputs.contains(name)) {
-        QString mode = outputs.value(name);
+        QString mode = outputs[name].toObject()["mode"].toString();
         if (mode == QLatin1String("off")) {
             data->mode.config = DRM_OUTPUT_CONFIG_OFF;
         } else if (mode == QLatin1String("preferred")) {
@@ -148,20 +149,8 @@ bool DrmBackend::init(weston_compositor *c)
         file.close();
     }
 
-    QXmlStreamReader xml(data);
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "Output") {
-                QXmlStreamAttributes attribs = xml.attributes();
-                QString name = attribs.value("name").toString();
-                QString mode = attribs.value("mode").toString();
-
-                outputs.insert(name, mode);
-            }
-        }
-    }
-
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    outputs = doc.object()["Compositor"].toObject()["Outputs"].toObject();
 
     param.tty = 1;
     param.format = NULL;

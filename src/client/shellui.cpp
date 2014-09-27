@@ -22,8 +22,6 @@
 #include <QIcon>
 #include <QDebug>
 #include <QQuickItem>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQmlExpression>
@@ -32,6 +30,8 @@
 #include <QQuickWindow>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #include "client.h"
 #include "element.h"
@@ -39,51 +39,48 @@
 #include "style.h"
 #include "compositorsettings.h"
 
-static const char *defaultConfig =
-"<Orbital>\n"
-"    <Ui>\n"
-"        <property name=\"iconTheme\" value=\"oxygen\"/>\n"
-"        <property name=\"numWorkspaces\" value=\"4\"/>\n"
-"        <property name=\"styleName\" value=\"chiaro\"/>\n"
-"        <Screen>\n"
-"            <element type=\"background\" id=\"1\">\n"
-"                <property name=\"color\" value=\"black\"/>\n"
-"                <property name=\"imageSource\" value=\"/usr/local/share/weston/pattern.png\"/>\n"
-"                <property name=\"imageFillMode\" value=\"4\"/>\n"
-"            </element>\n"
-"            <element type=\"panel\" id=\"2\">\n"
-"                <property name=\"location\" value=\"0\"/>\n"
-"                <element type=\"launcher\" id=\"3\">\n"
-"                    <property name=\"icon\" value=\"image://icon/utilities-terminal\"/>\n"
-"                    <property name=\"process\" value=\"/usr/bin/weston-terminal\"/>\n"
-"                </element>\n"
-"                <element type=\"pager\" id=\"4\"/>\n"
-"                <element type=\"taskbar\" id=\"5\"/>\n"
-"                <element type=\"mixer\" id=\"6\"/>\n"
-"                <element type=\"logout\" id=\"7\"/>\n"
-"                <element type=\"clock\" id=\"8\"/>\n"
-"            </element>\n"
-"            <element type=\"overlay\" id=\"9\"/>\n"
-"        </Screen>\n"
-"    </Ui>\n"
-"    <CompositorSettings>\n"
-"        <option name=\"effects/scale_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"effects/scale_effect.toggle_binding\" value=\"key:ctrl+e;hotspot:topleft_corner\"/>\n"
-"        <option name=\"effects/griddesktops_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"effects/griddesktops_effect.toggle_binding\" value=\"key:ctrl+g;hotspot:topright_corner\"/>\n"
-"        <option name=\"effects/zoom_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"effects/zoom_effect.zoom_binding\" value=\"axis:super+axis_vertical\"/>\n"
-"        <option name=\"effects/minimize_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"effects/inoutsurface_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"effects/fademoving_effect.enabled\" value=\"1\"/>\n"
-"        <option name=\"desktop_shell.move_window\" value=\"button:super+button_left\"/>\n"
-"        <option name=\"desktop_shell.resize_window\" value=\"button:super+button_middle\"/>\n"
-"        <option name=\"desktop_shell.close_window\" value=\"key:alt+f4\"/>\n"
-"        <option name=\"desktop_shell.previous_workspace\" value=\"key:ctrl+left\"/>\n"
-"        <option name=\"desktop_shell.next_workspace\" value=\"key:ctrl+right\"/>\n"
-"        <option name=\"desktop_shell.quit\" value=\"key:ctrl+alt+backspace\"/>\n"
-"    </CompositorSettings>\n"
-"</Orbital>\n";
+const char *defaultShell =
+"{\n"
+"    \"properties\": {\n"
+"        \"iconTheme\": \"oxygen\",\n"
+"        \"numWorkspaces\": 4,\n"
+"        \"styleName\": \"chiaro\"\n"
+"    }\n"
+"}\n";
+
+const char *defaultScreen =
+"{\n"
+"    \"elements\": [\n"
+"        {\n"
+"            \"type\": \"background\",\n"
+"            \"properties\": {\n"
+"                \"color\": \"#000000\",\n"
+"                \"imageSource\": \"/usr/local/share/weston/pattern.png\",\n"
+"                \"imageFillMode\": 4\n"
+"            },\n"
+"            \"elements\" : []\n"
+"        },\n"
+"        {\n"
+"            \"type\": \"panel\",\n"
+"            \"properties\": { \"location\": 0 },\n"
+"            \"elements\": [\n"
+"                {\n"
+"                    \"type\": \"launcher\",\n"
+"                    \"properties\": {\n"
+"                        \"icon\": \"image://icon/utilities-terminal\",\n"
+"                        \"process\": \"weston-terminal\"\n"
+"                    }\n"
+"                },\n"
+"                { \"type\": \"pager\" },\n"
+"                { \"type\": \"taskbar\" },\n"
+"                { \"type\": \"mixer\" },\n"
+"                { \"type\": \"logout\" },\n"
+"                { \"type\": \"clock\" }\n"
+"            ]\n"
+"        },\n"
+"        { \"type\": \"overlay\" }\n"
+"    ]\n"
+"}\n";
 
 ShellUI::ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, const QString &configFile)
        : QObject(client)
@@ -96,7 +93,10 @@ ShellUI::ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, cons
        , m_numWorkspaces(1)
        , m_style(nullptr)
 {
+    m_engine->rootContext()->setContextProperty("Ui", this);
+
     client->addWorkspace(0);
+    reloadConfigFile();
     reloadConfig();
 }
 
@@ -107,8 +107,6 @@ ShellUI::~ShellUI()
 
 UiScreen *ShellUI::loadScreen(QScreen *sc, const QString &name)
 {
-    m_engine->rootContext()->setContextProperty("Ui", this);
-
     qDebug()<<"screen"<<name;
 
     UiScreen *screen = new UiScreen(this, m_client, sc, name);
@@ -164,6 +162,10 @@ Element *ShellUI::createElement(const QString &name, UiScreen *screen)
 
 void ShellUI::setConfigMode(bool mode)
 {
+    if (m_configMode == mode) {
+        return;
+    }
+
     m_configMode = mode;
     emit configModeChanged();
     if (!m_configMode) {
@@ -205,54 +207,44 @@ void ShellUI::toggleConfigMode()
     setConfigMode(!m_configMode);
 }
 
-static void goToEndElement(QXmlStreamReader &xml)
-{
-    QString name = xml.name().toString();
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement() && name == xml.name()) {
-            goToEndElement(xml);
-        } else if (name == xml.name()) {
-            break;
-        }
-    }
-}
-
 void ShellUI::reloadConfig()
 {
     m_properties.clear();
 
-    QFile file(m_configFile);
-    if (file.open(QIODevice::ReadOnly)) {
-        m_configData = file.readAll();
-        file.close();
+    QJsonObject object;
+    if (m_config.contains("Shell")) {
+        object = m_config["Shell"].toObject();
     } else {
-        m_configData = defaultConfig;
+        QJsonDocument doc = QJsonDocument::fromJson(defaultShell);
+        object = doc.object();
     }
-
-    QXmlStreamReader xml(m_configData);
-    while (!xml.atEnd()) {
-        xml.readNext();
-        if (xml.isStartElement()) {
-            if (xml.name() == "property") {
-                QXmlStreamAttributes attribs = xml.attributes();
-                QString name = attribs.value("name").toString();
-                QString value = attribs.value("value").toString();
-
-                setProperty(qPrintable(name), value);
-                m_properties << name;
-            } else if (xml.name() == "CompositorSettings") {
-                if (m_compositorSettings) {
-                    m_compositorSettings->load(&xml);
-                }
-            } else if (xml.name() != "Ui" && xml.name() != "Orbital") {
-                goToEndElement(xml);
-            }
-        }
+    QJsonObject properties = object["properties"].toObject();
+    for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
+        setProperty(qPrintable(i.key()), i.value().toVariant());
+        m_properties << i.key();
     }
 
     for (UiScreen *screen: m_screens) {
         loadScreen(screen);
+    }
+}
+
+void ShellUI::reloadConfigFile()
+{
+    m_rootConfig = QJsonObject();
+    m_config = QJsonObject();
+
+    QFile file(m_configFile);
+    if (file.open(QIODevice::ReadOnly)) {
+        QJsonParseError error;
+        QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &error);
+        if (error.error != QJsonParseError::NoError) {
+            qWarning("Error parsing the config file at offset %d: %s", error.offset, qPrintable(error.errorString()));
+        } else {
+            m_rootConfig = document.object();
+            m_config = m_rootConfig["Ui"].toObject();
+        }
+        file.close();
     }
 }
 
@@ -261,66 +253,50 @@ void ShellUI::saveConfig()
     QFile file(m_configFile);
     file.open(QIODevice::WriteOnly);
 
-    QXmlStreamWriter xml(&file);
-
-    xml.setAutoFormatting(true);
-    xml.writeStartDocument();
-    xml.writeStartElement("Orbital");
-    xml.writeStartElement("Ui");
-
+    QJsonObject object = m_config["Shell"].toObject();
+    QJsonObject properties = object["properties"].toObject();
     for (const QString &prop: m_properties) {
-        xml.writeStartElement("property");
-        xml.writeAttribute("name", prop);
-        xml.writeAttribute("value", property(qPrintable(prop)).toString());
-        xml.writeEndElement();
+        QVariant value = property(qPrintable(prop));
+        bool ok;
+        int v = value.toInt(&ok);
+        if (ok) {
+            properties[prop] = v;
+        } else {
+            properties[prop] = value.toString();
+        }
     }
+    object["properties"] = properties;
 
+    QJsonObject screens = m_config["Screens"].toObject();
     for (UiScreen *screen: m_screens) {
-        screen->saveConfig(xml);
-    }
 
-    xml.writeEndElement();
-    xml.writeStartElement("CompositorSettings");
-    if (m_compositorSettings) {
-        m_compositorSettings->save(&xml);
+        QJsonObject screenConfig = screens[screen->name()].toObject();
+        screen->saveConfig(screenConfig);
+        screens[screen->name()] = screenConfig;
     }
-    xml.writeEndElement();
-    xml.writeEndElement();
-    file.close();
+    m_config["Screens"] = screens;
+
+    m_config["Shell"] = object;
+    m_rootConfig["Ui"] = m_config;
+
+    QJsonDocument document(m_rootConfig);
+
+    file.write(document.toJson());
 }
 
 void ShellUI::loadScreen(UiScreen *screen)
 {
-    QXmlStreamReader xml(m_configData);
-
-    bool loaded = false;
-    while (!xml.atEnd()) {
-        if (!xml.readNextStartElement()) {
-            continue;
-        }
-        if (xml.name() == "Screen") {
-            QXmlStreamAttributes attribs = xml.attributes();
-            if (attribs.hasAttribute("output")) {
-                QString name = attribs.value("output").toString();
-                if (name == screen->name()) {
-                    screen->loadConfig(xml);
-                    loaded = true;
-                    break;
-                }
-            }
-        }
+    QJsonObject screens = m_config["Screens"].toObject();
+    QJsonObject screenConfig;
+    if (screens.contains(screen->name())) {
+        screenConfig = screens[screen->name()].toObject();
+    } else {
+        QJsonDocument doc = QJsonDocument::fromJson(defaultScreen);
+        screenConfig = doc.object();
     }
 
-    if (!loaded) {
-        QXmlStreamReader xml(defaultConfig);
-        while (!xml.atEnd()) {
-            if (!xml.readNextStartElement()) {
-                continue;
-            }
-            if (xml.name() == "Screen") {
-                screen->loadConfig(xml);
-                return;
-            }
-        }
-    }
+    screen->loadConfig(screenConfig);
+    screens[screen->name()] = screenConfig;
+
+    m_config["Screens"] = screens;
 }
