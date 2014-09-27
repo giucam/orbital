@@ -146,7 +146,7 @@ Element {
     }
     onElementEntered: {
         config.faded = true;
-        element.parent = bkg;
+        element.parent = contentItem;
     }
     onElementMoved: {
         element.x = pos.x - offset.x;
