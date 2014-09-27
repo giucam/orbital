@@ -269,7 +269,6 @@ void ShellUI::saveConfig()
 
     QJsonObject screens = m_config["Screens"].toObject();
     for (UiScreen *screen: m_screens) {
-
         QJsonObject screenConfig = screens[screen->name()].toObject();
         screen->saveConfig(screenConfig);
         screens[screen->name()] = screenConfig;
@@ -281,7 +280,19 @@ void ShellUI::saveConfig()
 
     QJsonDocument document(m_rootConfig);
 
-    file.write(document.toJson());
+    QByteArray data = document.toJson();
+    int pos = 0;
+    while (pos < data.size()) {
+        int index = data.indexOf('\n', pos);
+        QByteArray line = data.mid(pos, index - pos + 1);
+        pos = index + 1;
+
+        //filter out the ids from the saved config
+        if (line.contains("\"id\":")) {
+            continue;
+        }
+        file.write(line);
+    }
 }
 
 void ShellUI::loadScreen(UiScreen *screen)

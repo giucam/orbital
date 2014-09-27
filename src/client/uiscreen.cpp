@@ -210,7 +210,7 @@ void UiScreen::saveChildren(const QList<Element *> &children, QJsonObject &confi
     for (Element *child: children) {
         QJsonObject cfg;
         cfg["type"] = child->m_typeName;
-//         cfg["id"] = child->m_id;
+        cfg["id"] = child->m_id;
 
         saveProperties(child, child->m_ownProperties, cfg);
         saveProperties(child, child->m_properties, cfg);
