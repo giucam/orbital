@@ -464,7 +464,8 @@ void DesktopShell::createGrab(uint32_t id)
     grab->start(seat);
 
     seat->pointer()->setFocus(view, sx, sy);
-    desktop_shell_grab_send_focus(grab->resource, view->surface()->surface()->resource, sx, sy);
+    desktop_shell_grab_send_focus(grab->resource, view->surface()->surface()->resource,
+                                  wl_fixed_from_double(sx), wl_fixed_from_double(sy));
 }
 
 void DesktopShell::addWorkspace(uint32_t id)
