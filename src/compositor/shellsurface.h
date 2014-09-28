@@ -82,7 +82,7 @@ public:
     void setPopup(Surface *parent, Seat *seat, int x, int y);
     void setMaximized();
     void setFullscreen();
-    void move(Seat *seat);
+    void move(Seat *seat) override;
     void resize(Seat *seat, Edges edges);
     void unmap();
     void sendPopupDone();

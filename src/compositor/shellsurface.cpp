@@ -162,6 +162,9 @@ void ShellSurface::setFullscreen()
 
 void ShellSurface::move(Seat *seat)
 {
+    if (isFullscreen()) {
+        return;
+    }
 
     class MoveGrab : public PointerGrab
     {

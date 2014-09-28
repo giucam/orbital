@@ -240,12 +240,7 @@ void Shell::moveSurface(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
-    if (!shsurf || shsurf->isFullscreen()) {
-        return;
-    }
-
-    shsurf->move(seat);
+    focus->surface()->move(seat);
 }
 
 void Shell::activateTopSurface(Seat *seat)

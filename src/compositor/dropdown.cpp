@@ -73,7 +73,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             , dropdown(dd)
             , resource(res)
             , m_visible(false)
-            , m_animValue(1.)
+            , m_moving(false)
         {
             wl_resource_set_implementation(resource, nullptr, this, [](wl_resource *res) {
                 DropdownSurface *ds = static_cast<DropdownSurface *>(wl_resource_get_user_data(res));
@@ -93,8 +93,6 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
 
             m_toggleBinding = c->createKeyBinding(KEY_F11, KeyboardModifiers::None);
             connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
-
-            m_animation.setSpeed(0.004);
             connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
         }
         ~DropdownSurface()
@@ -106,36 +104,111 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         {
             if (!isMapped()) {
                 dropdown->m_layer->addView(view);
+                view->setTransformParent(m_output->rootView());
             }
             view->update();
             if (m_lastSize != size()) {
-                setPos();
+                if (m_visible) {
+                    animToPlace();
+                } else {
+                    view->setPos(posWhen(false));
+                    view->update();
+                }
                 m_lastSize = size();
             }
         }
         void toggle(Seat *s)
         {
+            if (m_moving) {
+                return;
+            }
+
             m_visible = !m_visible;
             if (m_visible) {
                 s->activate(this);
             }
 
-            m_animation.setStart(m_animValue);
-            m_animation.setTarget(!m_visible);
-            m_animation.run(m_output);
+            animToPlace();
         }
-        void updateAnim(double value)
-        {
-            m_animValue = value;
-            setPos();
-        }
-        void setPos()
+        QPointF posWhen(bool visible)
         {
             QRect geom = m_output->availableGeometry();
             double x = geom.x() + (geom.width() - width()) / 2.f;
-            double y = geom.y() - m_animValue * (height() + geom.y() - m_output->y());
-            view->setPos(x, y);
+            double y = geom.y() - (!visible) * (height() + geom.y() - m_output->y());
+            return QPointF(x, y);
+        }
+        void updateAnim(double value)
+        {
+            QPointF pos = m_start * (1. - value) + m_end * value;
+
+            view->setPos(pos);
             view->update();
+        }
+        void snapToPlace(Output *o)
+        {
+            view->setTransformParent(o->rootView());
+
+            view->setPos(view->pos() - o->rootView()->pos());
+            m_start = view->pos();
+
+            if (m_output != o) {
+                m_output = o;
+                QRect geom = m_output->availableGeometry();
+                orbital_dropdown_surface_send_available_size(resource, geom.width(), geom.height());
+            } else {
+                animToPlace();
+            }
+        }
+        void animToPlace()
+        {
+            m_start = view->pos();
+            m_end = posWhen(m_visible);
+
+            m_animation.setStart(0);
+            m_animation.setTarget(1);
+            m_animation.run(m_output, (m_start - m_end).manhattanLength());
+        }
+        void move(Seat *seat) override
+        {
+            class MoveGrab : public PointerGrab
+            {
+            public:
+                void motion(uint32_t time, double x, double y) override
+                {
+                    pointer()->move(x, y);
+
+                    double moveX = x + dx;
+                    surface->view->setPos(moveX, surface->view->y());
+                }
+                void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+                {
+                    if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
+                        end();
+                    }
+                }
+                void ended() override
+                {
+                    surface->m_moving = false;
+                    surface->snapToPlace(surface->view->output());
+                    delete this;
+                }
+
+                DropdownSurface *surface;
+                double dx, dy;
+            };
+
+            view->setTransformParent(nullptr);
+            view->setPos(view->pos() + m_output->rootView()->pos());
+            view->update();
+
+            MoveGrab *move = new MoveGrab;
+            View *view = seat->pointer()->pickView();
+            move->dx = view->x() - seat->pointer()->x();
+            move->dy = view->y() - seat->pointer()->y();
+            move->surface = this;
+            m_moving = true;
+
+            move->start(seat, PointerCursor::Move);
         }
 
         Dropdown *dropdown;
@@ -145,8 +218,10 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         Animation m_animation;
         bool m_visible;
         Output *m_output;
-        double m_animValue;
         QSize m_lastSize;
+        QPointF m_start;
+        QPointF m_end;
+        bool m_moving;
     };
 
     new DropdownSurface(this, ws, resource);

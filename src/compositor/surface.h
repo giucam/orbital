@@ -68,6 +68,7 @@ public:
     void deref();
 
     virtual Surface *activate(Seat *seat);
+    virtual void move(Seat *seat) {}
 
     static Surface *fromSurface(weston_surface *s);
     static Surface *fromResource(wl_resource *resource);
