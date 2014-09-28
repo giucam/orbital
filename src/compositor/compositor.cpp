@@ -29,6 +29,9 @@
 #include <QAbstractEventDispatcher>
 #include <QProcess>
 #include <QObjectCleanupHandler>
+#include <QJsonDocument>
+#include <QStandardPaths>
+#include <QFile>
 
 #include <weston/compositor.h>
 
@@ -115,6 +118,19 @@ Compositor::Compositor(Backend *backend)
 
     sigaction(SIGINT, &sigint, 0);
     sigaction(SIGTERM, &sigterm, 0);
+
+    QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+    QString configFile = path + "/orbital/orbital.conf";
+
+    QFile file(configFile);
+    QByteArray data;
+    if (file.open(QIODevice::ReadOnly)) {
+        data = file.readAll();
+        file.close();
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    m_config = doc.object();
 }
 
 Compositor::~Compositor()
@@ -221,9 +237,7 @@ bool Compositor::init(const QString &socketName)
     m_listener->outputCreatedSignal.notify = [](wl_listener *l, void *data) {
         Listener *listener = container_of(l, Listener, outputCreatedSignal);
         Output *o = Output::fromOutput(static_cast<weston_output *>(data));
-        connect(o, &QObject::destroyed, listener->compositor, &Compositor::outputDestroyed);
-        listener->compositor->m_outputs << o;
-        emit listener->compositor->outputCreated(o);
+        listener->compositor->newOutput(o);
     };
     wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);
 //     text_backend_init(m_compositor, "");
@@ -316,6 +330,26 @@ bool Compositor::init(const QString &socketName)
     }
 
     return true;
+}
+
+void Compositor::newOutput(Output *o)
+{
+    connect(o, &QObject::destroyed, this, &Compositor::outputDestroyed);
+    m_outputs << o;
+
+    QJsonObject outputs = m_config["Compositor"].toObject()["Outputs"].toObject();
+    QJsonObject cfg = outputs[o->name()].toObject();
+    int x = o->x();
+    int y = o->y();
+    if (cfg.contains("x")) {
+        x = cfg["x"].toInt();
+    }
+    if (cfg.contains("y")) {
+        y = cfg["y"].toInt();
+    }
+    o->setPos(x, y);
+
+    emit outputCreated(o);
 }
 
 void Compositor::quit()

@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QTimer>
+#include <QJsonObject>
 
 struct wl_display;
 struct wl_event_loop;
@@ -88,6 +89,7 @@ private:
     void processEvents();
     void outputDestroyed();
     void handleSignal();
+    void newOutput(Output *o);
 
     wl_display *m_display;
     wl_event_loop *m_loop;
@@ -106,6 +108,7 @@ private:
     QTimer m_timer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
     QSocketNotifier *m_signalsNotifier;
+    QJsonObject m_config;
 
     friend class Global;
     friend class XWayland;

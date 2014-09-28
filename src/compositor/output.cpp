@@ -154,6 +154,11 @@ void Output::repaint()
     weston_output_schedule_repaint(m_output);
 }
 
+void Output::setPos(int x, int y)
+{
+    weston_output_move(m_output, x, y);
+}
+
 int Output::id() const
 {
     return m_output->id;
@@ -253,7 +258,9 @@ void Output::onMoved()
     for (View *view: m_overlays) {
         view->setPos(0, 0);
     }
-    m_compositor->shell()->pager()->updateWorkspacesPosition(this);
+    if (Shell *shell = m_compositor->shell()) {
+        shell->pager()->updateWorkspacesPosition(this);
+    }
 }
 
 }

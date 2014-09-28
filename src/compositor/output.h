@@ -53,6 +53,7 @@ public:
     void setOverlay(Surface *surface);
 
     void repaint();
+    void setPos(int x, int y);
 
     int id() const;
     int x() const;
