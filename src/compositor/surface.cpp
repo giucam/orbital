@@ -58,6 +58,8 @@ Surface::Surface(weston_surface *surface, QObject *p)
 
 Surface::~Surface()
 {
+    emit unmapped();
+
     qDeleteAll(m_views);
     wl_list_remove(&m_listener->listener.link);
     if (m_surface) {

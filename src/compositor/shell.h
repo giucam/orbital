@@ -60,12 +60,12 @@ public:
     void configure(ShellSurface *shsurf);
 
     void setGrabCursorSetter(GrabCursorSetter s);
+    void activateTopSurface(Seat *seat);
 
 private:
     void giveFocus(Seat *s);
     void raise(Seat *s);
     void moveSurface(Seat *s);
-    void activateTopSurface(Seat *seat);
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
@@ -75,7 +75,6 @@ private:
     ButtonBinding *m_raiseBinding;
     ButtonBinding *m_moveBinding;
     Pager *m_pager;
-    QHash<Seat *, QMetaObject::Connection> m_activateConnection;
 };
 
 }

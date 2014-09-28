@@ -20,6 +20,7 @@
 #ifndef ORBITAL_SEAT_H
 #define ORBITAL_SEAT_H
 
+#include <QObject>
 #include <QPointF>
 
 struct wl_resource;
@@ -38,8 +39,9 @@ class Surface;
 class ShellSurface;
 enum class PointerButton : unsigned char;
 
-class Seat
+class Seat : public QObject
 {
+    Q_OBJECT
 public:
     explicit Seat(Compositor *c, weston_seat *seat);
     ~Seat();
@@ -54,7 +56,11 @@ public:
     static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
 
+signals:
+    void activeSurfaceLost();
+
 private:
+    void deactivateSurface();
     class PopupGrab;
 
     Compositor *m_compositor;

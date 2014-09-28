@@ -126,6 +126,8 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             m_visible = !m_visible;
             if (m_visible) {
                 s->activate(this);
+            } else {
+                emit unmapped();
             }
 
             animToPlace();

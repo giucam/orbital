@@ -90,17 +90,23 @@ Surface *Seat::activate(Surface *surface)
 
     if (m_activeSurface) {
         emit m_activeSurface->deactivated(this);
+        disconnect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
     }
     m_activeSurface = surface;
     if (m_activeSurface) {
         emit m_activeSurface->activated(this);
-        QObject::connect(m_activeSurface, &QObject::destroyed, [this](QObject *o) {
-            if (m_activeSurface == static_cast<Surface *>(o)) {
-                m_activeSurface = nullptr;
-            }
-        });
+        connect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
     }
     return m_activeSurface;
+}
+
+void Seat::deactivateSurface()
+{
+    m_activeSurface->deactivated(this);
+    weston_surface_activate(nullptr, m_seat);
+    disconnect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
+    m_activeSurface = nullptr;
+    emit activeSurfaceLost();
 }
 
 class Seat::PopupGrab : public PointerGrab
