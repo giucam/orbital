@@ -168,7 +168,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
 
             m_animation.setStart(0);
             m_animation.setTarget(1);
-            m_animation.run(m_output, (m_start - m_end).manhattanLength());
+            m_animation.run(m_output, (m_start - m_end).manhattanLength() * 0.5);
         }
         void move(Seat *seat) override
         {
