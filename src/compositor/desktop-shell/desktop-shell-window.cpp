@@ -17,7 +17,10 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <unistd.h>
+
 #include <QDebug>
+#include <QFileInfo>
 
 #include "desktop-shell-window.h"
 #include "shell.h"
@@ -130,7 +133,17 @@ void DesktopShellWindow::create()
 
     m_resource = wl_resource_create(m_desktopShell->client(), &desktop_shell_window_interface, 1, 0);
     wl_resource_set_implementation(m_resource, &implementation, this, 0);
-    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource, qPrintable(shsurf()->title()), m_state);
+
+    QString title = shsurf()->title();
+    if (title.isEmpty()) {
+        pid_t pid;
+        wl_client_get_credentials(shsurf()->client(), &pid, nullptr, nullptr);
+
+        QFileInfo exe(QString("/proc/%1/exe").arg(pid));
+        title = QFileInfo(exe.symLinkTarget()).fileName();
+    }
+
+    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource, qPrintable(title), m_state);
 }
 
 void DesktopShellWindow::destroy()
