@@ -38,6 +38,7 @@ class Pointer;
 class ButtonBinding;
 class Seat;
 class Pager;
+class Output;
 enum class PointerCursor: unsigned int;
 
 class Shell : public Object
@@ -55,6 +56,7 @@ public:
     ShellSurface *createShellSurface(weston_surface *surface);
     QList<Workspace *> workspaces() const;
     QList<ShellSurface *> surfaces() const;
+    Output *selectPrimaryOutput(Seat *seat = nullptr);
 
     void setGrabCursor(Pointer *pointer, PointerCursor c);
     void configure(ShellSurface *shsurf);

@@ -85,12 +85,12 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             view = new View(this);
             setRole(&role, [this](int, int) { configure(); });
 
-            Compositor *c = dd->m_shell->compositor();
-            m_output = c->outputs().first();
+            m_output = dd->m_shell->selectPrimaryOutput();
 
             QRect geom = m_output->availableGeometry();
             orbital_dropdown_surface_send_available_size(res, geom.width(), geom.height());
 
+            Compositor *c = dd->m_shell->compositor();
             m_toggleBinding = c->createKeyBinding(KEY_F11, KeyboardModifiers::None);
             connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
             connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);

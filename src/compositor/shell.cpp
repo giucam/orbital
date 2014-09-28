@@ -120,42 +120,52 @@ void Shell::setGrabCursor(Pointer *pointer, PointerCursor c)
     }
 }
 
+Output *Shell::selectPrimaryOutput(Seat *seat)
+{
+    struct Out {
+        Output *output;
+        int vote;
+    };
+    QList<Out> candidates;
+
+    for (Output *o: compositor()->outputs()) {
+        candidates.append({ o, 0 });
+    }
+
+    Output *output = nullptr;
+    if (candidates.isEmpty()) {
+        return nullptr;
+    } else if (candidates.size() == 1) {
+        output = candidates.first().output;
+    } else {
+        QList<Seat *> seats;
+        if (seat) {
+            seats << seat;
+        } else {
+            seats = compositor()->seats();
+        }
+        for (Out &o: candidates) {
+            for (Seat *s: seats) {
+                if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
+                    o.vote++;
+                }
+            }
+        }
+        Out *out = nullptr;
+        for (Out &o: candidates) {
+            if (!out || out->vote < o.vote) {
+                out = &o;
+            }
+        }
+        output = out->output;
+    }
+    return output;
+}
+
 void Shell::configure(ShellSurface *shsurf)
 {
     if (!shsurf->isMapped()) {
-        struct Out {
-            Output *output;
-            int vote;
-        };
-        QList<Out> candidates;
-
-        for (Output *o: compositor()->outputs()) {
-            candidates.append({ o, 0 });
-        }
-
-        Output *output = nullptr;
-        if (candidates.isEmpty()) {
-            return;
-        } else if (candidates.size() == 1) {
-            output = candidates.first().output;
-        } else {
-            QList<Seat *> seats = compositor()->seats();
-            for (Out &o: candidates) {
-                for (Seat *s: seats) {
-                    if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
-                        o.vote++;
-                    }
-                }
-            }
-            Out *out = nullptr;
-            for (Out &o: candidates) {
-                if (!out || out->vote < o.vote) {
-                    out = &o;
-                }
-            }
-            output = out->output;
-        }
-
+        Output *output = selectPrimaryOutput();
         shsurf->setWorkspace(output->currentWorkspace());
 
         for (Seat *seat: m_compositor->seats()) {
