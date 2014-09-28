@@ -25,6 +25,7 @@ namespace Orbital {
 
 Animation::Animation(QObject *p)
          : QObject(p)
+         , m_speed(-1.)
          , m_curve(nullptr)
 {
     m_animation.parent = this;
@@ -51,6 +52,11 @@ void Animation::setTarget(double value)
     m_target = value;
 }
 
+void Animation::setSpeed(double speed)
+{
+    m_speed = speed;
+}
+
 void Animation::run(Output *output, uint32_t duration, Animation::Flags flags)
 {
     stop();
@@ -71,6 +77,17 @@ void Animation::run(Output *output, uint32_t duration, Animation::Flags flags)
     weston_output_schedule_repaint(output->m_output);
 
     emit update(m_start);
+}
+
+void Animation::run(Output *output, Animation::Flags flags)
+{
+    uint32_t duration;
+    if (m_speed < 0.) {
+        duration = 250;
+    } else {
+        duration = qAbs((m_target - m_start) / m_speed);
+    }
+    run(output, duration, flags);
 }
 
 void Animation::stop()

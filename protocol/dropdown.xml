@@ -1,0 +1,18 @@
+
+<protocol name="orbital_dropdown">
+    <interface name="orbital_dropdown" version="1">
+
+        <request name="get_dropdown_surface">
+            <arg name="id" type="new_id" interface="orbital_dropdown_surface"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+    </interface>
+
+    <interface name="orbital_dropdown_surface" version="1">
+        <event name="available_size">
+            <arg name="width" type="int"/>
+            <arg name="height" type="int"/>
+        </event>
+    </interface>
+
+</protocol>

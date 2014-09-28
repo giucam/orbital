@@ -64,6 +64,7 @@ public:
     Layer *overlayLayer() const;
     Layer *fullscreenLayer() const;
     Layer *panelsLayer() const;
+    Layer *stickyLayer() const;
     Layer *appsLayer() const;
     Layer *backgroundLayer() const;
     QList<Output *> outputs() const;
@@ -98,6 +99,7 @@ private:
     Layer *m_overlayLayer;
     Layer *m_fullscreenLayer;
     Layer *m_panelsLayer;
+    Layer *m_stickyLayer;
     Layer *m_appsLayer;
     Layer *m_backgroundLayer;
     QList<Output *> m_outputs;

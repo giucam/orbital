@@ -45,7 +45,9 @@ public:
 
     void setStart(double value);
     void setTarget(double value);
+    void setSpeed(double speed);
     void run(Output *output, uint32_t duration, Flags flags = Flags::None);
+    void run(Output *output, Flags flags = Flags::None);
     void stop();
     bool isRunning() const;
     template<class T>
@@ -67,6 +69,7 @@ private:
     double m_start;
     double m_target;
     uint32_t m_duration;
+    double m_speed;
     uint32_t m_timestamp;
     Flags m_runFlags;
     AnimationCurve *m_curve;

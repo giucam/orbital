@@ -128,6 +128,7 @@ Compositor::~Compositor()
     delete m_rootLayer;
     delete m_overlayLayer;
     delete m_panelsLayer;
+    delete m_stickyLayer;
     delete m_appsLayer;
     delete m_backgroundLayer;
     delete m_bindingsCleanupHandler;
@@ -202,7 +203,8 @@ bool Compositor::init(const QString &socketName)
     m_overlayLayer = new Layer(m_rootLayer);
     m_fullscreenLayer = new Layer(m_overlayLayer);
     m_panelsLayer = new Layer(m_fullscreenLayer);
-    m_appsLayer = new Layer(m_panelsLayer);
+    m_stickyLayer = new Layer(m_panelsLayer);
+    m_appsLayer = new Layer(m_stickyLayer);
     m_backgroundLayer = new Layer(m_appsLayer);
 
     m_compositor->kb_repeat_rate = 40;
@@ -351,6 +353,11 @@ Layer *Compositor::fullscreenLayer() const
 Layer *Compositor::panelsLayer() const
 {
     return m_panelsLayer;
+}
+
+Layer *Compositor::stickyLayer() const
+{
+    return m_stickyLayer;
 }
 
 Layer *Compositor::appsLayer() const

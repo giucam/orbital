@@ -27,6 +27,7 @@ set(SOURCES
     xwayland.cpp
     pager.cpp
     surface.cpp
+    dropdown.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp
@@ -35,10 +36,8 @@ set(SOURCES
     desktop-shell/desktop-shell-notifications.cpp
     desktop-shell/desktop-shell-workspace.cpp)
 
-wayland_add_protocol_server(SOURCES
-    ../../protocol/desktop-shell.xml
-    desktop-shell
-)
+wayland_add_protocol_server(SOURCES ../../protocol/desktop-shell.xml desktop-shell)
+wayland_add_protocol_server(SOURCES ../../protocol/dropdown.xml dropdown)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

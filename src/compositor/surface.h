@@ -22,6 +22,8 @@
 
 #include <functional>
 
+#include <QSize>
+
 #include <weston/compositor.h>
 
 #include "interface.h"
@@ -47,6 +49,7 @@ public:
 
     inline int width() const { return m_surface->width; }
     inline int height() const { return m_surface->height; }
+    inline QSize size() const { return QSize(width(), height()); }
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;

@@ -32,7 +32,7 @@
 #include "xwayland.h"
 #include "global.h"
 #include "pager.h"
-
+#include "dropdown.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -49,6 +49,7 @@ Shell::Shell(Compositor *c)
     addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
+    addInterface(new Dropdown(this));
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
