@@ -159,7 +159,7 @@ void Shell::configure(ShellSurface *shsurf)
         shsurf->setWorkspace(output->currentWorkspace());
 
         for (Seat *seat: m_compositor->seats()) {
-            Surface *surface = seat->activate(shsurf);
+            seat->activate(shsurf);
         }
     }
 }
@@ -180,7 +180,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    Surface *surface = seat->activate(focus->surface());
+    seat->activate(focus->surface());
 
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
@@ -250,7 +250,7 @@ void Shell::activateTopSurface(Seat *seat)
             if (!view) {
                 return;
             }
-            Surface *s = seat->activate(view->surface());
+            seat->activate(view->surface());
             return;
         }
     }
