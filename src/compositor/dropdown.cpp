@@ -135,8 +135,8 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         QPointF posWhen(bool visible)
         {
             QRect geom = m_output->availableGeometry();
-            double x = geom.x() + (geom.width() - width()) / 2.f;
-            double y = geom.y() - (!visible) * (height() + geom.y() - m_output->y());
+            int x = geom.x() + (geom.width() - width()) / 2.f;
+            int y = geom.y() - (!visible) * (height() + geom.y() - m_output->y());
             return QPointF(x, y);
         }
         void updateAnim(double value)
@@ -179,7 +179,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
                 {
                     pointer()->move(x, y);
 
-                    double moveX = x + dx;
+                    int moveX = x + dx;
                     surface->view->setPos(moveX, surface->view->y());
                 }
                 void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override

@@ -173,8 +173,8 @@ void ShellSurface::move(Seat *seat)
         {
             pointer()->move(x, y);
 
-            double moveX = x + dx;
-            double moveY = y + dy;
+            int moveX = x + dx;
+            int moveY = y + dy;
 
             for (View *view: shsurf->m_views) {
                 view->setPos(moveX, moveY);
