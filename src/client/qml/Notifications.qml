@@ -35,29 +35,33 @@ Item {
             StyleItem {
                 id: content
                 component: CurrentStyle.notificationBackground
-                width: 150
-                height: 50
+                width: 200
+                height: notificationText.height + margin + item.topContentsMargin + item.bottomContentsMargin
                 opacity: 0
+                property int margin: 3
+
+                onHeightChanged: console.log(height)
 
                 Image {
                     id: image
                     width: 32
                     height: 32
                     anchors.left: parent.left
-                    anchors.margins: 5
+                    anchors.margins: content.margin
                     anchors.verticalCenter: parent.verticalCenter
                     sourceSize: Qt.size(32, 32)
                 }
-                Item {
+                Text {
+                    id: notificationText
                     anchors.left: image.right
                     anchors.right: parent.right
                     anchors.top: parent.top
-                    anchors.bottom: parent.bottom
-                    Text {
-                        id: notificationText
-                        anchors.centerIn: parent
-                        color: CurrentStyle.textColor
-                    }
+                    anchors.margins: content.margin
+                    height: Math.min(150, Math.max(40, implicitHeight))
+                    verticalAlignment: Qt.AlignVCenter
+                    wrapMode: Text.Wrap
+                    elide: Text.ElideRight
+                    color: CurrentStyle.textColor
                 }
 
                 NumberAnimation { target: content; property: "opacity"; to: 1; duration: 300; running: true }

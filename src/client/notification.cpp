@@ -59,6 +59,8 @@ void Notification::setContentItem(QQuickItem *item)
         m_window->setHeight(item->height());
         m_window->show();
         m_surface = Client::client()->pushNotification(m_window, m_inactive);
+        connect(item, &QQuickItem::widthChanged, this, &Notification::resetWidth);
+        connect(item, &QQuickItem::heightChanged, this, &Notification::resetHeight);
     }
 }
 
@@ -70,4 +72,14 @@ bool Notification::inactive() const
 void Notification::setInactive(bool in)
 {
     m_inactive = in;
+}
+
+void Notification::resetWidth()
+{
+    m_window->setWidth(m_contentItem->width());
+}
+
+void Notification::resetHeight()
+{
+    m_window->setHeight(m_contentItem->height());
 }

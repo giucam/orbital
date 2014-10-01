@@ -43,6 +43,9 @@ public:
     void setInactive(bool inactive);
 
 private:
+    void resetWidth();
+    void resetHeight();
+
     QQuickWindow *m_window;
     QQuickItem *m_contentItem;
     bool m_inactive;

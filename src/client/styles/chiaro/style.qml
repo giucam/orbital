@@ -214,117 +214,118 @@ Style {
     }
 
     notificationBackground: StyleComponent {
-        Item {
-            id: item
+        id: item
+        property real margin: 5
+        topContentsMargin: margin
+        leftContentsMargin: margin
+        rightContentsMargin: margin
+        bottomContentsMargin: margin
+
+        Rectangle {
+            id: content
             anchors.fill: parent
-            property real margin: 5
-            Rectangle {
-                id: content
-                anchors.fill: parent
-                anchors.margins: item.margin
-                color: "#e6e6e6"
-                z: 1
+            anchors.margins: item.margin
+            color: "#e6e6e6"
+        }
+
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: content.left
+            anchors.right: content.right
+            anchors.bottom: content.top
+
+            gradient: Gradient {
+                GradientStop { position: 1.0; color: "#f0202020" }
+                GradientStop { position: 0.0; color: "#00000000" }
             }
+        }
+        Rectangle {
+            anchors.top: content.bottom
+            anchors.left: content.left
+            anchors.right: content.right
+            anchors.bottom: parent.bottom
+
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
+            }
+        }
+        Rotator {
+            anchors.top: content.top
+            anchors.left: parent.left
+            anchors.right: content.left
+            anchors.bottom: content.bottom
+            angle: 90
 
             Rectangle {
-                anchors.top: parent.top
-                anchors.left: content.left
-                anchors.right: content.right
-                anchors.bottom: content.top
+                anchors.fill: parent
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#f0202020" }
+                    GradientStop { position: 1.0; color: "#00000000" }
+                }
+            }
+        }
+        Rotator {
+            anchors.top: content.top
+            anchors.left: content.right
+            anchors.right: parent.right
+            anchors.bottom: content.bottom
+            angle: 90
 
+            Rectangle {
+                anchors.fill: parent
                 gradient: Gradient {
                     GradientStop { position: 1.0; color: "#f0202020" }
                     GradientStop { position: 0.0; color: "#00000000" }
                 }
             }
-            Rectangle {
-                anchors.top: content.bottom
-                anchors.left: content.left
-                anchors.right: content.right
-                anchors.bottom: parent.bottom
+        }
+        RadialGradient {
+            width: item.margin
+            height: item.margin
+            horizontalOffset: item.margin / 2
+            verticalOffset: item.margin / 2
 
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#f0202020" }
-                    GradientStop { position: 1.0; color: "#00000000" }
-                }
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
             }
-            Rotator {
-                anchors.top: content.top
-                anchors.left: parent.left
-                anchors.right: content.left
-                anchors.bottom: content.bottom
-                angle: 90
+        }
+        RadialGradient {
+            width: item.margin
+            height: item.margin
+            horizontalOffset: -item.margin / 2
+            verticalOffset: item.margin / 2
+            x: parent.width - item.margin
 
-                Rectangle {
-                    anchors.fill: parent
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#f0202020" }
-                        GradientStop { position: 1.0; color: "#00000000" }
-                    }
-                }
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
             }
-            Rotator {
-                anchors.top: content.top
-                anchors.left: content.right
-                anchors.right: parent.right
-                anchors.bottom: content.bottom
-                angle: 90
+        }
+        RadialGradient {
+            width: item.margin
+            height: item.margin
+            horizontalOffset: item.margin / 2
+            verticalOffset: -item.margin / 2
+            y: parent.height - item.margin
 
-                Rectangle {
-                    anchors.fill: parent
-                    gradient: Gradient {
-                        GradientStop { position: 1.0; color: "#f0202020" }
-                        GradientStop { position: 0.0; color: "#00000000" }
-                    }
-                }
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
             }
-            RadialGradient {
-                width: item.margin
-                height: item.margin
-                horizontalOffset: item.margin / 2
-                verticalOffset: item.margin / 2
+        }
+        RadialGradient {
+            width: item.margin
+            height: item.margin
+            horizontalOffset: -item.margin / 2
+            verticalOffset: -item.margin / 2
+            x: parent.width - item.margin
+            y: parent.height - item.margin
 
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#f0202020" }
-                    GradientStop { position: 1.0; color: "#00000000" }
-                }
-            }
-            RadialGradient {
-                width: item.margin
-                height: item.margin
-                horizontalOffset: -item.margin / 2
-                verticalOffset: item.margin / 2
-                x: parent.width - item.margin
-
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#f0202020" }
-                    GradientStop { position: 1.0; color: "#00000000" }
-                }
-            }
-            RadialGradient {
-                width: item.margin
-                height: item.margin
-                horizontalOffset: item.margin / 2
-                verticalOffset: -item.margin / 2
-                y: parent.height - item.margin
-
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#f0202020" }
-                    GradientStop { position: 1.0; color: "#00000000" }
-                }
-            }
-            RadialGradient {
-                width: item.margin
-                height: item.margin
-                horizontalOffset: -item.margin / 2
-                verticalOffset: -item.margin / 2
-                x: parent.width - item.margin
-                y: parent.height - item.margin
-
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#f0202020" }
-                    GradientStop { position: 1.0; color: "#00000000" }
-                }
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#f0202020" }
+                GradientStop { position: 1.0; color: "#00000000" }
             }
         }
     }
