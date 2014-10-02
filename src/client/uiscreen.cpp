@@ -91,7 +91,7 @@ void UiScreen::loadConfig(QJsonObject &config)
         } else {
             QQuickWindow *window = m_client->window(elm);
 
-            connect(m_screen, &QObject::destroyed, window, &QObject::deleteLater);
+            connect(m_screen, &QObject::destroyed, [window]() { delete window; });
             connect(elm, &QObject::destroyed, window, &QObject::deleteLater);
             window->setScreen(m_screen);
             window->setWidth(elm->width());
