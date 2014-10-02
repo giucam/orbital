@@ -78,6 +78,9 @@ Output::~Output()
         m_backgroundSurface->setRole(m_backgroundSurface->role(), nullptr);
     }
 
+    qDeleteAll(m_panels);
+    qDeleteAll(m_overlays);
+
     wl_list_remove(&m_listener->listener.link);
     delete m_listener;
     delete m_panelsLayer;
@@ -102,6 +105,10 @@ public:
         });
         s->setActivable(false);
         view->setOutput(o);
+    }
+    ~OutputSurface()
+    {
+        surface->setRole(surface->role(), nullptr);
     }
 
     Surface *surface;
