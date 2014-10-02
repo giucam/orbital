@@ -35,7 +35,8 @@
 namespace Orbital {
 
 
-class Splash {
+class Splash : public QObject
+{
 public:
     Splash(DesktopShellSplash *p, View *v)
         : parent(p)
@@ -65,6 +66,13 @@ public:
         if (parent->m_splashes.isEmpty()) {
             desktop_shell_splash_send_done(parent->m_resource);
         }
+        delete this;
+    }
+
+    void outputDestroyed()
+    {
+        view->surface()->setRole(view->surface()->role(), nullptr);
+        parent->m_splashes.remove(this);
         delete this;
     }
 
@@ -123,7 +131,9 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
     view->setOutput(out);
     view->update();
 
-    m_splashes.insert(new Splash(this, view));
+    Splash *splash = new Splash(this, view);
+    m_splashes.insert(splash);
+    connect(out, &QObject::destroyed, splash, &Splash::outputDestroyed);
 }
 
 }
