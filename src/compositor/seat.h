@@ -58,6 +58,7 @@ public:
 
 signals:
     void activeSurfaceLost();
+    void pointerMotion(Pointer *pointer);
 
 private:
     void deactivateSurface();

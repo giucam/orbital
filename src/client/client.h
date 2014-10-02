@@ -110,6 +110,8 @@ public:
 
     static wl_output *nativeOutput(QScreen *screen);
 
+    bool event(QEvent *e) override;
+
 public slots:
     void minimizeWindows();
     void restoreWindows();

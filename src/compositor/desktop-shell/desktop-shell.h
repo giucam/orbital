@@ -21,6 +21,7 @@
 #define ORBITAL_DESKTOP_SHELL_H
 
 #include <QPointer>
+#include <QTimer>
 
 #include "interface.h"
 
@@ -55,6 +56,8 @@ private:
     void clientExited();
     void setGrabCursor(Pointer *p, PointerCursor c);
     void outputCreated(Output *o);
+    void pointerMotion(Pointer *p);
+    void pingTimeout();
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);
@@ -81,6 +84,9 @@ private:
     QPointer<View> m_grabView;
     DesktopShellSplash *m_splash;
     uint32_t m_loadSerial;
+    QTimer m_pingTimer;
+    uint32_t m_pingSerial;
+    bool m_loaded;
 };
 
 }

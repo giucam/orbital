@@ -58,6 +58,15 @@
 
 Client *Client::s_client = nullptr;
 
+const QEvent::Type PingEventType = QEvent::Type(QEvent::User + 1);
+
+class PingEvent : public QEvent
+{
+public:
+    PingEvent(uint32_t s) : QEvent(PingEventType), serial(s) {}
+    uint32_t serial;
+};
+
 class ClientPrivate {
     Q_DECLARE_PUBLIC(Client)
 public:
@@ -478,8 +487,8 @@ const wl_registry_listener Client::s_registryListener = {
 
 void Client::handlePing(desktop_shell *shell, uint32_t serial)
 {
-    desktop_shell_pong(shell, serial);
-    wl_display_flush(m_display);
+    // catch the case where the event thread spins freely but the gui thread is stuck
+    qApp->postEvent(this, new PingEvent(serial));
 }
 
 void Client::handleLoad(desktop_shell *shell)
@@ -658,6 +667,20 @@ void Client::setGrabSurface()
     if (s) {
         desktop_shell_set_grab_surface(m_shell, s);
     }
+}
+
+bool Client::event(QEvent *e)
+{
+    switch (e->type()) {
+        case PingEventType: {
+            PingEvent *pe = static_cast<PingEvent *>(e);
+            desktop_shell_pong(m_shell, pe->serial);
+            wl_display_flush(m_display);
+        } return true;
+        default:
+            break;
+    };
+    return QObject::event(e);
 }
 
 wl_output *Client::nativeOutput(QScreen *screen)

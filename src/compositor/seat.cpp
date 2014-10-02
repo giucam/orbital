@@ -281,9 +281,10 @@ void Pointer::move(double x, double y)
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
         if (v && v->dispatchPointerEvent(this, m_pointer->x, m_pointer->y)) {
-            return;
+            break;
         }
     }
+    emit m_seat->pointerMotion(this);
 }
 
 void Pointer::sendMotion(uint32_t time)
