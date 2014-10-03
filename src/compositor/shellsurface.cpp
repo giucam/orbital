@@ -397,7 +397,9 @@ void ShellSurface::configure(int x, int y)
         return;
     }
 
+    Type oldType = m_type;
     updateState();
+    bool typeChanged = m_type != oldType;
 
     if (m_type == Type::None) {
         return;
@@ -409,6 +411,11 @@ void ShellSurface::configure(int x, int y)
     m_shell->configure(this);
     if (!m_workspace) {
         return;
+    }
+
+    if (typeChanged) {
+        qDeleteAll(m_extraViews);
+        m_extraViews.clear();
     }
 
     if (m_type == Type::Toplevel) {
@@ -436,18 +443,22 @@ void ShellSurface::configure(int x, int y)
         for (ShellView *view: m_views) {
             view->configureToplevel(map, m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
-    } else if (m_type == Type::Popup) {
+    } else if (m_type == Type::Popup && typeChanged) {
         ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);
         if (!parent) {
-            qWarning("Trying to map a popup without a ShellSurface parent.");
-            return;
-        }
+            for (View *view: m_parent->views()) {
+                ShellView *v = new ShellView(this);
+                v->setDesignedOutput(view->output());
+                v->configurePopup(view, m_popup.x, m_popup.y);
+                m_extraViews << v;
+            }
+        } else {
+            for (Output *o: m_shell->compositor()->outputs()) {
+                ShellView *view = viewForOutput(o);
+                ShellView *parentView = parent->viewForOutput(o);
 
-        for (Output *o: m_shell->compositor()->outputs()) {
-            ShellView *view = viewForOutput(o);
-            ShellView *parentView = parent->viewForOutput(o);
-
-            view->configurePopup(parentView, m_popup.x, m_popup.y);
+                view->configurePopup(parentView, m_popup.x, m_popup.y);
+            }
         }
         m_popup.seat->grabPopup(this);
     } else if (m_type == Type::Transient) {

@@ -124,6 +124,7 @@ private:
     ConfigureSender m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;
+    QList<ShellView *> m_extraViews;
     Edges m_resizeEdges;
     bool m_resizing;
     int m_height, m_width;

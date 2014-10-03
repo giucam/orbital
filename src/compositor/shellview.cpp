@@ -139,7 +139,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
     update();
 }
 
-void ShellView::configurePopup(ShellView *parent, int x, int y)
+void ShellView::configurePopup(View *parent, int x, int y)
 {
     if (!isMapped()) {
         parent->layer()->addView(this);
