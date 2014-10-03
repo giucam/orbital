@@ -197,7 +197,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int3
 
 void DesktopShellWindow::close(wl_client *client, wl_resource *resource)
 {
-//     shsurf()->close();
+    shsurf()->close();
 }
 
 }

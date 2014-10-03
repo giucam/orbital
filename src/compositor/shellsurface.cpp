@@ -17,6 +17,9 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <signal.h>
+#include <unistd.h>
+
 #include <QDebug>
 
 #include <weston/compositor.h>
@@ -317,6 +320,16 @@ void ShellSurface::restore()
     m_forceMap = true;
     configure(0, 0);
     emit restored();
+}
+
+void ShellSurface::close()
+{
+    pid_t pid;
+    wl_client_get_credentials(client(), &pid, NULL, NULL);
+
+    if (pid != getpid()) {
+        kill(pid, SIGTERM);
+    }
 }
 
 void ShellSurface::setTitle(const QString &t)

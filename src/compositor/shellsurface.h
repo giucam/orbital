@@ -88,6 +88,7 @@ public:
     void sendPopupDone();
     void minimize();
     void restore();
+    void close();
 
     void setTitle(const QString &title);
     void setGeometry(int x, int y, int w, int h);
