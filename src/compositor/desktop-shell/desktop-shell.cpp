@@ -522,6 +522,8 @@ void DesktopShell::quit()
 
 void DesktopShell::addTrustedClient(int32_t fd, const char *interface)
 {
+    wl_client *c = wl_client_create(compositor()->display(), fd);
+    m_shell->addTrustedClient(interface, c);
 }
 
 void DesktopShell::pong(uint32_t serial)

@@ -28,6 +28,7 @@ set(SOURCES
     pager.cpp
     surface.cpp
     dropdown.cpp
+    screenshooter.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp
@@ -38,6 +39,7 @@ set(SOURCES
 
 wayland_add_protocol_server(SOURCES ../../protocol/desktop-shell.xml desktop-shell)
 wayland_add_protocol_server(SOURCES ../../protocol/dropdown.xml dropdown)
+wayland_add_protocol_server(SOURCES ../../protocol/screenshooter.xml screenshooter)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

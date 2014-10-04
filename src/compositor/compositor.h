@@ -60,6 +60,7 @@ public:
     bool init(const QString &socket);
     void quit();
 
+    inline wl_display *display() const { return m_display; }
     Shell *shell() const;
     Layer *rootLayer() const;
     Layer *overlayLayer() const;

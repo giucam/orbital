@@ -40,6 +40,7 @@ class KeyBinding;
 class Seat;
 class Pager;
 class Output;
+class Client;
 enum class PointerCursor: unsigned int;
 
 class Shell : public Object
@@ -65,6 +66,8 @@ public:
     void setGrabCursorSetter(GrabCursorSetter s);
     void activateTopSurface(Seat *seat);
 
+    void addTrustedClient(const QString &interface, wl_client *c);
+    bool isClientTrusted(const QString &interface, wl_client *c) const;
 private:
     void giveFocus(Seat *s);
     void raise(Seat *s);
@@ -80,6 +83,7 @@ private:
     ButtonBinding *m_moveBinding;
     KeyBinding *m_killBinding;
     Pager *m_pager;
+    QHash<QString, QList<Client *>> m_trustedClients;
 };
 
 }

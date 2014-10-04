@@ -37,6 +37,7 @@
 #include "global.h"
 #include "pager.h"
 #include "dropdown.h"
+#include "screenshooter.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -54,6 +55,7 @@ Shell::Shell(Compositor *c)
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
     addInterface(new Dropdown(this));
+    addInterface(new Screenshooter(this));
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
@@ -307,6 +309,49 @@ void Shell::activateTopSurface(Seat *seat)
             return;
         }
     }
+}
+
+class Client
+{
+public:
+    ~Client() { wl_list_remove(&listener.listener.link); }
+    Shell *shell;
+    wl_client *client;
+    QString interface;
+    struct Listener {
+        wl_listener listener;
+        Client *parent;
+    };
+    Listener listener;
+};
+
+void Shell::addTrustedClient(const QString &interface, wl_client *c)
+{
+    Client *cl = new Client;
+    cl->shell = this;
+    cl->client = c;
+    cl->interface = interface;
+    cl->listener.parent = cl;
+    cl->listener.listener.notify = [](wl_listener *l, void *data)
+    {
+        Client *client = reinterpret_cast<Client::Listener *>(l)->parent;
+        client->shell->m_trustedClients[client->interface].removeOne(client);
+        delete client;
+    };
+    wl_client_add_destroy_listener(c, &cl->listener.listener);
+
+    m_trustedClients[interface] << cl;
+}
+
+bool Shell::isClientTrusted(const QString &interface, wl_client *c) const
+{
+    for (Client *cl: m_trustedClients.value(interface)) {
+        if (cl->client == c) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 }

@@ -36,10 +36,14 @@
 
 #include "wayland-screenshooter-client-protocol.h"
 
+static const QEvent::Type ScreenshotEventType = (QEvent::Type)QEvent::registerEventType();
+
+class Screenshooter;
+
 class Screenshot
 {
 public:
-    static Screenshot *create(wl_shm *shm, QScreen *screen)
+    static Screenshot *create(Screenshooter *p, wl_shm *shm, QScreen *screen)
     {
         int width = screen->size().width();
         int height = screen->size().height();
@@ -72,45 +76,52 @@ public:
 
         Screenshot *shot = new Screenshot;
 
+        shot->parent = p;
         wl_shm_pool *pool = wl_shm_create_pool(shm, fd, size);
-        shot->m_buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_ARGB8888);
+        shot->buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_ARGB8888);
         wl_shm_pool_destroy(pool);
-        shot->m_data = data;
-        shot->m_image = QImage(data, width, height, stride, QImage::Format_ARGB32);
-
+        shot->data = data;
+        shot->screen = screen;
         close(fd);
         return shot;
     }
 
-    wl_buffer *buffer() const { return m_buffer; }
-    const QImage &image() const { return m_image; }
+    Screenshooter *parent;
+    QScreen *screen;
+    wl_buffer *buffer;
+    uchar *data;
+    orbital_screenshot *screenshot;
 
-private:
-    Screenshot() { }
+    static const orbital_screenshot_listener s_listener;
+};
 
-    wl_buffer *m_buffer;
-    uchar *m_data;
-    QImage m_image;
+class ScreenshotEvent : public QEvent
+{
+public:
+    ScreenshotEvent(Screenshot *s)
+        : QEvent(ScreenshotEventType)
+        , shot(s)
+    {
+    }
+
+    Screenshot *shot;
 };
 
 class ImageProvider : public QQuickImageProvider
 {
 public:
-    ImageProvider(Screenshot *shot)
+    ImageProvider()
         : QQuickImageProvider(QQuickImageProvider::Image)
-        , m_shot(shot)
     {
     }
 
     QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) override
     {
-        const QImage &image = m_shot->image();
-        *size = image.size();
-        return image;
+        *size = m_image.size();
+        return m_image;
     }
 
-private:
-    Screenshot *m_shot;
+    QImage m_image;
 };
 
 class Screenshooter : public QObject
@@ -132,19 +143,20 @@ public:
             exit(1);
         }
 
-        screenshooter_add_listener(m_shooter, &s_listener, this);
-
-        QScreen *screen = QGuiApplication::screens().first();
-        m_screenshot = Screenshot::create(m_shm, screen);
-        if (!m_screenshot) {
-            exit(1);
+        for (QScreen *screen: QGuiApplication::screens()) {
+            Screenshot *screenshot = Screenshot::create(this, m_shm, screen);
+            if (!screenshot) {
+                exit(1);
+            }
+            m_screenshots << screenshot;
         }
+        m_imageProvider = new ImageProvider;
 
         QQuickWindow::setDefaultAlphaBuffer(true);
         m_window = new QQuickView;
         m_window->setTitle("Orbital screenshooter");
         m_window->setResizeMode(QQuickView::SizeRootObjectToView);
-        m_window->engine()->addImageProvider(QLatin1String("screenshoter"), new ImageProvider(m_screenshot));
+        m_window->engine()->addImageProvider(QLatin1String("screenshoter"), m_imageProvider);
         m_window->rootContext()->setContextProperty("Screenshooter", this);
         m_window->setSource(QUrl("qrc:///screenshooter.qml"));
         m_window->create();
@@ -154,27 +166,83 @@ public:
     ~Screenshooter()
     {
     }
-
-public slots:
-    void done()
+    bool event(QEvent *e) override
     {
-        m_window->show();
+        if (e->type() == ScreenshotEventType) {
+            ScreenshotEvent *se = static_cast<ScreenshotEvent *>(e);
+            m_pendingScreenshots.remove(se->shot);
+            orbital_screenshot_destroy(se->shot->screenshot);
+            tryDone();
+            return true;
+        }
+        return QObject::event(e);
+    }
 
+    void tryDone()
+    {
+        if (!m_pendingScreenshots.isEmpty()) {
+            return;
+        }
+
+        int width = 0;
+        int height = 0;
+        int minX, minY;
+        minX = minY = INT_MAX;
+        for (Screenshot *s: m_screenshots) {
+            QRect geom = s->screen->geometry();
+            minX = qMin(minX, geom.x());
+            minY = qMin(minY, geom.y());
+            width += geom.width();
+            if (geom.height() > height) {
+                height = geom.height();
+            }
+        }
+        int stride = width * 4;
+        uchar *data = new uchar[stride * height];
+        memset(data, 0, stride * height);
+
+        for (Screenshot *ss: m_screenshots) {
+            QRect geom = ss->screen->geometry();
+            int output_stride = geom.width() * 4;
+            uchar *s = ss->data;
+            uchar *d = data + (geom.y() - minY) * stride + (geom.x() - minX) * 4;
+
+            for (int i = 0; i < geom.height(); i++) {
+                memcpy(d, s, output_stride);
+                d += stride;
+                s += output_stride;
+            }
+            // fill the remaining lines with solid black
+            for (int i = geom.height(); i < height; ++i) {
+                for (uchar *line = d + 3; line < d + output_stride; line += 4) {
+                    *line = 0xff;
+                }
+                d += stride;
+            }
+        }
+
+        m_imageProvider->m_image = QImage(data, width, height, stride, QImage::Format_ARGB32);
+        m_window->show();
         emit newShot();
     }
 
+public slots:
     void takeShot()
     {
         m_window->hide();
-        wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", m_window->screen()));
-        screenshooter_shoot(m_shooter, output, m_screenshot->buffer());
+        for (Screenshot *ss: m_screenshots) {
+            m_pendingScreenshots << ss;
+            wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", ss->screen));
+            ss->screenshot = orbital_screenshooter_shoot(m_shooter, output, ss->buffer);
+            orbital_screenshot_add_listener(ss->screenshot, &Screenshot::s_listener, ss);
+        }
     }
     void save(const QString &path)
     {
         QString p = path;
         p.remove(0, 7); // Remove the "file://"
-        if (!m_screenshot->image().save(p)) {
-            m_screenshot->image().save(p + ".jpg");
+        if (!m_imageProvider->m_image.save(p)) {
+            m_imageProvider->m_image.save(p + ".jpg");
         }
     }
 
@@ -184,21 +252,22 @@ signals:
 private:
     wl_display *m_display;
     wl_registry *m_registry;
-    screenshooter *m_shooter;
+    orbital_screenshooter *m_shooter;
     wl_shm *m_shm;
     QQuickView *m_window;
-    Screenshot *m_screenshot;
+    QList<Screenshot *> m_screenshots;
+    QSet<Screenshot *> m_pendingScreenshots;
+    ImageProvider *m_imageProvider;
 
     static const wl_registry_listener s_registryListener;
-    static const screenshooter_listener s_listener;
 };
 
 const wl_registry_listener Screenshooter::s_registryListener = {
     [](void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version) {
         Screenshooter *shooter = static_cast<Screenshooter *>(data);
 
-        if (strcmp(interface, "screenshooter") == 0) {
-            shooter->m_shooter = static_cast<screenshooter *>(wl_registry_bind(registry, id, &screenshooter_interface, version));
+        if (strcmp(interface, "orbital_screenshooter") == 0) {
+            shooter->m_shooter = static_cast<orbital_screenshooter *>(wl_registry_bind(registry, id, &orbital_screenshooter_interface, version));
         } else if (strcmp(interface, "wl_shm") == 0) {
             shooter->m_shm = static_cast<wl_shm *>(wl_registry_bind(registry, id, &wl_shm_interface, version));
         }
@@ -206,14 +275,17 @@ const wl_registry_listener Screenshooter::s_registryListener = {
     [](void *, wl_registry *registry, uint32_t id) {}
 };
 
-const screenshooter_listener Screenshooter::s_listener = {
-    [](void *data, screenshooter *s) { QMetaObject::invokeMethod(static_cast<Screenshooter *>(data), "done"); }
+const orbital_screenshot_listener Screenshot::s_listener = {
+    [](void *data, orbital_screenshot *s) {
+        Screenshot *ss = static_cast<Screenshot *>(data);
+        qApp->postEvent(ss->parent, new ScreenshotEvent(ss));
+    }
 };
 
 int main(int argc, char *argv[])
 {
     setenv("QT_QPA_PLATFORM", "wayland", 1);
-    setenv("QT_MESSAGE_PATTERN", "[orbital-splash %{type}] %{message}", 0);
+    setenv("QT_MESSAGE_PATTERN", "[orbital-screenshooter %{type}] %{message}", 1);
 
     QApplication app(argc, argv);
     Screenshooter shooter;
