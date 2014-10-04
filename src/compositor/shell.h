@@ -36,6 +36,7 @@ class Workspace;
 class ShellSurface;
 class Pointer;
 class ButtonBinding;
+class KeyBinding;
 class Seat;
 class Pager;
 class Output;
@@ -68,6 +69,7 @@ private:
     void giveFocus(Seat *s);
     void raise(Seat *s);
     void moveSurface(Seat *s);
+    void killSurface(Seat *s);
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
@@ -76,6 +78,7 @@ private:
     ButtonBinding *m_focusBinding;
     ButtonBinding *m_raiseBinding;
     ButtonBinding *m_moveBinding;
+    KeyBinding *m_killBinding;
     Pager *m_pager;
 };
 

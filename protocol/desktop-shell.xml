@@ -175,6 +175,7 @@
             <entry name="resize_bottom_right" value="10"/>
 
             <entry name="busy" value="11"/>
+            <entry name="kill" value="12"/>
         </enum>
 
         <enum name="panel_position">

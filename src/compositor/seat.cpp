@@ -251,7 +251,7 @@ void Pointer::setDefaultGrab(PointerGrab *grab)
 
 void Pointer::setFocus(View *view)
 {
-    setFocus(view, view->mapFromGlobal(QPointF(x(), y())));
+    setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : QPointF());
 }
 
 void Pointer::setFocus(View *view, double x, double y)

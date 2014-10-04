@@ -54,6 +54,7 @@ constexpr static auto createWrapper(R (T::*func)(Args...)) -> InterfaceWrapper<R
 #define DECLARE_OPERATORS_FOR_FLAGS(F) \
     inline int operator&(F a, F b) { \
         return (int)a & (int)b; \
-    }
+    } \
+    inline F operator|(F a, F b) { return (F)((int)a | (int)b); }
 
 #endif

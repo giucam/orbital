@@ -546,6 +546,9 @@ void Client::setGrabCursor()
         case DESKTOP_SHELL_CURSOR_RESIZE_BOTTOM_RIGHT:
             qcursor.setShape(Qt::SizeFDiagCursor);
             break;
+        case DESKTOP_SHELL_CURSOR_KILL:
+            qcursor.setShape(Qt::ForbiddenCursor);
+            break;
         case DESKTOP_SHELL_CURSOR_ARROW:
         default:
             break;

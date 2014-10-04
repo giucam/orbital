@@ -17,6 +17,10 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <unistd.h>
+#include <signal.h>
+#include <linux/input.h>
+
 #include <QDebug>
 
 #include "shell.h"
@@ -54,9 +58,11 @@ Shell::Shell(Compositor *c)
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
     m_moveBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::Super);
+    m_killBinding = c->createKeyBinding(KEY_ESC, KeyboardModifiers::Super | KeyboardModifiers::Ctrl);
     connect(m_focusBinding, &ButtonBinding::triggered, this, &Shell::giveFocus);
     connect(m_raiseBinding, &ButtonBinding::triggered, this, &Shell::raise);
     connect(m_moveBinding, &ButtonBinding::triggered, this, &Shell::moveSurface);
+    connect(m_killBinding, &KeyBinding::triggered, this, &Shell::killSurface);
 
     for (Seat *s: c->seats()) {
         connect(s, &Seat::activeSurfaceLost, [this, s]() { activateTopSurface(s); });
@@ -249,6 +255,43 @@ void Shell::moveSurface(Seat *seat)
     }
 
     focus->surface()->move(seat);
+}
+
+void Shell::killSurface(Seat *s)
+{
+    class KillGrab : public PointerGrab
+    {
+    public:
+        void motion(uint32_t time, double x, double y) override
+        {
+            pointer()->move(x, y);
+        }
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+        {
+            View *view = pointer()->pickView();
+            wl_client *client = view->surface()->client();
+
+            pid_t pid;
+            wl_client_get_credentials(client, &pid, NULL, NULL);
+
+            if (pid != getpid()) {
+                kill(pid, SIGKILL);
+            }
+            end();
+        }
+        void ended() override
+        {
+            delete abortBinding;
+            delete this;
+        }
+        KeyBinding *abortBinding;
+    };
+
+    KillGrab *grab = new KillGrab;
+    grab->abortBinding = m_compositor->createKeyBinding(KEY_ESC, KeyboardModifiers::None);
+    connect(grab->abortBinding, &KeyBinding::triggered, [grab]() { grab->end(); });
+    s->pointer()->setFocus(nullptr);
+    grab->start(s, PointerCursor::Kill);
 }
 
 void Shell::activateTopSurface(Seat *seat)

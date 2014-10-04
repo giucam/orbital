@@ -84,7 +84,8 @@ enum class PointerCursor: unsigned int {
     ResizeRight = 8,
     ResizeTopRight = ResizeTop | ResizeRight,
     ResizeBottomRight = ResizeBottom | ResizeRight,
-    Busy = 11
+    Busy = 11,
+    Kill = 12
 };
 
 class Pointer

@@ -20,6 +20,8 @@
 #ifndef ORBITAL_GLOBAL_H
 #define ORBITAL_GLOBAL_H
 
+#include "utils.h"
+
 namespace Orbital {
 
 enum class KeyboardModifiers : unsigned char {
@@ -29,6 +31,7 @@ enum class KeyboardModifiers : unsigned char {
     Super = (1 << 2),
     Shift = (1 << 3),
 };
+DECLARE_OPERATORS_FOR_FLAGS(KeyboardModifiers)
 
 enum class PointerButton : unsigned char {
     Left = 0,
