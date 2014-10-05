@@ -59,4 +59,16 @@ KeyBinding::KeyBinding(weston_compositor *c, uint32_t key, KeyboardModifiers mod
     m_binding = weston_compositor_add_key_binding(c, key, (weston_keyboard_modifier)modifiers, handler, this);
 }
 
+
+
+AxisBinding::AxisBinding(weston_compositor *c, PointerAxis axis, KeyboardModifiers modifiers, QObject *p)
+           : Binding(p)
+{
+    auto handler = [](weston_seat *s, uint32_t time, uint32_t axis, wl_fixed_t value, void *data) {
+        Seat *seat = Seat::fromSeat(s);
+        emit static_cast<AxisBinding *>(data)->triggered(seat, time, (PointerAxis)axis, wl_fixed_to_double(value));
+    };
+    m_binding = weston_compositor_add_axis_binding(c, (uint32_t)axis, (weston_keyboard_modifier)modifiers, handler, this);
+}
+
 }

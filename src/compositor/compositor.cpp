@@ -461,6 +461,13 @@ KeyBinding *Compositor::createKeyBinding(uint32_t key, KeyboardModifiers modifie
     return b;
 }
 
+AxisBinding *Compositor::createAxisBinding(PointerAxis axis, KeyboardModifiers modifier)
+{
+    AxisBinding *b = new AxisBinding(m_compositor, axis, modifier);
+    m_bindingsCleanupHandler->add(b);
+    return b;
+}
+
 Compositor *Compositor::fromCompositor(weston_compositor *c)
 {
     wl_listener *listener = wl_signal_get(&c->destroy_signal, compositorDestroyed);

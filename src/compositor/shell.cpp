@@ -42,6 +42,7 @@
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
 #include "desktop-shell/desktop-shell-window.h"
+#include "effects/zoomeffect.h"
 
 namespace Orbital {
 
@@ -56,6 +57,8 @@ Shell::Shell(Compositor *c)
     addInterface(new DesktopShell(this));
     addInterface(new Dropdown(this));
     addInterface(new Screenshooter(this));
+
+    new ZoomEffect(this);
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);

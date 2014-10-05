@@ -17,41 +17,30 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_GLOBAL_H
-#define ORBITAL_GLOBAL_H
+#ifndef ORBITAL_ZOOMEFFECT_H
+#define ORBITAL_ZOOMEFFECT_H
 
-#include "utils.h"
+#include "effect.h"
 
 namespace Orbital {
 
-enum class KeyboardModifiers : unsigned char {
-    None = 0,
-    Ctrl = (1 << 0),
-    Alt = (1 << 1),
-    Super = (1 << 2),
-    Shift = (1 << 3),
-};
-DECLARE_OPERATORS_FOR_FLAGS(KeyboardModifiers)
+class Shell;
+class Seat;
+class AxisBinding;
+enum class PointerAxis : unsigned char;
 
-enum class PointerButton : unsigned char {
-    Left = 0,
-    Right = 1,
-    Middle = 2,
-    Side = 3,
-    Extra = 4,
-    Forward = 5,
-    Back = 6,
-    Task = 7,
-    Extra2 = 8,
-};
+class ZoomEffect : public Effect
+{
+public:
+    ZoomEffect(Shell *shell);
+    ~ZoomEffect();
 
-enum class PointerAxis : unsigned char {
-    Vertical = 0,
-    Horizontal = 1
-};
+private:
+    void run(Seat *seat, uint32_t time, PointerAxis axis, double value);
 
-uint32_t pointerButtonToRaw(PointerButton b);
-PointerButton rawToPointerButton(uint32_t b);
+    Shell *m_shell;
+    AxisBinding *m_binding;
+};
 
 }
 

@@ -17,41 +17,20 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ORBITAL_GLOBAL_H
-#define ORBITAL_GLOBAL_H
+#ifndef ORBITAL_EFFECT_H
+#define ORBITAL_EFFECT_H
 
-#include "utils.h"
+#include <QObject>
 
 namespace Orbital {
 
-enum class KeyboardModifiers : unsigned char {
-    None = 0,
-    Ctrl = (1 << 0),
-    Alt = (1 << 1),
-    Super = (1 << 2),
-    Shift = (1 << 3),
-};
-DECLARE_OPERATORS_FOR_FLAGS(KeyboardModifiers)
+class Effect : public QObject
+{
+    Q_OBJECT
+public:
+    explicit Effect(QObject *p = nullptr);
 
-enum class PointerButton : unsigned char {
-    Left = 0,
-    Right = 1,
-    Middle = 2,
-    Side = 3,
-    Extra = 4,
-    Forward = 5,
-    Back = 6,
-    Task = 7,
-    Extra2 = 8,
 };
-
-enum class PointerAxis : unsigned char {
-    Vertical = 0,
-    Horizontal = 1
-};
-
-uint32_t pointerButtonToRaw(PointerButton b);
-PointerButton rawToPointerButton(uint32_t b);
 
 }
 

@@ -61,6 +61,7 @@ Output::Output(weston_output *out)
       , m_currentWs(nullptr)
       , m_backgroundSurface(nullptr)
 {
+    weston_output_init_zoom(m_output);
     m_transformRoot->view->setPos(out->x, out->y);
 
     m_panelsLayer->append(m_compositor->panelsLayer());
@@ -235,6 +236,11 @@ View *Output::rootView() const
 QString Output::name() const
 {
     return QString(m_output->name);
+}
+
+bool Output::contains(double x, double y) const
+{
+    return geometry().contains(x, y);
 }
 
 Output *Output::fromOutput(weston_output *o)

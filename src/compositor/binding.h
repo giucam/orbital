@@ -31,6 +31,7 @@ namespace Orbital {
 
 class Seat;
 enum class PointerButton : unsigned char;
+enum class PointerAxis : unsigned char;
 enum class KeyboardModifiers : unsigned char;
 
 class Binding : public QObject
@@ -50,8 +51,6 @@ class ButtonBinding : public Binding
 public:
     ButtonBinding(weston_compositor *c, PointerButton b, KeyboardModifiers modifiers, QObject *p = nullptr);
 
-public:
-
 signals:
     void triggered(Seat *seat, uint32_t time, PointerButton button);
 };
@@ -62,10 +61,18 @@ class KeyBinding : public Binding
 public:
     KeyBinding(weston_compositor *c, uint32_t key, KeyboardModifiers modifiers, QObject *p = nullptr);
 
-public:
-
 signals:
     void triggered(Seat *seat, uint32_t time, uint32_t key);
+};
+
+class AxisBinding : public Binding
+{
+    Q_OBJECT
+public:
+    AxisBinding(weston_compositor *c, PointerAxis axis, KeyboardModifiers modifiers, QObject *p = nullptr);
+
+signals:
+    void triggered(Seat *seat, uint32_t time, PointerAxis axis, double value);
 };
 
 }

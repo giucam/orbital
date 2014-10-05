@@ -63,8 +63,10 @@ public:
     QRect geometry() const;
     QRect availableGeometry() const;
     wl_resource *resource(wl_client *client) const;
+    inline weston_output *output() const { return m_output; }
     View *rootView() const;
     QString name() const;
+    bool contains(double x, double y) const;
 
     static Output *fromOutput(weston_output *out);
     static Output *fromResource(wl_resource *res);

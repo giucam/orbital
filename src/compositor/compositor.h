@@ -46,8 +46,10 @@ class ChildProcess;
 class Seat;
 class ButtonBinding;
 class KeyBinding;
+class AxisBinding;
 struct Listener;
 enum class PointerButton : unsigned char;
+enum class PointerAxis : unsigned char;
 enum class KeyboardModifiers : unsigned char;
 
 class Compositor : public QObject
@@ -79,6 +81,7 @@ public:
 
     ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
     KeyBinding *createKeyBinding(uint32_t key, KeyboardModifiers modifiers);
+    AxisBinding *createAxisBinding(PointerAxis axis, KeyboardModifiers modifiers);
 
     static Compositor *fromCompositor(weston_compositor *c);
 
