@@ -73,6 +73,8 @@ private:
     void raise(Seat *s);
     void moveSurface(Seat *s);
     void killSurface(Seat *s);
+    void nextWs(Seat *s);
+    void prevWs(Seat *s);
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
@@ -82,6 +84,8 @@ private:
     ButtonBinding *m_raiseBinding;
     ButtonBinding *m_moveBinding;
     KeyBinding *m_killBinding;
+    KeyBinding *m_nextWsBinding;
+    KeyBinding *m_prevWsBinding;
     Pager *m_pager;
     QHash<QString, QList<Client *>> m_trustedClients;
 };

@@ -64,10 +64,14 @@ Shell::Shell(Compositor *c)
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
     m_moveBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::Super);
     m_killBinding = c->createKeyBinding(KEY_ESC, KeyboardModifiers::Super | KeyboardModifiers::Ctrl);
+    m_nextWsBinding = c->createKeyBinding(KEY_RIGHT, KeyboardModifiers::Ctrl);
+    m_prevWsBinding = c->createKeyBinding(KEY_LEFT, KeyboardModifiers::Ctrl);
     connect(m_focusBinding, &ButtonBinding::triggered, this, &Shell::giveFocus);
     connect(m_raiseBinding, &ButtonBinding::triggered, this, &Shell::raise);
     connect(m_moveBinding, &ButtonBinding::triggered, this, &Shell::moveSurface);
     connect(m_killBinding, &KeyBinding::triggered, this, &Shell::killSurface);
+    connect(m_nextWsBinding, &KeyBinding::triggered, this, &Shell::nextWs);
+    connect(m_prevWsBinding, &KeyBinding::triggered, this, &Shell::prevWs);
 
     for (Seat *s: c->seats()) {
         connect(s, &Seat::activeSurfaceLost, [this, s]() { activateTopSurface(s); });
@@ -299,6 +303,18 @@ void Shell::killSurface(Seat *s)
     connect(grab->abortBinding, &KeyBinding::triggered, [grab]() { grab->end(); });
     s->pointer()->setFocus(nullptr);
     grab->start(s, PointerCursor::Kill);
+}
+
+void Shell::nextWs(Seat *s)
+{
+    Output *o = selectPrimaryOutput(s);
+    m_pager->activateNextWorkspace(o);
+}
+
+void Shell::prevWs(Seat *s)
+{
+    Output *o = selectPrimaryOutput(s);
+    m_pager->activatePrevWorkspace(o);
 }
 
 void Shell::activateTopSurface(Seat *seat)

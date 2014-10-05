@@ -86,6 +86,7 @@ void Pager::addWorkspace(Workspace *ws)
         wsv->setTransformParent(root->ds->view);
         wsv->setPos(ws->id() * o->width(), 0);
     }
+    m_workspaces << ws;
 }
 
 void Pager::activate(Workspace *ws, Output *output)
@@ -93,6 +94,33 @@ void Pager::activate(Workspace *ws, Output *output)
     WorkspaceView *wsv = ws->viewForOutput(output);
     activate(wsv, output, true);
     emit workspaceActivated(wsv->workspace(), output);
+}
+
+void Pager::activateNextWorkspace(Output *output)
+{
+    changeWorkspace(output, 1);
+}
+
+void Pager::activatePrevWorkspace(Output *output)
+{
+    changeWorkspace(output, -1);
+}
+
+void Pager::changeWorkspace(Output *output, int d)
+{
+    if (m_workspaces.isEmpty()) {
+        return;
+    }
+
+    Workspace *workspace = output->currentWorkspace();
+    int index = m_workspaces.indexOf(workspace) + d;
+    while (index < 0) {
+        index += m_workspaces.count();
+    }
+    while (index >= m_workspaces.count()) {
+        index -= m_workspaces.count();
+    }
+    activate(m_workspaces.at(index), output);
 }
 
 bool Pager::isWorkspaceActive(Workspace *ws, Output *output) const

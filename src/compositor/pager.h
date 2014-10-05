@@ -39,6 +39,8 @@ public:
 
     void addWorkspace(Workspace *ws);
     void activate(Workspace *ws, Output *output);
+    void activateNextWorkspace(Output *output);
+    void activatePrevWorkspace(Output *output);
     bool isWorkspaceActive(Workspace *ws, Output *output) const;
     void updateWorkspacesPosition(Output *o);
 
@@ -48,11 +50,13 @@ signals:
 private:
     void activate(WorkspaceView *wsv, Output *o, bool animate);
     void outputCreated(Output *o);
+    void changeWorkspace(Output *o, int d);
 
     class Root;
 
     Compositor *m_compositor;
     QHash<int, Root *> m_roots;
+    QList<Workspace *> m_workspaces;
 };
 
 }
