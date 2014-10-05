@@ -37,7 +37,7 @@ public:
     Dropdown(Shell *shell);
 
 private:
-    void bind(wl_client *client, uint32_t version, uint32_t id);
+    void bind(wl_client *client, uint32_t version, uint32_t id) override;
     void getDropdownSurface(wl_client *client, wl_resource *dropdown, uint32_t id, wl_resource *surface);
 
     Shell *m_shell;
