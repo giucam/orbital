@@ -91,7 +91,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             orbital_dropdown_surface_send_available_size(res, geom.width(), geom.height());
 
             Compositor *c = dd->m_shell->compositor();
-            m_toggleBinding = c->createKeyBinding(KEY_F11, KeyboardModifiers::None);
+            m_toggleBinding = c->createKeyBinding(KEY_F12, KeyboardModifiers::None);
             connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
             connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
         }
