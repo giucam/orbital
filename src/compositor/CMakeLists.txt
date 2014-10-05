@@ -57,7 +57,7 @@ install(TARGETS orbital DESTINATION bin)
 
 add_subdirectory(x11-backend)
 add_subdirectory(drm-backend)
-
+add_subdirectory(wayland-backend)
 
 add_executable(orbital-launch orbital-launch.cpp)
 target_link_libraries(orbital-launch weston-launcher)

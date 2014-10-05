@@ -72,6 +72,14 @@ Compositor *Seat::compositor() const
 
 Pointer *Seat::pointer() const
 {
+    if (m_pointer) {
+        return m_pointer;
+    }
+
+    if (m_seat->pointer) {
+        Seat *that = const_cast<Seat *>(this);
+        that->m_pointer = new Pointer(that, m_seat->pointer);
+    }
     return m_pointer;
 }
 

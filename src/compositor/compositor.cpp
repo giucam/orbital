@@ -281,6 +281,10 @@ bool Compositor::init(const QString &socketName)
     weston_seat *s;
     wl_list_for_each(s, &m_compositor->seat_list, link) {
         Seat *seat = Seat::fromSeat(s);
+        if (!seat->pointer()) {
+            continue;
+        }
+
         class DefaultGrab : public PointerGrab
         {
         public:

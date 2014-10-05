@@ -49,6 +49,8 @@ int main(int argc, char **argv)
     QString backendKey;
     if (parser.isSet(backendOption)) {
         backendKey = parser.value(backendOption);
+    } else if (getenv("WAYLAND_DISPLAY")) {
+        backendKey = "wayland-backend";
     } else if (getenv("DISPLAY")) {
         backendKey ="x11-backend";
     } else {
