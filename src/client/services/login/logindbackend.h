@@ -23,8 +23,9 @@
 #include "loginservice.h"
 
 class QDBusInterface;
+class QDBusPendingCallWatcher;
 
-class LogindBackend : public LoginService::Backend
+class LogindBackend : public LoginServiceBackend
 {
 public:
     ~LogindBackend();
@@ -35,8 +36,10 @@ public:
 
 private:
     LogindBackend();
+    void getSession(QDBusPendingCallWatcher *watcher);
 
     QDBusInterface *m_interface;
+    QString m_sessionPath;
 };
 
 #endif

@@ -22,26 +22,43 @@
 
 #include "service.h"
 
+class QJSValue;
+
+class PamAuthenticator;
+
+class LoginServiceBackend : public QObject
+{
+    Q_OBJECT
+public:
+    virtual ~LoginServiceBackend() {}
+
+    virtual void poweroff() = 0;
+    virtual void reboot() = 0;
+
+signals:
+    void requestLock();
+    void requestUnlock();
+};
+
 class LoginService : public Service
 {
     Q_OBJECT
     Q_INTERFACES(Service)
     Q_PLUGIN_METADATA(IID "Orbital.Service")
-
+    Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
 public:
-    class Backend
-    {
-    public:
-        virtual ~Backend() {}
-
-        virtual void poweroff() = 0;
-        virtual void reboot() = 0;
+    enum class Result {
+        AuthenticationSucceded,
+        AuthenticationFailed,
+        Error
     };
+    Q_ENUMS(Result)
 
     LoginService();
     ~LoginService();
 
     void init();
+    bool busy() const;
 
 public slots:
     void abort();
@@ -52,20 +69,27 @@ public slots:
     void requestPoweroff();
     void requestReboot();
     void requestHandled();
+    void lockSession();
+    void unlockSession();
+    void tryUnlockSession(const QString &password, const QJSValue &callback);
 
 signals:
     void logOutRequested();
     void poweroffRequested();
     void rebootRequested();
     void aborted();
+    void busyChanged();
 
 private slots:
     void doRequest();
 
 private:
-    Backend *m_backend;
+    LoginServiceBackend *m_backend;
     void (LoginService::*m_request)();
     bool m_requestHandled;
+    PamAuthenticator *m_authenticator;
+    QThread *m_authenticatorThread;
+    bool m_busy;
 };
 
 #endif

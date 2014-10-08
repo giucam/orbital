@@ -37,6 +37,7 @@ class Root;
 class Animation;
 class Pager;
 class Surface;
+class LockSurface;
 struct Listener;
 
 class Output : public QObject
@@ -51,6 +52,10 @@ public:
     void setBackground(Surface *surface);
     void setPanel(Surface *surface, int pos);
     void setOverlay(Surface *surface);
+    void setLockSurface(Surface *surface);
+
+    void lock();
+    void unlock();
 
     void repaint();
     void setPos(int x, int y);
@@ -81,12 +86,16 @@ private:
     weston_output *m_output;
     Listener *m_listener;
     Layer *m_panelsLayer;
+    Layer *m_lockLayer;
     Root *m_transformRoot;
     View *m_background;
     QList<View *> m_panels;
     QList<View *> m_overlays;
     Workspace *m_currentWs;
     Surface *m_backgroundSurface;
+    LockSurface *m_lockBackgroundSurface;
+    View *m_lockSurfaceView;
+    bool m_locked;
 
     friend View;
     friend Animation;

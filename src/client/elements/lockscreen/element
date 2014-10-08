@@ -1,0 +1,5 @@
+{
+    "prettyName": "Lock screen",
+    "qmlFile": "LockScreen.qml",
+    "type": "lockscreen"
+}

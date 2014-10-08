@@ -60,6 +60,9 @@ public:
     QList<ShellSurface *> surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
 
+    void lock();
+    void unlock();
+
     void setGrabCursor(Pointer *pointer, PointerCursor c);
     void configure(ShellSurface *shsurf);
 

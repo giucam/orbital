@@ -98,6 +98,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::setPanel),
         wrapInterface(&DesktopShell::setLockSurface),
         wrapInterface(&DesktopShell::setPopup),
+        wrapInterface(&DesktopShell::lock),
         wrapInterface(&DesktopShell::unlock),
         wrapInterface(&DesktopShell::setGrabSurface),
         wrapInterface(&DesktopShell::addKeyBinding),
@@ -241,9 +242,11 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
     new Panel(res, surface, output, position);
 }
 
-void DesktopShell::setLockSurface(wl_resource *surface_resource)
+void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *outputResource)
 {
-
+    Surface *surface = Surface::fromResource(surfaceResource);
+    Output *output = Output::fromResource(outputResource);
+    output->setLockSurface(surface);
 }
 
 void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y)
@@ -345,9 +348,14 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     grab->start(seat);
 }
 
+void DesktopShell::lock()
+{
+    m_shell->lock();
+}
+
 void DesktopShell::unlock()
 {
-
+    m_shell->unlock();
 }
 
 void DesktopShell::setGrabSurface(wl_resource *surfaceResource)

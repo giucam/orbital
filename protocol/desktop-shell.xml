@@ -21,6 +21,7 @@
 
         <request name="set_lock_surface">
             <arg name="surface" type="object" interface="wl_surface"/>
+            <arg name="output" type="object" interface="wl_output"/>
         </request>
 
         <request name="set_popup">
@@ -31,6 +32,7 @@
             <arg name="y" type="int"/>
         </request>
 
+        <request name="lock"/>
         <request name="unlock"/>
 
         <request name="set_grab_surface">

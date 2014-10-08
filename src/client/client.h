@@ -86,6 +86,8 @@ public:
     ~Client();
 
     void quit();
+    void lockSession();
+    void unlockSession();
     QQuickWindow *findWindow(wl_surface *surface) const;
     desktop_shell_surface *setPopup(QWindow *p, QWindow *parent);
 
@@ -107,6 +109,7 @@ public:
     void addOverlay(QQuickWindow *window, QScreen *screen);
     void setInputRegion(QQuickWindow *w, const QRectF &region);
     QProcess *createTrustedClient(const QString &interface);
+    void setLockScreen(QQuickWindow *window, QScreen *screen);
 
     static wl_output *nativeOutput(QScreen *screen);
 

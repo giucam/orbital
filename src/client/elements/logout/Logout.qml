@@ -43,6 +43,21 @@ Element {
             Layout.fillHeight: true
             height: parent.height
             hoverEnabled: true
+            onEntered: ttip.text = qsTr("Lock session")
+
+            Icon {
+                anchors.fill: parent
+                icon: "image://icon/system-lock-screen"
+                onClicked: service.lockSession()
+            }
+        }
+        MouseArea {
+            Layout.preferredWidth: 32
+            Layout.preferredHeight: 32
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            height: parent.height
+            hoverEnabled: true
             onEntered: ttip.text = qsTr("Log out")
 
             Icon {

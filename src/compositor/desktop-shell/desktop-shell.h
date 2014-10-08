@@ -61,8 +61,9 @@ private:
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);
-    void setLockSurface(wl_resource *surfaceResource);
+    void setLockSurface(wl_resource *surfaceResource, wl_resource *outputResource);
     void setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y);
+    void lock();
     void unlock();
     void setGrabSurface(wl_resource *surfaceResource);
     void addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers);

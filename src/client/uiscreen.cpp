@@ -113,6 +113,9 @@ void UiScreen::loadConfig(QJsonObject &config)
                 case ElementInfo::Type::Overlay:
                     m_client->addOverlay(window, m_screen);
                     break;
+                case ElementInfo::Type::LockScreen:
+                    m_client->setLockScreen(window, m_screen);
+                    break;
                 default:
                     break;
             }

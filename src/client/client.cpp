@@ -286,6 +286,13 @@ QProcess *Client::createTrustedClient(const QString &interface)
     return process;
 }
 
+void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
+{
+    wl_surface *surface = nativeSurface(window);
+    wl_output *output = nativeOutput(screen);
+    desktop_shell_set_lock_surface(m_shell, surface, output);
+}
+
 void Client::takeScreenshot()
 {
     QProcess *proc = createTrustedClient("screenshooter");
@@ -387,6 +394,16 @@ QLocale Client::locale()
 void Client::quit()
 {
     desktop_shell_quit(m_shell);
+}
+
+void Client::lockSession()
+{
+    desktop_shell_lock(m_shell);
+}
+
+void Client::unlockSession()
+{
+    desktop_shell_unlock(m_shell);
 }
 
 void Client::minimizeWindows()

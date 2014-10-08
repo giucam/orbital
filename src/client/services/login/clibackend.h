@@ -24,7 +24,7 @@
 
 class QDBusInterface;
 
-class CliBackend : public LoginService::Backend
+class CliBackend : public LoginServiceBackend
 {
 public:
     ~CliBackend();

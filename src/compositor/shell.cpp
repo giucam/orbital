@@ -177,6 +177,20 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
     return output;
 }
 
+void Shell::lock()
+{
+    for (Output *o: m_compositor->outputs()) {
+        o->lock();
+    }
+}
+
+void Shell::unlock()
+{
+    for (Output *o: m_compositor->outputs()) {
+        o->unlock();
+    }
+}
+
 void Shell::configure(ShellSurface *shsurf)
 {
     if (!shsurf->isMapped()) {

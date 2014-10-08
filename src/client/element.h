@@ -43,7 +43,8 @@ public:
         Item,
         Background,
         Panel,
-        Overlay
+        Overlay,
+        LockScreen
     };
     Q_ENUMS(Type)
     ElementInfo() {}

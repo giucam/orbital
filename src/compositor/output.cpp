@@ -50,19 +50,33 @@ public:
     View *view;
 };
 
+class LockSurface : public DummySurface
+{
+public:
+    LockSurface(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)) {}
+    View *view;
+};
+
 Output::Output(weston_output *out)
       : QObject()
       , m_compositor(Compositor::fromCompositor(out->compositor))
       , m_output(out)
       , m_listener(new Listener)
       , m_panelsLayer(new Layer)
+      , m_lockLayer(new Layer(m_compositor->rootLayer()))
       , m_transformRoot(new Root(m_compositor))
       , m_background(nullptr)
       , m_currentWs(nullptr)
       , m_backgroundSurface(nullptr)
+      , m_lockBackgroundSurface(new LockSurface(m_compositor, out->width, out->height))
+      , m_lockSurfaceView(nullptr)
+      , m_locked(false)
 {
     weston_output_init_zoom(m_output);
     m_transformRoot->view->setPos(out->x, out->y);
+    m_lockLayer->addView(m_lockBackgroundSurface->view);
+    m_lockBackgroundSurface->view->setTransformParent(m_transformRoot->view);
+    m_lockLayer->setMask(0, 0, 0, 0);
 
     m_panelsLayer->append(m_compositor->panelsLayer());
 
@@ -155,6 +169,32 @@ void Output::setOverlay(Surface *surface)
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() { m_overlays.removeOne(s->view); delete s; });
     m_overlays << s->view;
+}
+
+void Output::setLockSurface(Surface *surface)
+{
+    delete m_lockSurfaceView;
+
+    static Surface::Role role;
+    OutputSurface *s = new OutputSurface(surface, this, &role);
+    m_lockLayer->addView(s->view);
+    m_lockSurfaceView = s->view;
+    s->view->setTransformParent(m_transformRoot->view);
+    connect(s->view, &QObject::destroyed, [this, s]() { m_lockSurfaceView = nullptr; delete s; });
+}
+
+void Output::lock()
+{
+    m_locked = true;
+    m_lockLayer->setMask(x(), y(), width(), height());
+    repaint();
+}
+
+void Output::unlock()
+{
+    m_locked = false;
+    m_lockLayer->setMask(0, 0, 0, 0);
+    repaint();
 }
 
 void Output::repaint()
@@ -264,6 +304,9 @@ void Output::onMoved()
     // when an output is removed weston rearranges the remaimining ones and the views, so be sure
     // to move them back where they should be
     m_transformRoot->view->setPos(x(), y());
+    if (m_locked) {
+        m_lockLayer->setMask(x(), y(), width(), height());
+    }
 
     for (View *view: m_panels) {
         view->setPos(0, 0);

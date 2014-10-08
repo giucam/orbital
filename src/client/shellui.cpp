@@ -78,7 +78,8 @@ const char *defaultScreen =
 "                { \"type\": \"clock\" }\n"
 "            ]\n"
 "        },\n"
-"        { \"type\": \"overlay\" }\n"
+"        { \"type\": \"overlay\" },\n"
+"        { \"type\" : \"lockscreen\" } \n"
 "    ]\n"
 "}\n";
 

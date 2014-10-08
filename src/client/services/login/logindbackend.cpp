@@ -17,9 +17,19 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <unistd.h>
+
+#include <QDebug>
 #include <QDBusInterface>
+#include <QDBusPendingCallWatcher>
+#include <QDBusPendingReply>
 
 #include "logindbackend.h"
+
+const static QString s_login1Service = QStringLiteral("org.freedesktop.login1");
+const static QString s_login1Path = QStringLiteral("/org/freedesktop/login1");
+const static QString s_login1ManagerInterface = QStringLiteral("org.freedesktop.login1.Manager");
+const static QString s_login1SessionInterface = QStringLiteral("org.freedesktop.login1.Session");
 
 LogindBackend::LogindBackend()
 {
@@ -38,12 +48,16 @@ LogindBackend *LogindBackend::create()
         return nullptr;
     }
 
-    logind->m_interface = new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1",
-                                             "org.freedesktop.login1.Manager", QDBusConnection::systemBus());
+    logind->m_interface = new QDBusInterface(s_login1Service, s_login1Path,
+                                             s_login1ManagerInterface, QDBusConnection::systemBus());
     if (!logind->m_interface || !logind->m_interface->isValid()) {
         delete logind;
         return nullptr;
     }
+
+    QDBusPendingCall call = logind->m_interface->asyncCall("GetSessionByPID", (quint32)getpid());
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
+    logind->connect(watcher, &QDBusPendingCallWatcher::finished, logind, &LogindBackend::getSession);
     return logind;
 }
 
@@ -55,4 +69,20 @@ void LogindBackend::poweroff()
 void LogindBackend::reboot()
 {
     m_interface->call("Reboot", true);
+}
+
+void LogindBackend::getSession(QDBusPendingCallWatcher *watcher)
+{
+    QDBusPendingReply<QDBusObjectPath> reply = *watcher;
+    watcher->deleteLater();
+    if (!reply.isValid()) {
+        return;
+    }
+    m_sessionPath = reply.value().path();
+    qDebug() << "Session" << m_sessionPath;
+
+    m_interface->connection().connect(s_login1Service, m_sessionPath, s_login1SessionInterface,
+                                      QStringLiteral("Lock"), this, SIGNAL(requestLock()));
+    m_interface->connection().connect(s_login1Service, m_sessionPath, s_login1SessionInterface,
+                                      QStringLiteral("Unlock"), this, SIGNAL(requestUnlock()));
 }

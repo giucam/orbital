@@ -489,6 +489,8 @@ void Element::loadElementInfo(const QString &name, const QString &path)
             info->m_type = ElementInfo::Type::Panel;
         } else if (value == "overlay") {
             info->m_type = ElementInfo::Type::Overlay;
+        } else if (value == "lockscreen") {
+            info->m_type = ElementInfo::Type::LockScreen;
         }
     }
 
