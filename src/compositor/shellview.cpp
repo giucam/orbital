@@ -193,7 +193,7 @@ void ShellView::mapFullscreen()
     if (outputAspect < surfaceAspect) {
         scale = (double)ow / (double)sw;
     } else {
-        scale = (double)ow / (double)sh;
+        scale = (double)oh / (double)sh;
     }
 
     Transform tr;
