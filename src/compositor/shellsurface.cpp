@@ -158,7 +158,7 @@ void ShellSurface::setFullscreen()
 
     Output *output = selectOutput();
 
-    QRect rect = output->availableGeometry();
+    QRect rect = output->geometry();
     qDebug() << "Fullscrening surface on output" << output << "with rect" << rect;
     sendConfigure(rect.width(), rect.height());
 }
