@@ -90,11 +90,13 @@ Surface *Seat::activate(Surface *surface)
         surface = surface->isActivable() ? surface->activate(this) : nullptr;
     }
 
+    if (surface || isNull) {
+        weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
+    }
+
     if ((!surface && !isNull) || surface == m_activeSurface) {
         return m_activeSurface;
     }
-
-    weston_surface_activate(surface->surface(), m_seat);
 
     if (m_activeSurface) {
         emit m_activeSurface->deactivated(this);
