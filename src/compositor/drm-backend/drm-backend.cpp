@@ -17,6 +17,9 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <unistd.h>
+#include <gbm.h>
+
 #include <QDebug>
 #include <QHash>
 #include <QFile>
@@ -79,13 +82,8 @@ static bool parseModeline(const QString &s, drmModeModeInfo *mode)
     return true;
 }
 
-static struct drm_backend_output_data *request_output_data(struct drm_backend *b, const char *name)
+static void output_data(const char *name, struct drm_output_parameters *data)
 {
-    struct drm_backend_output_data *data;
-    data = (drm_backend_output_data *)zalloc(sizeof *data);
-    if (data == NULL)
-        return NULL;
-
     if (outputs.contains(name)) {
         QString mode = outputs[name].toObject()["mode"].toString();
         if (mode == QLatin1String("off")) {
@@ -108,13 +106,9 @@ static struct drm_backend_output_data *request_output_data(struct drm_backend *b
 
     data->scale = 1;
     data->transform = WL_OUTPUT_TRANSFORM_NORMAL;
-    data->format = NULL;
-    data->seat = NULL;
-
-    return data;
 }
 
-static void configureDevice(struct weston_compositor *compositor, struct libinput_device *device)
+static void configureDevice(struct weston_compositor *compositor, struct evdev_device *device)
 {
 //     struct weston_config_section *s;
 //     int enable_tap;
@@ -137,7 +131,8 @@ static void configureDevice(struct weston_compositor *compositor, struct libinpu
 
 bool DrmBackend::init(weston_compositor *c)
 {
-    struct drm_backend_parameters param = { 0, };
+    struct drm_backend_parameters param;
+    memset(&param, 0, sizeof param);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + "/orbital/orbital.conf";
@@ -152,8 +147,11 @@ bool DrmBackend::init(weston_compositor *c)
     QJsonDocument doc = QJsonDocument::fromJson(data);
     outputs = doc.object()["Compositor"].toObject()["Outputs"].toObject();
 
-    param.tty = 1;
-    param.format = NULL;
+    param.tty = 0;
+    param.format = GBM_FORMAT_XRGB8888;
+    param.get_output_parameters = output_data;
+    param.configure_device = configureDevice;
+    param.seat_id = "seat0";
 //     char *format;
 
 //     backend_config = config;
@@ -175,9 +173,7 @@ bool DrmBackend::init(weston_compositor *c)
 //
 //     parse_options(drm_options, ARRAY_LENGTH(drm_options), argc, argv);
 
-    drm_backend *b = drm_backend_create(c, &param,
-                           request_output_data,
-                           configureDevice);
+    drm_backend *b = drm_backend_create(c, &param);
 //     free(format);
 
     return b;

@@ -1,5 +1,6 @@
 
 pkg_check_modules(WaylandServer wayland-server REQUIRED)
+pkg_check_modules(Weston weston REQUIRED)
 
 find_package(Qt5Core)
 

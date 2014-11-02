@@ -208,11 +208,15 @@ bool Compositor::init(const QString &socketName)
 
     verify_xdg_runtime_dir();
 
-    m_compositor = weston_compositor_create(m_display);
+    m_compositor = new weston_compositor;
+    memset(m_compositor, 0, sizeof(*m_compositor));
+
+    m_compositor->wl_display = m_display;
+    m_compositor->idle_time = 300;
 
     xkb_rule_names xkb = { NULL, NULL, strdup("it"), NULL, NULL };
 
-    if (weston_compositor_xkb_init(m_compositor, &xkb) < 0)
+    if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
 
     m_rootLayer = new Layer(&m_compositor->cursor_layer);
