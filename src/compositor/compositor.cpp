@@ -214,7 +214,10 @@ bool Compositor::init(const QString &socketName)
     m_compositor->wl_display = m_display;
     m_compositor->idle_time = 300;
 
-    xkb_rule_names xkb = { NULL, NULL, strdup("it"), NULL, NULL };
+    QJsonObject kbdConfig = m_config["Compositor"].toObject()["Keyboard"].toObject();
+    QString keylayout = kbdConfig["Layout"].toString();
+
+    xkb_rule_names xkb = { NULL, NULL, keylayout.isEmpty() ? NULL : qPrintable(keylayout), NULL, NULL };
 
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
