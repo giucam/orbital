@@ -208,7 +208,7 @@ bool Compositor::init(const QString &socketName)
 
     verify_xdg_runtime_dir();
 
-    m_compositor = new weston_compositor;
+    m_compositor = static_cast<weston_compositor *>(malloc(sizeof *m_compositor));
     memset(m_compositor, 0, sizeof(*m_compositor));
 
     m_compositor->wl_display = m_display;
@@ -217,7 +217,7 @@ bool Compositor::init(const QString &socketName)
     QJsonObject kbdConfig = m_config["Compositor"].toObject()["Keyboard"].toObject();
     QString keylayout = kbdConfig["Layout"].toString();
 
-    xkb_rule_names xkb = { NULL, NULL, keylayout.isEmpty() ? NULL : qPrintable(keylayout), NULL, NULL };
+    xkb_rule_names xkb = { NULL, NULL, keylayout.isEmpty() ? NULL : strdup(qPrintable(keylayout)), NULL, NULL };
 
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
@@ -570,7 +570,7 @@ void ChildProcess::start()
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->start(m_program);
     connect(process, &QProcess::started, [sv]() { close(sv[1]); });
-    connect(process, (void (QProcess::*)(int))&QProcess::finished, [process](int) { delete process; });
+    connect(process, (void (QProcess::*)(int))&QProcess::finished, process, &QObject::deleteLater);
 
     m_client = wl_client_create(m_display, sv[0]);
     if (!m_client) {
