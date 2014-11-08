@@ -22,6 +22,9 @@
 #include <linux/input.h>
 
 #include <QDebug>
+#include <QDir>
+#include <QProcess>
+#include <QSettings>
 
 #include "shell.h"
 #include "compositor.h"
@@ -75,6 +78,33 @@ Shell::Shell(Compositor *c)
 
     for (Seat *s: c->seats()) {
         connect(s, &Seat::activeSurfaceLost, [this, s]() { activateTopSurface(s); });
+    }
+
+    QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
+    QString autostartDir;
+    if (!xdgConfigHome.isEmpty()) {
+        autostartDir = QString("%1/autostart").arg(xdgConfigHome);
+    } else {
+        autostartDir = QString("%1/.config/autostart").arg(QDir::homePath());
+    }
+    QDir dir(autostartDir);
+    if (!dir.exists()) {
+        return;
+    }
+
+    for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
+        if (fi.isReadable()) {
+            QSettings settings(fi.absoluteFilePath(), QSettings::IniFormat);
+            settings.beginGroup("Desktop Entry");
+            bool hidden = settings.value("Hidden").toBool();
+            if (hidden) {
+                continue;
+            }
+            QString tryExec = settings.value("TryExec").toString();
+            qDebug("Autostarting '%s'", qPrintable(tryExec));
+            QProcess::startDetached(tryExec);
+            settings.endGroup();
+        }
     }
 }
 
