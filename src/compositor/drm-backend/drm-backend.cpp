@@ -108,7 +108,7 @@ static void output_data(const char *name, struct drm_output_parameters *data)
     data->transform = WL_OUTPUT_TRANSFORM_NORMAL;
 }
 
-static void configureDevice(struct weston_compositor *compositor, struct evdev_device *device)
+static void configureDevice(struct weston_compositor *compositor, struct libinput_device *device)
 {
 //     struct weston_config_section *s;
 //     int enable_tap;
