@@ -55,6 +55,9 @@ LogindBackend *LogindBackend::create()
         return nullptr;
     }
 
+    logind->m_interface->connection().connect(s_login1Service, s_login1Path, s_login1ManagerInterface,
+                                              QStringLiteral("PrepareForSleep"), logind, SIGNAL(requestLock()));
+
     QDBusPendingCall call = logind->m_interface->asyncCall("GetSessionByPID", (quint32)getpid());
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     logind->connect(watcher, &QDBusPendingCallWatcher::finished, logind, &LogindBackend::getSession);
