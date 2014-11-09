@@ -301,4 +301,20 @@
         </request>
     </interface>
 
+    <interface name="orbital_launcher" version="1">
+        <request name="get_launcher_surface">
+            <arg name="id" type="new_id" interface="orbital_launcher_surface"/>
+            <arg name="surface" type="object" interface="wl_surface"/>
+        </request>
+    </interface>
+
+    <interface name="orbital_launcher_surface" version="1">
+        <request name="done"/>
+
+        <event name="present">
+            <arg name="maximum_width" type="int"/>
+            <arg name="maximum_height" type="int"/>
+        </event>
+    </interface>
+
 </protocol>

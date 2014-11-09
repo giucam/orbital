@@ -39,6 +39,7 @@
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
 #include "desktop-shell-notifications.h"
+#include "desktop-shell-launcher.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {
@@ -53,6 +54,7 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_loaded(false)
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
+    m_shell->addInterface(new DesktopShellLauncher(shell));
     m_shell->addInterface(m_splash);
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");

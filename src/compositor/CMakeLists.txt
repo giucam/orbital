@@ -38,6 +38,7 @@ set(SOURCES
     desktop-shell/desktop-shell-splash.cpp
     desktop-shell/desktop-shell-window.cpp
     desktop-shell/desktop-shell-notifications.cpp
+    desktop-shell/desktop-shell-launcher.cpp
     desktop-shell/desktop-shell-workspace.cpp)
 
 wayland_add_protocol_server(SOURCES ../../protocol/desktop-shell.xml desktop-shell)
