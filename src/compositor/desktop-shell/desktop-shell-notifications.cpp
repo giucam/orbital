@@ -171,6 +171,12 @@ DesktopShellNotifications::DesktopShellNotifications(Shell *shell)
                   , Global(shell->compositor(), &notifications_manager_interface, 1)
                   , m_shell(shell)
 {
+
+}
+
+DesktopShellNotifications::~DesktopShellNotifications()
+{
+    qDeleteAll(m_notifications);
 }
 
 void DesktopShellNotifications::bind(wl_client *client, uint32_t version, uint32_t id)

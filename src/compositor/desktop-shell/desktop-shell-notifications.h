@@ -33,6 +33,7 @@ class DesktopShellNotifications : public Interface, public Global
     Q_OBJECT
 public:
     DesktopShellNotifications(Shell *shell);
+    ~DesktopShellNotifications();
 
 protected:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
