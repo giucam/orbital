@@ -55,6 +55,8 @@ Shell::Shell(Compositor *c)
      , m_grabCursorSetter(nullptr)
      , m_pager(new Pager(c))
 {
+    initEnvironment();
+
     addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
@@ -118,6 +120,26 @@ Shell::~Shell()
     delete m_focusBinding;
     delete m_raiseBinding;
     delete m_moveBinding;
+}
+
+void Shell::initEnvironment()
+{
+    if (qEnvironmentVariableIsSet("DBUS_SESSION_BUS_ADDRESS")) {
+        return;
+    }
+
+    QProcess proc;
+    proc.start("dbus-launch", { "--binary-syntax" });
+    if (!proc.waitForStarted()) {
+        qWarning("Could not start the DBus session.");
+        return;
+    }
+    pid_t pid = proc.processId();
+    proc.waitForFinished();
+    QByteArray out = proc.readAllStandardOutput();
+
+    setenv("DBUS_SESSION_BUS_ADDRESS", out.constData(), 1);
+    setenv("DBUS_SESSION_BUS_PID", qPrintable(QString::number(pid)), 1);
 }
 
 Compositor *Shell::compositor() const

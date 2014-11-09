@@ -78,6 +78,7 @@ private:
     void killSurface(Seat *s);
     void nextWs(Seat *s);
     void prevWs(Seat *s);
+    void initEnvironment();
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;
