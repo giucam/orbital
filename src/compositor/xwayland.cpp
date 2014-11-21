@@ -87,7 +87,7 @@ spawn_xserver(struct weston_xserver *wxs)
             s_process = nullptr;
         }
     });
-    s_process->start(wxs->xserver_path, QStringList() <<
+    s_process->start("Xwayland", QStringList() <<
               display <<
               "-rootless" <<
               "-listen" << abstract_fd <<
