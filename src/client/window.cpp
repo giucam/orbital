@@ -45,12 +45,18 @@ static int32_t state2WlState(Window::States state)
     return s;
 }
 
-void Window::handleSetTitle(desktop_shell_window *window, const char *title)
+void Window::handleTitle(desktop_shell_window *window, const char *title)
 {
     setTitle(title);
 }
 
-void Window::handleSetState(desktop_shell_window *window, int32_t state)
+void Window::handleIcon(desktop_shell_window *window, const char *name)
+{
+    m_icon = name;
+    emit iconChanged();
+}
+
+void Window::handleState(desktop_shell_window *window, int32_t state)
 {
     m_state = wlState2State(state);
     emit stateChanged();
@@ -63,27 +69,23 @@ void Window::handleRemoved(desktop_shell_window *window)
 }
 
 const desktop_shell_window_listener Window::m_window_listener = {
-    wrapInterface(&Window::handleSetTitle),
-    wrapInterface(&Window::handleSetState),
+    wrapInterface(&Window::handleTitle),
+    wrapInterface(&Window::handleIcon),
+    wrapInterface(&Window::handleState),
     wrapInterface(&Window::handleRemoved)
 };
 
-Window::Window(QObject *p)
+Window::Window(desktop_shell_window *window, QObject *p)
       : QObject(p)
+      , m_window(window)
       , m_state(Window::Inactive)
 {
+    desktop_shell_window_add_listener(window, &m_window_listener, this);
 }
 
 Window::~Window()
 {
     desktop_shell_window_destroy(m_window);
-}
-
-void Window::init(desktop_shell_window *w, int32_t state)
-{
-    m_window = w;
-    desktop_shell_window_add_listener(w, &m_window_listener, this);
-    m_state = wlState2State(state);
 }
 
 void Window::setTitle(const QString &t)

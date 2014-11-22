@@ -91,6 +91,7 @@ public:
     void close();
 
     void setTitle(const QString &title);
+    void setAppId(const QString &appid);
     void setGeometry(int x, int y, int w, int h);
 
     Type type() const { return m_type; }
@@ -98,12 +99,14 @@ public:
     bool isInactive() const;
     QRect geometry() const;
     QString title() const;
+    QString appId() const;
 
     static ShellSurface *fromSurface(weston_surface *s);
 
 signals:
     void mapped();
     void titleChanged();
+    void appIdChanged();
     void popupDone();
     void minimized();
     void restored();
@@ -132,6 +135,7 @@ private:
     QRect m_geometry;
     QRect m_nextGeometry;
     QString m_title;
+    QString m_appId;
     bool m_forceMap;
 
     Type m_type;

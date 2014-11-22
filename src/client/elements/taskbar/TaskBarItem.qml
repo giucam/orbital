@@ -36,6 +36,7 @@ Item {
         anchors.fill: parent
 
         Binding { target: style.item; property: "title"; value: window ? window.title : "" }
+        Binding { target: style.item; property: "icon"; value: window ? window.icon : "" }
         Binding { target: style.item; property: "state"; value: window.state }
     }
 

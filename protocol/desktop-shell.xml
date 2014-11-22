@@ -130,8 +130,6 @@
 
         <event name="window_added">
             <arg name="id" type="new_id" interface="desktop_shell_window"/>
-            <arg name="title" type="string"/>
-            <arg name="window_state" type="int"/>
         </event>
 
         <event name="workspace_added">
@@ -216,10 +214,13 @@
         </request>
         <request name="close"/>
 
-        <event name="set_title">
+        <event name="title">
             <arg name="title" type="string"/>
         </event>
-        <event name="state_changed">
+        <event name="icon">
+            <arg name="name" type="string"/>
+        </event>
+        <event name="state">
             <arg name="value" type="int"/>
         </event>
         <event name="removed"/>

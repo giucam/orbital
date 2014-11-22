@@ -55,6 +55,7 @@ Style {
     taskBarItem: StyleComponent {
         id: item
         property alias title: text.text
+        property string icon: ""
         property int state: Window.Inactive
         property int horizontal: (location != 1 && location != 3)
 
@@ -96,10 +97,23 @@ Style {
             Rotator {
                 anchors.fill: parent
                 angle: horizontal ? 0 : (location == 1 ? 270 : 90)
+                Image {
+                    id: icon
+                    source: "image://icon/" + item.icon
+                    x: 2
+                    y: 2
+                    width: Math.min(parent.width, parent.height) - 4
+                    height: width
+                    fillMode: Image.PreserveAspectFit
+                    sourceSize: Qt.size(32, 32)
+                }
                 Text {
                     id: text
-                    anchors.fill: parent
-                    horizontalAlignment: Qt.AlignHCenter
+                    anchors.left: icon.right
+                    anchors.leftMargin: 5
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
                     verticalAlignment: Qt.AlignVCenter
                     maximumLineCount: 1
                     elide: Text.ElideRight

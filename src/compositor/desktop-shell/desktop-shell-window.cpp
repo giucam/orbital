@@ -21,6 +21,7 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <QSettings>
 
 #include "desktop-shell-window.h"
 #include "shell.h"
@@ -142,8 +143,26 @@ void DesktopShellWindow::create()
         QFileInfo exe(QString("/proc/%1/exe").arg(pid));
         title = QFileInfo(exe.symLinkTarget()).fileName();
     }
+    QString icon;
+    if (!shsurf()->appId().isEmpty()) {
+        QString appId = shsurf()->appId().replace('-', '/');
+        static QString xdgDataDir = qgetenv("XDG_DATA_DIRS");
+        for (const QString &d: xdgDataDir.split(':')) {
+            QString path = QString("%1/applications/%2").arg(d).arg(appId);
+            if (QFile::exists(path)) {
+                QSettings settings(path, QSettings::IniFormat);
+                settings.beginGroup("Desktop Entry");
+                icon = settings.value("Icon").toString();
+                settings.endGroup();
+                break;
+            }
+        }
+    }
 
-    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource, qPrintable(title), m_state);
+    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource);
+    desktop_shell_window_send_title(m_resource, qPrintable(title));
+    desktop_shell_window_send_icon(m_resource, qPrintable(icon));
+    desktop_shell_window_send_state(m_resource, m_state);
 }
 
 void DesktopShellWindow::destroy()
@@ -157,14 +176,14 @@ void DesktopShellWindow::destroy()
 void DesktopShellWindow::sendState()
 {
     if (m_resource && m_sendState) {
-        desktop_shell_window_send_state_changed(m_resource, m_state);
+        desktop_shell_window_send_state(m_resource, m_state);
     }
 }
 
 void DesktopShellWindow::sendTitle()
 {
     if (m_resource) {
-        desktop_shell_window_send_set_title(m_resource, qPrintable(shsurf()->title()));
+        desktop_shell_window_send_title(m_resource, qPrintable(shsurf()->title()));
     }
 }
 

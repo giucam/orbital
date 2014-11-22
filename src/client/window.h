@@ -29,6 +29,7 @@ class Window : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
+    Q_PROPERTY(QString icon READ icon NOTIFY iconChanged);
     Q_PROPERTY(States state READ state WRITE setState NOTIFY stateChanged)
 public:
     enum State {
@@ -40,12 +41,13 @@ public:
     Q_DECLARE_FLAGS(States, State)
     Q_FLAGS(States)
 
-    Window(QObject *p = nullptr);
+    explicit Window(desktop_shell_window *window, QObject *p = nullptr);
     ~Window();
-    void init(desktop_shell_window *window, int32_t state);
 
     inline QString title() const { return m_title; }
     void setTitle(const QString &title);
+
+    inline QString icon() const { return m_icon; }
 
     inline States state() const { return m_state; }
     void setState(States state);
@@ -62,15 +64,18 @@ public slots:
 signals:
     void destroyed(Window *w);
     void titleChanged();
+    void iconChanged();
     void stateChanged();
 
 private:
-    void handleSetTitle(desktop_shell_window *window, const char *title);
-    void handleSetState(desktop_shell_window *window, int32_t state);
+    void handleTitle(desktop_shell_window *window, const char *title);
+    void handleIcon(desktop_shell_window *window, const char *name);
+    void handleState(desktop_shell_window *window, int32_t state);
     void handleRemoved(desktop_shell_window *window);
 
     desktop_shell_window *m_window;
     QString m_title;
+    QString m_icon;
     States m_state;
 
     static const desktop_shell_window_listener m_window_listener;

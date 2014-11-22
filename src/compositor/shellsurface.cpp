@@ -340,6 +340,14 @@ void ShellSurface::setTitle(const QString &t)
     }
 }
 
+void ShellSurface::setAppId(const QString &id)
+{
+    if (m_appId != id) {
+        m_appId = id;
+        emit appIdChanged();
+    }
+}
+
 void ShellSurface::setGeometry(int x, int y, int w, int h)
 {
     m_nextGeometry = QRect(x, y, w, h);
@@ -366,6 +374,11 @@ QRect ShellSurface::geometry() const
 QString ShellSurface::title() const
 {
     return m_title;
+}
+
+QString ShellSurface::appId() const
+{
+    return m_appId;
 }
 
 void ShellSurface::parentSurfaceDestroyed()

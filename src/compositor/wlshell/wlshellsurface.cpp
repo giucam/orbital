@@ -146,7 +146,7 @@ void WlShellSurface::setTitle(const char *title)
 
 void WlShellSurface::setClass(const char *className)
 {
-
+    shellSurface()->setAppId(className);
 }
 
 void WlShellSurface::popupDone()
