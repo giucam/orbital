@@ -108,9 +108,8 @@ XWayland::XWayland(Shell *shell)
         : Interface(shell)
         , m_shell(shell)
 {
-    const char *path = "/usr/bin/Xwayland";
     weston_compositor *compositor = shell->compositor()->m_compositor;
-    m_xwayland = weston_xserver_create(compositor, path);
+    m_xwayland = weston_xserver_create(compositor);
     m_xwayland->spawn_xserver = spawn_xserver;
 
     compositor->shell_interface.shell = this;
