@@ -74,6 +74,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             , resource(res)
             , m_visible(false)
             , m_moving(false)
+            , m_forceReposition(false)
         {
             wl_resource_set_implementation(resource, nullptr, this, [](wl_resource *res) {
                 DropdownSurface *ds = static_cast<DropdownSurface *>(wl_resource_get_user_data(res));
@@ -86,9 +87,8 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             setRole(&role, [this](int, int) { configure(); });
 
             m_output = dd->m_shell->selectPrimaryOutput();
-
-            QRect geom = m_output->availableGeometry();
-            orbital_dropdown_surface_send_available_size(res, geom.width(), geom.height());
+            connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+            updateGeometry();
 
             Compositor *c = dd->m_shell->compositor();
             m_toggleBinding = c->createKeyBinding(KEY_F12, KeyboardModifiers::None);
@@ -107,7 +107,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
                 view->setTransformParent(m_output->rootView());
             }
             view->update();
-            if (m_lastSize != size()) {
+            if (m_forceReposition || m_lastSize != size()) {
                 if (m_visible) {
                     animToPlace();
                 } else {
@@ -115,6 +115,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
                     view->update();
                 }
                 m_lastSize = size();
+                m_forceReposition = false;
             }
         }
         void toggle(Seat *s)
@@ -146,6 +147,12 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             view->setPos(pos);
             view->update();
         }
+        void updateGeometry()
+        {
+            QRect geom = m_output->availableGeometry();
+            orbital_dropdown_surface_send_available_size(resource, geom.width(), geom.height());
+            m_forceReposition = true;
+        }
         void snapToPlace(Output *o)
         {
             view->setTransformParent(o->rootView());
@@ -154,9 +161,10 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             m_start = view->pos();
 
             if (m_output != o) {
+                disconnect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
                 m_output = o;
-                QRect geom = m_output->availableGeometry();
-                orbital_dropdown_surface_send_available_size(resource, geom.width(), geom.height());
+                connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+                updateGeometry();
             } else {
                 animToPlace();
             }
@@ -224,6 +232,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         QPointF m_start;
         QPointF m_end;
         bool m_moving;
+        bool m_forceReposition;
     };
 
     new DropdownSurface(this, ws, resource);

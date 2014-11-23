@@ -78,6 +78,7 @@ public:
 
 signals:
     void moved();
+    void availableGeometryChanged();
 
 private:
     void onMoved();

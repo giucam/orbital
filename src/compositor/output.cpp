@@ -151,8 +151,37 @@ void Output::setBackground(Surface *surface)
 
 void Output::setPanel(Surface *surface, int pos)
 {
-    static Surface::Role role;
-    OutputSurface *s = new OutputSurface(surface, this, &role);
+    class PanelSurface
+    {
+    public:
+        // TODO: delete this
+        PanelSurface(Surface *s, Output *o)
+            : surface(s)
+            , view(new View(s))
+            , notified(false)
+        {
+            static Surface::Role role;
+            s->setRole(&role, [this, o](int sx, int sy) {
+                view->update();
+                if (!notified) {
+                    emit o->availableGeometryChanged();
+                    notified = true;
+                }
+            });
+            s->setActivable(false);
+            view->setOutput(o);
+        }
+        ~PanelSurface()
+        {
+            surface->setRole(surface->role(), nullptr);
+        }
+
+        Surface *surface;
+        View *view;
+        bool notified;
+    };
+
+    PanelSurface *s = new PanelSurface(surface, this);
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() { m_panels.removeOne(s->view); delete s; });
