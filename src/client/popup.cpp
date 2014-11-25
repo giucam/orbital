@@ -36,6 +36,7 @@ Popup::Popup(QObject *p)
      , m_window(nullptr)
      , m_parent(nullptr)
      , m_content(nullptr)
+     , m_shsurf(nullptr)
 {
 }
 
@@ -58,7 +59,7 @@ void Popup::setVisible(bool v)
 
 void Popup::show()
 {
-    if (!m_parent || !m_content || (m_window && m_window->isVisible())) {
+    if (!m_parent || !m_content || m_shsurf) {
         return;
     }
 

@@ -274,22 +274,30 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     class Popup
     {
     public:
-        Popup(Surface *s, Surface *p, wl_resource *r, int x, int y)
+        Popup(Surface *s, Surface *p, wl_resource *r, int x_, int y_)
             : surface(s)
             , parent(p)
             , resource(r)
+            , x(x_)
+            , y(y_)
         {
-            for (View *view: parent->views()) {
-                View *v = new View(s);
-                v->setTransformParent(view);
-                v->setPos(x, y);
-                view->layer()->addView(v);
-                v->update();
+            s->setRole(&role, [this](int, int) {
+                if (surface->views().isEmpty()) {
+                    for (View *view: parent->views()) {
+                        View *v = new View(surface);
+                        v->setTransformParent(view);
+                        v->setPos(x, y);
+                        view->layer()->addView(v);
+                        v->update();
 
-                connect(view, &QObject::destroyed, v, &QObject::deleteLater);
-            }
+                        connect(view, &QObject::destroyed, v, &QObject::deleteLater);
+                    }
+                }
+            });
         }
         ~Popup() {
+            surface->setRole(&role, nullptr);
+            qDeleteAll(surface->views());
             delete grab;
         }
 
@@ -297,6 +305,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         Surface *parent;
         wl_resource *resource;
         PointerGrab *grab;
+        int x, y;
     };
 
     class PopupGrab : public PointerGrab {
@@ -308,7 +317,11 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
 
             inside = popup->surface->views().contains(v);
             if (inside) {
-                pointer()->setFocus(v, sx, sy);
+                if (pointer()->focus() != v) {
+                    pointer()->setFocus(v, sx, sy);
+                }
+            } else {
+                pointer()->setFocus(nullptr);
             }
         }
         void motion(uint32_t time, double x, double y) override
