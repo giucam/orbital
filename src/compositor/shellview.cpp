@@ -177,14 +177,14 @@ void ShellView::mapFullscreen()
     const int ow = m_designedOutput->width();
     const int oh = m_designedOutput->height();
 
-    if (ow == sw && oh == sh) {
-        setPos(0, 0);
-        return;
-    }
-
     if (!m_blackSurface) {
         Compositor *c = m_surface->compositor();
         m_blackSurface = new BlackSurface(c, this, m_designedOutput->width(), m_designedOutput->height());
+    }
+
+    if (ow == sw && oh == sh) {
+        setPos(0, 0);
+        return;
     }
 
     double outputAspect = (double)ow / (double)oh;
