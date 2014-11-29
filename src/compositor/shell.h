@@ -79,6 +79,7 @@ private:
     void nextWs(Seat *s);
     void prevWs(Seat *s);
     void initEnvironment();
+    void autostartClients();
 
     Compositor *m_compositor;
     QList<Workspace *> m_workspaces;

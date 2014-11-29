@@ -82,32 +82,7 @@ Shell::Shell(Compositor *c)
         connect(s, &Seat::activeSurfaceLost, [this, s]() { activateTopSurface(s); });
     }
 
-    QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
-    QString autostartDir;
-    if (!xdgConfigHome.isEmpty()) {
-        autostartDir = QString("%1/autostart").arg(xdgConfigHome);
-    } else {
-        autostartDir = QString("%1/.config/autostart").arg(QDir::homePath());
-    }
-    QDir dir(autostartDir);
-    if (!dir.exists()) {
-        return;
-    }
-
-    for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
-        if (fi.isReadable()) {
-            QSettings settings(fi.absoluteFilePath(), QSettings::IniFormat);
-            settings.beginGroup("Desktop Entry");
-            bool hidden = settings.value("Hidden").toBool();
-            if (hidden) {
-                continue;
-            }
-            QString tryExec = settings.value("TryExec").toString();
-            qDebug("Autostarting '%s'", qPrintable(tryExec));
-            QProcess::startDetached(tryExec);
-            settings.endGroup();
-        }
-    }
+    autostartClients();
 }
 
 Shell::~Shell()
@@ -140,6 +115,61 @@ void Shell::initEnvironment()
 
     setenv("DBUS_SESSION_BUS_ADDRESS", out.constData(), 1);
     setenv("DBUS_SESSION_BUS_PID", qPrintable(QString::number(pid)), 1);
+}
+
+static bool shouldAutoStart(const QSettings &settings)
+{
+    bool hidden = settings.value("Hidden").toBool();
+    if (hidden) {
+        return false;
+    }
+    if (settings.contains("OnlyShowIn")) {
+        QString onlyShowIn = settings.value("OnlyShowIn").toString();
+        for (const QString s: onlyShowIn.split(';')) {
+            if (s == "Orbital") {
+                return true;
+            }
+        }
+        return false;
+    } else if (settings.contains("NotShowIn")) {
+        QString notShowIn = settings.value("NotShowIn").toString();
+        for (const QString s: notShowIn.split(';')) {
+            if (s == "Orbital") {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void Shell::autostartClients()
+{
+    QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
+    QString autostartDir;
+    if (!xdgConfigHome.isEmpty()) {
+        autostartDir = QString("%1/autostart").arg(xdgConfigHome);
+    } else {
+        autostartDir = QString("%1/.config/autostart").arg(QDir::homePath());
+    }
+    QDir dir(autostartDir);
+    if (!dir.exists()) {
+        return;
+    }
+
+    for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
+        if (fi.isReadable()) {
+            QSettings settings(fi.absoluteFilePath(), QSettings::IniFormat);
+            settings.beginGroup("Desktop Entry");
+            if (!shouldAutoStart(settings)) {
+                continue;
+            }
+
+            QString tryExec = settings.value("TryExec").toString();
+            qDebug("Autostarting '%s'", qPrintable(tryExec));
+            QProcess::startDetached(tryExec);
+            settings.endGroup();
+        }
+    }
 }
 
 Compositor *Shell::compositor() const
