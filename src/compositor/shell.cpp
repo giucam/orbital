@@ -142,33 +142,55 @@ static bool shouldAutoStart(const QSettings &settings)
     return true;
 }
 
+static void populateAutostartList(QStringList &files, const QString &autostartDir)
+{
+    QDir dir(autostartDir);
+    if (dir.exists()) {
+        for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
+            QString path = fi.absoluteFilePath();
+            if (fi.isReadable() && !files.contains(path)) {
+                files << path;
+            }
+        }
+    }
+}
+
 void Shell::autostartClients()
 {
+    QStringList files;
+
     QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
-    QString autostartDir;
     if (!xdgConfigHome.isEmpty()) {
-        autostartDir = QString("%1/autostart").arg(xdgConfigHome);
+        populateAutostartList(files, QString("%1/autostart").arg(xdgConfigHome));
     } else {
-        autostartDir = QString("%1/.config/autostart").arg(QDir::homePath());
-    }
-    QDir dir(autostartDir);
-    if (!dir.exists()) {
-        return;
+        populateAutostartList(files, QString("%1/.config/autostart").arg(QDir::homePath()));
     }
 
-    for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
-        if (fi.isReadable()) {
-            QSettings settings(fi.absoluteFilePath(), QSettings::IniFormat);
-            settings.beginGroup("Desktop Entry");
-            if (!shouldAutoStart(settings)) {
-                continue;
-            }
-
-            QString tryExec = settings.value("TryExec").toString();
-            qDebug("Autostarting '%s'", qPrintable(tryExec));
-            QProcess::startDetached(tryExec);
-            settings.endGroup();
+    QString xdgConfigDirs = qgetenv("XDG_CONFIG_DIRS");
+    if (!xdgConfigDirs.isEmpty()) {
+        for (const QString &d: xdgConfigDirs.split(';')) {
+            populateAutostartList(files, QString("%1/autostart").arg(d));
         }
+    } else {
+        populateAutostartList(files, QString("/etc/xdg/autostart"));
+    }
+
+    for (const QString &fi: files) {
+        QSettings settings(fi, QSettings::IniFormat);
+        settings.beginGroup("Desktop Entry");
+        if (!shouldAutoStart(settings)) {
+            continue;
+        }
+
+        QString exec;
+        if (settings.contains("TryExec")) {
+            exec = settings.value("TryExec").toString();
+        } else {
+            exec = settings.value("Exec").toString();
+        }
+        qDebug("Autostarting '%s'", qPrintable(exec));
+        QProcess::startDetached(exec);
+        settings.endGroup();
     }
 }
 
