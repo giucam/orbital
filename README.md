@@ -1,22 +1,19 @@
 Orbital
 =======
 
-Orbital is a shell client for Wayland, made in Qt5, with the interface in
-QtQuick 2. It uses [Nuclear](https://github.com/nuclide/nuclear), a Weston
-shell plugin, as the compositor side but theoretically it could be made
-working with any other Wayland compositor, as long as it implements the
-necessary protocol.
-Its goal is to produce a light and self-contained shell running on Wayland,
-without mandatory dependencies aside Nuclear and Qt, but with some optional ones.
+Orbital is a Wayland compositor and shell, using Qt5 and Weston.
+The goal of the project is to build a simple yet flexible and good looking
+Wayland desktop. It is not a full fledged DE but rather the analogue of a WM
+in the X11 world, such as Awesome or Fluxbox.
 
 ## Dependencies
-Orbital depends on two things: [Nuclear](https://github.com/nuclide/nuclear) and Qt 5.2.
+Orbital depends on two things: Weston and Qt 5.
 Since it uses QtQuick 2 to draw the interface it will make use of OpenGL,
 so it is advisable to use a decent graphics driver, otherwise the performance
 will not be good.
-You also need QtWayland, preferably from git (branch 'stable') as Qt does not
-provide a Wayland backend by default. You do not need QtCompositor, the
-platform plugin is enough.
+Orbital currently needs a patched weston from [here](https://github.com/giucam/weston),
+branch libweston. You also need QtWayland, which is shipped with Qt starting with the 5.4 version.
+You do not need QtCompositor, the platform plugin is enough.
 There are also some optional dependencies: currently Orbital can use Solid from
 KDE Frameworks 5, ALSA and Logind, but it can also work without them, losing some
 functionality. You can enable or disable these dependencies by passing some options
@@ -33,16 +30,6 @@ sudo make install
 ```
 
 
-If *cmake* fails with the error `package 'nuclear' not found` but you do have
-[Nuclear](https://github.com/nuclide/nuclear) installed you may need to set
-the `PKG_CONFIG_PATH` environment variable to the right path
-(replacing *NUCLEAR_PREFIX* with the right path):
-```sh
-export PKG_CONFIG_PATH=NUCLEAR_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH
-cmake ..
-```
-
-
 Orbital will be installed in the */usr/local* prefix, unless you specified
 otherwise using the `CMAKE_INSTALL_PREFIX` variable:
 ```sh
@@ -50,9 +37,8 @@ cmake -DCMAKE_INSTALL_PREFIX=/my/prefix ..
 ```
 
 ## Running Orbital
-Now you can just run *orbital*, to run it. If you run it inside an X session
-it will run in windowed mode, otherwise running it from a tty will start its
-own dedicated session.
+Now you can just run *orbital*, to run it if you are inside an X or a Wayland
+session. To start its own dedicated session run *orbital-launch* from a tty.
 
 ## Configuring Orbital
 The first time you start Orbital it will load a default configuration. If you
