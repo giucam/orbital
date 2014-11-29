@@ -1,5 +1,4 @@
 pkg_check_modules(WaylandClient wayland-client REQUIRED)
-pkg_check_modules(Nuclear nuclear REQUIRED)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
@@ -18,7 +17,7 @@ endforeach(dir)
 set(SOURCES main.cpp)
 
 wayland_add_protocol_client(SOURCES
-    ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-desktop-shell.xml
+    ../../protocol/desktop-shell.xml
     desktop-shell
 )
 

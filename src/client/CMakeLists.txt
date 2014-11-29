@@ -23,7 +23,6 @@ function(INSTALL_ELEMENT _sources _dir)
 endfunction()
 
 pkg_check_modules(WaylandClient wayland-client REQUIRED)
-pkg_check_modules(Nuclear nuclear REQUIRED)
 
 find_package(Qt5Core)
 find_package(Qt5Gui)
@@ -67,7 +66,7 @@ wayland_add_protocol_client(SOURCES
     desktop-shell
 )
 wayland_add_protocol_client(SOURCES
-    ${Nuclear_PREFIX}/share/nuclear-shell/nuclear-settings.xml
+    ../../protocol/settings.xml
     settings
 )
 
