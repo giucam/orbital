@@ -161,6 +161,16 @@ void ShellView::configureTransient(View *parent, int x, int y)
     update();
 }
 
+void ShellView::configureXWayland(int x, int y)
+{
+    if (!isMapped()) {
+        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        wsv->configure(this);
+        setPos(x, y);
+    }
+    update();
+}
+
 void ShellView::cleanupAndUnmap()
 {
     if (m_blackSurface) {

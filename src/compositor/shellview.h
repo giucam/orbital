@@ -45,6 +45,7 @@ public:
     void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
     void configurePopup(View *parent, int x, int y);
     void configureTransient(View *parent, int x, int y);
+    void configureXWayland(int x, int y);
 
     void cleanupAndUnmap();
 

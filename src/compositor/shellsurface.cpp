@@ -163,6 +163,18 @@ void ShellSurface::setFullscreen()
     sendConfigure(rect.width(), rect.height());
 }
 
+void ShellSurface::setXWayland(int x, int y, bool inactive)
+{
+    // reuse the transient fields for XWayland
+    m_parent = nullptr;
+    m_transient.x = x;
+    m_transient.y = y;
+    m_transient.inactive = inactive;
+
+    disconnectParent();
+    m_nextType = Type::XWayland;
+}
+
 void ShellSurface::move(Seat *seat)
 {
     if (isFullscreen()) {
@@ -360,7 +372,7 @@ bool ShellSurface::isFullscreen() const
 
 bool ShellSurface::isInactive() const
 {
-    return m_type == Type::Transient && m_transient.inactive;
+    return (m_type == Type::Transient || m_type == Type::XWayland) && m_transient.inactive;
 }
 
 QRect ShellSurface::geometry() const
@@ -501,6 +513,10 @@ void ShellSurface::configure(int x, int y)
 
                 view->configureTransient(parentView, m_transient.x, m_transient.y);
             }
+        }
+    } else if (m_type == Type::XWayland) {
+        for (ShellView *view: m_views) {
+            view->configureXWayland(m_transient.x, m_transient.y);
         }
     }
     damage();

@@ -57,7 +57,8 @@ public:
         None = 0,
         Toplevel = 1,
         Popup = 2,
-        Transient = 3
+        Transient = 3,
+        XWayland = 4
     };
     enum class Edges {
         None = 0,
@@ -82,6 +83,7 @@ public:
     void setPopup(Surface *parent, Seat *seat, int x, int y);
     void setMaximized();
     void setFullscreen();
+    void setXWayland(int x, int y, bool inactive);
     void move(Seat *seat) override;
     void resize(Seat *seat, Edges edges);
     void unmap();
