@@ -20,7 +20,7 @@
 #ifndef ORBITAL_ZOOMEFFECT_H
 #define ORBITAL_ZOOMEFFECT_H
 
-#include "effect.h"
+#include "../effect.h"
 
 namespace Orbital {
 

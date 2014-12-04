@@ -33,7 +33,7 @@
 #include <QStandardPaths>
 #include <QFile>
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 #include "compositor.h"
 #include "backend.h"

@@ -22,12 +22,12 @@
 #include <wayland-server.h>
 
 #include "desktop-shell-workspace.h"
-#include "workspace.h"
-#include "utils.h"
-#include "output.h"
-#include "shell.h"
-#include "pager.h"
-#include "compositor.h"
+#include "../workspace.h"
+#include "../utils.h"
+#include "../output.h"
+#include "../shell.h"
+#include "../pager.h"
+#include "../compositor.h"
 #include "wayland-desktop-shell-server-protocol.h"
 
 namespace Orbital {

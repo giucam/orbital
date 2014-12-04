@@ -21,9 +21,9 @@
 #include <wayland-server-protocol.h>
 
 #include "wlshellsurface.h"
-#include "utils.h"
-#include "shellsurface.h"
-#include "seat.h"
+#include "../utils.h"
+#include "../shellsurface.h"
+#include "../seat.h"
 
 namespace Orbital {
 

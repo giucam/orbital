@@ -20,7 +20,7 @@
 #ifndef ORBITAL_WLSHELL_H
 #define ORBITAL_WLSHELL_H
 
-#include "interface.h"
+#include "../interface.h"
 
 struct wl_resource;
 

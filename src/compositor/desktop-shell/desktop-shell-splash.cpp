@@ -21,14 +21,14 @@
 
 #include <wayland-server.h>
 
-#include "shell.h"
-#include "compositor.h"
-#include "utils.h"
-#include "output.h"
-#include "layer.h"
-#include "view.h"
-#include "animation.h"
-#include "surface.h"
+#include "../shell.h"
+#include "../compositor.h"
+#include "../utils.h"
+#include "../output.h"
+#include "../layer.h"
+#include "../view.h"
+#include "../animation.h"
+#include "../surface.h"
 #include "desktop-shell-splash.h"
 #include "wayland-desktop-shell-server-protocol.h"
 

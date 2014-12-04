@@ -27,7 +27,7 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 
-#include <weston/compositor-drm.h>
+#include <compositor-drm.h>
 
 #include "drm-backend.h"
 

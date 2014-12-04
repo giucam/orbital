@@ -22,7 +22,7 @@
 
 #include <QPointer>
 
-#include "interface.h"
+#include "../interface.h"
 
 struct wl_resource;
 

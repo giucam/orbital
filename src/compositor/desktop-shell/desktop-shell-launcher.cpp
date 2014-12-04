@@ -21,18 +21,19 @@
 
 #include <wayland-server.h>
 #include <QDebug>
-#include "utils.h"
-#include "shell.h"
-#include "surface.h"
-#include "view.h"
-#include "compositor.h"
-#include "layer.h"
-#include "global.h"
-#include "binding.h"
-#include "seat.h"
-#include "output.h"
-#include "layer.h"
-#include "animation.h"
+
+#include "../utils.h"
+#include "../shell.h"
+#include "../surface.h"
+#include "../view.h"
+#include "../compositor.h"
+#include "../layer.h"
+#include "../global.h"
+#include "../binding.h"
+#include "../seat.h"
+#include "../output.h"
+#include "../layer.h"
+#include "../animation.h"
 #include "desktop-shell-launcher.h"
 #include "wayland-desktop-shell-server-protocol.h"
 

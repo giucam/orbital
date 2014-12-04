@@ -6,7 +6,8 @@ find_package(Qt5Core)
 
 set(CMAKE_AUTOMOC ON)
 
-include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1)
+include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 /usr/local/include/weston-1
+${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCES
     main.cpp
@@ -52,7 +53,7 @@ list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server weston weston-xwayland pixman-1)
+target_link_libraries(orbital wayland-server weston-1 weston-xwayland-1 pixman-1)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)
@@ -62,7 +63,7 @@ add_subdirectory(drm-backend)
 add_subdirectory(wayland-backend)
 
 add_executable(orbital-launch orbital-launch.cpp)
-target_link_libraries(orbital-launch weston-launcher)
+target_link_libraries(orbital-launch weston-launcher-1)
 set_target_properties(orbital-launch PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital-launch

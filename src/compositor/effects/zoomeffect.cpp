@@ -20,12 +20,12 @@
 #include <QDebug>
 
 #include "zoomeffect.h"
-#include "shell.h"
-#include "compositor.h"
-#include "global.h"
-#include "binding.h"
-#include "seat.h"
-#include "output.h"
+#include "../shell.h"
+#include "../compositor.h"
+#include "../global.h"
+#include "../binding.h"
+#include "../seat.h"
+#include "../output.h"
 
 namespace Orbital {
 

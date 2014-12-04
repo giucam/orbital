@@ -22,7 +22,7 @@
 
 #include <QSet>
 
-#include "interface.h"
+#include "../interface.h"
 
 struct wl_client;
 struct wl_resource;

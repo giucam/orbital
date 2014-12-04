@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston/compositor-wayland.h>
+#include <compositor-wayland.h>
 
 #include "wayland-backend.h"
 

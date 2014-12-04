@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 #include "screenshooter.h"
 #include "compositor.h"

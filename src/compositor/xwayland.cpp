@@ -31,7 +31,7 @@
 #include <QProcessEnvironment>
 #include <QDebug>
 
-#include <weston/xwayland.h>
+#include <xwayland.h>
 
 #include "xwayland.h"
 #include "shell.h"

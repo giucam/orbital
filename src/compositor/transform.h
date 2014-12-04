@@ -20,7 +20,7 @@
 #ifndef ORBITAL_TRANSFORM_H
 #define ORBITAL_TRANSFORM_H
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 namespace Orbital {
 

@@ -21,7 +21,7 @@
 
 #include <QDebug>
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 #include "seat.h"
 #include "compositor.h"

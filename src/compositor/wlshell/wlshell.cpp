@@ -22,11 +22,11 @@
 #include <wayland-server.h>
 #include <wayland-server-protocol.h>
 
-#include "shell.h"
+#include "../shell.h"
 #include "wlshell.h"
-#include "utils.h"
+#include "../utils.h"
 #include "wlshellsurface.h"
-#include "shellsurface.h"
+#include "../shellsurface.h"
 
 namespace Orbital {
 

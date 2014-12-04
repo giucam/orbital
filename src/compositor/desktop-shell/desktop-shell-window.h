@@ -22,7 +22,7 @@
 
 #include <wayland-server.h>
 
-#include "interface.h"
+#include "../interface.h"
 
 namespace Orbital {
 

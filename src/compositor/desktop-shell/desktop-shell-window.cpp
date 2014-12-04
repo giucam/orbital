@@ -24,13 +24,13 @@
 #include <QSettings>
 
 #include "desktop-shell-window.h"
-#include "shell.h"
-#include "shellsurface.h"
+#include "../shell.h"
+#include "../shellsurface.h"
 #include "desktop-shell.h"
-#include "seat.h"
-#include "compositor.h"
-#include "shellview.h"
-#include "layer.h"
+#include "../seat.h"
+#include "../compositor.h"
+#include "../shellview.h"
+#include "../layer.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 

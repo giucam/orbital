@@ -22,7 +22,7 @@
 
 #include <QDebug>
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 #include "shellsurface.h"
 #include "shell.h"

@@ -19,7 +19,7 @@
 
 #include <QDebug>
 
-#include <weston/compositor.h>
+#include <compositor.h>
 
 #include "surface.h"
 #include "view.h"

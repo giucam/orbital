@@ -40,7 +40,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <weston/weston-launcher.h>
+#include <weston-launcher.h>
 
 static void
 help(const char *name)
