@@ -148,7 +148,19 @@ static void populateAutostartList(QStringList &files, const QString &autostartDi
     if (dir.exists()) {
         for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
             QString path = fi.absoluteFilePath();
-            if (fi.isReadable() && !files.contains(path)) {
+            QString filename = fi.fileName();
+            bool add = true;
+            if (!fi.isReadable()) {
+                continue;
+            }
+
+            for (const QString &p: files) {
+                if (QFileInfo(p).fileName() == filename) {
+                    add = false;
+                    break;
+                }
+            }
+            if (add) {
                 files << path;
             }
         }
