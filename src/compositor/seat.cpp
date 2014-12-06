@@ -121,7 +121,7 @@ void Seat::deactivateSurface()
         m_activeSurface->deactivated(this);
         m_activeSurface = nullptr;
 
-        if (m_activeSurfaces.first()) {
+        if (!m_activeSurfaces.isEmpty()) {
             activate(m_activeSurfaces.first());
         }
     }
