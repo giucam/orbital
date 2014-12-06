@@ -78,10 +78,6 @@ Shell::Shell(Compositor *c)
     connect(m_nextWsBinding, &KeyBinding::triggered, this, &Shell::nextWs);
     connect(m_prevWsBinding, &KeyBinding::triggered, this, &Shell::prevWs);
 
-    for (Seat *s: c->seats()) {
-        connect(s, &Seat::activeSurfaceLost, [this, s]() { activateTopSurface(s); });
-    }
-
     autostartClients();
 }
 
@@ -445,21 +441,6 @@ void Shell::prevWs(Seat *s)
 {
     Output *o = selectPrimaryOutput(s);
     m_pager->activatePrevWorkspace(o);
-}
-
-void Shell::activateTopSurface(Seat *seat)
-{
-    for (Output *o: compositor()->outputs()) {
-        if (o->geometry().contains(seat->pointer()->x(), seat->pointer()->y())) {
-            Workspace *ws = o->currentWorkspace();
-            View *view = ws->topView();
-            if (!view) {
-                return;
-            }
-            seat->activate(view->surface());
-            return;
-        }
-    }
 }
 
 class Client

@@ -100,23 +100,31 @@ Surface *Seat::activate(Surface *surface)
 
     if (m_activeSurface) {
         emit m_activeSurface->deactivated(this);
-        disconnect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
     }
     m_activeSurface = surface;
     if (m_activeSurface) {
         emit m_activeSurface->activated(this);
         connect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
+
+        m_activeSurfaces.removeOne(surface);
+        m_activeSurfaces.prepend(surface);
     }
     return m_activeSurface;
 }
 
 void Seat::deactivateSurface()
 {
-    m_activeSurface->deactivated(this);
-    weston_surface_activate(nullptr, m_seat);
-    disconnect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
-    m_activeSurface = nullptr;
-    emit activeSurfaceLost();
+    Surface *surface = static_cast<Surface *>(sender());
+
+    m_activeSurfaces.removeOne(surface);
+    if (surface == m_activeSurface) {
+        m_activeSurface->deactivated(this);
+        m_activeSurface = nullptr;
+
+        if (m_activeSurfaces.first()) {
+            activate(m_activeSurfaces.first());
+        }
+    }
 }
 
 class Seat::PopupGrab : public PointerGrab

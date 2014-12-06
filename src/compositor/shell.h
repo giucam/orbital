@@ -67,7 +67,6 @@ public:
     void configure(ShellSurface *shsurf);
 
     void setGrabCursorSetter(GrabCursorSetter s);
-    void activateTopSurface(Seat *seat);
 
     void addTrustedClient(const QString &interface, wl_client *c);
     bool isClientTrusted(const QString &interface, wl_client *c) const;

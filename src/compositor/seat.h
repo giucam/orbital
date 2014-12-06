@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QPointF>
+#include <QLinkedList>
 
 struct wl_resource;
 struct weston_seat;
@@ -57,7 +58,6 @@ public:
     static Seat *fromResource(wl_resource *res);
 
 signals:
-    void activeSurfaceLost();
     void pointerMotion(Pointer *pointer);
 
 private:
@@ -68,6 +68,7 @@ private:
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
+    QLinkedList<Surface *> m_activeSurfaces;
     Surface *m_activeSurface;
     PopupGrab *m_popupGrab;
 };
