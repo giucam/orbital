@@ -153,8 +153,7 @@ void View::update()
 
 void View::unmap()
 {
-    weston_layer_entry_remove(&m_view->layer_link);
-    weston_view_damage_below(m_view);
+    weston_view_unmap(m_view);
 }
 
 wl_client *View::client() const
