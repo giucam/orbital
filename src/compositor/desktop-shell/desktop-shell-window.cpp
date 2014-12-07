@@ -49,6 +49,7 @@ DesktopShellWindow::~DesktopShellWindow()
 {
     if (m_resource) {
         desktop_shell_window_send_removed(m_resource);
+        wl_resource_set_implementation(m_resource, nullptr, nullptr, nullptr);
     }
     destroy();
 }
@@ -133,7 +134,10 @@ void DesktopShellWindow::create()
     };
 
     m_resource = wl_resource_create(m_desktopShell->client(), &desktop_shell_window_interface, 1, 0);
-    wl_resource_set_implementation(m_resource, &implementation, this, 0);
+    wl_resource_set_implementation(m_resource, &implementation, this, [](wl_resource *res) {
+        DesktopShellWindow *win = static_cast<DesktopShellWindow *>(wl_resource_get_user_data(res));
+        win->m_resource = nullptr;
+    });
 
     QString title = shsurf()->title();
     if (title.isEmpty()) {
