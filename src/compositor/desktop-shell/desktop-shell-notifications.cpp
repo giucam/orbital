@@ -105,11 +105,18 @@ public:
         static Surface::Role role;
 
         s->setRole(&role, [this](int x, int y) {
+            // All notifications (currently) come from the same client. If there are many
+            // notifications so that one or more is pushed offscreen, its weston_surface::output_mask
+            // will be 0, being outside the output. That means trying to repaint the surface or
+            // the view will not really repaint it, so the frame callbacks for that surface will
+            // not be sent, blocking the client.
+            // To solve it manually redraw all the outputs, this way we're sure the surface gets
+            // repainted and the frame callbacks sent.
+            for (Output *o: m_compositor->outputs()) {
+                o->repaint();
+            }
             if (!manager->m_notifications.contains(this)) {
                 manager->m_notifications.prepend(this);
-                for (NSView *v: m_views) {
-                    v->update();
-                }
                 manager->relayout();
             }
         });
