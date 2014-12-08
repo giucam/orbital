@@ -75,6 +75,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             , m_visible(false)
             , m_moving(false)
             , m_forceReposition(false)
+            , m_firstShow(true)
         {
             wl_resource_set_implementation(resource, nullptr, this, [](wl_resource *res) {
                 DropdownSurface *ds = static_cast<DropdownSurface *>(wl_resource_get_user_data(res));
@@ -130,8 +131,20 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             } else {
                 emit unmapped();
             }
-
-            animToPlace();
+            if (m_visible && m_firstShow) {
+                setOutput(dropdown->m_shell->selectPrimaryOutput());
+                updateGeometry();
+                m_firstShow = false;
+            } else {
+                animToPlace();
+            }
+        }
+        void setOutput(Output *o)
+        {
+            disconnect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+            m_output = o;
+            connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+            view->setTransformParent(m_output->rootView());
         }
         QPointF posWhen(bool visible)
         {
@@ -161,9 +174,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             m_start = view->pos();
 
             if (m_output != o) {
-                disconnect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
-                m_output = o;
-                connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+                setOutput(o);
                 updateGeometry();
             } else {
                 animToPlace();
@@ -233,6 +244,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         QPointF m_end;
         bool m_moving;
         bool m_forceReposition;
+        bool m_firstShow;
     };
 
     new DropdownSurface(this, ws, resource);
