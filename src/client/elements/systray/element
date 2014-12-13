@@ -1,0 +1,4 @@
+{
+    "prettyName": "System tray",
+    "qmlFile": "main.qml"
+}

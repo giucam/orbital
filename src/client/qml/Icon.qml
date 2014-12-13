@@ -29,8 +29,10 @@ Item {
 
     signal clicked()
     signal pressed()
+    signal entered()
     property string icon: ""
     property int iconFillMode: Image.PreserveAspectFit
+    readonly property bool containsMouse: mouseArea.containsMouse
 
     Item {
         id: icon
@@ -74,10 +76,11 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        propagateComposedEvents: true
 
-        onEntered: glow.opacity = 1
+        onEntered: { button.entered(); glow.opacity = 1 }
         onExited: glow.opacity = 0
         onPressed: button.pressed()
-        onClicked: button.clicked()
+        onClicked: { mouse.accepted = false; button.clicked() }
     }
 }
