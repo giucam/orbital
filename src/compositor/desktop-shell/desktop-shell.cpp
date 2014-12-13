@@ -131,7 +131,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     for (ShellSurface *shsurf: m_shell->surfaces()) {
         DesktopShellWindow *w = shsurf->findInterface<DesktopShellWindow>();
         if (w) {
-            w->recreate();
+            w->create();
         }
     }
     for (Output *o: m_shell->compositor()->outputs()) {

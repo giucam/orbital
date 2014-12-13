@@ -78,9 +78,7 @@ void DesktopShellWindow::mapped()
         return;
     }
 
-    if (shsurf()->type() == ShellSurface::Type::Toplevel) {
-        create();
-    }
+    create();
 }
 
 void DesktopShellWindow::surfaceTypeChanged()
@@ -119,16 +117,13 @@ void DesktopShellWindow::restored()
     sendState();
 }
 
-void DesktopShellWindow::recreate()
-{
-    if (m_resource) {
-        create();
-    }
-}
-
 void DesktopShellWindow::create()
 {
     if (!m_desktopShell->resource()) {
+        return;
+    }
+
+    if (shsurf()->type() != ShellSurface::Type::Toplevel) {
         return;
     }
 

@@ -37,14 +37,13 @@ public:
     DesktopShellWindow(DesktopShell *ds);
     ~DesktopShellWindow();
 
-    void recreate();
+    void create();
 
 protected:
     virtual void added() override;
 
 private:
     ShellSurface *shsurf();
-    void create();
     void surfaceTypeChanged();
     void activated(Seat *seat);
     void deactivated(Seat *seat);
