@@ -128,6 +128,10 @@ void DesktopShellWindow::recreate()
 
 void DesktopShellWindow::create()
 {
+    if (!m_desktopShell->resource()) {
+        return;
+    }
+
     static const struct desktop_shell_window_interface implementation = {
         wrapInterface(&DesktopShellWindow::setState),
         wrapInterface(&DesktopShellWindow::close)

@@ -144,6 +144,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
 
 void DesktopShell::clientExited()
 {
+    m_resource = nullptr;
     m_grabView = nullptr;
     m_loaded = false;
     m_pingTimer.stop();
