@@ -82,12 +82,13 @@ public:
     Q_INVOKABLE void create()
     {
         QQuickWindow::setDefaultAlphaBuffer(true);
+        m_matcher = new MatcherModel;
         m_window = new QQuickView;
         m_window->setColor(Qt::transparent);
         m_window->setFlags(Qt::BypassWindowManagerHint);
         m_window->rootContext()->setContextProperty("availableWidth", 0.);
         m_window->rootContext()->setContextProperty("availableHeight", 0.);
-        m_window->rootContext()->setContextProperty("matcherModel", new MatcherModel);
+        m_window->rootContext()->setContextProperty("matcherModel", m_matcher);
         m_window->setSource(QUrl("qrc:///launcher.qml"));
         connect(m_window->rootObject(), SIGNAL(selected(QString, QString)), this, SLOT(run(QString, QString)));
         m_window->show();
@@ -114,7 +115,13 @@ private slots:
     {
         QStringList args = fullLine.split(' ');
         args.removeFirst();
-        QProcess::startDetached(exec, args);
+        if (QProcess::startDetached(exec, args)) {
+            QString fullCommand = exec;
+            for (const QString &arg: args) {
+                fullCommand += QString(" %1").arg(arg);
+            }
+            m_matcher->addInHistory(fullCommand);
+        }
         orbital_launcher_surface_done(m_surface);
     }
 
@@ -124,6 +131,7 @@ private:
     orbital_launcher *m_launcher;
     orbital_launcher_surface *m_surface;
     QQuickView *m_window;
+    MatcherModel *m_matcher;
 
     static const wl_registry_listener s_registryListener;
     static const orbital_launcher_surface_listener s_launcherListener;

@@ -80,11 +80,21 @@ void MatcherModel::matchExpression()
 
     QStringList matches;
     for (const QString &entry: m_items) {
-        if (entry.startsWith(m_expression)) {
+        if (entry == m_expression) {
+            matches.prepend(entry);
+        } else if (entry.startsWith(m_expression)) {
             matches.append(entry);
         }
     }
     beginInsertRows(QModelIndex(), 0, matches.count());
     m_matches = matches;
     endInsertRows();
+}
+
+void MatcherModel::addInHistory(const QString &command)
+{
+    if (!command.isEmpty()) {
+        m_items.removeOne(command);
+        m_items.prepend(command);
+    }
 }
