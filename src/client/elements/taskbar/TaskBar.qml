@@ -79,6 +79,8 @@ Element {
 
                     Behavior on x { PropertyAnimation { } }
                     Behavior on y { PropertyAnimation { } }
+                    Behavior on width { enabled: orientation == Qt.Horizontal; PropertyAnimation {} }
+                    Behavior on height {  enabled: orientation != Qt.Horizontal; PropertyAnimation {} }
                 }
             }
         }

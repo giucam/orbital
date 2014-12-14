@@ -25,11 +25,12 @@ Item {
     id: item
     property variant window
     property variant screen
+    property bool shrinked: false
 
     Layout.minimumWidth: 10
-    Layout.preferredWidth: 200
+    Layout.preferredWidth: shrinked ? height : 200
     Layout.minimumHeight: 10
-    Layout.preferredHeight: 200
+    Layout.preferredHeight: shrinked ? width : 200
 
     StyleItem {
         id: style
@@ -43,7 +44,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         onClicked: {
             if (mouse.button == Qt.LeftButton) {
                 var state = window.state;
@@ -56,6 +57,8 @@ Item {
                     state |= Window.Active
                 }
                 window.setState(item.screen, state);
+            } else if (mouse.button == Qt.MiddleButton) {
+                item.shrinked = !item.shrinked;
             } else {
                 menu.popup();
             }
