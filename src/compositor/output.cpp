@@ -95,6 +95,7 @@ Output::~Output()
 
     qDeleteAll(m_panels);
     qDeleteAll(m_overlays);
+    delete m_lockSurfaceView;
 
     wl_list_remove(&m_listener->listener.link);
     delete m_listener;
