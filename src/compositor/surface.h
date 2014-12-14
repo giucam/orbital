@@ -61,6 +61,9 @@ public:
     Role *role() const;
     ConfigureHandler configureHandler() const;
 
+    void setWorkspaceMask(int mask);
+    int workspaceMask() const { return m_workspaceMask; }
+
     void setActivable(bool activable);
     inline bool isActivable() const { return m_activable; }
 
@@ -87,6 +90,7 @@ private:
     Listener *m_listener;
     bool m_activable;
     QList<View *> m_views;
+    int m_workspaceMask;
 
     friend View;
 };

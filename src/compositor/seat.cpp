@@ -29,6 +29,7 @@
 #include "view.h"
 #include "shell.h"
 #include "global.h"
+#include "workspace.h"
 
 namespace Orbital {
 
@@ -110,6 +111,18 @@ Surface *Seat::activate(Surface *surface)
         m_activeSurfaces.prepend(surface);
     }
     return m_activeSurface;
+}
+
+void Seat::activate(Workspace *ws)
+{
+    Surface *surface = nullptr;
+    for (Surface *s: m_activeSurfaces) {
+        if (s->workspaceMask() & ws->mask()) {
+            surface = s;
+            break;
+        }
+    }
+    activate(surface);
 }
 
 void Seat::deactivateSurface()

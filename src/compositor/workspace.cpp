@@ -81,6 +81,11 @@ int Workspace::id() const
     return m_id;
 }
 
+int Workspace::mask() const
+{
+    return 1 << m_id;
+}
+
 
 class Root : public DummySurface
 {

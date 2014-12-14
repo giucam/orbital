@@ -26,6 +26,7 @@
 #include "dummysurface.h"
 #include "animation.h"
 #include "shell.h"
+#include "seat.h"
 
 namespace Orbital {
 
@@ -147,7 +148,21 @@ void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
     }
 
     root->active = wsv;
+    Workspace *oldWs = output->m_currentWs;
+    if (oldWs) {
+        oldWs->m_outputs.removeOne(output);
+    }
+
     output->m_currentWs = wsv->workspace();
+    wsv->workspace()->m_outputs << output;
+
+    if (oldWs && !oldWs->outputs().isEmpty()) {
+        return;
+    }
+
+    for (Seat *seat: m_compositor->seats()) {
+        seat->activate(wsv->workspace());
+    }
 }
 
 void Pager::updateWorkspacesPosition(Output *output)

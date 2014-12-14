@@ -38,6 +38,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_configureHandler(nullptr)
        , m_listener(new Listener)
        , m_activable(true)
+       , m_workspaceMask(0)
 {
     if (surface->configure) {
         qFatal("Error: trying to create a Surface for an already taken weston_surface.");
@@ -111,6 +112,11 @@ Surface::Role *Surface::role() const
 Surface::ConfigureHandler Surface::configureHandler() const
 {
     return m_configureHandler;
+}
+
+void Surface::setWorkspaceMask(int mask)
+{
+    m_workspaceMask = mask;
 }
 
 void Surface::setActivable(bool activable)

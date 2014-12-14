@@ -38,6 +38,7 @@ class Pointer;
 class View;
 class Surface;
 class ShellSurface;
+class Workspace;
 enum class PointerButton : unsigned char;
 
 class Seat : public QObject
@@ -50,6 +51,7 @@ public:
     Compositor *compositor() const;
     Pointer *pointer() const;
 
+    void activate(Workspace *ws);
     Surface *activate(Surface *surface);
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);

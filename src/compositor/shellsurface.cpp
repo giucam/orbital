@@ -73,6 +73,7 @@ ShellView *ShellSurface::viewForOutput(Output *o)
 void ShellSurface::setWorkspace(Workspace *ws)
 {
     m_workspace = ws;
+    setWorkspaceMask(ws->mask());
 }
 
 Compositor *ShellSurface::compositor() const

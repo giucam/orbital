@@ -40,6 +40,7 @@ class Pager;
 class Surface;
 class Root;
 
+// Due to mask() being an int, we can have up to 31 workspaces
 class Workspace : public Object
 {
     Q_OBJECT
@@ -49,12 +50,14 @@ public:
     Workspace(Shell *shell, int id);
     ~Workspace();
 
+    QList<Output *> outputs() const { return m_outputs; }
     Compositor *compositor() const;
     Pager *pager() const;
     WorkspaceView *viewForOutput(Output *o);
     View *topView() const;
 
     int id() const;
+    int mask() const;
     int x() const;
     int y() const;
     void setX(int x);
@@ -66,6 +69,9 @@ private:
     int m_x;
     int m_y;
     QHash<int, WorkspaceView *> m_views;
+    QList<Output *> m_outputs;
+
+    friend Pager;
 };
 
 class WorkspaceView
