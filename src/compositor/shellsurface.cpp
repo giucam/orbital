@@ -47,6 +47,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false })
             , m_transient({ 0, 0, false })
+            , m_state({ QSize(), false, false })
 {
     static Role role;
     setRole(&role, [this](int x, int y) { configure(x, y); });
