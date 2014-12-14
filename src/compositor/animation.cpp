@@ -61,7 +61,7 @@ void Animation::run(Output *output, uint32_t duration, Animation::Flags flags)
 {
     stop();
 
-    if (!output) {
+    if (!output || duration == 0) {
         emit update(m_target);
         if (flags & Flags::SendDone) {
             emit done();
