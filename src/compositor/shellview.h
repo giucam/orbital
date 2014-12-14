@@ -41,6 +41,7 @@ public:
     ShellSurface *surface() const;
 
     void setDesignedOutput(Output *o);
+    void move(const QPointF &p);
     void setInitialPos(const QPointF &p);
     void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
     void configurePopup(View *parent, int x, int y);
@@ -55,6 +56,7 @@ private:
     ShellSurface *m_surface;
     Output *m_designedOutput;
     QPointF m_initialPos;
+    bool m_initialPosSet;
     QPointF m_savedPos;
     bool m_posSaved;
     BlackSurface *m_blackSurface;

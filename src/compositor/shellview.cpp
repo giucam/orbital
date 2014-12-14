@@ -65,7 +65,7 @@ ShellView::ShellView(ShellSurface *surf)
          : View(surf)
          , m_surface(surf)
          , m_designedOutput(nullptr)
-         , m_initialPos(-1, -1)
+         , m_initialPosSet(false)
          , m_posSaved(false)
          , m_blackSurface(nullptr)
 {
@@ -90,6 +90,14 @@ void ShellView::setDesignedOutput(Output *o)
 void ShellView::setInitialPos(const QPointF &p)
 {
     m_initialPos = p;
+    m_initialPosSet = true;
+}
+
+void ShellView::move(const QPointF &p)
+{
+    m_initialPos = p;
+    m_initialPosSet = true;
+    setPos(p);
 }
 
 void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy)
@@ -115,7 +123,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
             } else if (dx || dy) {
                 setPos(x() + dx, y() + dy);
             } else if (!isMapped()) {
-                if (m_initialPos.x() < 0 || m_initialPos.y() < 0) {
+                if (!m_initialPosSet) {
                     setPos(20, 100);
                 } else {
                     setPos(m_initialPos);

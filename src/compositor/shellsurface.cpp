@@ -194,8 +194,8 @@ void ShellSurface::move(Seat *seat)
             int moveX = x + dx;
             int moveY = y + dy;
 
-            for (View *view: shsurf->m_views) {
-                view->setPos(moveX, moveY);
+            for (ShellView *view: shsurf->m_views) {
+                view->move(QPointF(moveX, moveY));
             }
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
