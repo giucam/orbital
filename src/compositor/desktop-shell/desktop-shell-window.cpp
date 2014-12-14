@@ -151,7 +151,13 @@ void DesktopShellWindow::create()
     QString icon;
     if (!shsurf()->appId().isEmpty()) {
         QString appId = shsurf()->appId().replace('-', '/');
-        static QString xdgDataDir = qgetenv("XDG_DATA_DIRS");
+        static QString xdgDataDir = []() {
+            QString s = qgetenv("XDG_DATA_DIRS");
+            if (s.isEmpty()) {
+                s = QStringLiteral("/usr/share");
+            }
+            return s;
+        }();
         for (const QString &d: xdgDataDir.split(':')) {
             QString path = QString("%1/applications/%2").arg(d).arg(appId);
             if (QFile::exists(path)) {
