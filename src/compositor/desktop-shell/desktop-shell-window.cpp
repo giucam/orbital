@@ -31,6 +31,8 @@
 #include "../compositor.h"
 #include "../shellview.h"
 #include "../layer.h"
+#include "../output.h"
+#include "../pager.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -190,7 +192,7 @@ void DesktopShellWindow::sendTitle()
     }
 }
 
-void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int32_t state)
+void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_resource *output, int32_t state)
 {
     ShellSurface *s = shsurf();
     Seat *seat = m_desktopShell->compositor()->seats().first();
@@ -204,6 +206,8 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, int3
     }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
+        Pager *p = m_desktopShell->shell()->pager();
+        p->activate(s->workspace(), Output::fromResource(output));
         seat->activate(s);
         for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);

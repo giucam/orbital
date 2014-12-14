@@ -75,6 +75,7 @@ Element {
 
                 TaskBarItem {
                     window: modelData
+                    screen: taskbar.screen
 
                     Behavior on x { PropertyAnimation { } }
                     Behavior on y { PropertyAnimation { } }

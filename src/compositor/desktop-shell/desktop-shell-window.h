@@ -53,7 +53,7 @@ private:
     void destroy();
     void sendState();
     void sendTitle();
-    void setState(wl_client *client, wl_resource *resource, int32_t state);
+    void setState(wl_client *client, wl_resource *resource, wl_resource *output, int32_t state);
     void close(wl_client *client, wl_resource *resource);
 
     DesktopShell *m_desktopShell;

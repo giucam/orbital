@@ -24,6 +24,7 @@ import QtQuick.Controls 1.0
 Item {
     id: item
     property variant window
+    property variant screen
 
     Layout.minimumWidth: 10
     Layout.preferredWidth: 200
@@ -54,7 +55,7 @@ Item {
                 if (!window.isActive()) {
                     state |= Window.Active
                 }
-                window.state = state;
+                window.setState(item.screen, state);
             } else {
                 menu.popup();
             }

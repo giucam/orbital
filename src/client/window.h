@@ -25,12 +25,14 @@
 struct desktop_shell_window;
 struct desktop_shell_window_listener;
 
+class UiScreen;
+
 class Window : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(QString icon READ icon NOTIFY iconChanged);
-    Q_PROPERTY(States state READ state WRITE setState NOTIFY stateChanged)
+    Q_PROPERTY(States state READ state NOTIFY stateChanged)
 public:
     enum State {
         Inactive = 0,
@@ -50,15 +52,12 @@ public:
     inline QString icon() const { return m_icon; }
 
     inline States state() const { return m_state; }
-    void setState(States state);
+    Q_INVOKABLE void setState(UiScreen *screen, States state);
 
     Q_INVOKABLE bool isActive() const;
     Q_INVOKABLE bool isMinimized() const;
 
 public slots:
-    void activate();
-    void minimize();
-    void unminimize();
     void close();
 
 signals:

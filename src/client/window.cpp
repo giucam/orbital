@@ -22,6 +22,8 @@
 #include "window.h"
 #include "wayland-desktop-shell-client-protocol.h"
 #include "utils.h"
+#include "client.h"
+#include "uiscreen.h"
 
 static Window::States wlState2State(int32_t state)
 {
@@ -94,9 +96,10 @@ void Window::setTitle(const QString &t)
     emit titleChanged();
 }
 
-void Window::setState(States state)
+void Window::setState(UiScreen *screen, States state)
 {
-    desktop_shell_window_set_state(m_window, state2WlState(state));
+    wl_output *o = Client::client()->nativeOutput(screen->screen());
+    desktop_shell_window_set_state(m_window, o, state2WlState(state));
 }
 
 bool Window::isActive() const
@@ -107,27 +110,6 @@ bool Window::isActive() const
 bool Window::isMinimized() const
 {
     return m_state & Minimized;
-}
-
-void Window::activate()
-{
-    if (!(m_state & Window::Active)) {
-        setState(m_state | Window::Active);
-    }
-}
-
-void Window::minimize()
-{
-    if (!(m_state & Window::Minimized)) {
-        setState(m_state | Window::Minimized);
-    }
-}
-
-void Window::unminimize()
-{
-    if (m_state & Window::Minimized) {
-        setState(m_state & ~Window::Minimized);
-    }
 }
 
 void Window::close()

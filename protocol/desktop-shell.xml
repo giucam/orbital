@@ -210,6 +210,7 @@
 
     <interface name="desktop_shell_window" version="1">
         <request name="set_state">
+            <arg name="output" type="object" interface="wl_output"/>
             <arg name="state" type="int"/>
         </request>
         <request name="close"/>
