@@ -53,11 +53,12 @@ QString MatcherModel::expression() const
 
 void MatcherModel::setExpression(const QString &expr)
 {
-    if (m_expression == expr) {
+    QString e = expr.split(' ').first();
+    if (m_expression == e) {
         return;
     }
 
-    m_expression = expr;
+    m_expression = e;
     matchExpression();
 }
 

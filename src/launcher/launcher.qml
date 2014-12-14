@@ -24,7 +24,7 @@ import QtQuick.Controls.Styles 1.2
 Rectangle {
     id: root
     color: "white"
-    signal selected(string exec)
+    signal selected(string exec, string line)
 
     function reset() {
         text.text = ""
@@ -47,7 +47,7 @@ Rectangle {
             matcherModel.expression = text.text;
         }
         onAccepted: {
-            root.selected(view.currentItem.text)
+            root.selected(view.currentItem.text, text.text)
         }
 
         Keys.onDownPressed: {
@@ -63,7 +63,7 @@ Rectangle {
             event.accepted = true;
         }
         Keys.onEscapePressed: {
-            root.selected("")
+            root.selected("", "")
             event.accepted = true;
         }
         Keys.onPressed: {

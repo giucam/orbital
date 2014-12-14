@@ -89,7 +89,7 @@ public:
         m_window->rootContext()->setContextProperty("availableHeight", 0.);
         m_window->rootContext()->setContextProperty("matcherModel", new MatcherModel);
         m_window->setSource(QUrl("qrc:///launcher.qml"));
-        connect(m_window->rootObject(), SIGNAL(selected(QString)), this, SLOT(run(QString)));
+        connect(m_window->rootObject(), SIGNAL(selected(QString, QString)), this, SLOT(run(QString, QString)));
         m_window->show();
         wl_surface *wlSurface = static_cast<wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_window));
         m_surface = orbital_launcher_get_launcher_surface(m_launcher, wlSurface);
@@ -110,9 +110,11 @@ public:
     }
 
 private slots:
-    void run(const QString &exec)
+    void run(const QString &exec, const QString &fullLine)
     {
-        QProcess::startDetached(exec);
+        QStringList args = fullLine.split(' ');
+        args.removeFirst();
+        QProcess::startDetached(exec, args);
         orbital_launcher_surface_done(m_surface);
     }
 
