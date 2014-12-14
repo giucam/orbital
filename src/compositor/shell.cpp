@@ -183,6 +183,11 @@ void Shell::autostartClients()
         populateAutostartList(files, QString("/etc/xdg/autostart"));
     }
 
+    QDir outputDir = QDir::temp();
+    QString dirName = QString("orbital-%1").arg(getpid());
+    outputDir.mkdir(dirName);
+    outputDir.cd(dirName);
+
     for (const QString &fi: files) {
         QSettings settings(fi, QSettings::IniFormat);
         settings.beginGroup("Desktop Entry");
@@ -197,6 +202,13 @@ void Shell::autostartClients()
             exec = settings.value("Exec").toString();
         }
         qDebug("Autostarting '%s'", qPrintable(exec));
+
+        QProcess *proc = new QProcess(this);
+        QString bin = exec.split(' ').first();
+        proc->setStandardOutputFile(outputDir.filePath(bin));
+        proc->setStandardErrorFile(outputDir.filePath(bin));
+        proc->start(exec);
+
         QProcess::startDetached(exec);
         settings.endGroup();
     }
