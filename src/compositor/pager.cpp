@@ -48,6 +48,11 @@ public:
         connect(&animation, &Animation::update, this, &Root::updateAnim);
     }
 
+    ~Root()
+    {
+        delete ds;
+    }
+
     void updateAnim(double v)
     {
         QPointF pos(start * (1. - v) + end * v);
@@ -76,6 +81,7 @@ Pager::Pager(Compositor *c)
         m_roots.insert(o->id(), new Root(o, c));
     }
     connect(c, &Compositor::outputCreated, this, &Pager::outputCreated);
+    connect(c, &Compositor::outputRemoved, this, &Pager::outputRemoved);
 }
 
 void Pager::addWorkspace(Workspace *ws)
@@ -184,6 +190,12 @@ void Pager::outputCreated(Output *o)
 
     Workspace *ws = m_compositor->shell()->workspaces().first();
     activate(ws->viewForOutput(o), o, false);
+}
+
+void Pager::outputRemoved(Output *o)
+{
+    Root *root = m_roots.take(o->id());
+    delete root;
 }
 
 }

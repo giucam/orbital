@@ -39,7 +39,7 @@ Workspace::Workspace(Shell *shell, int id)
          , m_shell(shell)
          , m_id(id)
 {
-
+    connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
 }
 
 Workspace::~Workspace()
@@ -84,6 +84,12 @@ int Workspace::id() const
 int Workspace::mask() const
 {
     return 1 << m_id;
+}
+
+void Workspace::outputRemoved(Output *o)
+{
+    m_outputs.removeOne(o);
+    delete m_views.take(o->id());
 }
 
 

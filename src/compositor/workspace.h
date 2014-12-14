@@ -64,6 +64,8 @@ public:
     void setY(int y);
 
 private:
+    void outputRemoved(Output *o);
+
     Shell *m_shell;
     int m_id;
     int m_x;

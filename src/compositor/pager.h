@@ -50,6 +50,7 @@ signals:
 private:
     void activate(WorkspaceView *wsv, Output *o, bool animate);
     void outputCreated(Output *o);
+    void outputRemoved(Output *o);
     void changeWorkspace(Output *o, int d);
 
     class Root;
