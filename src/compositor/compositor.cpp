@@ -229,6 +229,8 @@ bool Compositor::init(const QString &socketName)
     m_stickyLayer = new Layer(m_panelsLayer);
     m_appsLayer = new Layer(m_stickyLayer);
     m_backgroundLayer = new Layer(m_appsLayer);
+    m_minimizedLayer = new Layer(m_backgroundLayer);
+    m_minimizedLayer->setMask(0, 0, 0, 0);
 
     m_compositor->kb_repeat_rate = 40;
     m_compositor->kb_repeat_delay = 400;
@@ -413,6 +415,11 @@ Layer *Compositor::appsLayer() const
 Layer *Compositor::backgroundLayer() const
 {
     return m_backgroundLayer;
+}
+
+Layer *Compositor::minimizedLayer() const
+{
+    return m_minimizedLayer;
 }
 
 QList<Output *> Compositor::outputs() const

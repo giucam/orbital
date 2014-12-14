@@ -474,7 +474,7 @@ void ShellSurface::configure(int x, int y)
             m_width = rect.width();
         }
 
-        bool map = !isMapped() || m_state.maximized != m_toplevel.maximized || m_state.fullscreen != m_toplevel.fullscreen ||
+        bool map = m_state.maximized != m_toplevel.maximized || m_state.fullscreen != m_toplevel.fullscreen ||
                    m_state.size != rect.size() || m_forceMap;
         m_forceMap = false;
         m_state.size = rect.size();
@@ -482,7 +482,7 @@ void ShellSurface::configure(int x, int y)
         m_state.fullscreen = m_toplevel.fullscreen;
 
         for (ShellView *view: m_views) {
-            view->configureToplevel(map, m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
+            view->configureToplevel(map || !view->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup && typeChanged) {
         ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);

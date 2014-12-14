@@ -27,6 +27,7 @@
 #include "transform.h"
 #include "layer.h"
 #include "surface.h"
+#include "compositor.h"
 
 namespace Orbital {
 
@@ -154,6 +155,8 @@ void View::update()
 void View::unmap()
 {
     weston_view_unmap(m_view);
+    Compositor *c = Compositor::fromCompositor(m_view->surface->compositor);
+    c->minimizedLayer()->addView(this);
 }
 
 wl_client *View::client() const
