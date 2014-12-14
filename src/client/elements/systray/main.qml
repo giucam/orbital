@@ -25,26 +25,26 @@ Element {
     id: root
 
     property int baseLength: 20
-    Layout.preferredWidth: list.width
-    Layout.preferredHeight: list.height
+    Layout.preferredWidth: list.count * baseLength + 6
+    Layout.preferredHeight: Layout.preferredWidth
 
-    width: Layout.preferredWidth
-    height: Layout.preferredHeight
+    width: horizontal ? Layout.preferredWidth : baseLength
+    height: horizontal ? baseLength : Layout.preferredHeight
     property bool horizontal: location == 0 || location == 2 || location == 4
 
     property var service: Client.service("StatusNotifierService")
 
     contentItem: ListView {
         id: list
-        width: horizontal ? count * root.baseLength + 6 : root.baseLength
-        height: horizontal ? root.baseLength : count * root.baseLength + 6
+        anchors.fill: parent
         orientation: root.horizontal ? ListView.Horizontal : ListView.Vertical
         model: service.items
         spacing: 3
 
         delegate: MouseArea {
-            width: root.baseLength
-            height: root.baseLength
+            width: horizontal ? root.baseLength : list.width
+            height: horizontal ? list.height : root.baseLength
+            property int size: Math.min(width, height)
             hoverEnabled: true
 
             Icon {
