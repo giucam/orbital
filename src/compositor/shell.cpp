@@ -305,7 +305,7 @@ void Shell::unlock()
 
 void Shell::configure(ShellSurface *shsurf)
 {
-    if (!shsurf->isMapped()) {
+    if (!shsurf->isMapped() && !shsurf->workspace()) {
         Output *output = selectPrimaryOutput();
         shsurf->setWorkspace(output->currentWorkspace());
 
