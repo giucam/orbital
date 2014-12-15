@@ -77,6 +77,8 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             , m_forceReposition(false)
             , m_firstShow(true)
         {
+            setWorkspaceMask(-1);
+
             wl_resource_set_implementation(resource, nullptr, this, [](wl_resource *res) {
                 DropdownSurface *ds = static_cast<DropdownSurface *>(wl_resource_get_user_data(res));
                 delete ds->view;

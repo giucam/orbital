@@ -117,7 +117,7 @@ void Seat::activate(Workspace *ws)
 {
     Surface *surface = nullptr;
     for (Surface *s: m_activeSurfaces) {
-        if (s->workspaceMask() & ws->mask()) {
+        if (s->workspaceMask() & ws->mask() || s->workspaceMask() == -1) {
             surface = s;
             break;
         }
