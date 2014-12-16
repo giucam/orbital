@@ -38,7 +38,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_configureHandler(nullptr)
        , m_listener(new Listener)
        , m_activable(true)
-       , m_workspaceMask(0)
+       , m_workspaceMask(-1)
 {
     if (surface->configure) {
         qFatal("Error: trying to create a Surface for an already taken weston_surface.");
