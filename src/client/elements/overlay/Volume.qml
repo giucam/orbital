@@ -35,6 +35,7 @@ Rectangle {
     color: "dimgrey"
     radius: 4
     opacity: 0
+    visible: opacity > 0
 
     Behavior on opacity { PropertyAnimation { duration: 300 } }
 
