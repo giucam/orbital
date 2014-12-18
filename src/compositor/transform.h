@@ -20,6 +20,8 @@
 #ifndef ORBITAL_TRANSFORM_H
 #define ORBITAL_TRANSFORM_H
 
+#include <QDebug>
+
 #include <compositor.h>
 
 namespace Orbital {
@@ -44,7 +46,19 @@ private:
     weston_view *m_view;
 
     friend View;
+    friend QDebug operator<<(QDebug dbg, const Transform &t);
 };
+
+inline QDebug operator<<(QDebug dbg, const Transform &t)
+{
+    dbg.nospace() << "Transform(";
+    for (int i = 0; i < 16; ++i) {
+        dbg.space() << t.m_transform.matrix.d[i];
+    }
+    dbg.nospace() << ")";
+
+    return dbg.space();
+}
 
 }
 
