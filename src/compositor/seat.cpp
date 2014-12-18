@@ -30,6 +30,7 @@
 #include "shell.h"
 #include "global.h"
 #include "workspace.h"
+#include "output.h"
 
 namespace Orbital {
 
@@ -134,8 +135,19 @@ void Seat::deactivateSurface()
         m_activeSurface->deactivated(this);
         m_activeSurface = nullptr;
 
-        if (!m_activeSurfaces.isEmpty()) {
-            activate(m_activeSurfaces.first());
+        if (m_activeSurfaces.isEmpty()) {
+            return;
+        }
+
+        int mask = 0;
+        for (Output *out: m_compositor->outputs()) {
+            mask |= out->currentWorkspace()->mask();
+        }
+        for (Surface *surf: m_activeSurfaces) {
+            if (surf->workspaceMask() & mask) {
+                activate(surf);
+                break;
+            }
         }
     }
 }
