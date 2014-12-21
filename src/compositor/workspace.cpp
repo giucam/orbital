@@ -31,6 +31,7 @@
 #include "dummysurface.h"
 #include "shellview.h"
 #include "pager.h"
+#include "transform.h"
 
 namespace Orbital {
 
@@ -133,9 +134,20 @@ QPoint WorkspaceView::pos() const
     return QPoint(m_root->view->x(), m_root->view->y());
 }
 
+QPoint WorkspaceView::logicalPos() const
+{
+    return QPoint(m_root->view->x() / m_output->width(), m_root->view->y() / m_output->height());
+}
+
+bool WorkspaceView::ownsView(View *view) const
+{
+    Layer *l = view->layer();
+    return l == m_layer || l == m_backgroundLayer || l == m_fullscreenLayer;
+}
+
 void WorkspaceView::setPos(int x, int y)
 {
-    m_root->view->setPos(x, y);
+    m_root->view->setPos(x * m_output->width(), y * m_output->height());
 }
 
 void WorkspaceView::setTransformParent(View *p)
@@ -160,11 +172,29 @@ void WorkspaceView::setBackground(Surface *s)
     m_backgroundLayer->addView(m_background);
 }
 
-void WorkspaceView::setMask(const QRect &r)
+void WorkspaceView::resetMask()
 {
+    m_root->view->update();
+    setMask(QRect(m_root->view->mapToGlobal(QPointF(0, 0)).toPoint(), m_output->geometry().size()));
+}
+
+void WorkspaceView::setMask(const QRect &m)
+{
+    QRect r = m_output->geometry().intersected(m);
     m_backgroundLayer->setMask(r.x(), r.y(), r.width(), r.height());
     m_layer->setMask(r.x(), r.y(), r.width(), r.height());
     m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
+}
+
+void WorkspaceView::setTransform(const Transform &tf)
+{
+    m_root->view->setTransform(tf);
+    m_output->repaint();
+}
+
+const Transform &WorkspaceView::transform() const
+{
+    return m_root->view->transform();
 }
 
 void WorkspaceView::configure(View *view)

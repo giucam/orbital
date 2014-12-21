@@ -46,7 +46,7 @@ static void outputDestroyed(wl_listener *listener, void *data)
 class Root : public DummySurface
 {
 public:
-    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
+    Root(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)) { }
     View *view;
 };
 
@@ -64,7 +64,7 @@ Output::Output(weston_output *out)
       , m_listener(new Listener)
       , m_panelsLayer(new Layer)
       , m_lockLayer(new Layer(m_compositor->rootLayer()))
-      , m_transformRoot(new Root(m_compositor))
+      , m_transformRoot(new Root(m_compositor, out->width, out->height))
       , m_background(nullptr)
       , m_currentWs(nullptr)
       , m_backgroundSurface(nullptr)
@@ -74,6 +74,7 @@ Output::Output(weston_output *out)
 {
     weston_output_init_zoom(m_output);
     m_transformRoot->view->setPos(out->x, out->y);
+    m_compositor->baseBackgroundLayer()->addView(m_transformRoot->view);
     m_lockLayer->addView(m_lockBackgroundSurface->view);
     m_lockBackgroundSurface->view->setTransformParent(m_transformRoot->view);
     m_lockLayer->setMask(0, 0, 0, 0);

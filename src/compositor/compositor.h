@@ -71,6 +71,7 @@ public:
     Layer *stickyLayer() const;
     Layer *appsLayer() const;
     Layer *backgroundLayer() const;
+    Layer *baseBackgroundLayer() const;
     Layer *minimizedLayer() const;
     QList<Output *> outputs() const;
     QList<Seat *> seats() const;
@@ -109,6 +110,7 @@ private:
     Layer *m_stickyLayer;
     Layer *m_appsLayer;
     Layer *m_backgroundLayer;
+    Layer *m_baseBackgroundLayer;
     Layer *m_minimizedLayer;
     QList<Output *> m_outputs;
     QTimer m_timer;

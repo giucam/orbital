@@ -39,6 +39,7 @@ class DummySurface;
 class Pager;
 class Surface;
 class Root;
+class Transform;
 
 // Due to mask() being an int, we can have up to 31 workspaces
 class Workspace : public Object
@@ -86,12 +87,18 @@ public:
     void configureFullscreen(View *view, View *blackSurface);
 
     void setBackground(Surface *surface);
+    void resetMask();
     void setMask(const QRect &rect);
+    void setTransform(const Transform &tf);
+    const Transform &transform() const;
+    QPoint pos() const;
+    QPoint logicalPos() const;
+
+    bool ownsView(View *view) const;
 
     Workspace *workspace() const { return m_workspace; }
 
 private:
-    QPoint pos() const;
     void setPos(int x, int y);
     void setTransformParent(View *p);
 

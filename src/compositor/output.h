@@ -38,6 +38,7 @@ class Animation;
 class Pager;
 class Surface;
 class LockSurface;
+class Pointer;
 struct Listener;
 
 class Output : public QObject
@@ -65,6 +66,7 @@ public:
     int y() const;
     int width() const;
     int height() const;
+    QPoint pos() const { return QPoint(x(), y()); }
     QRect geometry() const;
     QRect availableGeometry() const;
     wl_resource *resource(wl_client *client) const;
@@ -79,6 +81,8 @@ public:
 signals:
     void moved();
     void availableGeometryChanged();
+    void pointerEnter(Pointer *pointer);
+    void pointerLeave(Pointer *pointer);
 
 private:
     void onMoved();

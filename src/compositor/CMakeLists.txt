@@ -33,6 +33,7 @@ set(SOURCES
     screenshooter.cpp
     effect.cpp
     effects/zoomeffect.cpp
+    effects/desktopgrid.cpp
     wlshell/wlshell.cpp
     wlshell/wlshellsurface.cpp
     desktop-shell/desktop-shell.cpp

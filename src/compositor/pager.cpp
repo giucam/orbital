@@ -27,6 +27,7 @@
 #include "animation.h"
 #include "shell.h"
 #include "seat.h"
+#include "transform.h"
 
 namespace Orbital {
 
@@ -46,6 +47,7 @@ public:
         , active(nullptr)
     {
         connect(&animation, &Animation::update, this, &Root::updateAnim);
+        ds->view->setPos(o->pos());
     }
 
     ~Root()
@@ -55,14 +57,17 @@ public:
 
     void updateAnim(double v)
     {
-        QPointF pos(start * (1. - v) + end * v);
-        ds->view->setPos(pos);
+        QPointF pos(start * (1. - v) + translate * v);
         QRect out = output->geometry();
+        Transform tr;
+        tr.translate((int)pos.x(), (int)pos.y());
+
         for (WorkspaceView *w: workspaces) {
+            w->setTransform(tr);
             QPoint p = w->pos();
-            int x = pos.x() + p.x();
-            int y = pos.y() + p.y();
-            w->setMask(out.intersected(QRect(x, y, out.width(), out.height())));
+            double x = (int)pos.x() + p.x() + out.x();
+            double y = (int)pos.y() + p.y() + out.y();
+            w->setMask(QRect(x, y, out.width(), out.height()));
         }
     }
 
@@ -71,7 +76,8 @@ public:
     QList<WorkspaceView *> workspaces;
     WorkspaceView *active;
     Animation animation;
-    QPointF start, end;
+    QPoint start;
+    QPoint translate;
 };
 
 Pager::Pager(Compositor *c)
@@ -91,7 +97,7 @@ void Pager::addWorkspace(Workspace *ws)
         Root *root = m_roots.value(o->id());
         root->workspaces << wsv;
         wsv->setTransformParent(root->ds->view);
-        wsv->setPos(ws->id() * o->width(), 0);
+        wsv->setPos(ws->id(), 0);
     }
     m_workspaces << ws;
 }
@@ -143,8 +149,8 @@ void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
     double dx = p.x();
     double dy = p.y();
 
-    root->start = root->ds->view->pos();
-    root->end = QPointF(output->x() - dx, output->y() - dy);
+    root->start = root->translate;
+    root->translate = QPoint(-dx, -dy);
     if (animate) {
         root->animation.setStart(0);
         root->animation.setTarget(1);
@@ -185,7 +191,7 @@ void Pager::outputCreated(Output *o)
         WorkspaceView *wsv = ws->viewForOutput(o);
         root->workspaces << wsv;
         wsv->setTransformParent(root->ds->view);
-        wsv->setPos(ws->id() * o->width(), 0);
+        wsv->setPos(ws->id(), 0);
     }
 
     Workspace *ws = m_compositor->shell()->workspaces().first();

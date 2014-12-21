@@ -34,7 +34,7 @@
 
 namespace Orbital {
 
-struct Grab {
+struct PointerGrab::Grab {
     weston_pointer_grab base;
     PointerGrab *parent;
 };
@@ -395,13 +395,13 @@ QPointF Pointer::grabPos() const
 
 // -- PointerGrab
 
-static PointerGrab *fromGrab(weston_pointer_grab *grab)
+PointerGrab *PointerGrab::fromGrab(weston_pointer_grab *grab)
 {
     if (grab == &grab->pointer->default_grab) {
         return nullptr;
     }
 
-    Grab *wrapper = reinterpret_cast<Grab *>(grab);
+    PointerGrab::Grab *wrapper = reinterpret_cast<PointerGrab::Grab *>(grab);
     return wrapper->parent;
 }
 
@@ -452,6 +452,7 @@ void PointerGrab::end()
         PointerGrab *defaultGrab = pointer()->m_defaultGrab;
         if (defaultGrab != this) {
             weston_pointer_end_grab(m_seat->pointer()->m_pointer);
+            m_seat->compositor()->shell()->unsetGrabCursor(pointer());
             m_seat = nullptr;
             ended();
             if (defaultGrab) {

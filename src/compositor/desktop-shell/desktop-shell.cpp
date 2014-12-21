@@ -68,6 +68,7 @@ DesktopShell::DesktopShell(Shell *shell)
     connect(&m_pingTimer, &QTimer::timeout, this, &DesktopShell::pingTimeout);
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
+    shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
     connect(shell->compositor(), &Compositor::outputCreated, this, &DesktopShell::outputCreated);
 }
 
@@ -171,7 +172,13 @@ void DesktopShell::pingTimeout()
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
 {
     p->setFocus(m_grabView, 0, 0);
+    m_grabCursor[p] = c;
     desktop_shell_send_grab_cursor(m_resource, (uint32_t)c);
+}
+
+void DesktopShell::unsetGrabCursor(Pointer *p)
+{
+    m_grabCursor.remove(p);
 }
 
 void DesktopShell::outputCreated(Output *o)
@@ -567,6 +574,10 @@ void DesktopShell::outputLoaded(uint32_t serial)
         m_splash->hide();
         m_loaded = true;
         m_loadSerial = 0;
+
+        for (auto i = m_grabCursor.begin(); i != m_grabCursor.end(); ++i) {
+            setGrabCursor(i.key(), i.value());
+        }
     }
 }
 

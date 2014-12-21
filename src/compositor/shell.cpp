@@ -46,6 +46,7 @@
 #include "desktop-shell/desktop-shell-workspace.h"
 #include "desktop-shell/desktop-shell-window.h"
 #include "effects/zoomeffect.h"
+#include "effects/desktopgrid.h"
 
 namespace Orbital {
 
@@ -53,6 +54,7 @@ Shell::Shell(Compositor *c)
      : Object()
      , m_compositor(c)
      , m_grabCursorSetter(nullptr)
+     , m_grabCursorUnsetter(nullptr)
      , m_pager(new Pager(c))
 {
     initEnvironment();
@@ -64,6 +66,7 @@ Shell::Shell(Compositor *c)
     addInterface(new Screenshooter(this));
 
     new ZoomEffect(this);
+    new DesktopGrid(this);
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
@@ -259,6 +262,13 @@ void Shell::setGrabCursor(Pointer *pointer, PointerCursor c)
     }
 }
 
+void Shell::unsetGrabCursor(Pointer *p)
+{
+    if (m_grabCursorUnsetter) {
+        m_grabCursorUnsetter(p);
+    }
+}
+
 Output *Shell::selectPrimaryOutput(Seat *seat)
 {
     struct Out {
@@ -332,6 +342,11 @@ void Shell::configure(ShellSurface *shsurf)
 void Shell::setGrabCursorSetter(GrabCursorSetter s)
 {
     m_grabCursorSetter = s;
+}
+
+void Shell::setGrabCursorUnsetter(GrabCursorUnsetter s)
+{
+    m_grabCursorUnsetter = s;
 }
 
 void Shell::giveFocus(Seat *seat)

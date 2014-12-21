@@ -31,7 +31,6 @@ struct weston_pointer;
 namespace Orbital {
 
 struct Listener;
-struct Grab;
 class Compositor;
 class PointerGrab;
 class Pointer;
@@ -102,6 +101,7 @@ public:
     explicit Pointer(Seat *seat, weston_pointer *pointer);
     ~Pointer();
 
+    inline Seat *seat() const { return m_seat; }
     View *pickView(double *x = nullptr, double *y = nullptr) const;
 
     void setDefaultGrab(PointerGrab *grab);
@@ -154,6 +154,9 @@ protected:
 //     void unsetCursor();
 
 private:
+    struct Grab;
+
+    static PointerGrab *fromGrab(weston_pointer_grab *grab);
 
     Seat *m_seat;
     Grab *m_grab;

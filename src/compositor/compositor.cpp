@@ -229,7 +229,8 @@ bool Compositor::init(const QString &socketName)
     m_stickyLayer = new Layer(m_panelsLayer);
     m_appsLayer = new Layer(m_stickyLayer);
     m_backgroundLayer = new Layer(m_appsLayer);
-    m_minimizedLayer = new Layer(m_backgroundLayer);
+    m_baseBackgroundLayer = new Layer(m_backgroundLayer);
+    m_minimizedLayer = new Layer(m_baseBackgroundLayer);
     m_minimizedLayer->setMask(0, 0, 0, 0);
 
     m_compositor->kb_repeat_rate = 40;
@@ -297,10 +298,31 @@ bool Compositor::init(const QString &socketName)
         class DefaultGrab : public PointerGrab
         {
         public:
+            DefaultGrab(Compositor *c)
+                : compositor(c)
+            {
+                connect(c, &Compositor::outputRemoved, [this](Output *o) {
+                    outputs.remove(o);
+                });
+            }
             void focus() override
             {
                 if (pointer()->buttonCount() > 0) {
                     return;
+                }
+
+                QPoint p(pointer()->x(), pointer()->y());
+                foreach (Output *out, outputs) {
+                    if (!out->geometry().contains(p)) {
+                        emit out->pointerLeave(pointer());
+                        outputs.remove(out);
+                    }
+                }
+                foreach (Output *out, compositor->outputs()) {
+                    if (!outputs.contains(out) && out->geometry().contains(p)) {
+                        emit out->pointerEnter(pointer());
+                        outputs << out;
+                    }
                 }
 
                 double sx, sy;
@@ -331,9 +353,11 @@ bool Compositor::init(const QString &socketName)
             }
 
             double m_sx, m_sy;
+            Compositor *compositor;
+            QSet<Output *> outputs;
 
         };
-        seat->pointer()->setDefaultGrab(new DefaultGrab);
+        seat->pointer()->setDefaultGrab(new DefaultGrab(this));
     }
 
     m_shell = new Shell(this);
@@ -415,6 +439,11 @@ Layer *Compositor::appsLayer() const
 Layer *Compositor::backgroundLayer() const
 {
     return m_backgroundLayer;
+}
+
+Layer *Compositor::baseBackgroundLayer() const
+{
+    return m_baseBackgroundLayer;
 }
 
 Layer *Compositor::minimizedLayer() const

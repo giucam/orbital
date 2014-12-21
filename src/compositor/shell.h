@@ -48,6 +48,7 @@ class Shell : public Object
     Q_OBJECT
 public:
     typedef std::function<void (Pointer *, PointerCursor)> GrabCursorSetter;
+    typedef std::function<void (Pointer *)> GrabCursorUnsetter;
 
     explicit Shell(Compositor *c);
     ~Shell();
@@ -64,9 +65,11 @@ public:
     void unlock();
 
     void setGrabCursor(Pointer *pointer, PointerCursor c);
+    void unsetGrabCursor(Pointer *pointer);
     void configure(ShellSurface *shsurf);
 
     void setGrabCursorSetter(GrabCursorSetter s);
+    void setGrabCursorUnsetter(GrabCursorUnsetter s);
 
     void addTrustedClient(const QString &interface, wl_client *c);
     bool isClientTrusted(const QString &interface, wl_client *c) const;
@@ -84,6 +87,7 @@ private:
     QList<Workspace *> m_workspaces;
     QList<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;
+    GrabCursorUnsetter m_grabCursorUnsetter;
     ButtonBinding *m_focusBinding;
     ButtonBinding *m_raiseBinding;
     ButtonBinding *m_moveBinding;

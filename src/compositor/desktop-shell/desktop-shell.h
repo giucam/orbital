@@ -56,6 +56,7 @@ protected:
 private:
     void clientExited();
     void setGrabCursor(Pointer *p, PointerCursor c);
+    void unsetGrabCursor(Pointer *p);
     void outputCreated(Output *o);
     void pointerMotion(Pointer *p);
     void pingTimeout();
@@ -89,6 +90,7 @@ private:
     QTimer m_pingTimer;
     uint32_t m_pingSerial;
     bool m_loaded;
+    QHash<Pointer *, PointerCursor> m_grabCursor;
 };
 
 }
