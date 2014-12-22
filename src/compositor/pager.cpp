@@ -34,28 +34,17 @@ namespace Orbital {
 class Pager::Root : public QObject
 {
 public:
-    class RootSurface : public DummySurface
-    {
-    public:
-        RootSurface(Compositor *c) : DummySurface(c), view(new View(this)) { }
-        View *view;
-    };
-
     Root(Output *o, Compositor *c)
         : output(o)
-        , ds(new RootSurface(c))
         , active(nullptr)
     {
-        ds->view->setPos(o->pos());
     }
 
     ~Root()
     {
-        delete ds;
     }
 
     Output *output;
-    RootSurface *ds;
     WorkspaceView *active;
 };
 
@@ -73,8 +62,7 @@ void Pager::addWorkspace(Workspace *ws)
 {
     for (Output *o: m_compositor->outputs()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
-        Root *root = m_roots.value(o->id());
-        wsv->setTransformParent(root->ds->view);
+        wsv->setTransformParent(o->rootView());
         wsv->setPos(ws->id(), 0);
     }
     m_workspaces << ws;
@@ -164,7 +152,7 @@ void Pager::outputCreated(Output *o)
     m_roots.insert(o->id(), root);
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
-        wsv->setTransformParent(root->ds->view);
+        wsv->setTransformParent(o->rootView());
         wsv->setPos(ws->id(), 0);
     }
 
