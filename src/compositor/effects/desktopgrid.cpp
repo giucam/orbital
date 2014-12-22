@@ -31,24 +31,18 @@
 #include "../output.h"
 #include "../view.h"
 #include "../pager.h"
+#include "../animation.h"
+#include "../animationcurve.h"
 #include "desktopgrid.h"
 
 namespace Orbital {
-
-
-class DesktopGrid::WsState
-{
-public:
-    QHash<WorkspaceView *, Transform> originalTransforms;
-
-};
 
 class DesktopGrid::Grab : public PointerGrab
 {
 public:
     void focus() override
     {
-        foreach (Output *out, desktopgrid->m_activeOutputs.keys()) {
+        foreach (Output *out, desktopgrid->m_activeOutputs) {
             if (out->contains(pointer()->x(), pointer()->y())) {
                 return;
             }
@@ -98,6 +92,7 @@ DesktopGrid::DesktopGrid(Shell *shell)
     foreach (Output *out, c->outputs()) {
         connect(out, &Output::pointerEnter, this, &DesktopGrid::pointerEnter);
     }
+    connect(m_shell->pager(), &Pager::workspaceActivated, this, &DesktopGrid::workspaceActivated);
 }
 
 DesktopGrid::~DesktopGrid()
@@ -113,8 +108,7 @@ void DesktopGrid::run(Seat *seat, uint32_t time, int key)
     if (m_activeOutputs.contains(out)) {
         terminate(out, nullptr);
     } else {
-        WsState *state = new WsState;
-        m_activeOutputs.insert(out, state);
+        m_activeOutputs.insert(out);
 
         const int margin_w = out->width() / 20;
         const int margin_h = out->height() / 20;
@@ -147,9 +141,6 @@ void DesktopGrid::run(Seat *seat, uint32_t time, int key)
         int margin_x = (fullSize.width() - fullRect.width()) / 2. * rx;
         int margin_y = (fullSize.height() - fullRect.height()) / 2. * rx;
 
-        double width = rx * out->width();
-        double height = ry * out->height();
-
         for (int i = 0; i < numWs; ++i) {
             Workspace *w = m_shell->workspaces().at(i);
             WorkspaceView *wsv = w->viewForOutput(out);
@@ -164,10 +155,7 @@ void DesktopGrid::run(Seat *seat, uint32_t time, int key)
             tr.scale(rx, rx);
             tr.translate(x, y);
 
-            state->originalTransforms.insert(wsv, wsv->transform());
-
-            wsv->setTransform(tr);
-            wsv->setMask(QRect(p.x() + out->x(), y + out->y(), width, height));
+            wsv->setTransform(tr, true);
         }
 
         Grab *grab = new Grab;
@@ -179,19 +167,11 @@ void DesktopGrid::run(Seat *seat, uint32_t time, int key)
 
 void DesktopGrid::terminate(Output *out, Workspace *ws)
 {
-    WsState *state = m_activeOutputs.take(out);
-    int numWs = m_shell->workspaces().count();
-    for (int i = 0; i < numWs; ++i) {
-        Workspace *w = m_shell->workspaces().at(i);
-
-        WorkspaceView *wsv = w->viewForOutput(out);
-        wsv->setTransform(state->originalTransforms.value(wsv));
-        wsv->resetMask();
+    if (!ws) {
+        ws = out->currentWorkspace();
     }
-    delete state;
-    if (ws) {
-        m_shell->pager()->activate(ws, out);
-    }
+    m_activeOutputs.remove(out);
+    m_shell->pager()->activate(ws, out);
 }
 
 void DesktopGrid::outputCreated(Output *o)
@@ -201,9 +181,7 @@ void DesktopGrid::outputCreated(Output *o)
 
 void DesktopGrid::outputRemoved(Output *o)
 {
-    if (m_activeOutputs.contains(o)) {
-        delete m_activeOutputs.take(o);
-    }
+    m_activeOutputs.remove(o);
 }
 
 void DesktopGrid::pointerEnter(Pointer *p)
@@ -215,6 +193,11 @@ void DesktopGrid::pointerEnter(Pointer *p)
         grab->desktopgrid = this;
         grab->start(p->seat(), PointerCursor::Arrow);
     }
+}
+
+void DesktopGrid::workspaceActivated(Workspace *ws, Output *out)
+{
+    m_activeOutputs.remove(out);
 }
 
 }

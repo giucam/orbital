@@ -23,6 +23,8 @@
 #include <QHash>
 
 #include "interface.h"
+#include "transform.h"
+#include "animation.h"
 
 struct weston_surface;
 
@@ -77,7 +79,7 @@ private:
     friend Pager;
 };
 
-class WorkspaceView
+class WorkspaceView : public QObject
 {
 public:
     WorkspaceView(Workspace *ws, Output *o, int w, int h);
@@ -89,7 +91,7 @@ public:
     void setBackground(Surface *surface);
     void resetMask();
     void setMask(const QRect &rect);
-    void setTransform(const Transform &tf);
+    void setTransform(const Transform &tf, bool animate);
     const Transform &transform() const;
     QPoint pos() const;
     QPoint logicalPos() const;
@@ -101,6 +103,7 @@ public:
 private:
     void setPos(int x, int y);
     void setTransformParent(View *p);
+    void updateAnim(double v);
 
     Workspace *m_workspace;
     Output *m_output;
@@ -113,6 +116,10 @@ private:
     View *m_background;
     QList<View *> m_views;
     bool m_attached;
+    struct {
+        Transform orig, target;
+        Animation anim;
+    } m_transformAnim;
 
     friend Pager;
     friend Workspace;

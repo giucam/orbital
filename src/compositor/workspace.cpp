@@ -102,7 +102,8 @@ public:
 };
 
 WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
-             : m_workspace(ws)
+             : QObject()
+             , m_workspace(ws)
              , m_output(o)
              , m_width(w)
              , m_height(h)
@@ -116,6 +117,8 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
     m_backgroundLayer->append(ws->compositor()->backgroundLayer());
     m_layer->append(ws->compositor()->appsLayer());
     m_fullscreenLayer->append(ws->compositor()->fullscreenLayer());
+
+    connect(&m_transformAnim.anim, &Animation::update, this, &WorkspaceView::updateAnim);
 
     setMask(QRect());
 }
@@ -175,7 +178,9 @@ void WorkspaceView::setBackground(Surface *s)
 void WorkspaceView::resetMask()
 {
     m_root->view->update();
-    setMask(QRect(m_root->view->mapToGlobal(QPointF(0, 0)).toPoint(), m_output->geometry().size()));
+    QPointF tl = m_root->view->mapToGlobal(QPointF(0, 0));
+    QPointF br = m_root->view->mapToGlobal(QPointF(m_output->width(), m_output->height()));
+    setMask(QRect(QPoint(tl.x(), tl.y()), QPoint(br.x() - 1, br.y() - 1)));
 }
 
 void WorkspaceView::setMask(const QRect &m)
@@ -186,9 +191,21 @@ void WorkspaceView::setMask(const QRect &m)
     m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
 }
 
-void WorkspaceView::setTransform(const Transform &tf)
+void WorkspaceView::setTransform(const Transform &tf, bool animate)
 {
-    m_root->view->setTransform(tf);
+    m_transformAnim.target = tf;
+    if (animate) {
+        m_transformAnim.orig = transform();
+        m_transformAnim.anim.run(m_output, 300);
+    } else {
+        updateAnim(1.);
+    }
+}
+
+void WorkspaceView::updateAnim(double v)
+{
+    m_root->view->setTransform(Transform::interpolate(m_transformAnim.orig, m_transformAnim.target, v));
+    resetMask();
     m_output->repaint();
 }
 

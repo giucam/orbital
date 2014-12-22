@@ -37,7 +37,6 @@ public:
     ~DesktopGrid();
 
 private:
-    class WsState;
     class Grab;
 
     void run(Seat *seat, uint32_t time, int key);
@@ -45,10 +44,11 @@ private:
     void outputCreated(Output *o);
     void outputRemoved(Output *o);
     void pointerEnter(Pointer *p);
+    void workspaceActivated(Workspace *ws, Output *out);
 
     Shell *m_shell;
     KeyBinding *m_binding;
-    QHash<Output *, WsState *> m_activeOutputs;
+    QSet<Output *> m_activeOutputs;
 };
 
 }

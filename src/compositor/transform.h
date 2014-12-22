@@ -37,6 +37,8 @@ public:
     void scale(double x, double y);
     void translate(double x, double y);
 
+    static Transform interpolate(const Transform &t1, const Transform &t2, double v);
+
     Transform &operator=(const Transform &t);
 
 private:

@@ -25,6 +25,8 @@ namespace Orbital {
 
 Animation::Animation(QObject *p)
          : QObject(p)
+         , m_start(0.)
+         , m_target(1.)
          , m_speed(-1.)
          , m_curve(nullptr)
 {

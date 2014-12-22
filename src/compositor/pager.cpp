@@ -46,7 +46,6 @@ public:
         , ds(new RootSurface(c))
         , active(nullptr)
     {
-        connect(&animation, &Animation::update, this, &Root::updateAnim);
         ds->view->setPos(o->pos());
     }
 
@@ -55,29 +54,9 @@ public:
         delete ds;
     }
 
-    void updateAnim(double v)
-    {
-        QPointF pos(start * (1. - v) + translate * v);
-        QRect out = output->geometry();
-        Transform tr;
-        tr.translate((int)pos.x(), (int)pos.y());
-
-        for (WorkspaceView *w: workspaces) {
-            w->setTransform(tr);
-            QPoint p = w->pos();
-            double x = (int)pos.x() + p.x() + out.x();
-            double y = (int)pos.y() + p.y() + out.y();
-            w->setMask(QRect(x, y, out.width(), out.height()));
-        }
-    }
-
     Output *output;
     RootSurface *ds;
-    QList<WorkspaceView *> workspaces;
     WorkspaceView *active;
-    Animation animation;
-    QPoint start;
-    QPoint translate;
 };
 
 Pager::Pager(Compositor *c)
@@ -95,7 +74,6 @@ void Pager::addWorkspace(Workspace *ws)
     for (Output *o: m_compositor->outputs()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
         Root *root = m_roots.value(o->id());
-        root->workspaces << wsv;
         wsv->setTransformParent(root->ds->view);
         wsv->setPos(ws->id(), 0);
     }
@@ -149,14 +127,11 @@ void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
     double dx = p.x();
     double dy = p.y();
 
-    root->start = root->translate;
-    root->translate = QPoint(-dx, -dy);
-    if (animate) {
-        root->animation.setStart(0);
-        root->animation.setTarget(1);
-        root->animation.run(output, 200);
-    } else {
-        root->updateAnim(1);
+    foreach (Workspace *ws, m_workspaces) {
+        WorkspaceView *wsv = ws->viewForOutput(output);
+        Transform tr;
+        tr.translate(-dx, -dy);
+        wsv->setTransform(tr, animate);
     }
 
     root->active = wsv;
@@ -189,7 +164,6 @@ void Pager::outputCreated(Output *o)
     m_roots.insert(o->id(), root);
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
-        root->workspaces << wsv;
         wsv->setTransformParent(root->ds->view);
         wsv->setPos(ws->id(), 0);
     }

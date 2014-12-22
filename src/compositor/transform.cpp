@@ -51,6 +51,18 @@ void Transform::translate(double x, double y)
     weston_matrix_translate(&m_transform.matrix, x, y, 0);
 }
 
+Transform Transform::interpolate(const Transform &t1, const Transform &t2, double v)
+{
+    Transform t;
+
+    for (int i = 0; i < 16; ++i) {
+        t.m_transform.matrix.d[i] = t1.m_transform.matrix.d[i] * (1. - v) + t2.m_transform.matrix.d[i] * v;
+    }
+    t.m_transform.matrix.type = t1.m_transform.matrix.type | t2.m_transform.matrix.type;
+
+    return t;
+}
+
 Transform &Transform::operator=(const Transform &t)
 {
     wl_list_remove(&m_transform.link);
