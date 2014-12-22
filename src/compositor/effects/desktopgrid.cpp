@@ -33,6 +33,8 @@
 #include "../pager.h"
 #include "../animation.h"
 #include "../animationcurve.h"
+#include "../shellsurface.h"
+#include "../layer.h"
 #include "desktopgrid.h"
 
 namespace Orbital {
@@ -40,6 +42,17 @@ namespace Orbital {
 class DesktopGrid::Grab : public PointerGrab
 {
 public:
+    Grab() : moving(nullptr) {}
+    WorkspaceView *workspace(Output *out, double x, double y)
+    {
+        foreach (Workspace *ws, shell->workspaces()) {
+            WorkspaceView *wsv = ws->viewForOutput(out);
+            if (wsv->mask().contains(x, y)) {
+                return wsv;
+            }
+        }
+        return nullptr;
+    }
     void focus() override
     {
         foreach (Output *out, desktopgrid->m_activeOutputs) {
@@ -52,21 +65,52 @@ public:
     void motion(uint32_t time, double x, double y) override
     {
         pointer()->move(x, y);
+
+        if (moving) {
+            ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
+            Workspace *w = shsurf->workspace();
+            WorkspaceView *wsv = w->viewForOutput(moving->output());
+            QPointF p = wsv->map(x, y);
+            shsurf->moveViews(int(p.x() + dx), int(p.y() + dy));
+        }
     }
     void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
     {
-        if (state == Pointer::ButtonState::Released) {
-            View *view = pointer()->pickView();
+        View *view = pointer()->pickView();
+        if (state == Pointer::ButtonState::Pressed) {
+            if (qobject_cast<ShellSurface *>(view->surface())) {
+                moving = view;
+                QPointF pp(pointer()->x(), pointer()->y());
+                WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
+                QPointF p = wsv->map(pp.x(), pp.y());
+                dx = moving->x() - p.x();
+                dy = moving->y() - p.y();
+                origPos = moving->pos();
+
+                shell->compositor()->appsLayer()->addView(moving);
+            }
+        } else if (moving) {
+            QPointF pp(pointer()->x(), pointer()->y());
+            WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
+            ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
+            if (wsv) {
+                QPointF p = moving->mapToGlobal(QPointF(0,0));
+                p = wsv->map(p.x(), p.y());
+
+                shsurf->moveViews((int)p.x(), (int)p.y());
+                shsurf->setWorkspace(wsv->workspace());
+            } else {
+                shsurf->moveViews(origPos.x(), origPos.y());
+                shsurf->setWorkspace(shsurf->workspace());
+            }
+            moving = nullptr;
+        } else {
             Output *out = view->output();
             if (!out) {
                 return;
             }
-            foreach (Workspace *ws, shell->workspaces()) {
-                WorkspaceView *wsv = ws->viewForOutput(out);
-                if (wsv->ownsView(view)) {
-                    desktopgrid->terminate(out, ws);
-                    break;
-                }
+            if (WorkspaceView *wsv = workspace(out, pointer()->x(), pointer()->y())) {
+                desktopgrid->terminate(out, wsv->workspace());
             }
         }
     }
@@ -77,6 +121,9 @@ public:
 
     Shell *shell;
     DesktopGrid *desktopgrid;
+    View *moving;
+    double dx, dy;
+    QPointF origPos;
 };
 
 DesktopGrid::DesktopGrid(Shell *shell)

@@ -92,6 +92,8 @@ public:
     void restore();
     void close();
 
+    void moveViews(double x, double y);
+
     void setTitle(const QString &title);
     void setAppId(const QString &appid);
     void setGeometry(int x, int y, int w, int h);

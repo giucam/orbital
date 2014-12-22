@@ -140,6 +140,11 @@ QPoint WorkspaceView::logicalPos() const
     return QPoint(m_root->view->x() / m_output->width(), m_root->view->y() / m_output->height());
 }
 
+QPointF WorkspaceView::map(double x, double y) const
+{
+    return m_root->view->mapFromGlobal(QPointF(x, y));
+}
+
 bool WorkspaceView::ownsView(View *view) const
 {
     Layer *l = view->layer();
@@ -187,6 +192,7 @@ void WorkspaceView::setMask(const QRect &m)
     m_backgroundLayer->setMask(r.x(), r.y(), r.width(), r.height());
     m_layer->setMask(r.x(), r.y(), r.width(), r.height());
     m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
+    m_mask = r;
 }
 
 void WorkspaceView::setTransform(const Transform &tf, bool animate)

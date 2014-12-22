@@ -76,6 +76,8 @@ void ShellSurface::setWorkspace(Workspace *ws)
 {
     m_workspace = ws;
     setWorkspaceMask(ws->mask());
+    m_forceMap = true;
+    configure(0, 0);
 }
 
 Compositor *ShellSurface::compositor() const
@@ -194,9 +196,7 @@ void ShellSurface::move(Seat *seat)
             int moveX = x + dx;
             int moveY = y + dy;
 
-            for (ShellView *view: shsurf->m_views) {
-                view->move(QPointF(moveX, moveY));
-            }
+            shsurf->moveViews(moveX, moveY);
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
@@ -344,6 +344,13 @@ void ShellSurface::close()
 
     if (pid != getpid()) {
         kill(pid, SIGTERM);
+    }
+}
+
+void ShellSurface::moveViews(double x, double y)
+{
+    for (ShellView *view: m_views) {
+        view->move(QPointF(x, y));
     }
 }
 

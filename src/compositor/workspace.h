@@ -21,6 +21,7 @@
 #define ORBITAL_WORKSPACE_H
 
 #include <QHash>
+#include <QRect>
 
 #include "interface.h"
 #include "transform.h"
@@ -91,10 +92,12 @@ public:
     void setBackground(Surface *surface);
     void resetMask();
     void setMask(const QRect &rect);
+    inline QRect mask() const { return m_mask; }
     void setTransform(const Transform &tf, bool animate);
     const Transform &transform() const;
     QPoint pos() const;
     QPoint logicalPos() const;
+    QPointF map(double x, double y) const;
 
     bool ownsView(View *view) const;
 
@@ -114,6 +117,7 @@ private:
     View *m_background;
     QList<View *> m_views;
     bool m_attached;
+    QRect m_mask;
     struct {
         Transform orig, target;
         Animation anim;
