@@ -63,7 +63,7 @@ Pager *Workspace::pager() const
 WorkspaceView *Workspace::viewForOutput(Output *o)
 {
     if (!m_views.contains(o->id())) {
-        WorkspaceView *view = new WorkspaceView(this, o, o->width(), o->height());
+        WorkspaceView *view = new WorkspaceView(this, o);
         m_views.insert(o->id(), view);
         return view;
     }
@@ -101,12 +101,10 @@ public:
     View *view;
 };
 
-WorkspaceView::WorkspaceView(Workspace *ws, Output *o, int w, int h)
+WorkspaceView::WorkspaceView(Workspace *ws, Output *o)
              : QObject()
              , m_workspace(ws)
              , m_output(o)
-             , m_width(w)
-             , m_height(h)
              , m_backgroundLayer(new Layer)
              , m_layer(new Layer)
              , m_fullscreenLayer(new Layer)

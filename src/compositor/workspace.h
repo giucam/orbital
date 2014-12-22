@@ -82,7 +82,7 @@ private:
 class WorkspaceView : public QObject
 {
 public:
-    WorkspaceView(Workspace *ws, Output *o, int w, int h);
+    WorkspaceView(Workspace *ws, Output *o);
     ~WorkspaceView();
 
     void configure(View *view);
@@ -107,8 +107,6 @@ private:
 
     Workspace *m_workspace;
     Output *m_output;
-    int m_width;
-    int m_height;
     Layer *m_backgroundLayer;
     Layer *m_layer;
     Layer *m_fullscreenLayer;
