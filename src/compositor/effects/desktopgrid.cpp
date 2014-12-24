@@ -69,9 +69,19 @@ public:
         if (moving) {
             ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
             Workspace *w = shsurf->workspace();
-            WorkspaceView *wsv = w->viewForOutput(moving->output());
-            QPointF p = wsv->map(x, y);
-            shsurf->moveViews(int(p.x() + dx), int(p.y() + dy));
+            Output *out = moving->output();
+            WorkspaceView *wsv = w->viewForOutput(out);
+            QPointF p = wsv->map(x, y) + QPointF(dx, dy);
+            QRect surfaceGeometry = shsurf->geometry();
+
+            if (!shell->snapPos(out, p, 20)) {
+                QPointF br = p + surfaceGeometry.bottomRight();
+                if (shell->snapPos(out, br, 20)) {
+                    p = br - surfaceGeometry.bottomRight();
+                }
+            }
+
+            shsurf->moveViews(int(p.x()), int(p.y()));
         }
     }
     void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override

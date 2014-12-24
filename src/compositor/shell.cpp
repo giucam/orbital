@@ -325,6 +325,35 @@ void Shell::unlock()
     }
 }
 
+bool Shell::snapPos(Output *out, QPointF &p, int snapMargin) const
+{
+    QRect geom = out->availableGeometry();
+    double &x = p.rx();
+    double &y = p.ry();
+    bool snapped = false;
+
+    if (snapMargin < 0) {
+        snapMargin = 10;
+    }
+    if (qAbs(geom.top() - y) < snapMargin) {
+        y = geom.y();
+        snapped = true;
+    }
+    if (qAbs(geom.left() - x) < snapMargin) {
+        x = geom.x();
+        snapped = true;
+    }
+    if (qAbs(geom.bottom() - y) < snapMargin) {
+        y = geom.bottom();
+        snapped = true;
+    }
+    if (qAbs(geom.right() - x) < snapMargin) {
+        x = geom.right();
+        snapped = true;
+    }
+    return snapped;
+}
+
 void Shell::configure(ShellSurface *shsurf)
 {
     if (!shsurf->isMapped() && !shsurf->workspace()) {

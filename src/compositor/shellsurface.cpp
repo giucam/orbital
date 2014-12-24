@@ -193,10 +193,21 @@ void ShellSurface::move(Seat *seat)
         {
             pointer()->move(x, y);
 
+            Output *out = grabbedView->output();
+            QRect surfaceGeometry = shsurf->geometry();
+
             int moveX = x + dx;
             int moveY = y + dy;
 
-            shsurf->moveViews(moveX, moveY);
+            QPointF p = QPointF(moveX, moveY);
+            if (!shsurf->m_shell->snapPos(out, p)) {
+                QPointF br = p + surfaceGeometry.bottomRight();
+                if (shsurf->m_shell->snapPos(out, br)) {
+                    p = br - surfaceGeometry.bottomRight();
+                }
+            }
+
+            shsurf->moveViews((int)p.x(), (int)p.y());
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
@@ -212,6 +223,7 @@ void ShellSurface::move(Seat *seat)
         }
 
         ShellSurface *shsurf;
+        View *grabbedView;
         double dx, dy;
     };
 
@@ -234,6 +246,7 @@ void ShellSurface::move(Seat *seat)
     move->dx = view->x() - seat->pointer()->x();
     move->dy = view->y() - seat->pointer()->y();
     move->shsurf = this;
+    move->grabbedView = view;
 //     m_runningGrab = move;
 
     move->start(seat, PointerCursor::Move);

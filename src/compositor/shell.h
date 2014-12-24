@@ -64,6 +64,8 @@ public:
     void lock();
     void unlock();
 
+    bool snapPos(Output *out, QPointF &p, int margin = -1) const;
+
     void setGrabCursor(Pointer *pointer, PointerCursor c);
     void unsetGrabCursor(Pointer *pointer);
     void configure(ShellSurface *shsurf);
