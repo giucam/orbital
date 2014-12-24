@@ -46,15 +46,26 @@ class StatusNotifierItem: public QObject
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
+    Q_PROPERTY(QString attentionIconName READ attentionIconName NOTIFY attentionIconNameChanged)
     Q_PROPERTY(QString tooltipTitle READ tooltipTitle NOTIFY tooltipChanged)
+    Q_PROPERTY(Status status READ status NOTIFY statusChanged)
 public:
+    enum class Status {
+        Passive,
+        Active,
+        NeedsAttention
+    };
+    Q_ENUMS(Status)
+
     explicit StatusNotifierItem(const QString &service, QObject *parent = nullptr);
     ~StatusNotifierItem();
 
     QString name() const;
     QString title() const;
     QString iconName() const;
+    QString attentionIconName() const;
     QString tooltipTitle() const;
+    Status status() const;
 
     Q_INVOKABLE void activate();
     Q_INVOKABLE void secondaryActivate();
@@ -65,19 +76,24 @@ signals:
     void nameChanged();
     void titleChanged();
     void iconNameChanged();
+    void attentionIconNameChanged();
     void tooltipChanged();
+    void statusChanged();
 
 private slots:
     void getTitle();
     void getIcon();
+    void getAttentionIcon();
     void getTooltip();
-
+    void getStatus();
 private:
     QString m_service;
     QString m_name;
     QString m_title;
     QString m_iconName;
+    QString m_attentionIconName;
     DBusToolTipStruct m_tooltip;
+    Status m_status;
     QDBusInterface m_interface;
 };
 

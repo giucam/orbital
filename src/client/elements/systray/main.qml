@@ -46,10 +46,11 @@ Element {
             height: horizontal ? list.height : root.baseLength
             property int size: Math.min(width, height)
             hoverEnabled: true
+            property bool needsAttention: modelData.status == StatusNotifierItem.NeedsAttention
 
             Icon {
                 anchors.fill: parent
-                icon: "image://icon/" + modelData.iconName
+                icon: "image://icon/" + (needsAttention ? modelData.attentionIconName : modelData.iconName)
             }
 
             onClicked: {

@@ -98,7 +98,9 @@ StatusNotifierItem::StatusNotifierItem(const QString &service, QObject *p)
     connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this, &StatusNotifierItem::removed);
     bus.connect(service, path, interface, QStringLiteral("NewTitle"), this, SLOT(getTitle()));
     bus.connect(service, path, interface, QStringLiteral("NewIcon"), this, SLOT(getIcon()));
+    bus.connect(service, path, interface, QStringLiteral("NewAttentionIcon"), this, SLOT(getAttentionIcon()));
     bus.connect(service, path, interface, QStringLiteral("NewToolTip"), this, SLOT(getTooltip()));
+    bus.connect(service, path, interface, QStringLiteral("NewStatus"), this, SLOT(getStatus()));
 
     getProperty(m_service, QStringLiteral("Id"), [this](const QVariant &v) {
         m_name = v.toString();
@@ -107,6 +109,8 @@ StatusNotifierItem::StatusNotifierItem(const QString &service, QObject *p)
     getIcon();
     getTitle();
     getTooltip();
+    getStatus();
+    getAttentionIcon();
 }
 
 StatusNotifierItem::~StatusNotifierItem()
@@ -128,9 +132,19 @@ QString StatusNotifierItem::iconName() const
     return m_iconName;
 }
 
+QString StatusNotifierItem::attentionIconName() const
+{
+    return m_attentionIconName;
+}
+
 QString StatusNotifierItem::tooltipTitle() const
 {
     return m_tooltip.title;
+}
+
+StatusNotifierItem::Status StatusNotifierItem::status() const
+{
+    return m_status;
 }
 
 void StatusNotifierItem::activate()
@@ -170,10 +184,33 @@ void StatusNotifierItem::getIcon()
     });
 }
 
+void StatusNotifierItem::getAttentionIcon()
+{
+    getProperty(m_service, QStringLiteral("AttentionIconName"), [this](const QVariant &v) {
+        m_attentionIconName = v.toString();
+        emit attentionIconNameChanged();
+    });
+}
+
 void StatusNotifierItem::getTooltip()
 {
     getProperty(m_service, QStringLiteral("ToolTip"), [this](const QVariant &v) {
         v.value<QDBusArgument>() >> m_tooltip;
         emit tooltipChanged();
+    });
+}
+
+void StatusNotifierItem::getStatus()
+{
+    getProperty(m_service, QStringLiteral("Status"), [this](const QVariant &v) {
+        QString str = v.toString();
+        if (str == "NeedsAttention") {
+            m_status = Status::NeedsAttention;
+        } else if (str == "Active") {
+            m_status = Status::Active;
+        } else {
+            m_status = Status::Passive;
+        }
+        emit statusChanged();
     });
 }
