@@ -35,10 +35,10 @@ Item {
             StyleItem {
                 id: content
                 component: CurrentStyle.notificationBackground
-                width: 200
-                height: notificationText.height + margin + item.topContentsMargin + item.bottomContentsMargin
+                width: 300
+                height: notificationText.height + 2 * margin + item.topContentsMargin + item.bottomContentsMargin
                 opacity: 0
-                property int margin: 3
+                property int margin: 7
 
                 onHeightChanged: console.log(height)
 
