@@ -359,7 +359,8 @@ void Shell::configure(ShellSurface *shsurf)
         Output *output = selectPrimaryOutput();
         shsurf->setWorkspace(output->currentWorkspace());
 
-        if (shsurf->type() == ShellSurface::Type::Toplevel) {
+        if ((shsurf->type() == ShellSurface::Type::Toplevel || shsurf->type() == ShellSurface::Type::Transient) &&
+            !shsurf->isInactive()) {
             for (Seat *seat: m_compositor->seats()) {
                 seat->activate(shsurf);
             }
