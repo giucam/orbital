@@ -67,21 +67,26 @@ public:
         pointer()->move(x, y);
 
         if (moving) {
-            ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
-            Workspace *w = shsurf->workspace();
-            Output *out = moving->output();
-            WorkspaceView *wsv = w->viewForOutput(out);
-            QPointF p = wsv->map(x, y) + QPointF(dx, dy);
-            QRect surfaceGeometry = shsurf->geometry();
-
-            if (!shell->snapPos(out, p, 20)) {
-                QPointF br = p + surfaceGeometry.bottomRight();
-                if (shell->snapPos(out, br, 20)) {
-                    p = br - surfaceGeometry.bottomRight();
-                }
+            if (!moved) {
+                moved = QPointF(origMousePos - QPointF(x, y)).manhattanLength() > 2;
             }
+            if (moved) {
+                ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
+                Workspace *w = shsurf->workspace();
+                Output *out = moving->output();
+                WorkspaceView *wsv = w->viewForOutput(out);
+                QPointF p = wsv->map(x, y) + QPointF(dx, dy);
+                QRect surfaceGeometry = shsurf->geometry();
 
-            shsurf->moveViews(int(p.x()), int(p.y()));
+                if (!shell->snapPos(out, p, 20)) {
+                    QPointF br = p + surfaceGeometry.bottomRight();
+                    if (shell->snapPos(out, br, 20)) {
+                        p = br - surfaceGeometry.bottomRight();
+                    }
+                }
+
+                shsurf->moveViews(int(p.x()), int(p.y()));
+            }
         }
     }
     void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
@@ -90,16 +95,18 @@ public:
         if (state == Pointer::ButtonState::Pressed) {
             if (qobject_cast<ShellSurface *>(view->surface())) {
                 moving = view;
+                moved = false;
                 QPointF pp(pointer()->x(), pointer()->y());
                 WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
                 QPointF p = wsv->map(pp.x(), pp.y());
                 dx = moving->x() - p.x();
                 dy = moving->y() - p.y();
                 origPos = moving->pos();
+                origMousePos = pp;
 
                 shell->compositor()->appsLayer()->addView(moving);
             }
-        } else if (moving) {
+        } else if (moving && moved) {
             QPointF pp(pointer()->x(), pointer()->y());
             WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
             ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
@@ -114,7 +121,9 @@ public:
                 shsurf->setWorkspace(shsurf->workspace());
             }
             moving = nullptr;
+            moved = false;
         } else {
+            moving = nullptr;
             Output *out = view->output();
             if (!out) {
                 return;
@@ -132,8 +141,9 @@ public:
     Shell *shell;
     DesktopGrid *desktopgrid;
     View *moving;
+    bool moved;
     double dx, dy;
-    QPointF origPos;
+    QPointF origPos, origMousePos;
 };
 
 DesktopGrid::DesktopGrid(Shell *shell)
