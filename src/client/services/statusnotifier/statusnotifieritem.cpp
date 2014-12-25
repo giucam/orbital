@@ -102,6 +102,9 @@ StatusNotifierItem::StatusNotifierItem(const QString &service, QObject *p)
     bus.connect(service, path, interface, QStringLiteral("NewToolTip"), this, SLOT(getTooltip()));
     bus.connect(service, path, interface, QStringLiteral("NewStatus"), this, SLOT(getStatus()));
 
+    m_icon.updatePending = 0;
+    m_attentionIcon.updatePending = 0;
+
     getProperty(m_service, QStringLiteral("Id"), [this](const QVariant &v) {
         m_name = v.toString();
         emit nameChanged();
@@ -117,6 +120,11 @@ StatusNotifierItem::~StatusNotifierItem()
 {
 }
 
+QString StatusNotifierItem::service() const
+{
+    return m_service;
+}
+
 QString StatusNotifierItem::name() const
 {
     return m_name;
@@ -129,12 +137,42 @@ QString StatusNotifierItem::title() const
 
 QString StatusNotifierItem::iconName() const
 {
-    return m_iconName;
+    return m_icon.name;
+}
+
+static QPixmap pixmap(const QSize &s, const DBusImageVector &vec)
+{
+    const DBusImageStruct *image = nullptr;
+    int dw, dh;
+    foreach (const DBusImageStruct &img, vec) {
+        int _dw = qAbs(img.width - s.width());
+        int _dh = qAbs(img.height - s.height());
+        if (!image || _dw < dw || _dh < dh) {
+            image = &img;
+            dw = _dw;
+            dh = _dh;
+        }
+    }
+    if (image) {
+        QImage img((const uchar *)image->data.constData(), image->width, image->height, QImage::Format_ARGB32);
+        return QPixmap::fromImage(img);
+    }
+    return QPixmap();
+}
+
+QPixmap StatusNotifierItem::iconPixmap(const QSize &s) const
+{
+    return pixmap(s, m_icon.pixmap);
 }
 
 QString StatusNotifierItem::attentionIconName() const
 {
-    return m_attentionIconName;
+    return m_attentionIcon.name;
+}
+
+QPixmap StatusNotifierItem::attentionIconPixmap(const QSize &s) const
+{
+    return pixmap(s, m_attentionIcon.pixmap);
 }
 
 QString StatusNotifierItem::tooltipTitle() const
@@ -178,17 +216,31 @@ void StatusNotifierItem::getTitle()
 
 void StatusNotifierItem::getIcon()
 {
+    m_icon.updatePending += 2;
     getProperty(m_service, QStringLiteral("IconName"), [this](const QVariant &v) {
-        m_iconName = v.toString();
-        emit iconNameChanged();
+        m_icon.name = v.toString();
+        if (--m_icon.updatePending == 0)
+            emit iconChanged();
+    });
+    getProperty(m_service, QStringLiteral("IconPixmap"), [this](const QVariant &v) {
+        v.value<QDBusArgument>() >> m_icon.pixmap;
+        if (--m_icon.updatePending == 0)
+            emit iconChanged();
     });
 }
 
 void StatusNotifierItem::getAttentionIcon()
 {
+    m_attentionIcon.updatePending += 2;
     getProperty(m_service, QStringLiteral("AttentionIconName"), [this](const QVariant &v) {
-        m_attentionIconName = v.toString();
-        emit attentionIconNameChanged();
+        m_attentionIcon.name = v.toString();
+        if (--m_attentionIcon.updatePending)
+            emit attentionIconChanged();
+    });
+    getProperty(m_service, QStringLiteral("AttentionIconPixmap"), [this](const QVariant &v) {
+        v.value<QDBusArgument>() >> m_attentionIcon.pixmap;
+        if (--m_attentionIcon.updatePending)
+            emit attentionIconChanged();
     });
 }
 

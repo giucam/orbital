@@ -24,6 +24,8 @@
 #include "statusnotifierservice.h"
 #include "statusnotifierwatcher.h"
 #include "statusnotifieritem.h"
+#include "statusnotifiericonprovider.h"
+#include "client.h"
 
 StatusNotifierService::StatusNotifierService()
                      : Service()
@@ -38,6 +40,7 @@ StatusNotifierService::~StatusNotifierService()
 
 void StatusNotifierService::init()
 {
+    Client::client()->qmlEngine()->addImageProvider(QStringLiteral("statusnotifier"), new StatusNotifierIconProvider(this));
     m_watcher = new StatusNotifierWatcher(this);
     if (QDBusConnection::sessionBus().registerService("org.kde.StatusNotifierWatcher")) {
         QDBusConnection::sessionBus().registerObject("/StatusNotifierWatcher", this);
@@ -51,6 +54,16 @@ void StatusNotifierService::newItem(const QString &service)
     connect(item, &StatusNotifierItem::removed, this, &StatusNotifierService::itemRemoved);
     m_items << item;
     emit itemsChanged();
+}
+
+StatusNotifierItem *StatusNotifierService::item(const QString &service) const
+{
+    foreach (StatusNotifierItem *item, m_items) {
+        if (item->service() == service) {
+            return item;
+        }
+    }
+    return nullptr;
 }
 
 int StatusNotifierService::itemsCount(QQmlListProperty<StatusNotifierItem> *prop)

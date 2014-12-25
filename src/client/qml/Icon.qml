@@ -31,6 +31,7 @@ Item {
     signal pressed()
     signal entered()
     property string icon: ""
+    property alias cache: image.cache
     property int iconFillMode: Image.PreserveAspectFit
     readonly property bool containsMouse: mouseArea.containsMouse
 

@@ -39,6 +39,7 @@ public:
 
     void init() override;
 
+    StatusNotifierItem *item(const QString &service) const;
     QQmlListProperty<StatusNotifierItem> items();
 
 signals:

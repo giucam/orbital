@@ -97,6 +97,7 @@ public:
     Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
     QQuickWindow *window(Element *ele);
+    QQmlEngine *qmlEngine() const { return m_engine; }
 
     static Client *client() { return s_client; }
     static QLocale locale();

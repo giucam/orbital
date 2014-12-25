@@ -9,9 +9,10 @@ include_directories(
 
 set(SOURCES statusnotifierservice.cpp
             statusnotifierwatcher.cpp
-            statusnotifieritem.cpp)
+            statusnotifieritem.cpp
+            statusnotifiericonprovider.cpp)
 
 add_library(statusnotifierservice SHARED ${SOURCES})
-qt5_use_modules(statusnotifierservice Core DBus Qml)
+qt5_use_modules(statusnotifierservice Core DBus Qml Gui Quick)
 set_target_properties(statusnotifierservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
 install(TARGETS statusnotifierservice DESTINATION lib/orbital/services)

@@ -47,10 +47,27 @@ Element {
             property int size: Math.min(width, height)
             hoverEnabled: true
             property bool needsAttention: modelData.status == StatusNotifierItem.NeedsAttention
+            property string iconName: needsAttention ? "attentionIcon" : "icon"
+
+            Connections {
+                target: modelData
+                onIconChanged: if (iconName == "icon" ) icon.reloadIcon();
+                onAttentionIconChanged: if (iconName == "attentionIcon" ) icon.reloadIcon();
+            }
 
             Icon {
+                id: icon
                 anchors.fill: parent
-                icon: "image://icon/" + (needsAttention ? modelData.attentionIconName : modelData.iconName)
+                cache: false
+                property bool reload: false
+
+                function reloadIcon()
+                {
+                    reload = true;
+                    reload = false;
+                }
+
+                icon: reload ? "" : "image://statusnotifier/" + modelData.service + "/" + iconName
             }
 
             onClicked: {

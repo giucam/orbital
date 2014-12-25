@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QVector>
 #include <QDBusInterface>
+#include <QPixmap>
 
 //Custom message type for DBus
 struct DBusImageStruct {
@@ -43,10 +44,9 @@ struct DBusToolTipStruct {
 class StatusNotifierItem: public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString service READ service CONSTANT)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
-    Q_PROPERTY(QString iconName READ iconName NOTIFY iconNameChanged)
-    Q_PROPERTY(QString attentionIconName READ attentionIconName NOTIFY attentionIconNameChanged)
     Q_PROPERTY(QString tooltipTitle READ tooltipTitle NOTIFY tooltipChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
 public:
@@ -60,10 +60,13 @@ public:
     explicit StatusNotifierItem(const QString &service, QObject *parent = nullptr);
     ~StatusNotifierItem();
 
+    QString service() const;
     QString name() const;
     QString title() const;
     QString iconName() const;
+    QPixmap iconPixmap(const QSize &size) const;
     QString attentionIconName() const;
+    QPixmap attentionIconPixmap(const QSize &size) const;
     QString tooltipTitle() const;
     Status status() const;
 
@@ -75,8 +78,8 @@ signals:
     void removed();
     void nameChanged();
     void titleChanged();
-    void iconNameChanged();
-    void attentionIconNameChanged();
+    void iconChanged();
+    void attentionIconChanged();
     void tooltipChanged();
     void statusChanged();
 
@@ -87,11 +90,16 @@ private slots:
     void getTooltip();
     void getStatus();
 private:
+    struct Icon {
+        QString name;
+        DBusImageVector pixmap;
+        int updatePending;
+    };
     QString m_service;
     QString m_name;
     QString m_title;
-    QString m_iconName;
-    QString m_attentionIconName;
+    Icon m_icon;
+    Icon m_attentionIcon;
     DBusToolTipStruct m_tooltip;
     Status m_status;
     QDBusInterface m_interface;
