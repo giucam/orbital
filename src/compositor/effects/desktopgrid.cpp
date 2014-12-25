@@ -78,11 +78,14 @@ public:
                 QPointF p = wsv->map(x, y) + QPointF(dx, dy);
                 QRect surfaceGeometry = shsurf->geometry();
 
-                if (!shell->snapPos(out, p, 20)) {
+                QPointF tl = p + surfaceGeometry.topLeft();
+                if (!shell->snapPos(out, tl, 20)) {
                     QPointF br = p + surfaceGeometry.bottomRight();
                     if (shell->snapPos(out, br, 20)) {
                         p = br - surfaceGeometry.bottomRight();
                     }
+                } else {
+                    p = tl - surfaceGeometry.topLeft();
                 }
 
                 shsurf->moveViews(int(p.x()), int(p.y()));

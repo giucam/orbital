@@ -200,11 +200,14 @@ void ShellSurface::move(Seat *seat)
             int moveY = y + dy;
 
             QPointF p = QPointF(moveX, moveY);
-            if (!shsurf->m_shell->snapPos(out, p)) {
+            QPointF tl = p + surfaceGeometry.topLeft();
+            if (!shsurf->m_shell->snapPos(out, tl)) {
                 QPointF br = p + surfaceGeometry.bottomRight();
                 if (shsurf->m_shell->snapPos(out, br)) {
                     p = br - surfaceGeometry.bottomRight();
                 }
+            } else {
+                p = tl - surfaceGeometry.topLeft();
             }
 
             shsurf->moveViews((int)p.x(), (int)p.y());
