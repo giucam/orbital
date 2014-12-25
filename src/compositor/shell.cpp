@@ -212,7 +212,6 @@ void Shell::autostartClients()
         proc->setStandardErrorFile(outputDir.filePath(bin));
         proc->start(exec);
 
-        QProcess::startDetached(exec);
         settings.endGroup();
     }
 }
