@@ -50,6 +50,23 @@ constexpr static auto createWrapper(R (T::*func)(Args...)) -> InterfaceWrapper<R
 
 #define wrapInterface(method) createWrapper(method).forward<method>
 
+template<class T>
+class Maybe
+{
+public:
+    inline Maybe() : m_isSet(false) {}
+    inline Maybe(T v) : value(v), m_isSet(true) {}
+    inline Maybe(const Maybe<T> &m) : value(m.value), m_isSet(m.m_isSet) {}
+
+    inline bool isSet() const { return m_isSet; }
+    inline operator bool() const { return m_isSet; }
+    inline Maybe<T> &operator=(const Maybe<T> &m) { value = m.value; m_isSet = m.m_isSet; }
+
+    T value;
+private:
+    bool m_isSet;
+};
+
 
 #define DECLARE_OPERATORS_FOR_FLAGS(F) \
     inline int operator&(F a, F b) { \

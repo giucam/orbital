@@ -36,6 +36,8 @@
 namespace Orbital
 {
 
+QHash<QString, QPoint> ShellSurface::s_posCache;
+
 ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             : Surface(surface, shell)
             , m_shell(shell)
@@ -365,6 +367,7 @@ void ShellSurface::close()
 
 void ShellSurface::moveViews(double x, double y)
 {
+    s_posCache[cacheId()] = QPoint(x, y);
     for (ShellView *view: m_views) {
         view->move(QPointF(x, y));
     }
@@ -417,6 +420,17 @@ QString ShellSurface::title() const
 QString ShellSurface::appId() const
 {
     return m_appId;
+}
+
+inline QString ShellSurface::cacheId() const
+{
+    return QString("%1+%2").arg(m_appId).arg(m_title);
+}
+
+Maybe<QPoint> ShellSurface::cachedPos() const
+{
+    QString id = cacheId();
+    return s_posCache.contains(id) ? Maybe<QPoint>(s_posCache.value(id)) : Maybe<QPoint>();
 }
 
 void ShellSurface::parentSurfaceDestroyed()

@@ -104,6 +104,7 @@ public:
     QRect geometry() const;
     QString title() const;
     QString appId() const;
+    Maybe<QPoint> cachedPos() const;
 
     static ShellSurface *fromSurface(weston_surface *s);
 
@@ -127,6 +128,7 @@ private:
     void outputRemoved(Output *output);
     void connectParent();
     void disconnectParent();
+    inline QString cacheId() const;
 
     Shell *m_shell;
     ConfigureSender m_configureSender;
@@ -167,6 +169,8 @@ private:
         bool maximized;
         bool fullscreen;
     } m_state;
+
+    static QHash<QString, QPoint> s_posCache;
 
     friend class XWayland;
 };
