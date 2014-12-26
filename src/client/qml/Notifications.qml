@@ -84,7 +84,11 @@ Item {
     Connections {
         target: service
         onNotify: {
-            var notification = component.createObject(root, { body: body, icon: "image://icon/" + icon });
+            var text = "";
+            if (summary)
+                text += "<b>" + summary + "</b><br>";
+            text += body;
+            var notification = component.createObject(root, { body: text, icon: "image://icon/" + icon });
         }
     }
 }
