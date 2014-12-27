@@ -462,14 +462,8 @@ void Shell::killSurface(Seat *s)
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
             View *view = pointer()->pickView();
-            wl_client *client = view->surface()->client();
+            compositor->kill(view->surface());
 
-            pid_t pid;
-            wl_client_get_credentials(client, &pid, NULL, NULL);
-
-            if (pid != getpid()) {
-                kill(pid, SIGKILL);
-            }
             end();
         }
         void ended() override
@@ -478,10 +472,12 @@ void Shell::killSurface(Seat *s)
             delete this;
         }
         KeyBinding *abortBinding;
+        Compositor *compositor;
     };
 
     KillGrab *grab = new KillGrab;
     grab->abortBinding = m_compositor->createKeyBinding(KEY_ESC, KeyboardModifiers::None);
+    grab->compositor = m_compositor;
     connect(grab->abortBinding, &KeyBinding::triggered, [grab]() { grab->end(); });
     s->pointer()->setFocus(nullptr);
     grab->start(s, PointerCursor::Kill);

@@ -494,6 +494,19 @@ ChildProcess *Compositor::launchProcess(const QString &path)
     return p;
 }
 
+void Compositor::kill(Surface *surface)
+{
+    wl_signal_emit(&m_compositor->kill_signal, surface->surface());
+
+    wl_client *client = surface->client();
+    pid_t pid;
+    wl_client_get_credentials(client, &pid, NULL, NULL);
+
+    if (pid != getpid()) {
+        ::kill(pid, SIGKILL);
+    }
+}
+
 ButtonBinding *Compositor::createButtonBinding(PointerButton button, KeyboardModifiers modifiers)
 {
     ButtonBinding *b = new ButtonBinding(m_compositor, button, modifiers, this);

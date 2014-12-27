@@ -47,6 +47,7 @@ class Seat;
 class ButtonBinding;
 class KeyBinding;
 class AxisBinding;
+class Surface;
 struct Listener;
 enum class PointerButton : unsigned char;
 enum class PointerAxis : unsigned char;
@@ -80,6 +81,8 @@ public:
 
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
+
+    void kill(Surface *surface);
 
     ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
     KeyBinding *createKeyBinding(uint32_t key, KeyboardModifiers modifiers);
