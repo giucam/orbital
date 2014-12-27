@@ -88,6 +88,7 @@ install_element(SOURCES elements/taskbar)
 install_element(SOURCES elements/deviceexplorer)
 install_element(SOURCES elements/lockscreen)
 install_element(SOURCES elements/systray)
+install_element(SOURCES elements/battery)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

@@ -65,6 +65,43 @@ private:
     QString m_icon;
 };
 
+class Battery : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString udi READ udi CONSTANT)
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(int chargePercent READ chargePercent NOTIFY chargePercentChanged)
+    Q_PROPERTY(ChargeState chargeState READ chargeState NOTIFY chargeStateChanged)
+public:
+    enum class ChargeState {
+        Stable,
+        Charging,
+        Discharging
+    };
+    Q_ENUMS(ChargeState)
+    explicit Battery(const QString &udi);
+
+    QString udi() const { return m_udi; }
+    QString name() const { return m_name; }
+    int chargePercent() const { return m_chargePercent; }
+    ChargeState chargeState() const { return m_chargeState; }
+
+protected:
+    void setName(const QString &name);
+    void setChargePercent(int charge);
+    void setChargeState(ChargeState c);
+
+signals:
+    void chargePercentChanged();
+    void chargeStateChanged();
+
+private:
+    QString m_udi;
+    QString m_name;
+    int m_chargePercent;
+    ChargeState m_chargeState;
+};
+
 class HardwareService : public Service
 {
     Q_OBJECT
@@ -72,6 +109,7 @@ class HardwareService : public Service
     Q_PLUGIN_METADATA(IID "Orbital.Service")
 
     Q_PROPERTY(QQmlListProperty<Device> devices READ devices NOTIFY devicesChanged)
+    Q_PROPERTY(QQmlListProperty<Battery> batteries READ batteries NOTIFY batteriesChanged)
 public:
     class Backend
     {
@@ -80,6 +118,7 @@ public:
         virtual ~Backend() {}
 
         void deviceAdded(Device *dev);
+        void batteryAdded(Battery *b);
         void deviceRemoved(const QString &udi);
 
     private:
@@ -92,15 +131,19 @@ public:
     void init() override;
 
     QQmlListProperty<Device> devices();
+    QQmlListProperty<Battery> batteries();
 
 signals:
     void devicesChanged();
     void deviceAdded(Device *device);
     void deviceRemoved(Device *device);
+    void batteriesChanged();
+    void batteryAdded(Battery *battery);
 
 private:
     Backend *m_backend;
     QMap<QString, Device *> m_devices;
+    QMap<QString, Battery *> m_batteries;
 
     static int devicesCount(QQmlListProperty<Device> *prop);
     static Device *devicesAt(QQmlListProperty<Device> *prop, int index);

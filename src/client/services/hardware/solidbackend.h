@@ -24,6 +24,11 @@
 
 #include "hardwareservice.h"
 
+namespace Solid {
+    class Device;
+    class Battery;
+}
+
 class SolidDevice : public Device
 {
 public:
@@ -37,6 +42,13 @@ private:
     Solid::Device m_device;
 };
 
+class SolidBattery : public Battery
+{
+public:
+    SolidBattery(Solid::Battery *b, const QString &udi);
+
+};
+
 class SolidBackend : public HardwareService::Backend
 {
 public:
@@ -44,6 +56,7 @@ public:
 
 private:
     SolidBackend(HardwareService *hw);
+    void add(Solid::Device &device);
 };
 
 #endif

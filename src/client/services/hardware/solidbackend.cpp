@@ -17,8 +17,11 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QDebug>
+
 #include <solid/devicenotifier.h>
 #include <solid/storageaccess.h>
+#include <solid/battery.h>
 
 #include "solidbackend.h"
 
@@ -28,16 +31,14 @@ SolidDevice::SolidDevice(const QString &udi)
 {
     setName(m_device.description());
     setIconName(m_device.icon());
-
-    if (Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>()) {
-        setType(Type::Storage);
-        connect(access, &Solid::StorageAccess::setupDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
-            emit mountedChanged();
-        });
-        connect(access, &Solid::StorageAccess::teardownDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
-            emit mountedChanged();
-        });
-    }
+    setType(Type::Storage);
+    Solid::StorageAccess *access = m_device.as<Solid::StorageAccess>();
+    connect(access, &Solid::StorageAccess::setupDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
+        emit mountedChanged();
+    });
+    connect(access, &Solid::StorageAccess::teardownDone, [this](Solid::ErrorType error, const QVariant &errorData, const QString &udi) {
+        emit mountedChanged();
+    });
 }
 
 bool SolidDevice::umount()
@@ -71,6 +72,31 @@ bool SolidDevice::isMounted() const
 }
 
 
+static Battery::ChargeState fromSolid(Solid::Battery::ChargeState c)
+{
+    switch (c) {
+        case Solid::Battery::FullyCharged:
+        case Solid::Battery::NoCharge: return Battery::ChargeState::Stable;
+        case Solid::Battery::Charging: return Battery::ChargeState::Charging;
+        case Solid::Battery::Discharging: return Battery::ChargeState::Discharging;
+    }
+}
+
+SolidBattery::SolidBattery(Solid::Battery *b, const QString &udi)
+            : Battery(udi)
+{
+    Solid::Device d(udi);
+    setName(d.description());
+    setChargePercent(b->chargePercent());
+    setChargeState(fromSolid(b->chargeState()));
+    connect(b, &Solid::Battery::chargePercentChanged, [this](int charge, const QString &) {
+        setChargePercent(charge);
+    });
+    connect(b, &Solid::Battery::chargeStateChanged, [this](int state, const QString &) {
+        setChargeState(fromSolid((Solid::Battery::ChargeState)(state)));
+    });
+}
+
 
 SolidBackend::SolidBackend(HardwareService *hw)
             : HardwareService::Backend(hw)
@@ -86,17 +112,27 @@ SolidBackend *SolidBackend::create(HardwareService *hw)
 
     Solid::DeviceNotifier *notifier = Solid::DeviceNotifier::instance();
     QObject::connect(notifier, &Solid::DeviceNotifier::deviceAdded, [solid](const QString &udi) {
-        Device *d = new SolidDevice(udi);
-        solid->deviceAdded(d);
+        Solid::Device d(udi);
+        solid->add(d);
     });
     QObject::connect(notifier, &Solid::DeviceNotifier::deviceRemoved, [solid](const QString &udi) {
         solid->deviceRemoved(udi);
     });
 
     for (Solid::Device &device: Solid::Device::allDevices()) {
-        Device *d = new SolidDevice(device.udi());
-        solid->deviceAdded(d);
+        solid->add(device);
     }
 
     return solid;
+}
+
+void SolidBackend::add(Solid::Device &device)
+{
+    if (device.as<Solid::StorageAccess>()) {
+        Device *d = new SolidDevice(device.udi());
+        deviceAdded(d);
+    } else if (Solid::Battery *battery = device.as<Solid::Battery>()) {
+        Battery *b = new SolidBattery(battery, device.udi());
+        batteryAdded(b);
+    }
 }

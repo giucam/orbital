@@ -49,12 +49,43 @@ void Device::setIconName(const QString &name)
 }
 
 
+Battery::Battery(const QString &udi)
+       : QObject()
+       , m_udi(udi)
+       , m_chargePercent(0)
+       , m_chargeState(ChargeState::Stable)
+{
+}
+
+void Battery::setName(const QString &name)
+{
+    m_name = name;
+}
+
+void Battery::setChargePercent(int charge)
+{
+    if (m_chargePercent != charge) {
+        m_chargePercent = charge;
+        emit chargePercentChanged();
+    }
+}
+
+void Battery::setChargeState(ChargeState cs)
+{
+    if (m_chargeState != cs) {
+        m_chargeState = cs;
+        emit chargeStateChanged();
+    }
+}
+
+
 
 HardwareService::HardwareService()
                : Service()
                , m_backend(nullptr)
 {
     qmlRegisterUncreatableType<Device>("Orbital", 1, 0, "Device", "Cannot create Device");
+    qmlRegisterUncreatableType<Battery>("Orbital", 1, 0, "Battery", "Cannot create Battery");
 }
 
 HardwareService::~HardwareService()
@@ -90,6 +121,16 @@ Device *HardwareService::devicesAt(QQmlListProperty<Device> *prop, int index)
     return h->m_devices.values().at(index);
 }
 
+QQmlListProperty<Battery> HardwareService::batteries()
+{
+    auto batteriesCount = [](QQmlListProperty<Battery> *prop) {
+        return static_cast<HardwareService *>(prop->object)->m_batteries.count();
+    };
+    auto batteryAt = [](QQmlListProperty<Battery> *prop, int i) {
+        return static_cast<HardwareService *>(prop->object)->m_batteries.values().at(i);
+    };
+    return QQmlListProperty<Battery>(this, 0, batteriesCount, batteryAt);
+}
 
 
 HardwareService::Backend::Backend(HardwareService *hw)
@@ -104,12 +145,21 @@ void HardwareService::Backend::deviceAdded(Device *dev)
     emit m_hw->deviceAdded(dev);
 }
 
+void HardwareService::Backend::batteryAdded(Battery *b)
+{
+    m_hw->m_batteries.insert(b->udi(), b);
+    emit m_hw->batteryAdded(b);
+    emit m_hw->batteriesChanged();
+}
+
 void HardwareService::Backend::deviceRemoved(const QString &udi)
 {
-    Device *d = m_hw->m_devices.value(udi);
-
-    m_hw->m_devices.remove(udi);
-    emit m_hw->devicesChanged();
-    emit m_hw->deviceRemoved(d);
-    d->deleteLater();
+    if (Device *d = m_hw->m_devices.take(udi)) {
+        emit m_hw->devicesChanged();
+        emit m_hw->deviceRemoved(d);
+        d->deleteLater();
+    } else if (Battery *b = m_hw->m_batteries.take(udi)) {
+        emit m_hw->batteriesChanged();
+        b->deleteLater();
+    }
 }
