@@ -44,7 +44,6 @@ Element {
         delegate: MouseArea {
             width: horizontal ? root.baseLength : list.width
             height: horizontal ? list.height : root.baseLength
-            property int size: Math.min(width, height)
             hoverEnabled: true
             property bool needsAttention: modelData.status == StatusNotifierItem.NeedsAttention
             property string iconName: needsAttention ? "attentionIcon" : "icon"
@@ -71,7 +70,6 @@ Element {
             }
 
             onClicked: {
-                console.log("click");
                 if (mouse.button == Qt.LeftButton) {
                     modelData.activate()
                 } else if (mouse.button == Qt.MiddleButton) {
