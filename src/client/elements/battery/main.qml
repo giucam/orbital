@@ -49,7 +49,7 @@ Element {
             property string iconName: "battery"
             property string tooltipText: ""
 
-            property string charging: modelData.chargeState == Battery.Charging ? "-charging" : ""
+            property string charging: modelData.chargeState != Battery.Discharging ? "-charging" : ""
             property string charge: modelData.chargePercent < 20 ? "-low" : (modelData.chargePercent < 40 ? "-caution" : "")
 
             Connections {
