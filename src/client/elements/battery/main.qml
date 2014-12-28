@@ -49,6 +49,9 @@ Element {
             property string iconName: "battery"
             property string tooltipText: ""
 
+            property string charging: modelData.chargeState == Battery.Charging ? "-charging" : ""
+            property string charge: modelData.chargePercent < 20 ? "-low" : (modelData.chargePercent < 40 ? "-caution" : "")
+
             Connections {
                 target: modelData
                 onChargeStateChanged: battery.updateTooltipText()
@@ -64,21 +67,10 @@ Element {
                 tooltipText = modelData.name + state
             }
 
-            states: [
-                State {
-                    when: modelData.chargePercent < 40
-                    PropertyChanges { target: battery; iconName: "battery-caution" }
-                },
-                State {
-                    when: modelData.chargePercent < 20
-                    PropertyChanges { target: battery; iconName: "battery-low" }
-                }
-            ]
-
             Icon {
                 id: icon
                 anchors.fill: parent
-                icon: "image://icon/" + iconName
+                icon: "image://icon/battery" + charging + charge
             }
 
             Text {
