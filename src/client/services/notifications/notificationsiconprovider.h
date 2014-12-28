@@ -17,39 +17,22 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NOTIFICATION_H
-#define NOTIFICATION_H
+#ifndef NOTIFICATIONICONPROVIDER_H
+#define NOTIFICATIONICONPROVIDER_H
 
-#include <QObject>
+#include <QQuickImageProvider>
 
-class QQuickWindow;
-class QQuickItem;
+class NotificationsService;
 
-struct notification_surface;
-
-class NotificationWindow : public QObject
+class NotificationsIconProvider : public QQuickImageProvider
 {
-    Q_OBJECT
-    Q_PROPERTY(bool inactive READ inactive WRITE setInactive)
-    Q_PROPERTY(QQuickItem *contentItem READ contentItem WRITE setContentItem)
-    Q_CLASSINFO("DefaultProperty", "contentItem")
 public:
-    explicit NotificationWindow(QObject *p = nullptr);
-    ~NotificationWindow();
+    explicit NotificationsIconProvider(NotificationsService *service);
 
-    QQuickItem *contentItem() const;
-    void setContentItem(QQuickItem *item);
-    bool inactive() const;
-    void setInactive(bool inactive);
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
 
 private:
-    void resetWidth();
-    void resetHeight();
-
-    QQuickWindow *m_window;
-    QQuickItem *m_contentItem;
-    bool m_inactive;
-    notification_surface *m_surface;
+    NotificationsService *m_service;
 };
 
 #endif

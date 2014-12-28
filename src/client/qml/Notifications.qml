@@ -26,9 +26,10 @@ Item {
 
     Component {
         id: component
-        Notification {
-            id: notification
+        NotificationWindow {
+            id: notif
             inactive: true
+            property QtObject notification
             property alias body: notificationText.text
             property alias icon: image.source
 
@@ -68,14 +69,12 @@ Item {
                 SequentialAnimation {
                     id: fadeOutAnim
                     NumberAnimation { target: content; property: "opacity"; to: 0; duration: 300 }
-                    ScriptAction { script: notification.destroy() }
+                    ScriptAction { script: notif.destroy() }
                 }
 
-                Timer {
-                    id: timer
-                    interval: 5000
-                    running: true
-                    onTriggered: fadeOutAnim.start()
+                Connections {
+                    target: notification
+                    onExpired: fadeOutAnim.start()
                 }
             }
         }
@@ -85,10 +84,11 @@ Item {
         target: service
         onNotify: {
             var text = "";
-            if (summary)
-                text += "<b>" + summary + "</b><br>";
-            text += body;
-            var notification = component.createObject(root, { body: text, icon: "image://icon/" + icon });
+            if (notification.summary)
+                text += "<b>" + notification.summary + "</b><br>";
+            text += notification.body;
+            component.createObject(root, { notification: notification, body: text,
+                                           icon: "image://notifications/" + notification.id });
         }
     }
 }

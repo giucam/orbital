@@ -17,16 +17,58 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QtQml>
 #include <QDBusConnection>
 #include <QDebug>
 
+#include "client.h"
 #include "notificationsservice.h"
 #include "notificationsadaptor.h"
+#include "notificationsiconprovider.h"
+
+
+Notification::Notification()
+            : QObject()
+{
+}
+
+void Notification::timerEvent(QTimerEvent *e)
+{
+    emit expired();
+    deleteLater();
+}
+
+void Notification::setId(int id)
+{
+    m_id = id;
+}
+
+void Notification::setSummary(const QString &s)
+{
+    m_summary = s;
+}
+
+void Notification::setBody(const QString &b)
+{
+    m_body = b;
+}
+
+void Notification::setIconName(const QString &n)
+{
+    m_iconName = n;
+}
+
+void Notification::setIconImage(const QPixmap &img)
+{
+    m_iconImage = img;
+}
+
+
 
 NotificationsService::NotificationsService()
                      : Service()
 {
-
+    qmlRegisterUncreatableType<Notification>("Orbital", 1, 0, "Notification", "Cannot create Notification objects");
 }
 
 NotificationsService::~NotificationsService()
@@ -41,4 +83,20 @@ void NotificationsService::init()
     if (QDBusConnection::sessionBus().registerService("org.freedesktop.Notifications")) {
         QDBusConnection::sessionBus().registerObject("/org/freedesktop/Notifications", this);
     }
+
+    client()->qmlEngine()->addImageProvider(QStringLiteral("notifications"), new NotificationsIconProvider(this));
+}
+
+void NotificationsService::newNotification(Notification *n)
+{
+    int id = n->id();
+    m_notifications[id] = n;
+    n->startTimer(5000);
+    connect(n, &Notification::expired, [this, id]() { m_notifications.remove(id); });
+    emit notify(n);
+}
+
+Notification *NotificationsService::notification(int id) const
+{
+    return m_notifications.value(id);
 }

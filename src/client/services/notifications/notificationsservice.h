@@ -21,8 +21,45 @@
 #define NOTIFICATIONSSERVICE_H
 
 #include <QDBusAbstractAdaptor>
+#include <QPixmap>
 
 #include "service.h"
+
+class Notification : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(int id READ id CONSTANT)
+    Q_PROPERTY(QString summary READ summary CONSTANT)
+    Q_PROPERTY(QString body READ body CONSTANT)
+
+public:
+    Notification();
+
+    int id() const { return m_id; }
+    QString summary() const { return m_summary; }
+    QString body() const { return m_body; }
+    QString iconName() const { return m_iconName; }
+    QPixmap iconImage() const { return m_iconImage; }
+
+    void setId(int id);
+    void setSummary(const QString &s);
+    void setBody(const QString &body);
+    void setIconName(const QString &icon);
+    void setIconImage(const QPixmap &img);
+
+protected:
+    void timerEvent(QTimerEvent *e);
+
+signals:
+    void expired();
+
+private:
+    int m_id;
+    QString m_summary;
+    QString m_body;
+    QString m_iconName;
+    QPixmap m_iconImage;
+};
 
 class NotificationsService : public Service
 {
@@ -34,11 +71,15 @@ public:
     ~NotificationsService();
 
     void init() override;
+    void newNotification(Notification *notification);
+
+    Notification *notification(int id) const;
 
 signals:
-    void notify(const QString &icon, const QString &app, const QString &summary, const QString &body);
+    void notify(Notification *notification);
 
 private:
+    QHash<int, Notification *> m_notifications;
 };
 
 #endif

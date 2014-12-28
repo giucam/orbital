@@ -117,7 +117,7 @@ Client::Client()
     qmlRegisterType<Service>();
     qmlRegisterType<Grab>();
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
-    qmlRegisterType<Notification>("Orbital", 1, 0, "Notification");
+    qmlRegisterType<NotificationWindow>("Orbital", 1, 0, "NotificationWindow");
     qmlRegisterType<ActiveRegion>("Orbital", 1, 0, "ActiveRegion");
     qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
     qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");

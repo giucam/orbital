@@ -24,29 +24,29 @@
 #include "client.h"
 #include "wayland-desktop-shell-client-protocol.h"
 
-Notification::Notification(QObject *p)
-            : QObject(p)
-            , m_window(new QQuickWindow)
-            , m_contentItem(nullptr)
-            , m_inactive(false)
+NotificationWindow::NotificationWindow(QObject *p)
+                  : QObject(p)
+                  , m_window(new QQuickWindow)
+                  , m_contentItem(nullptr)
+                  , m_inactive(false)
 {
     m_window->setFlags(Qt::BypassWindowManagerHint);
     m_window->setColor(Qt::transparent);
     m_window->create();
 }
 
-Notification::~Notification()
+NotificationWindow::~NotificationWindow()
 {
     notification_surface_destroy(m_surface);
     delete m_window;
 }
 
-QQuickItem *Notification::contentItem() const
+QQuickItem *NotificationWindow::contentItem() const
 {
     return m_contentItem;
 }
 
-void Notification::setContentItem(QQuickItem *item)
+void NotificationWindow::setContentItem(QQuickItem *item)
 {
     if (m_contentItem) {
         return;
@@ -59,27 +59,27 @@ void Notification::setContentItem(QQuickItem *item)
         m_window->setHeight(item->height());
         m_window->show();
         m_surface = Client::client()->pushNotification(m_window, m_inactive);
-        connect(item, &QQuickItem::widthChanged, this, &Notification::resetWidth);
-        connect(item, &QQuickItem::heightChanged, this, &Notification::resetHeight);
+        connect(item, &QQuickItem::widthChanged, this, &NotificationWindow::resetWidth);
+        connect(item, &QQuickItem::heightChanged, this, &NotificationWindow::resetHeight);
     }
 }
 
-bool Notification::inactive() const
+bool NotificationWindow::inactive() const
 {
     return m_inactive;
 }
 
-void Notification::setInactive(bool in)
+void NotificationWindow::setInactive(bool in)
 {
     m_inactive = in;
 }
 
-void Notification::resetWidth()
+void NotificationWindow::resetWidth()
 {
     m_window->setWidth(m_contentItem->width());
 }
 
-void Notification::resetHeight()
+void NotificationWindow::resetHeight()
 {
     m_window->setHeight(m_contentItem->height());
 }

@@ -6,9 +6,9 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../..
 )
 
-set(SOURCES notificationsservice.cpp notificationsadaptor.cpp)
+set(SOURCES notificationsservice.cpp notificationsadaptor.cpp notificationsiconprovider.cpp)
 
 add_library(notificationsservice SHARED ${SOURCES})
-qt5_use_modules(notificationsservice Core DBus)
+qt5_use_modules(notificationsservice Core DBus Quick)
 set_target_properties(notificationsservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
 install(TARGETS notificationsservice DESTINATION lib/orbital/services)
