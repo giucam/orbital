@@ -64,7 +64,7 @@ Style {
 
             Rectangle {
                 id: rect
-                color: "#D2E3F5"
+                color: "#BFD9F5"
                 radius: 3
                 height: horizontal ? parent.height + 10 : parent.height
                 width: horizontal ? parent.width : parent.width + 10
@@ -80,7 +80,6 @@ Style {
                     State {
                         name: "minimized"
                         when: item.state & Window.Minimized
-                        PropertyChanges { target: rect; color: "#57A2FD" }
                         PropertyChanges { target: rect; height: horizontal ? 10 : parent.height }
                         PropertyChanges { target: rect; width: horizontal ? parent.width : 10 }
                         PropertyChanges { target: rect; x: horizontal ? 0 : (location == 1 ? item.width - 3 : -5) }
@@ -91,7 +90,7 @@ Style {
                     NumberAnimation { properties: "x,y,width,height"; easing.type: Easing.InOutQuad }
                 }
 
-                Behavior on color { ColorAnimation { duration: 100 } }
+                Behavior on color { ColorAnimation { } }
             }
 
             Rotator {
