@@ -17,14 +17,14 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.1
+import QtQuick 2.4
 import Orbital 1.0
 
 Element {
     id: element
 
     property int orientation: (location == 0 || location == 2) ? Qt.Horizontal : Qt.Vertical
-    Layout.minimumWidth: time.contentWidth + 10
+    Layout.minimumWidth: textMetrics.width + 10
     Layout.preferredWidth: Layout.minimumWidth
     Layout.minimumHeight: time.contentHeight + 10
     Layout.preferredHeight: time.contentHeight + date.contentHeight
@@ -33,6 +33,13 @@ Element {
     height: 20
 
     property variant service: Client.service("DateTimeService")
+
+    TextMetrics {
+        id: textMetrics
+        font: time.font
+        text: "00:00:00"
+        property alias tightHeight: textMetrics.tightBoundingRect.height
+    }
 
     onOrientationChanged: {
         if (orientation == Qt.Horizontal) {
@@ -50,7 +57,7 @@ Element {
         }
     }
 
-    contentItem: Column {
+    contentItem: Item {
         anchors.fill: parent
         Text {
             id: time
@@ -63,13 +70,16 @@ Element {
         }
         Text {
             id: date
-            height: contentHeight
+            y: textMetrics.tightHeight + 3
+            height: parent.height - textMetrics.tightHeight
             anchors.horizontalCenter: parent.horizontalCenter
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
-            font.pixelSize: 10
+            font.pixelSize: 100
+            minimumPixelSize: 1
             text: service.date
+            fontSizeMode: Text.Fit
         }
     }
 }
