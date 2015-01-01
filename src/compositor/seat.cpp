@@ -252,13 +252,11 @@ Seat *Seat::fromResource(wl_resource *res)
 Pointer::Pointer(Seat *seat, weston_pointer *p)
        : m_seat(seat)
        , m_pointer(p)
-       , m_defaultGrab(nullptr)
 {
 }
 
 Pointer::~Pointer()
 {
-    delete m_defaultGrab;
 }
 
 View *Pointer::pickView(double *vx, double *vy) const
@@ -280,16 +278,6 @@ View *Pointer::pickView(double *vx, double *vy) const
         }
     }
     return nullptr;
-}
-
-void Pointer::setDefaultGrab(PointerGrab *grab)
-{
-    if (!isGrabActive()) {
-        m_defaultGrab = grab;
-        m_defaultGrab->start(m_seat);
-    } else {
-        m_defaultGrab = grab;
-    }
 }
 
 void Pointer::setFocus(View *view)
@@ -337,10 +325,9 @@ void Pointer::sendMotion(uint32_t time)
     }
 
     wl_resource *resource;
-    wl_fixed_t sx, sy;
-    weston_view_from_global_fixed(m_pointer->focus, m_pointer->x, m_pointer->y, &sx, &sy);
+    weston_view_from_global_fixed(m_pointer->focus, m_pointer->x, m_pointer->y, &m_pointer->sx, &m_pointer->sy);
     wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
-        wl_pointer_send_motion(resource, time, sx, sy);
+        wl_pointer_send_motion(resource, time, m_pointer->sx, m_pointer->sy);
     }
 }
 
@@ -370,7 +357,7 @@ double Pointer::y() const
 
 bool Pointer::isGrabActive() const
 {
-    return m_pointer->grab != &m_pointer->default_grab && (!m_defaultGrab || m_pointer->grab != &m_defaultGrab->m_grab->base);
+    return m_pointer->grab != &m_pointer->default_grab;
 }
 
 uint32_t Pointer::grabSerial() const
@@ -391,6 +378,57 @@ PointerButton Pointer::grabButton() const
 QPointF Pointer::grabPos() const
 {
     return QPointF(wl_fixed_to_double(m_pointer->grab_x), wl_fixed_to_double(m_pointer->grab_y));
+}
+
+void Pointer::defaultGrabFocus()
+{
+    if (buttonCount() > 0) {
+        return;
+    }
+
+    QPoint p(x(), y());
+    foreach (Output *out, m_defaultGrab.outputs) {
+        if (!out->geometry().contains(p)) {
+            emit out->pointerLeave(this);
+            m_defaultGrab.outputs.remove(out);
+        }
+    }
+    foreach (Output *out, m_seat->compositor()->outputs()) {
+        if (!m_defaultGrab.outputs.contains(out) && out->geometry().contains(p)) {
+            emit out->pointerEnter(this);
+            m_defaultGrab.outputs << out;
+        }
+    }
+
+    double sx, sy;
+    View *view = pickView(&sx, &sy);
+
+    if (focus() != view || m_pointer->sx != sx || m_pointer->sy != sy) {
+        setFocus(view, sx, sy);
+    }
+}
+
+void Pointer::defaultGrabMotion(uint32_t time, double x, double y)
+{
+    if (focus()) {
+        QPointF pos = focus()->mapFromGlobal(QPointF(x, y));
+        m_pointer->sx = pos.x();
+        m_pointer->sy = pos.y();
+    }
+
+    move(x, y);
+    sendMotion(time);
+}
+
+void Pointer::defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state)
+{
+    PointerButton button = rawToPointerButton(btn);
+    Pointer::ButtonState st = (Pointer::ButtonState)(state);
+    sendButton(time, button, st);
+
+    if (buttonCount() == 0 && st == Pointer::ButtonState::Released) {
+        defaultGrabFocus();
+    }
 }
 
 // -- PointerGrab
@@ -449,16 +487,10 @@ void PointerGrab::start(Seat *seat, PointerCursor cursor)
 void PointerGrab::end()
 {
     if (m_seat) {
-        PointerGrab *defaultGrab = pointer()->m_defaultGrab;
-        if (defaultGrab != this) {
-            weston_pointer_end_grab(m_seat->pointer()->m_pointer);
-            m_seat->compositor()->shell()->unsetGrabCursor(pointer());
-            m_seat = nullptr;
-            ended();
-            if (defaultGrab) {
-                defaultGrab->start(defaultGrab->m_seat);
-            }
-        }
+        weston_pointer_end_grab(m_seat->pointer()->m_pointer);
+        m_seat->compositor()->shell()->unsetGrabCursor(pointer());
+        m_seat = nullptr;
+        ended();
     }
 }
 

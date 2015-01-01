@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QPointF>
 #include <QLinkedList>
+#include <QSet>
 
 struct wl_resource;
 struct weston_seat;
@@ -38,6 +39,7 @@ class View;
 class Surface;
 class ShellSurface;
 class Workspace;
+class Output;
 enum class PointerButton : unsigned char;
 
 class Seat : public QObject
@@ -104,7 +106,6 @@ public:
     inline Seat *seat() const { return m_seat; }
     View *pickView(double *x = nullptr, double *y = nullptr) const;
 
-    void setDefaultGrab(PointerGrab *grab);
     void setFocus(View *view);
     void setFocus(View *view, double x, double y);
     inline void setFocus(View *view, const QPointF &p) { setFocus(view, p.x(), p.y()); }
@@ -122,10 +123,16 @@ public:
     PointerButton grabButton() const;
     QPointF grabPos() const;
 
+    void defaultGrabFocus();
+    void defaultGrabMotion(uint32_t time, double x, double y);
+    void defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state);
+
 private:
     Seat *m_seat;
     weston_pointer *m_pointer;
-    PointerGrab *m_defaultGrab;
+    struct {
+        QSet<Output *> outputs;
+    } m_defaultGrab;
 
     friend PointerGrab;
     friend Seat;

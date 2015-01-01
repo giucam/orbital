@@ -201,6 +201,21 @@ verify_xdg_runtime_dir(void)
     }
 }
 
+static const weston_pointer_grab_interface defaultPointerGrab = {
+    [](weston_pointer_grab *grab) {
+        weston_pointer *p = grab->pointer;
+        Seat::fromSeat(p->seat)->pointer()->defaultGrabFocus();
+    },
+    [](weston_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+        Seat *seat = Seat::fromSeat(grab->pointer->seat);
+        seat->pointer()->defaultGrabMotion(time, wl_fixed_to_double(x), wl_fixed_to_double(y));
+    },
+    [](weston_pointer_grab *grab, uint32_t time, uint32_t btn, uint32_t state) {
+        Seat *seat = Seat::fromSeat(grab->pointer->seat);
+        seat->pointer()->defaultGrabButton(time, btn, state);
+    },
+    [](weston_pointer_grab *grab) {}
+};
 
 bool Compositor::init(const QString &socketName)
 {
@@ -288,77 +303,7 @@ bool Compositor::init(const QString &socketName)
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
                           terminate_binding, this);
 
-    weston_seat *s;
-    wl_list_for_each(s, &m_compositor->seat_list, link) {
-        Seat *seat = Seat::fromSeat(s);
-        if (!seat->pointer()) {
-            continue;
-        }
-
-        class DefaultGrab : public PointerGrab
-        {
-        public:
-            DefaultGrab(Compositor *c)
-                : compositor(c)
-            {
-                connect(c, &Compositor::outputRemoved, [this](Output *o) {
-                    outputs.remove(o);
-                });
-            }
-            void focus() override
-            {
-                if (pointer()->buttonCount() > 0) {
-                    return;
-                }
-
-                QPoint p(pointer()->x(), pointer()->y());
-                foreach (Output *out, outputs) {
-                    if (!out->geometry().contains(p)) {
-                        emit out->pointerLeave(pointer());
-                        outputs.remove(out);
-                    }
-                }
-                foreach (Output *out, compositor->outputs()) {
-                    if (!outputs.contains(out) && out->geometry().contains(p)) {
-                        emit out->pointerEnter(pointer());
-                        outputs << out;
-                    }
-                }
-
-                double sx, sy;
-                View *view = pointer()->pickView(&sx, &sy);
-
-                if (pointer()->focus() != view || m_sx != sx || m_sy != sy) {
-                    pointer()->setFocus(view, sx, sy);
-                }
-            }
-            void motion(uint32_t time, double x, double y) override
-            {
-                if (pointer()->focus()) {
-                    QPointF pos = pointer()->focus()->mapFromGlobal(QPointF(x, y));
-                    m_sx = pos.x();
-                    m_sy = pos.y();
-                }
-
-                pointer()->move(x, y);
-                pointer()->sendMotion(time);
-            }
-            void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
-            {
-                pointer()->sendButton(time, button, state);
-
-                if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
-                    focus();
-                }
-            }
-
-            double m_sx, m_sy;
-            Compositor *compositor;
-            QSet<Output *> outputs;
-
-        };
-        seat->pointer()->setDefaultGrab(new DefaultGrab(this));
-    }
+    weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
 
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
