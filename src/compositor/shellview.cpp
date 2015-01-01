@@ -165,10 +165,10 @@ void ShellView::configurePopup(View *parent, int x, int y)
 void ShellView::configureTransient(View *parent, int x, int y)
 {
     if (!isMapped()) {
-        parent->layer()->addView(this);
-        setTransformParent(parent);
+        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        wsv->configure(this);
         setOutput(m_designedOutput);
-        setPos(x, y);
+        setPos(parent->x() + x, parent->y() + y);
     }
     update();
 }
