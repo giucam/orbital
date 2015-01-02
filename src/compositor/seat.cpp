@@ -400,8 +400,10 @@ void Pointer::defaultGrabFocus()
         }
     }
 
-    double sx, sy;
-    View *view = pickView(&sx, &sy);
+    double dx, dy;
+    View *view = pickView(&dx, &dy);
+    wl_fixed_t sx = wl_fixed_from_double(dx);
+    wl_fixed_t sy = wl_fixed_from_double(dy);
 
     if (focus() != view || m_pointer->sx != sx || m_pointer->sy != sy) {
         setFocus(view, sx, sy);
@@ -412,8 +414,8 @@ void Pointer::defaultGrabMotion(uint32_t time, double x, double y)
 {
     if (focus()) {
         QPointF pos = focus()->mapFromGlobal(QPointF(x, y));
-        m_pointer->sx = pos.x();
-        m_pointer->sy = pos.y();
+        m_pointer->sx = wl_fixed_from_double(pos.x());
+        m_pointer->sy = wl_fixed_from_double(pos.y());
     }
 
     move(x, y);
