@@ -553,8 +553,6 @@ void ChildProcess::start()
         {
             int fd = dup(socket);
             setenv("WAYLAND_SOCKET", qPrintable(QString::number(fd)), 1);
-            setenv("QT_QPA_PLATFORM", "wayland", 1);
-            setenv("QSG_RENDER_LOOP", "windows", 0);
         }
 
         int socket;
