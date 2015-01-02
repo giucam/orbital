@@ -36,6 +36,7 @@ class Client;
 class UiScreen;
 class Style;
 class CompositorSettings;
+class Binding;
 
 class ShellUI : public QObject
 {
@@ -97,6 +98,7 @@ private:
     int m_numWorkspaces;
     QString m_styleName;
     Style *m_style;
+    QList<Binding *> m_bindings;
 
     QStringList m_properties;
 };

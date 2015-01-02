@@ -32,6 +32,7 @@
 #include <QScreen>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QProcess>
 
 #include "client.h"
 #include "element.h"
@@ -211,6 +212,8 @@ void ShellUI::toggleConfigMode()
 void ShellUI::reloadConfig()
 {
     m_properties.clear();
+    qDeleteAll(m_bindings);
+    m_bindings.clear();
 
     QJsonObject object;
     if (m_config.contains("Shell")) {
@@ -223,6 +226,20 @@ void ShellUI::reloadConfig()
     for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
         setProperty(qPrintable(i.key()), i.value().toVariant());
         m_properties << i.key();
+    }
+
+    QJsonArray bindings = object["bindings"].toArray();
+    for (auto i = bindings.begin(); i != bindings.end(); ++i) {
+        QJsonObject binding = (*i).toObject();
+        int key = binding["key"].toInt(-1);
+        QString exec = binding["exec"].toString();
+        if (key < 0 || exec.isEmpty()) {
+            qDebug() << "Cannot parse binding" << binding;
+            continue;
+        }
+        Binding *b = m_client->addKeyBinding(key, 0);
+        m_bindings << b;
+        connect(b, &Binding::triggered, [exec]() { QProcess::startDetached(exec); });
     }
 
     for (UiScreen *screen: m_screens) {
