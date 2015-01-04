@@ -128,6 +128,8 @@ public:
     void defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state);
 
 private:
+    void setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y);
+
     Seat *m_seat;
     weston_pointer *m_pointer;
     struct {

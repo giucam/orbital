@@ -292,6 +292,11 @@ void Pointer::setFocus(View *view, double x, double y)
     weston_pointer_set_focus(m_pointer, view ? view->m_view : nullptr, fx, fy);
 }
 
+void Pointer::setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y)
+{
+    weston_pointer_set_focus(m_pointer, view ? view->m_view : nullptr, x, y);
+}
+
 View *Pointer::focus() const
 {
     weston_view *view = m_pointer->focus;
@@ -406,7 +411,7 @@ void Pointer::defaultGrabFocus()
     wl_fixed_t sy = wl_fixed_from_double(dy);
 
     if (focus() != view || m_pointer->sx != sx || m_pointer->sy != sy) {
-        setFocus(view, sx, sy);
+        setFocusFixed(view, sx, sy);
     }
 }
 
