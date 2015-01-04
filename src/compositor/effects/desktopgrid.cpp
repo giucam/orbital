@@ -78,13 +78,13 @@ public:
                 QPointF p = wsv->map(x, y) + QPointF(dx, dy);
                 QRect surfaceGeometry = shsurf->geometry();
 
+                QPointF br = p + surfaceGeometry.bottomRight();
+                if (shell->snapPos(out, br, 20)) {
+                    p = br - surfaceGeometry.bottomRight();
+                }
+
                 QPointF tl = p + surfaceGeometry.topLeft();
-                if (!shell->snapPos(out, tl, 20)) {
-                    QPointF br = p + surfaceGeometry.bottomRight();
-                    if (shell->snapPos(out, br, 20)) {
-                        p = br - surfaceGeometry.bottomRight();
-                    }
-                } else {
+                if (shell->snapPos(out, tl, 20)) {
                     p = tl - surfaceGeometry.topLeft();
                 }
 
