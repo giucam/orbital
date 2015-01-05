@@ -65,6 +65,7 @@ signals:
 
 private:
     void deactivateSurface();
+    void capsUpdated();
     class PopupGrab;
 
     Compositor *m_compositor;

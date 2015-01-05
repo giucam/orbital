@@ -41,6 +41,7 @@ struct PointerGrab::Grab {
 
 struct Listener {
     wl_listener listener;
+    wl_listener capsListener;
     Seat *seat;
 };
 
@@ -57,14 +58,21 @@ Seat::Seat(Compositor *c, weston_seat *s)
     , m_activeSurface(nullptr)
     , m_popupGrab(nullptr)
 {
-    m_listener->listener.notify = seatDestroyed;
     m_listener->seat = this;
+    m_listener->listener.notify = seatDestroyed;
     wl_signal_add(&s->destroy_signal, &m_listener->listener);
+    m_listener->capsListener.notify = [](wl_listener *listener, void *) {
+        container_of(listener, Listener, capsListener)->seat->capsUpdated();
+    };
+    wl_signal_add(&s->updated_caps_signal, &m_listener->capsListener);
 }
 
 Seat::~Seat()
 {
     delete m_listener;
+    if (m_activeSurface) {
+        emit m_activeSurface->deactivated(this);
+    }
 }
 
 Compositor *Seat::compositor() const
@@ -149,6 +157,14 @@ void Seat::deactivateSurface()
                 break;
             }
         }
+    }
+}
+
+void Seat::capsUpdated()
+{
+    // If we now have a keyboard we want to set the focused surface
+    if (m_activeSurface && m_seat->keyboard) {
+        activate(m_activeSurface);
     }
 }
 
