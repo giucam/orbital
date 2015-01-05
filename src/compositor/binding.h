@@ -33,6 +33,7 @@ class Seat;
 enum class PointerButton : unsigned char;
 enum class PointerAxis : unsigned char;
 enum class KeyboardModifiers : unsigned char;
+enum class PointerHotSpot : unsigned char;
 
 class Binding : public QObject
 {
@@ -73,6 +74,16 @@ public:
 
 signals:
     void triggered(Seat *seat, uint32_t time, PointerAxis axis, double value);
+};
+
+class HotSpotBinding : public Binding
+{
+    Q_OBJECT
+public:
+    HotSpotBinding(PointerHotSpot hs, QObject *p = nullptr);
+
+signals:
+    void triggered(Seat *seat, uint32_t time, PointerHotSpot hotspot);
 };
 
 }

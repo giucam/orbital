@@ -253,6 +253,8 @@ Pointer::Pointer(Seat *seat, weston_pointer *p)
        : m_seat(seat)
        , m_pointer(p)
 {
+    m_hotSpotState.lastTime = 0;
+    m_hotSpotState.enterHotZone = 0;
 }
 
 Pointer::~Pointer()
@@ -365,6 +367,11 @@ bool Pointer::isGrabActive() const
     return m_pointer->grab != &m_pointer->default_grab;
 }
 
+PointerGrab *Pointer::activeGrab() const
+{
+    return PointerGrab::fromGrab(m_pointer->grab);
+}
+
 uint32_t Pointer::grabSerial() const
 {
     return m_pointer->grab_serial;
@@ -425,6 +432,47 @@ void Pointer::defaultGrabMotion(uint32_t time, double x, double y)
 
     move(x, y);
     sendMotion(time);
+    handleMotionBinding(time, x, y);
+}
+
+void Pointer::handleMotionBinding(uint32_t time, double x, double y)
+{
+    if (time - m_hotSpotState.lastTime < 1000) {
+        return;
+    }
+
+    Output *out = nullptr;
+    foreach (Output *o, m_seat->compositor()->outputs()) {
+        if (!out || o->contains(x, y)) {
+            out = o;
+        }
+    }
+
+    const int pushTime = 150;
+    PointerHotSpot hs;
+    bool inHs = true;
+    QRect geom = out->geometry();
+    if (x <= geom.x() && y <= geom.y()) {
+        hs = PointerHotSpot::TopLeftCorner;
+    } else if (x >= geom.right() - 1 && y <= geom.y()) {
+        hs = PointerHotSpot::TopRightCorner;
+    } else if (x <= geom.x() && y >= geom.bottom() - 1) {
+        hs = PointerHotSpot::BottomLeftCorner;
+    } else if (x >= geom.right() - 1 && y >= geom.bottom() - 1) {
+        hs = PointerHotSpot::BottomRightCorner;
+    } else {
+        inHs = false;
+        m_hotSpotState.enterHotZone = 0;
+    }
+
+    if (inHs) {
+        if (m_hotSpotState.enterHotZone == 0) {
+            m_hotSpotState.enterHotZone = time;
+        } else if (time - m_hotSpotState.enterHotZone > pushTime) {
+            m_hotSpotState.lastTime = time;
+            m_seat->compositor()->handleHotSpot(m_seat, time, hs);
+        }
+    }
 }
 
 void Pointer::defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state)
@@ -457,7 +505,12 @@ PointerGrab::PointerGrab()
     static const weston_pointer_grab_interface grabInterface = {
         [](weston_pointer_grab *base)                                                 { fromGrab(base)->focus(); },
         [](weston_pointer_grab *base, uint32_t time, wl_fixed_t x, wl_fixed_t y)      {
-            fromGrab(base)->motion(time, wl_fixed_to_double(x), wl_fixed_to_double(y));
+            PointerGrab *grab = fromGrab(base);
+            Pointer *p = grab->pointer();
+            double dx = wl_fixed_to_double(x);
+            double dy = wl_fixed_to_double(y);
+            grab->motion(time, dx, dy);
+            p->handleMotionBinding(time, dx, dy);
         },
         [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state) {
             fromGrab(base)->button(time, rawToPointerButton(button), (Pointer::ButtonState)state);

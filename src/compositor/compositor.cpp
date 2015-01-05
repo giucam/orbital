@@ -473,6 +473,21 @@ AxisBinding *Compositor::createAxisBinding(PointerAxis axis, KeyboardModifiers m
     return b;
 }
 
+HotSpotBinding *Compositor::createHotSpotBinding(PointerHotSpot hs)
+{
+    HotSpotBinding *b = new HotSpotBinding(hs);
+    m_bindingsCleanupHandler->add(b);
+    m_hotSpotBindings.insert((int)hs, b);
+    return b;
+}
+
+void Compositor::handleHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs)
+{
+    for (auto i = m_hotSpotBindings.find((int)hs); i != m_hotSpotBindings.end(); ++i) {
+        emit (*i)->triggered(seat, time, hs);
+    }
+}
+
 Compositor *Compositor::fromCompositor(weston_compositor *c)
 {
     wl_listener *listener = wl_signal_get(&c->destroy_signal, compositorDestroyed);

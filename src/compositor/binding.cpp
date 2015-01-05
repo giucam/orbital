@@ -71,4 +71,12 @@ AxisBinding::AxisBinding(weston_compositor *c, PointerAxis axis, KeyboardModifie
     m_binding = weston_compositor_add_axis_binding(c, (uint32_t)axis, (weston_keyboard_modifier)modifiers, handler, this);
 }
 
+
+
+HotSpotBinding::HotSpotBinding(PointerHotSpot hs, QObject *p)
+              : Binding(p)
+{
+
+}
+
 }

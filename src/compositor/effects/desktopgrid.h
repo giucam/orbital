@@ -39,7 +39,9 @@ public:
 private:
     class Grab;
 
-    void run(Seat *seat, uint32_t time, int key);
+    void runKey(Seat *seat, uint32_t time, int key);
+    void runHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs);
+    void run(Seat *seat);
     void terminate(Output *out, Workspace *ws);
     void outputCreated(Output *o);
     void outputRemoved(Output *o);
@@ -48,6 +50,7 @@ private:
 
     Shell *m_shell;
     KeyBinding *m_binding;
+    HotSpotBinding *m_hsBinding;
     QSet<Output *> m_activeOutputs;
 };
 

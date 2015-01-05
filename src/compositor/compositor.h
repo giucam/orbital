@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QJsonObject>
+#include <QMultiHash>
 
 struct wl_display;
 struct wl_event_loop;
@@ -47,11 +48,13 @@ class Seat;
 class ButtonBinding;
 class KeyBinding;
 class AxisBinding;
+class HotSpotBinding;
 class Surface;
 struct Listener;
 enum class PointerButton : unsigned char;
 enum class PointerAxis : unsigned char;
 enum class KeyboardModifiers : unsigned char;
+enum class PointerHotSpot : unsigned char;
 
 class Compositor : public QObject
 {
@@ -87,6 +90,9 @@ public:
     ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
     KeyBinding *createKeyBinding(uint32_t key, KeyboardModifiers modifiers);
     AxisBinding *createAxisBinding(PointerAxis axis, KeyboardModifiers modifiers);
+    HotSpotBinding *createHotSpotBinding(PointerHotSpot hs);
+
+    void handleHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs);
 
     static Compositor *fromCompositor(weston_compositor *c);
 
@@ -120,6 +126,7 @@ private:
     QObjectCleanupHandler *m_bindingsCleanupHandler;
     QSocketNotifier *m_signalsNotifier;
     QJsonObject m_config;
+    QMultiHash<int, HotSpotBinding *> m_hotSpotBindings;
 
     friend class Global;
     friend class XWayland;

@@ -42,7 +42,7 @@ namespace Orbital {
 class DesktopGrid::Grab : public PointerGrab
 {
 public:
-    Grab() : moving(nullptr) {}
+    Grab() : moving(nullptr), moved(false) {}
     WorkspaceView *workspace(Output *out, double x, double y)
     {
         foreach (Workspace *ws, shell->workspaces()) {
@@ -154,7 +154,9 @@ DesktopGrid::DesktopGrid(Shell *shell)
            , m_shell(shell)
 {
     m_binding = shell->compositor()->createKeyBinding(KEY_G, KeyboardModifiers::Super);
-    connect(m_binding, &KeyBinding::triggered, this, &DesktopGrid::run);
+    connect(m_binding, &KeyBinding::triggered, this, &DesktopGrid::runKey);
+    m_hsBinding = shell->compositor()->createHotSpotBinding(PointerHotSpot::TopRightCorner);
+    connect(m_hsBinding, &HotSpotBinding::triggered, this, &DesktopGrid::runHotSpot);
 
     Compositor *c = m_shell->compositor();
     connect(c, &Compositor::outputCreated, this, &DesktopGrid::outputCreated);
@@ -169,7 +171,26 @@ DesktopGrid::~DesktopGrid()
 {
 }
 
-void DesktopGrid::run(Seat *seat, uint32_t time, int key)
+void DesktopGrid::runKey(Seat *seat, uint32_t time, int key)
+{
+    run(seat);
+}
+
+void DesktopGrid::runHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs)
+{
+    if (!seat->pointer()->isGrabActive()) {
+        run(seat);
+        return;
+    }
+
+    if (Grab *g = dynamic_cast<Grab *>(seat->pointer()->activeGrab())) {
+        if (!g->moved) {
+            run(seat);
+        }
+    }
+}
+
+void DesktopGrid::run(Seat *seat)
 {
     Output *out = m_shell->selectPrimaryOutput(seat);
 

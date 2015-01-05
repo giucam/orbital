@@ -92,6 +92,13 @@ enum class PointerCursor: unsigned int {
     Kill = 12
 };
 
+enum class PointerHotSpot : unsigned char {
+    TopLeftCorner,
+    TopRightCorner,
+    BottomLeftCorner,
+    BottomRightCorner
+};
+
 class Pointer
 {
 public:
@@ -118,6 +125,7 @@ public:
     double y() const;
 
     bool isGrabActive() const;
+    PointerGrab *activeGrab() const;
     uint32_t grabSerial() const;
     uint32_t grabTime() const;
     PointerButton grabButton() const;
@@ -129,12 +137,17 @@ public:
 
 private:
     void setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y);
+    void handleMotionBinding(uint32_t time, double x, double y);
 
     Seat *m_seat;
     weston_pointer *m_pointer;
     struct {
         QSet<Output *> outputs;
     } m_defaultGrab;
+    struct {
+        uint32_t lastTime;
+        uint32_t enterHotZone;
+    } m_hotSpotState;
 
     friend PointerGrab;
     friend Seat;
