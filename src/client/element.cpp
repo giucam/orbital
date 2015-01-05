@@ -180,7 +180,7 @@ void Element::addProperty(const QString &name)
 
 void Element::destroyElement()
 {
-    delete this;
+    deleteLater();
 }
 
 void Element::configure()
