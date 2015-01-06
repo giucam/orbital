@@ -69,6 +69,9 @@ public:
         if (moving) {
             if (!moved) {
                 moved = QPointF(origMousePos - QPointF(x, y)).manhattanLength() > 2;
+                if (moved) {
+                    shell->compositor()->appsLayer()->addView(moving);
+                }
             }
             if (moved) {
                 ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
@@ -106,8 +109,6 @@ public:
                 dy = moving->y() - p.y();
                 origPos = moving->pos();
                 origMousePos = pp;
-
-                shell->compositor()->appsLayer()->addView(moving);
             }
         } else if (moving && moved) {
             QPointF pp(pointer()->x(), pointer()->y());
