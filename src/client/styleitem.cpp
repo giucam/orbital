@@ -41,7 +41,7 @@ void StyleItem::setComponent(QQmlComponent *c)
 {
     QQuickItem *old = m_item;
 
-    Element::Location loc;
+    Element::Location loc = Element::Location::Floating;
     if (m_item) {
         loc = m_item->m_location;
     } else {
