@@ -170,8 +170,8 @@ Style {
 
     popup: StyleComponent {
         clip: true
-        property int _margin: header.size + 5
-        topContentsMargin: location == 0 ? _margin : 0
+        property int _margin: head.size + 5
+        topContentsMargin: (location == 0 || location == 4) ? _margin : 0
         leftContentsMargin: location == 1 ? _margin : 0
         bottomContentsMargin: location == 2 ? _margin : 0
         rightContentsMargin: location == 3 ? _margin : 0
@@ -179,22 +179,24 @@ Style {
 
         property alias header: title.text
 
+        Component.onCompleted: console.log(location)
+
         Rectangle {
             width: horizontal ? parent.width : parent.width + 10
             height: horizontal ? parent.height + 10 : parent.height
-            y: location == 0 ? -10 : 0
+            y: (location == 0 || location == 4) ? -10 : 0
             x: location == 1 ? -10 : 0
             radius: 3
             color: CurrentStyle.backgroundColor
 
             Rectangle {
-                id: header
+                id: head
                 property int size: 20
                 color: "#57A2FD"
-                width: horizontal ? parent.width : header.size
-                height: horizontal ? header.size : parent.height
+                width: horizontal ? parent.width : head.size
+                height: horizontal ? head.size : parent.height
                 x: location == 1 ? 10 : (location == 3 ? parent.width - 30 : 0)
-                y: location == 0 ? 10 : (location == 2 ? parent.height - 30 : 0)
+                y: (location == 0 || location == 4) ? 10 : (location == 2 ? parent.height - 30 : 0)
 
                 Rotator {
                     anchors.fill: parent
