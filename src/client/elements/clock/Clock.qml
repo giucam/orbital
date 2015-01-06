@@ -18,9 +18,10 @@
  */
 
 import QtQuick 2.4
+import QtQuick.Controls 1.3
 import Orbital 1.0
 
-Element {
+PopupElement {
     id: element
 
     property int orientation: (location == 0 || location == 2) ? Qt.Horizontal : Qt.Vertical
@@ -57,7 +58,7 @@ Element {
         }
     }
 
-    contentItem: Item {
+    buttonContent: MouseArea {
         anchors.fill: parent
         Text {
             id: time
@@ -81,5 +82,14 @@ Element {
             text: service.date
             fontSizeMode: Text.Fit
         }
+
+        onClicked: showPopup()
+    }
+
+    alwaysButton: true
+    popupWidth: 300
+    popupHeight: 300
+    popupContent: Calendar {
+        anchors.fill: parent
     }
 }

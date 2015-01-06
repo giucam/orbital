@@ -26,6 +26,7 @@ Element {
         element.update();
     }
 
+    property bool alwaysButton: false
     property int minimumWidth: 100
     property int minimumHeight: 100
     property Item popupContent: null
@@ -38,7 +39,7 @@ Element {
             return;
         }
 
-        if (element.width < minimumWidth || element.height < minimumHeight) {
+        if (element.alwaysButton || element.width < minimumWidth || element.height < minimumHeight) {
             popupContent.parent = popup.content;
             element.contentItem = popupButton;
         } else {
