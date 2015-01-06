@@ -291,10 +291,22 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         {
             s->setRole(&role, [this](int, int) {
                 if (surface->views().isEmpty()) {
+                    int w = surface->width();
+                    int h = surface->height();
                     for (View *view: parent->views()) {
                         View *v = new View(surface);
                         v->setTransformParent(view);
-                        v->setPos(x, y);
+
+                        Output *o = view->output();
+                        int x_ = x > 0 ? x : 0;
+                        if (x_ + w > o->width()) {
+                            x_ = o->width() - w;
+                        }
+                        int y_ = y > 0 ? y : 0;
+                        if (y_ + h > o->height()) {
+                            y_ = o->height() - h;
+                        }
+                        v->setPos(x_, y_);
                         view->layer()->addView(v);
                         v->update();
 
