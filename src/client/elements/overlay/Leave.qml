@@ -25,6 +25,7 @@ Item {
     id: leave
     anchors.fill: parent
     opacity: 0
+    visible: opacity > 0
 
     property variant service: Client.service("LoginService")
     property QtObject grab: null
