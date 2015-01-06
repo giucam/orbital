@@ -34,13 +34,23 @@ Element {
     property int popupWidth: 0
     property int popupHeight: 0
 
+    property Popup __popup: null
+
+    function getPopup() {
+        if (!__popup) {
+            __popup = popupComponent.createObject(element, { title: element.prettyName });
+            update()
+        }
+        return __popup;
+    }
+
     function update() {
         if (!popupContent) {
             return;
         }
 
         if (element.alwaysButton || element.width < minimumWidth || element.height < minimumHeight) {
-            popupContent.parent = popup.content;
+            popupContent.parent = __popup ? __popup.content : null;
             element.contentItem = popupButton;
         } else {
             popupButton.parent = null;
@@ -59,7 +69,7 @@ Element {
     }
 
     function showPopup() {
-        popup.show();
+        getPopup().show();
     }
 
     StyleItem {
@@ -67,20 +77,24 @@ Element {
         anchors.fill: parent
         component: CurrentStyle.popupLauncher
 
-        Binding { target: popupButton.item; property: "popup"; value: popup }
+        Binding { target: popupButton.item; property: "popup"; value: __popup }
     }
 
-    Popup {
-        id: popup
-        parentItem: element
+    Component {
+        id: popupComponent
+        Popup {
+            id: pp
+            parentItem: element
+            property string title
 
-        content: StyleItem {
-            id: style
-            width: element.popupWidth
-            height: element.popupHeight
+            content: StyleItem {
+                id: style
+                width: element.popupWidth
+                height: element.popupHeight
 
-            component: CurrentStyle.popup
-            Binding { target: style.item; property: "header"; value: element.prettyName }
+                component: CurrentStyle.popup
+                Binding { target: style.item; property: "header"; value: element.prettyName }
+            }
         }
     }
 }
