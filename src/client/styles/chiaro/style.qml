@@ -179,8 +179,6 @@ Style {
 
         property alias header: title.text
 
-        Component.onCompleted: console.log(location)
-
         Rectangle {
             width: horizontal ? parent.width : parent.width + 10
             height: horizontal ? parent.height + 10 : parent.height
