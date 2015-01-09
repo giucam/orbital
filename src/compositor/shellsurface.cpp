@@ -218,8 +218,6 @@ void ShellSurface::move(Seat *seat)
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
             if (pointer()->buttonCount() == 0 && state == Pointer::ButtonState::Released) {
-    //             shsurf->moveEndSignal(shsurf);
-    //             shsurf->m_runningGrab = nullptr;
                 end();
             }
         }
@@ -235,28 +233,13 @@ void ShellSurface::move(Seat *seat)
 
     MoveGrab *move = new MoveGrab;
 
-//     if (m_runningGrab) {
-//         return;
-//     }
-//
-//     if (m_type == ShellSurface::Type::TopLevel && m_state.fullscreen) {
-//         return;
-//     }
-
-//     MoveGrab *move = new MoveGrab;
-//     if (!move)
-//         return;
-//
-
     View *view = seat->pointer()->pickView();
     move->dx = view->x() - seat->pointer()->x();
     move->dy = view->y() - seat->pointer()->y();
     move->shsurf = this;
     move->grabbedView = view;
-//     m_runningGrab = move;
 
     move->start(seat, PointerCursor::Move);
-//     moveStartSignal(this);
 }
 
 void ShellSurface::resize(Seat *seat, Edges edges)
@@ -305,10 +288,6 @@ void ShellSurface::resize(Seat *seat, Edges edges)
         int32_t width, height;
     };
 
-//     if (m_runningGrab) {
-//         return;
-//     }
-//
     ResizeGrab *grab = new ResizeGrab;
 
     int e = (int)edges;

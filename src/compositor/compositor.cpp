@@ -55,7 +55,6 @@ static int s_forceExit = 0;
 static int log(const char *fmt, va_list ap)
 {
     return vprintf(fmt, ap);
-    return 0;
 }
 
 static void terminate(weston_compositor *c)
