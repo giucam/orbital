@@ -574,9 +574,9 @@ void Client::setGrabCursor()
     m_grabWindow->setCursor(qcursor);
 }
 
-void Client::handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window)
+void Client::handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, uint32_t pid)
 {
-    Window *w = new Window(window);
+    Window *w = new Window(window, pid);
 
     m_windows << w;
     w->moveToThread(QCoreApplication::instance()->thread());

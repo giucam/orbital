@@ -30,6 +30,7 @@ class UiScreen;
 class Window : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(quint64 pid READ pid CONSTANT)
     Q_PROPERTY(QString title READ title NOTIFY titleChanged)
     Q_PROPERTY(QString icon READ icon NOTIFY iconChanged);
     Q_PROPERTY(States state READ state NOTIFY stateChanged)
@@ -43,8 +44,10 @@ public:
     Q_DECLARE_FLAGS(States, State)
     Q_FLAGS(States)
 
-    explicit Window(desktop_shell_window *window, QObject *p = nullptr);
+    explicit Window(desktop_shell_window *window, pid_t pid, QObject *p = nullptr);
     ~Window();
+
+    inline quint64 pid() const { return m_pid; }
 
     inline QString title() const { return m_title; }
     void setTitle(const QString &title);
@@ -73,6 +76,7 @@ private:
     void handleRemoved(desktop_shell_window *window);
 
     desktop_shell_window *m_window;
+    pid_t m_pid;
     QString m_title;
     QString m_icon;
     States m_state;

@@ -97,6 +97,7 @@ public:
     void setTitle(const QString &title);
     void setAppId(const QString &appid);
     void setGeometry(int x, int y, int w, int h);
+    void setPid(pid_t pid);
 
     Type type() const { return m_type; }
     bool isFullscreen() const;
@@ -105,6 +106,7 @@ public:
     QString title() const;
     QString appId() const;
     Maybe<QPoint> cachedPos() const;
+    pid_t pid() const { return m_pid; }
 
     static ShellSurface *fromSurface(weston_surface *s);
 
@@ -143,6 +145,7 @@ private:
     QString m_title;
     QString m_appId;
     bool m_forceMap;
+    pid_t m_pid;
 
     Type m_type;
     Type m_nextType;

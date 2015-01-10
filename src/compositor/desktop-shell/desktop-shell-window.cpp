@@ -170,7 +170,7 @@ void DesktopShellWindow::create()
         }
     }
 
-    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource);
+    desktop_shell_send_window_added(m_desktopShell->resource(), m_resource, shsurf()->pid());
     desktop_shell_window_send_title(m_resource, qPrintable(title));
     desktop_shell_window_send_icon(m_resource, qPrintable(icon));
     desktop_shell_window_send_state(m_resource, m_state);

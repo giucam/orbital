@@ -62,6 +62,8 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
+
+    wl_client_get_credentials(client(), &m_pid, NULL, NULL);
 }
 
 ShellSurface::~ShellSurface()
@@ -372,6 +374,11 @@ void ShellSurface::setAppId(const QString &id)
 void ShellSurface::setGeometry(int x, int y, int w, int h)
 {
     m_nextGeometry = QRect(x, y, w, h);
+}
+
+void ShellSurface::setPid(pid_t pid)
+{
+    m_pid = pid;
 }
 
 bool ShellSurface::isFullscreen() const

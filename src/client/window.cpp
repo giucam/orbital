@@ -77,9 +77,10 @@ const desktop_shell_window_listener Window::m_window_listener = {
     wrapInterface(&Window::handleRemoved)
 };
 
-Window::Window(desktop_shell_window *window, QObject *p)
+Window::Window(desktop_shell_window *window, pid_t pid, QObject *p)
       : QObject(p)
       , m_window(window)
+      , m_pid(pid)
       , m_state(Window::Inactive)
 {
     desktop_shell_window_add_listener(window, &m_window_listener, this);

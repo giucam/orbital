@@ -146,7 +146,7 @@ private:
     void handleConfigure(desktop_shell *shell, uint32_t edges, wl_surface *surf, int32_t width, int32_t height);
     void handlePrepareLockSurface(desktop_shell *desktop_shell);
     void handleGrabCursor(desktop_shell *desktop_shell, uint32_t cursor);
-    void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window);
+    void handleWindowAdded(desktop_shell *desktop_shell, desktop_shell_window *window, uint32_t pid);
     void handleWorkspaceAdded(desktop_shell *desktop_shell, desktop_shell_workspace *ws);
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
     void handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const char *name, uint32_t serial);

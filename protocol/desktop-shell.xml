@@ -130,6 +130,7 @@
 
         <event name="window_added">
             <arg name="id" type="new_id" interface="desktop_shell_window"/>
+            <arg name="pid" type="uint"/>
         </event>
 
         <event name="workspace_added">
