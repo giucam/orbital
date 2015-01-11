@@ -186,6 +186,8 @@
             <entry name="right" value="3"/>
         </enum>
 
+        <event name="locked"/>
+
     </interface>
 
     <interface name="desktop_shell_binding" version="1">

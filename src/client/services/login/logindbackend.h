@@ -27,19 +27,27 @@ class QDBusPendingCallWatcher;
 
 class LogindBackend : public LoginServiceBackend
 {
+    Q_OBJECT
 public:
     ~LogindBackend();
     static LogindBackend *create();
 
     void poweroff() override;
     void reboot() override;
+    void locked() override;
+
+private slots:
+    void prepareForSleep(bool v);
 
 private:
     LogindBackend();
+    void takeSleepLock();
     void getSession(QDBusPendingCallWatcher *watcher);
 
     QDBusInterface *m_interface;
     QString m_sessionPath;
+    int m_inhibitFd;
+    bool m_goingToSleep;
 };
 
 #endif

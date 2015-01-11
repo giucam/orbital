@@ -35,6 +35,7 @@ namespace Orbital {
 
 struct Listener {
     wl_listener listener;
+    wl_listener frameListener;
     Output *output;
 };
 
@@ -81,9 +82,16 @@ Output::Output(weston_output *out)
 
     m_panelsLayer->append(m_compositor->panelsLayer());
 
-    m_listener->listener.notify = outputDestroyed;
     m_listener->output = this;
+    m_listener->listener.notify = outputDestroyed;
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
+    m_listener->frameListener.notify = [](wl_listener *l, void *data) {
+        Output *o = container_of(l, Listener, frameListener)->output;
+        while (!o->m_callbacks.isEmpty()) {
+            o->m_callbacks.takeFirst()();
+        }
+    };
+    wl_signal_add(&out->frame_signal, &m_listener->frameListener);
 
     connect(this, &Output::moved, this, &Output::onMoved);
 }
@@ -214,11 +222,11 @@ void Output::setLockSurface(Surface *surface)
     connect(s->view, &QObject::destroyed, [this, s]() { m_lockSurfaceView = nullptr; delete s; });
 }
 
-void Output::lock()
+void Output::lock(const std::function<void ()> &done)
 {
     m_locked = true;
     m_lockLayer->setMask(x(), y(), width(), height());
-    repaint();
+    repaint(done);
 }
 
 void Output::unlock()
@@ -228,9 +236,12 @@ void Output::unlock()
     repaint();
 }
 
-void Output::repaint()
+void Output::repaint(const std::function<void ()> &done)
 {
     weston_output_schedule_repaint(m_output);
+    if (done) {
+        m_callbacks << done;
+    }
 }
 
 void Output::setPos(int x, int y)

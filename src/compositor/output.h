@@ -20,6 +20,8 @@
 #ifndef ORBITAL_OUTPUT_H
 #define ORBITAL_OUTPUT_H
 
+#include <functional>
+
 #include <QObject>
 #include <QRect>
 
@@ -55,10 +57,10 @@ public:
     void setOverlay(Surface *surface);
     void setLockSurface(Surface *surface);
 
-    void lock();
+    void lock(const std::function<void ()> &done);
     void unlock();
 
-    void repaint();
+    void repaint(const std::function<void ()> &done = nullptr);
     void setPos(int x, int y);
 
     int id() const;
@@ -101,6 +103,7 @@ private:
     LockSurface *m_lockBackgroundSurface;
     View *m_lockSurfaceView;
     bool m_locked;
+    QList<std::function<void ()>> m_callbacks;
 
     friend View;
     friend Animation;

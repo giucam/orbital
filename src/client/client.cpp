@@ -626,6 +626,11 @@ void Client::handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const 
     QMetaObject::invokeMethod(this, "loadOutput", Q_ARG(QScreen *, s), Q_ARG(QString, QString(name)), Q_ARG(uint32_t, serial));
 }
 
+void Client::handleLocked(desktop_shell *desktop_shell)
+{
+    emit locked();
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
@@ -635,7 +640,8 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleWindowAdded),
     wrapInterface(&Client::handleWorkspaceAdded),
     wrapInterface(&Client::handleDesktopRect),
-    wrapInterface(&Client::handleLoadOutput)
+    wrapInterface(&Client::handleLoadOutput),
+    wrapInterface(&Client::handleLocked)
 };
 
 Grab *Client::createGrab()

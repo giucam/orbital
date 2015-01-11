@@ -385,7 +385,9 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
 
 void DesktopShell::lock()
 {
-    m_shell->lock();
+    m_shell->lock([this]() {
+        desktop_shell_send_locked(m_resource);
+    });
 }
 
 void DesktopShell::unlock()

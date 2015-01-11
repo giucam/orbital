@@ -140,6 +140,7 @@ void LoginService::init()
     if (m_backend) {
         connect(m_backend, &LoginServiceBackend::requestLock, this, &LoginService::lockSession);
         connect(m_backend, &LoginServiceBackend::requestUnlock, this, &LoginService::unlockSession);
+        connect(client(), &Client::locked, m_backend, &LoginServiceBackend::locked);
     }
 }
 

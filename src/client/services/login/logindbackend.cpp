@@ -23,6 +23,7 @@
 #include <QDBusInterface>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
+#include <QDBusUnixFileDescriptor>
 
 #include "logindbackend.h"
 
@@ -32,6 +33,8 @@ const static QString s_login1ManagerInterface = QStringLiteral("org.freedesktop.
 const static QString s_login1SessionInterface = QStringLiteral("org.freedesktop.login1.Session");
 
 LogindBackend::LogindBackend()
+             : m_inhibitFd(-1)
+             , m_goingToSleep(false)
 {
 
 }
@@ -56,11 +59,13 @@ LogindBackend *LogindBackend::create()
     }
 
     logind->m_interface->connection().connect(s_login1Service, s_login1Path, s_login1ManagerInterface,
-                                              QStringLiteral("PrepareForSleep"), logind, SIGNAL(requestLock()));
+                                              QStringLiteral("PrepareForSleep"), logind, SLOT(prepareForSleep(bool)));
 
     QDBusPendingCall call = logind->m_interface->asyncCall("GetSessionByPID", (quint32)getpid());
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     logind->connect(watcher, &QDBusPendingCallWatcher::finished, logind, &LogindBackend::getSession);
+
+    logind->takeSleepLock();
     return logind;
 }
 
@@ -72,6 +77,52 @@ void LogindBackend::poweroff()
 void LogindBackend::reboot()
 {
     m_interface->call("Reboot", true);
+}
+
+void LogindBackend::takeSleepLock()
+{
+    if (m_inhibitFd > 0) {
+        return;
+    }
+
+    QDBusPendingCall call = m_interface->asyncCall(QStringLiteral("Inhibit"), QStringLiteral("sleep"),
+                                                   QStringLiteral("Orbital"),
+                                                   QStringLiteral("Orbital needs to lock the screen"),
+                                                   QStringLiteral("delay"));
+    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
+    connect(watcher, &QDBusPendingCallWatcher::finished, [this](QDBusPendingCallWatcher *w) {
+        QDBusPendingReply<QDBusUnixFileDescriptor> reply = *w;
+        w->deleteLater();
+        m_inhibitFd = -1;
+        if (reply.isError()) {
+            qDebug() << reply.error().message();
+            return;
+        }
+        if (!reply.isValid()) {
+            qDebug("Failed to get a logind sleep inhibitor.");
+            return;
+        }
+
+        m_inhibitFd = dup(reply.value().fileDescriptor());
+    });
+}
+
+void LogindBackend::prepareForSleep(bool v)
+{
+    m_goingToSleep = v;
+    if (v) {
+        emit requestLock();
+    } else {
+        takeSleepLock();
+    }
+}
+
+void LogindBackend::locked()
+{
+    if (m_goingToSleep && m_inhibitFd >= 0) {
+        close(m_inhibitFd);
+        m_inhibitFd = -1;
+    }
 }
 
 void LogindBackend::getSession(QDBusPendingCallWatcher *watcher)

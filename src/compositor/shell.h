@@ -49,6 +49,7 @@ class Shell : public Object
 public:
     typedef std::function<void (Pointer *, PointerCursor)> GrabCursorSetter;
     typedef std::function<void (Pointer *)> GrabCursorUnsetter;
+    typedef std::function<void ()> LockCallback;
 
     explicit Shell(Compositor *c);
     ~Shell();
@@ -61,7 +62,7 @@ public:
     QList<ShellSurface *> surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
 
-    void lock();
+    void lock(const LockCallback &callback);
     void unlock();
 
     bool snapPos(Output *out, QPointF &p, int margin = -1) const;

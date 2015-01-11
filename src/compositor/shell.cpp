@@ -313,10 +313,17 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
     return output;
 }
 
-void Shell::lock()
+void Shell::lock(const LockCallback &callback)
 {
+    int *numOuts = new int;
+    *numOuts = m_compositor->outputs().count();
     for (Output *o: m_compositor->outputs()) {
-        o->lock();
+        o->lock([numOuts, callback]() {
+            if (--*numOuts == 0 && callback) {
+                callback();
+                delete numOuts;
+            }
+        });
     }
 }
 

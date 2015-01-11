@@ -34,6 +34,7 @@ public:
 
     virtual void poweroff() = 0;
     virtual void reboot() = 0;
+    virtual void locked() {}
 
 signals:
     void requestLock();
