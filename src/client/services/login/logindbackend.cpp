@@ -41,6 +41,9 @@ LogindBackend::LogindBackend()
 
 LogindBackend::~LogindBackend()
 {
+    if (m_inhibitFd) {
+        close(m_inhibitFd);
+    }
     delete m_interface;
 }
 
