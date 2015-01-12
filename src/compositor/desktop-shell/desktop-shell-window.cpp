@@ -119,7 +119,7 @@ void DesktopShellWindow::create()
         return;
     }
 
-    if (shsurf()->type() != ShellSurface::Type::Toplevel) {
+    if (!m_desktopShell->shell()->isSurfaceActive(shsurf())) {
         return;
     }
 

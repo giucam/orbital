@@ -70,6 +70,7 @@ public:
     void setGrabCursor(Pointer *pointer, PointerCursor c);
     void unsetGrabCursor(Pointer *pointer);
     void configure(ShellSurface *shsurf);
+    bool isSurfaceActive(ShellSurface *shsurf) const;
 
     void setGrabCursorSetter(GrabCursorSetter s);
     void setGrabCursorUnsetter(GrabCursorUnsetter s);

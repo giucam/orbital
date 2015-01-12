@@ -369,13 +369,18 @@ void Shell::configure(ShellSurface *shsurf)
         Output *output = selectPrimaryOutput();
         shsurf->setWorkspace(output->currentWorkspace());
 
-        if ((shsurf->type() == ShellSurface::Type::Toplevel || shsurf->type() == ShellSurface::Type::Transient) &&
-            !shsurf->isInactive()) {
+        if (isSurfaceActive(shsurf)) {
             for (Seat *seat: m_compositor->seats()) {
                 seat->activate(shsurf);
             }
         }
     }
+}
+
+bool Shell::isSurfaceActive(ShellSurface *shsurf) const
+{
+    return (shsurf->type() == ShellSurface::Type::Toplevel || shsurf->type() == ShellSurface::Type::Transient) &&
+            !shsurf->isInactive();
 }
 
 void Shell::setGrabCursorSetter(GrabCursorSetter s)
