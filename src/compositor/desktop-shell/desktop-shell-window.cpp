@@ -49,24 +49,18 @@ DesktopShellWindow::DesktopShellWindow(DesktopShell *ds)
 
 DesktopShellWindow::~DesktopShellWindow()
 {
-    if (m_resource) {
-        desktop_shell_window_send_removed(m_resource);
-        wl_resource_set_implementation(m_resource, nullptr, nullptr, nullptr);
-    }
     destroy();
 }
 
 void DesktopShellWindow::added()
 {
     connect(shsurf(), &ShellSurface::mapped, this, &DesktopShellWindow::mapped);
-//     shsurf()->typeChangedSignal.connect(this, &DesktopShellWindow::surfaceTypeChanged);
+    connect(shsurf(), &ShellSurface::unmapped, this, &DesktopShellWindow::destroy);
     connect(shsurf(), &ShellSurface::titleChanged, this, &DesktopShellWindow::sendTitle);
     connect(shsurf(), &Surface::activated, this, &DesktopShellWindow::activated);
     connect(shsurf(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
     connect(shsurf(), &ShellSurface::minimized, this, &DesktopShellWindow::minimized);
     connect(shsurf(), &ShellSurface::restored, this, &DesktopShellWindow::restored);
-//     shsurf()->mappedSignal.connect(this, &DesktopShellWindow::mapped);
-//     shsurf()->unmappedSignal.connect(this, &DesktopShellWindow::destroy);
 }
 
 ShellSurface *DesktopShellWindow::shsurf()
@@ -180,6 +174,7 @@ void DesktopShellWindow::destroy()
 {
     if (m_resource) {
         desktop_shell_window_send_removed(m_resource);
+        wl_resource_set_implementation(m_resource, nullptr, nullptr, nullptr);
         m_resource = nullptr;
     }
 }

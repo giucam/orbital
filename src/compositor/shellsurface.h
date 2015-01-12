@@ -112,6 +112,7 @@ public:
 
 signals:
     void mapped();
+    void unmapped();
     void titleChanged();
     void appIdChanged();
     void popupDone();
