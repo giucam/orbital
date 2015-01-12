@@ -56,6 +56,7 @@ Shell::Shell(Compositor *c)
      , m_grabCursorSetter(nullptr)
      , m_grabCursorUnsetter(nullptr)
      , m_pager(new Pager(c))
+     , m_locked(false)
 {
     initEnvironment();
 
@@ -315,6 +316,7 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
 
 void Shell::lock(const LockCallback &callback)
 {
+    m_locked = true;
     int *numOuts = new int;
     *numOuts = m_compositor->outputs().count();
     for (Output *o: m_compositor->outputs()) {
@@ -325,13 +327,23 @@ void Shell::lock(const LockCallback &callback)
             }
         });
     }
+    for (Seat *s: m_compositor->seats()) {
+        Output *o = selectPrimaryOutput(s);
+        s->activate(o->lockSurface());
+    }
 }
 
 void Shell::unlock()
 {
+    m_locked = false;
     for (Output *o: m_compositor->outputs()) {
         o->unlock();
     }
+}
+
+bool Shell::isLocked() const
+{
+    return m_locked;
 }
 
 bool Shell::snapPos(Output *out, QPointF &p, int snapMargin) const

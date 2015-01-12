@@ -35,6 +35,7 @@ public:
     void poweroff() override;
     void reboot() override;
     void locked() override;
+    void unlocked() override;
 
 private slots:
     void prepareForSleep(bool v);
@@ -47,7 +48,6 @@ private:
     QDBusInterface *m_interface;
     QString m_sessionPath;
     int m_inhibitFd;
-    bool m_goingToSleep;
 };
 
 #endif

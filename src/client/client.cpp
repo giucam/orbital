@@ -70,7 +70,7 @@ public:
 class ClientPrivate {
     Q_DECLARE_PUBLIC(Client)
 public:
-    ClientPrivate(Client *c) : locale(QLocale::system()), q_ptr(c) {}
+    ClientPrivate(Client *c) : locale(QLocale::system()), q_ptr(c), locked(false) {}
 
     QQmlListProperty<Window> windows();
     QQmlListProperty<Workspace> workspaces();
@@ -84,6 +84,7 @@ public:
 
     QLocale locale;
     Client *q_ptr;
+    bool locked;
 };
 
 Binding::~Binding()
@@ -404,6 +405,13 @@ void Client::lockSession()
 void Client::unlockSession()
 {
     desktop_shell_unlock(m_shell);
+    d_ptr->locked = false;
+    emit unlocked();
+}
+
+bool Client::isSessionLocked() const
+{
+    return d_ptr->locked;
 }
 
 void Client::minimizeWindows()
@@ -628,6 +636,7 @@ void Client::handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const 
 
 void Client::handleLocked(desktop_shell *desktop_shell)
 {
+    d_ptr->locked = true;
     emit locked();
 }
 

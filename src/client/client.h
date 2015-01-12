@@ -88,6 +88,8 @@ public:
     void quit();
     void lockSession();
     void unlockSession();
+    bool isSessionLocked() const;
+
     QQuickWindow *findWindow(wl_surface *surface) const;
     desktop_shell_surface *setPopup(QWindow *p, QWindow *parent);
 
@@ -131,6 +133,7 @@ signals:
     void elementsInfoChanged();
     void stylesInfoChanged();
     void locked();
+    bool unlocked();
 
 private slots:
     void create();

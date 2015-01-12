@@ -139,6 +139,9 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         m_loadSerial = m_shell->compositor()->nextSerial();
         desktop_shell_send_load_output(resource, o->resource(m_client->client()), qPrintable(o->name()), m_loadSerial);
     }
+    if (m_shell->isLocked()) {
+        desktop_shell_send_locked(resource);
+    }
 
     desktop_shell_send_load(resource);
 }

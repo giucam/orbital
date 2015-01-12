@@ -26,6 +26,7 @@
 #include <QDBusUnixFileDescriptor>
 
 #include "logindbackend.h"
+#include "client.h"
 
 const static QString s_login1Service = QStringLiteral("org.freedesktop.login1");
 const static QString s_login1Path = QStringLiteral("/org/freedesktop/login1");
@@ -34,7 +35,6 @@ const static QString s_login1SessionInterface = QStringLiteral("org.freedesktop.
 
 LogindBackend::LogindBackend()
              : m_inhibitFd(-1)
-             , m_goingToSleep(false)
 {
 
 }
@@ -81,7 +81,7 @@ void LogindBackend::reboot()
 
 void LogindBackend::takeSleepLock()
 {
-    if (m_inhibitFd > 0) {
+    if (m_inhibitFd > 0 || Client::client()->isSessionLocked()) {
         return;
     }
 
@@ -94,6 +94,9 @@ void LogindBackend::takeSleepLock()
         QDBusPendingReply<QDBusUnixFileDescriptor> reply = *w;
         w->deleteLater();
         m_inhibitFd = -1;
+        if (Client::client()->isSessionLocked()) {
+            return;
+        }
         if (reply.isError()) {
             qDebug() << reply.error().message();
             return;
@@ -109,20 +112,22 @@ void LogindBackend::takeSleepLock()
 
 void LogindBackend::prepareForSleep(bool v)
 {
-    m_goingToSleep = v;
     if (v) {
         emit requestLock();
-    } else {
-        takeSleepLock();
     }
 }
 
 void LogindBackend::locked()
 {
-    if (m_goingToSleep && m_inhibitFd >= 0) {
+    if (m_inhibitFd >= 0) {
         close(m_inhibitFd);
         m_inhibitFd = -1;
     }
+}
+
+void LogindBackend::unlocked()
+{
+    takeSleepLock();
 }
 
 void LogindBackend::getSession(QDBusPendingCallWatcher *watcher)

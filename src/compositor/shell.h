@@ -64,6 +64,7 @@ public:
 
     void lock(const LockCallback &callback);
     void unlock();
+    bool isLocked() const;
 
     bool snapPos(Output *out, QPointF &p, int margin = -1) const;
 
@@ -100,6 +101,7 @@ private:
     KeyBinding *m_prevWsBinding;
     Pager *m_pager;
     QHash<QString, QList<Client *>> m_trustedClients;
+    bool m_locked;
 };
 
 }
