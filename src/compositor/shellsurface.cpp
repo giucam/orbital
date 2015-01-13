@@ -461,6 +461,7 @@ void ShellSurface::configure(int x, int y)
     if (width() == 0) {
         m_type = Type::None;
         m_workspace = nullptr;
+        emit contentLost();
         emit unmapped();
         return;
     }

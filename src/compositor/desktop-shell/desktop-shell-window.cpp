@@ -55,7 +55,7 @@ DesktopShellWindow::~DesktopShellWindow()
 void DesktopShellWindow::added()
 {
     connect(shsurf(), &ShellSurface::mapped, this, &DesktopShellWindow::mapped);
-    connect(shsurf(), &ShellSurface::unmapped, this, &DesktopShellWindow::destroy);
+    connect(shsurf(), &ShellSurface::contentLost, this, &DesktopShellWindow::destroy);
     connect(shsurf(), &ShellSurface::titleChanged, this, &DesktopShellWindow::sendTitle);
     connect(shsurf(), &Surface::activated, this, &DesktopShellWindow::activated);
     connect(shsurf(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
