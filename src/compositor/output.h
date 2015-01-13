@@ -56,6 +56,7 @@ public:
     void setPanel(Surface *surface, int pos);
     void setOverlay(Surface *surface);
     void setLockSurface(Surface *surface);
+    Surface *lockSurface() const;
 
     void lock(const std::function<void ()> &done);
     void unlock();

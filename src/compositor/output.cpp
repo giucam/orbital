@@ -216,10 +216,16 @@ void Output::setLockSurface(Surface *surface)
 
     static Surface::Role role;
     OutputSurface *s = new OutputSurface(surface, this, &role);
+    surface->setActivable(true);
     m_lockLayer->addView(s->view);
     m_lockSurfaceView = s->view;
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() { m_lockSurfaceView = nullptr; delete s; });
+}
+
+Surface *Output::lockSurface() const
+{
+    return m_lockSurfaceView ? m_lockSurfaceView->surface() : nullptr;
 }
 
 void Output::lock(const std::function<void ()> &done)
@@ -233,6 +239,7 @@ void Output::unlock()
 {
     m_locked = false;
     m_lockLayer->setMask(0, 0, 0, 0);
+    emit m_lockSurfaceView->surface()->unmapped();
     repaint();
 }
 

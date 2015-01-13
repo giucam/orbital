@@ -39,12 +39,9 @@ Element {
             height: 30
             enabled: !service.busy
             echoMode: TextInput.Password
+            focus: true
 
             onAccepted: tryUnlock()
-
-            ActiveRegion {
-                anchors.fill: parent
-            }
         }
 
         Button {
