@@ -70,6 +70,7 @@ DesktopShell::DesktopShell(Shell *shell)
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
     connect(shell->compositor(), &Compositor::outputCreated, this, &DesktopShell::outputCreated);
+    connect(shell->compositor(), &Compositor::sessionActivated, this, &DesktopShell::session);
 }
 
 DesktopShell::~DesktopShell()
@@ -170,6 +171,17 @@ void DesktopShell::pingTimeout()
 {
     qDebug() << "The shell client is unresponsive, restarting it...";
     wl_client_destroy(m_client->client());
+}
+
+void DesktopShell::session(bool active)
+{
+    if (!active) {
+        desktop_shell_send_locked(m_resource);
+        m_shell->lock([]() {});
+    } else {
+        desktop_shell_send_unlocked(m_resource);
+        m_shell->unlock();
+    }
 }
 
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
@@ -396,6 +408,7 @@ void DesktopShell::lock()
 void DesktopShell::unlock()
 {
     m_shell->unlock();
+    desktop_shell_send_unlocked(m_resource);
 }
 
 void DesktopShell::setGrabSurface(wl_resource *surfaceResource)

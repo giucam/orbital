@@ -155,6 +155,7 @@ private:
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
     void handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const char *name, uint32_t serial);
     void handleLocked(desktop_shell *desktop_shell);
+    void handleUnlocked(desktop_shell *desktop_shell);
     void addUiWindow(QQuickWindow *w);
     void setGrabSurface();
 

@@ -405,8 +405,6 @@ void Client::lockSession()
 void Client::unlockSession()
 {
     desktop_shell_unlock(m_shell);
-    d_ptr->locked = false;
-    emit unlocked();
 }
 
 bool Client::isSessionLocked() const
@@ -640,6 +638,12 @@ void Client::handleLocked(desktop_shell *desktop_shell)
     emit locked();
 }
 
+void Client::handleUnlocked(desktop_shell *desktop_shell)
+{
+    d_ptr->locked = false;
+    emit unlocked();
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
@@ -650,7 +654,8 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleWorkspaceAdded),
     wrapInterface(&Client::handleDesktopRect),
     wrapInterface(&Client::handleLoadOutput),
-    wrapInterface(&Client::handleLocked)
+    wrapInterface(&Client::handleLocked),
+    wrapInterface(&Client::handleUnlocked)
 };
 
 Grab *Client::createGrab()

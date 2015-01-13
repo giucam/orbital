@@ -187,6 +187,7 @@
         </enum>
 
         <event name="locked"/>
+        <event name="unlocked"/>
 
     </interface>
 

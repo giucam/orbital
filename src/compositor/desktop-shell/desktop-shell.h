@@ -60,6 +60,7 @@ private:
     void outputCreated(Output *o);
     void pointerMotion(Pointer *p);
     void pingTimeout();
+    void session(bool active);
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);

@@ -99,6 +99,7 @@ public:
 signals:
     void outputCreated(Output *output);
     void outputRemoved(Output *output);
+    void sessionActivated(bool active);
 
 private:
     void processEvents();

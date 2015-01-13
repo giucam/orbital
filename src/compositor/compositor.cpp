@@ -72,6 +72,7 @@ struct Listener {
     wl_listener listener;
     wl_listener outputCreatedSignal;
     wl_listener outputMovedSignal;
+    wl_listener sessionSignal;
     Compositor *compositor;
 };
 
@@ -264,6 +265,11 @@ bool Compositor::init(const QString &socketName)
         listener->compositor->newOutput(o);
     };
     wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);
+    m_listener->sessionSignal.notify = [](wl_listener *l, void *data) {
+        Listener *listener = container_of(l, Listener, sessionSignal);
+        emit listener->compositor->sessionActivated(listener->compositor->m_compositor->session_active);
+    };
+    wl_signal_add(&m_compositor->session_signal, &m_listener->sessionSignal);
 //     text_backend_init(m_compositor, "");
 
     if (!m_backend->init(m_compositor)) {
