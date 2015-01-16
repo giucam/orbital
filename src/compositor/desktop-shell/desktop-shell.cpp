@@ -52,6 +52,7 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_splash(new DesktopShellSplash(shell))
             , m_loadSerial(0)
             , m_loaded(false)
+            , m_lockRequested(false)
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
     m_shell->addInterface(new DesktopShellLauncher(shell));
@@ -140,7 +141,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         m_loadSerial = m_shell->compositor()->nextSerial();
         desktop_shell_send_load_output(resource, o->resource(m_client->client()), qPrintable(o->name()), m_loadSerial);
     }
-    if (m_shell->isLocked()) {
+    if (m_shell->isLocked() && m_lockRequested) {
         desktop_shell_send_locked(resource);
     }
 
@@ -175,11 +176,7 @@ void DesktopShell::pingTimeout()
 
 void DesktopShell::session(bool active)
 {
-    if (!active) {
-        desktop_shell_send_locked(m_resource);
-        m_shell->lock([]() {});
-    } else {
-        desktop_shell_send_unlocked(m_resource);
+    if (active && !m_lockRequested) {
         m_shell->unlock();
     }
 }
@@ -400,15 +397,20 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
 
 void DesktopShell::lock()
 {
-    m_shell->lock([this]() {
+    if (m_shell->isLocked()) {
         desktop_shell_send_locked(m_resource);
-    });
+    } else {
+        m_shell->lock([this]() {
+            desktop_shell_send_locked(m_resource);
+        });
+    }
+    m_lockRequested = true;
 }
 
 void DesktopShell::unlock()
 {
     m_shell->unlock();
-    desktop_shell_send_unlocked(m_resource);
+    m_lockRequested = false;
 }
 
 void DesktopShell::setGrabSurface(wl_resource *surfaceResource)

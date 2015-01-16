@@ -46,6 +46,7 @@
 #include "seat.h"
 #include "binding.h"
 #include "pager.h"
+#include "global.h"
 
 namespace Orbital {
 
@@ -84,6 +85,8 @@ Compositor::Compositor(Backend *backend)
           , m_backend(backend)
           , m_bindingsCleanupHandler(new QObjectCleanupHandler)
 {
+    connect(&m_fakeRepaintLoopTimer, &QTimer::timeout, this, &Compositor::fakeRepaint);
+
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, s_signalsFd)) {
         qFatal("Couldn't create signals socketpair");
     }
@@ -233,6 +236,15 @@ bool Compositor::init(const QString &socketName)
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
 
+    for (int i = KEY_F1; i < KEY_F12; ++i) {
+        KeyBinding *b = createKeyBinding(i, KeyboardModifiers::Ctrl | KeyboardModifiers::Alt);
+        connect(b, &KeyBinding::triggered, [this, i]() {
+            m_shell->lock([this, i]() {
+                weston_compositor_activate_vt(m_compositor, i - KEY_F1 + 1);
+            });
+        });
+    }
+
     m_rootLayer = new Layer(&m_compositor->cursor_layer);
     m_overlayLayer = new Layer(m_rootLayer);
     m_fullscreenLayer = new Layer(m_overlayLayer);
@@ -312,6 +324,14 @@ bool Compositor::init(const QString &socketName)
         m_shell->pager()->activate(ws, o);
     }
 
+    connect(this, &Compositor::sessionActivated, [this](bool a) {
+        if (!a) {
+            m_fakeRepaintLoopTimer.start(100);
+        } else {
+            m_fakeRepaintLoopTimer.stop();
+        }
+    });
+
     return true;
 }
 
@@ -333,6 +353,29 @@ void Compositor::newOutput(Output *o)
     o->setPos(x, y);
 
     emit outputCreated(o);
+}
+
+//XXX FIXME This comes from compositor.c, it should not stay here!!
+struct weston_frame_callback {
+    struct wl_resource *resource;
+    struct wl_list link;
+};
+
+void Compositor::fakeRepaint()
+{
+    wl_list frame_callback_list;
+    wl_list_init(&frame_callback_list);
+    weston_view *view;
+    wl_list_for_each(view, &m_compositor->view_list, link) {
+        wl_list_insert_list(&frame_callback_list, &view->surface->frame_callback_list);
+        wl_list_init(&view->surface->frame_callback_list);
+    }
+
+    weston_frame_callback *cb, *cnext;
+    wl_list_for_each_safe(cb, cnext, &frame_callback_list, link) {
+        wl_callback_send_done(cb->resource, 0);
+        wl_resource_destroy(cb->resource);
+    }
 }
 
 void Compositor::quit()

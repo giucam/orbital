@@ -62,7 +62,7 @@ public:
     QList<ShellSurface *> surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
 
-    void lock(const LockCallback &callback);
+    void lock(const LockCallback &callback = nullptr);
     void unlock();
     bool isLocked() const;
 
@@ -78,6 +78,11 @@ public:
 
     void addTrustedClient(const QString &interface, wl_client *c);
     bool isClientTrusted(const QString &interface, wl_client *c) const;
+
+signals:
+    void aboutToLock();
+    void locked();
+
 private:
     void giveFocus(Seat *s);
     void raise(Seat *s);

@@ -92,6 +92,7 @@ private:
     uint32_t m_pingSerial;
     bool m_loaded;
     QHash<Pointer *, PointerCursor> m_grabCursor;
+    bool m_lockRequested;
 };
 
 }

@@ -106,6 +106,7 @@ private:
     void outputDestroyed();
     void handleSignal();
     void newOutput(Output *o);
+    void fakeRepaint();
 
     wl_display *m_display;
     wl_event_loop *m_loop;
@@ -123,6 +124,7 @@ private:
     Layer *m_baseBackgroundLayer;
     Layer *m_minimizedLayer;
     QList<Output *> m_outputs;
+    QTimer m_fakeRepaintLoopTimer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
     QSocketNotifier *m_signalsNotifier;
     QJsonObject m_config;

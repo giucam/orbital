@@ -316,11 +316,17 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
 
 void Shell::lock(const LockCallback &callback)
 {
-    m_locked = true;
+    if (m_locked) {
+        return;
+    }
+
+    emit aboutToLock();
     int *numOuts = new int;
     *numOuts = m_compositor->outputs().count();
     for (Output *o: m_compositor->outputs()) {
-        o->lock([numOuts, callback]() {
+        o->lock([this, numOuts, callback]() {
+            m_locked = true;
+            emit locked();
             if (--*numOuts == 0 && callback) {
                 callback();
                 delete numOuts;
