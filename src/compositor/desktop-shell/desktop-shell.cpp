@@ -61,13 +61,6 @@ DesktopShell::DesktopShell(Shell *shell)
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
 
-    for (Seat *s: shell->compositor()->seats()) {
-        connect(s, &Seat::pointerMotion, this, &DesktopShell::pointerMotion);
-    }
-
-    m_pingTimer.setInterval(200);
-    connect(&m_pingTimer, &QTimer::timeout, this, &DesktopShell::pingTimeout);
-
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
     connect(shell->compositor(), &Compositor::outputCreated, this, &DesktopShell::outputCreated);
@@ -153,25 +146,6 @@ void DesktopShell::clientExited()
     m_resource = nullptr;
     m_grabView = nullptr;
     m_loaded = false;
-    m_pingTimer.stop();
-}
-
-void DesktopShell::pointerMotion(Pointer *pointer)
-{
-    if (!m_loaded || m_pingTimer.isActive()) {
-        return;
-    }
-
-    m_pingSerial = m_shell->compositor()->nextSerial();
-    m_pingTimer.start();
-
-    desktop_shell_send_ping(m_resource, m_pingSerial);
-}
-
-void DesktopShell::pingTimeout()
-{
-    qDebug() << "The shell client is unresponsive, restarting it...";
-    wl_client_destroy(m_client->client());
 }
 
 void DesktopShell::session(bool active)
@@ -591,13 +565,6 @@ void DesktopShell::addTrustedClient(int32_t fd, const char *interface)
 
 void DesktopShell::pong(uint32_t serial)
 {
-    if (!m_pingTimer.isActive())
-        /* Just ignore unsolicited pong. */
-        return;
-
-    if (m_pingSerial == serial) {
-        m_pingTimer.stop();
-    }
 }
 
 void DesktopShell::outputLoaded(uint32_t serial)

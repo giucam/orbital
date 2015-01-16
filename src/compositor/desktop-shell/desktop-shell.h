@@ -58,8 +58,6 @@ private:
     void setGrabCursor(Pointer *p, PointerCursor c);
     void unsetGrabCursor(Pointer *p);
     void outputCreated(Output *o);
-    void pointerMotion(Pointer *p);
-    void pingTimeout();
     void session(bool active);
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
@@ -88,8 +86,6 @@ private:
     QPointer<View> m_grabView;
     DesktopShellSplash *m_splash;
     uint32_t m_loadSerial;
-    QTimer m_pingTimer;
-    uint32_t m_pingSerial;
     bool m_loaded;
     QHash<Pointer *, PointerCursor> m_grabCursor;
     bool m_lockRequested;
