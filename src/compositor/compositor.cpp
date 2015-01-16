@@ -84,10 +84,6 @@ Compositor::Compositor(Backend *backend)
           , m_backend(backend)
           , m_bindingsCleanupHandler(new QObjectCleanupHandler)
 {
-    m_timer.setInterval(0);
-    connect(&m_timer, &QTimer::timeout, this, &Compositor::processEvents);
-    m_timer.start();
-
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, s_signalsFd)) {
         qFatal("Couldn't create signals socketpair");
     }
@@ -297,12 +293,12 @@ bool Compositor::init(const QString &socketName)
     weston_compositor_wake(m_compositor);
 
     m_loop = wl_display_get_event_loop(m_display);
-//     int fd = wl_event_loop_get_fd(m_loop);
+    int fd = wl_event_loop_get_fd(m_loop);
 
-//     QSocketNotifier *sockNot = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-//     connect(sockNot, &QSocketNotifier::activated, this, &Compositor::processEvents);
-//     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
-//     connect(dispatcher, &QAbstractEventDispatcher::aboutToBlock, this, &Compositor::processEvents);
+    QSocketNotifier *sockNot = new QSocketNotifier(fd, QSocketNotifier::Read, this);
+    connect(sockNot, &QSocketNotifier::activated, this, &Compositor::processEvents);
+    QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
+    connect(dispatcher, &QAbstractEventDispatcher::aboutToBlock, this, &Compositor::processEvents);
 
     weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
@@ -348,7 +344,7 @@ void Compositor::quit()
 void Compositor::processEvents()
 {
     wl_display_flush_clients(m_display);
-    wl_event_loop_dispatch(m_loop, -1);
+    wl_event_loop_dispatch(m_loop, 0);
 }
 
 Shell *Compositor::shell() const

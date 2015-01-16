@@ -123,7 +123,6 @@ private:
     Layer *m_baseBackgroundLayer;
     Layer *m_minimizedLayer;
     QList<Output *> m_outputs;
-    QTimer m_timer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
     QSocketNotifier *m_signalsNotifier;
     QJsonObject m_config;
