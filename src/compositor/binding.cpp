@@ -33,7 +33,9 @@ Binding::Binding(QObject *p)
 
 Binding::~Binding()
 {
-    weston_binding_destroy(m_binding);
+    if (m_binding) {
+        weston_binding_destroy(m_binding);
+    }
 }
 
 
