@@ -83,6 +83,7 @@ Compositor::Compositor(Backend *backend)
           , m_compositor(nullptr)
           , m_listener(new Listener)
           , m_backend(backend)
+          , m_shell(nullptr)
           , m_bindingsCleanupHandler(new QObjectCleanupHandler)
 {
     connect(&m_fakeRepaintLoopTimer, &QTimer::timeout, this, &Compositor::fakeRepaint);
