@@ -336,7 +336,7 @@ Output *Output::fromOutput(weston_output *o)
 {
     wl_listener *listener = wl_signal_get(&o->destroy_signal, outputDestroyed);
     if (!listener) {
-        return new Output(o);
+        return nullptr;
     }
 
     return reinterpret_cast<Listener *>(listener)->output;

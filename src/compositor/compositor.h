@@ -30,6 +30,7 @@ struct wl_event_loop;
 struct wl_client;
 struct weston_compositor;
 struct weston_surface;
+struct weston_output;
 
 class QProcess;
 class QObjectCleanupHandler;
@@ -105,7 +106,7 @@ private:
     void processEvents();
     void outputDestroyed();
     void handleSignal();
-    void newOutput(Output *o);
+    void newOutput(weston_output *o);
     void fakeRepaint();
 
     wl_display *m_display;

@@ -265,13 +265,14 @@ bool Compositor::init(const QString &socketName)
     m_listener->listener.notify = compositorDestroyed;
     wl_signal_add(&m_compositor->destroy_signal, &m_listener->listener);
     m_listener->outputMovedSignal.notify = [](wl_listener *l, void *data) {
-        emit Output::fromOutput(static_cast<weston_output *>(data))->moved();
+        if (Output *o = Output::fromOutput(static_cast<weston_output *>(data))) {
+            emit o->moved();
+        }
     };
     wl_signal_add(&m_compositor->output_moved_signal, &m_listener->outputMovedSignal);
     m_listener->outputCreatedSignal.notify = [](wl_listener *l, void *data) {
         Listener *listener = container_of(l, Listener, outputCreatedSignal);
-        Output *o = Output::fromOutput(static_cast<weston_output *>(data));
-        listener->compositor->newOutput(o);
+        listener->compositor->newOutput(static_cast<weston_output *>(data));
     };
     wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);
     m_listener->sessionSignal.notify = [](wl_listener *l, void *data) {
@@ -336,22 +337,23 @@ bool Compositor::init(const QString &socketName)
     return true;
 }
 
-void Compositor::newOutput(Output *o)
+void Compositor::newOutput(weston_output *output)
 {
-    connect(o, &QObject::destroyed, this, &Compositor::outputDestroyed);
-    m_outputs << o;
-
     QJsonObject outputs = m_config["Compositor"].toObject()["Outputs"].toObject();
-    QJsonObject cfg = outputs[o->name()].toObject();
-    int x = o->x();
-    int y = o->y();
+    QJsonObject cfg = outputs[output->name].toObject();
+    int x = output->x;
+    int y = output->y;
     if (cfg.contains("x")) {
         x = cfg["x"].toInt();
     }
     if (cfg.contains("y")) {
         y = cfg["y"].toInt();
     }
-    o->setPos(x, y);
+    weston_output_move(output, x, y);
+
+    Output *o = new Output(output);
+    connect(o, &QObject::destroyed, this, &Compositor::outputDestroyed);
+    m_outputs << o;
 
     emit outputCreated(o);
 }
