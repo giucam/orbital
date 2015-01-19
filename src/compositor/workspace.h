@@ -54,7 +54,6 @@ public:
     Workspace(Shell *shell, int id);
     ~Workspace();
 
-    QList<Output *> outputs() const { return m_outputs; }
     Compositor *compositor() const;
     Pager *pager() const;
     WorkspaceView *viewForOutput(Output *o);
@@ -75,7 +74,6 @@ private:
     int m_x;
     int m_y;
     QHash<int, WorkspaceView *> m_views;
-    QList<Output *> m_outputs;
 
     friend Pager;
 };

@@ -89,7 +89,6 @@ int Workspace::mask() const
 
 void Workspace::outputRemoved(Output *o)
 {
-    m_outputs.removeOne(o);
     delete m_views.take(o->id());
 }
 
