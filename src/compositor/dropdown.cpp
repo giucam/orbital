@@ -95,6 +95,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             m_toggleBinding = c->createKeyBinding(KEY_F12, KeyboardModifiers::None);
             connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
             connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
+            connect(c, &Compositor::outputRemoved, this, &DropdownSurface::outputRemoved);
         }
         ~DropdownSurface()
         {
@@ -230,6 +231,13 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
             m_moving = true;
 
             move->start(seat, PointerCursor::Move);
+        }
+        void outputRemoved(Output *o)
+        {
+            if (m_output == o) {
+                setOutput(dropdown->m_shell->selectPrimaryOutput());
+                updateGeometry();
+            }
         }
 
         Dropdown *dropdown;
