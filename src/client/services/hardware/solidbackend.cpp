@@ -80,6 +80,7 @@ static Battery::ChargeState fromSolid(Solid::Battery::ChargeState c)
         case Solid::Battery::Charging: return Battery::ChargeState::Charging;
         case Solid::Battery::Discharging: return Battery::ChargeState::Discharging;
     }
+    return Battery::ChargeState::Stable;
 }
 
 SolidBattery::SolidBattery(Solid::Battery *b, const QString &udi)
