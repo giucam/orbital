@@ -94,6 +94,10 @@ Output::Output(weston_output *out)
     wl_signal_add(&out->frame_signal, &m_listener->frameListener);
 
     connect(this, &Output::moved, this, &Output::onMoved);
+
+    if (m_compositor->shell() && m_compositor->shell()->isLocked()) {
+        lock(nullptr);
+    }
 }
 
 Output::~Output()
