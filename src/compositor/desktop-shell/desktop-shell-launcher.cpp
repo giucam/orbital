@@ -75,6 +75,13 @@ public:
         connect(this, &Surface::deactivated, [this]() { m_active = false; });
     }
 
+    ~LauncherSurface()
+    {
+        if (m_resource) {
+            wl_resource_set_destructor(m_resource, nullptr);
+        }
+    }
+
     void configure()
     {
         if (m_fadeIn) {

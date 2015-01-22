@@ -35,6 +35,7 @@ class Layer : public QObject
 public:
     explicit Layer(weston_layer *layer);
     explicit Layer(Layer *p = nullptr);
+    ~Layer();
 
     void append(Layer *l);
 

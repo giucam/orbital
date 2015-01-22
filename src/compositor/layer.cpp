@@ -54,6 +54,11 @@ Layer::Layer(Layer *p)
     }
 }
 
+Layer::~Layer()
+{
+    wl_list_remove(&m_layer->layer.link);
+}
+
 void Layer::append(Layer *l)
 {
     wl_list_remove(&m_layer->layer.link);

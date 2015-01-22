@@ -113,6 +113,7 @@ Output::~Output()
     wl_list_remove(&m_listener->listener.link);
     delete m_listener;
     delete m_panelsLayer;
+    delete m_lockLayer;
     delete m_transformRoot;
 }
 
