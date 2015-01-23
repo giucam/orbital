@@ -41,7 +41,13 @@ Dropdown::Dropdown(Shell *shell)
         , Global(shell->compositor(), &orbital_dropdown_interface, 1)
         , m_shell(shell)
         , m_layer(new Layer(shell->compositor()->stickyLayer()))
+        , m_surface(nullptr)
 {
+}
+
+Dropdown::~Dropdown()
+{
+    delete m_surface;
 }
 
 void Dropdown::bind(wl_client *client, uint32_t version, uint32_t id)
@@ -255,7 +261,8 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         bool m_firstShow;
     };
 
-    new DropdownSurface(this, ws, resource);
+    delete m_surface;
+    m_surface = new DropdownSurface(this, ws, resource);
 }
 
 }

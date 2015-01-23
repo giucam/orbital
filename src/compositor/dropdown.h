@@ -30,11 +30,13 @@ namespace Orbital {
 
 class Shell;
 class Layer;
+class Surface;
 
 class Dropdown : public Interface, public Global
 {
 public:
     Dropdown(Shell *shell);
+    ~Dropdown();
 
 private:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
@@ -42,6 +44,7 @@ private:
 
     Shell *m_shell;
     Layer *m_layer;
+    Surface *m_surface;
 };
 
 }
