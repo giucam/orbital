@@ -312,7 +312,7 @@ bool Compositor::init(const QString &socketName)
     QSocketNotifier *sockNot = new QSocketNotifier(fd, QSocketNotifier::Read, this);
     connect(sockNot, &QSocketNotifier::activated, this, &Compositor::processEvents);
     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
-    connect(dispatcher, &QAbstractEventDispatcher::aboutToBlock, this, &Compositor::processEvents);
+    connect(dispatcher, &QAbstractEventDispatcher::awake, this, &Compositor::processIdle);
 
     weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
@@ -389,8 +389,13 @@ void Compositor::quit()
 
 void Compositor::processEvents()
 {
-    wl_display_flush_clients(m_display);
     wl_event_loop_dispatch(m_loop, 0);
+    wl_display_flush_clients(m_display);
+}
+
+void Compositor::processIdle()
+{
+    wl_event_loop_dispatch_idle(m_loop);
 }
 
 Shell *Compositor::shell() const

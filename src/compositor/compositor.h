@@ -104,6 +104,7 @@ signals:
 
 private:
     void processEvents();
+    void processIdle();
     void outputDestroyed();
     void handleSignal();
     void newOutput(weston_output *o);
