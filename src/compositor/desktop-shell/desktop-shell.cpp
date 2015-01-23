@@ -60,6 +60,7 @@ DesktopShell::DesktopShell(Shell *shell)
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
+    connect(m_client, &ChildProcess::givingUp, shell->compositor(), &Compositor::quit);
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });

@@ -579,6 +579,7 @@ ChildProcess::ChildProcess(wl_display *dpy, const QString &program)
             , m_client(nullptr)
             , m_autoRestart(false)
             , m_listener(new Listener)
+            , m_deathCount(0)
 {
     m_listener->parent = this;
     m_listener->listener.notify = [](wl_listener *l, void *data) {
@@ -639,6 +640,12 @@ void ChildProcess::start()
     }
 
     wl_client_add_destroy_listener(m_client, &m_listener->listener);
+
+    if (m_deathCount == 0) {
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        m_startTime = now.tv_sec;
+    }
 }
 
 void ChildProcess::finished()
@@ -648,8 +655,23 @@ void ChildProcess::finished()
     wl_list_init(&m_listener->listener.link);
 
     if (m_autoRestart) {
-        qDebug("%s exited. Restarting it...", qPrintable(m_program));
-        start();
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+
+        if (now.tv_sec - m_startTime < 30) {
+            m_deathCount++;
+        } else {
+            m_deathCount = 0;
+        }
+
+        if (m_deathCount > 4) {
+            qDebug("%s exited too often too fast. Giving up.", qPrintable(m_program));
+            m_deathCount = 0;
+            emit givingUp();
+        } else {
+            qDebug("%s exited. Restarting it...", qPrintable(m_program));
+            start();
+        }
     } else {
         qDebug("%s exited.", qPrintable(m_program));
     }

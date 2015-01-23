@@ -147,6 +147,9 @@ public:
     void setAutoRestart(bool enabled);
     wl_client *client() const;
 
+signals:
+    void givingUp();
+
 private:
     struct Listener;
 
@@ -159,6 +162,8 @@ private:
     wl_client *m_client;
     bool m_autoRestart;
     Listener *m_listener;
+    int m_startTime;
+    int m_deathCount;
 
     friend Compositor;
 
