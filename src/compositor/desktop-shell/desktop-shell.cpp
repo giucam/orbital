@@ -64,7 +64,6 @@ DesktopShell::DesktopShell(Shell *shell)
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
-    connect(shell->compositor(), &Compositor::outputCreated, this, &DesktopShell::outputCreated);
     connect(shell->compositor(), &Compositor::sessionActivated, this, &DesktopShell::session);
 }
 
@@ -111,7 +110,8 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::addTrustedClient),
         wrapInterface(&DesktopShell::pong),
         wrapInterface(&DesktopShell::outputLoaded),
-        wrapInterface(&DesktopShell::createActiveRegion)
+        wrapInterface(&DesktopShell::createActiveRegion),
+        wrapInterface(&DesktopShell::outputBound)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *res) {
@@ -130,10 +130,6 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         if (w) {
             w->create();
         }
-    }
-    for (Output *o: m_shell->compositor()->outputs()) {
-        m_loadSerial = m_shell->compositor()->nextSerial();
-        desktop_shell_send_load_output(resource, o->resource(m_client->client()), qPrintable(o->name()), m_loadSerial);
     }
     if (m_shell->isLocked() && m_lockRequested) {
         desktop_shell_send_locked(resource);
@@ -168,9 +164,13 @@ void DesktopShell::unsetGrabCursor(Pointer *p)
     m_grabCursor.remove(p);
 }
 
-void DesktopShell::outputCreated(Output *o)
+void DesktopShell::outputBound(uint32_t id, wl_resource *res)
 {
-    desktop_shell_send_load_output(m_resource, o->resource(m_client->client()), qPrintable(o->name()), 0);
+    wl_resource *r = wl_resource_create(m_client->client(), &desktop_shell_output_feedback_interface, 1, id);
+    Output *o = Output::fromResource(res);
+    m_loadSerial = m_shell->compositor()->nextSerial();
+    desktop_shell_output_feedback_send_load(r, qPrintable(o->name()), m_loadSerial);
+    wl_resource_destroy(r);
 }
 
 void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfaceResource)
@@ -570,7 +570,7 @@ void DesktopShell::pong(uint32_t serial)
 
 void DesktopShell::outputLoaded(uint32_t serial)
 {
-    if (serial > 0 && serial == m_loadSerial) {
+    if (serial > 0 && serial == m_loadSerial && !m_loaded) {
         m_splash->hide();
         m_loaded = true;
         m_loadSerial = 0;

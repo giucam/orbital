@@ -202,6 +202,11 @@ void Client::create()
 
     connect(addKeyBinding(KEY_BACKSPACE, 1 << 2), &Binding::triggered, qApp, &QCoreApplication::quit);
 
+    connect(qGuiApp, &QGuiApplication::screenAdded, this, &Client::screenAdded);
+    foreach(QScreen *s, qGuiApp->screens()) {
+        screenAdded(s);
+    }
+
     m_grabWindow = new QWindow;
     m_grabWindow->setFlags(Qt::BypassWindowManagerHint);
     m_grabWindow->resize(1, 1);
@@ -618,22 +623,6 @@ void Client::handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, 
     }
 }
 
-void Client::handleLoadOutput(desktop_shell *desktop_shell, wl_output *o, const char *name, uint32_t serial)
-{
-    QScreen *s = nullptr;
-    for (QScreen *screen: QGuiApplication::screens()) {
-        if (Client::nativeOutput(screen) == o) {
-            s = screen;
-        }
-    }
-    if (!s) {
-        qWarning("Could not find a screen for wl_output %d", wl_proxy_get_id((wl_proxy *)o));
-        return;
-    }
-
-    QMetaObject::invokeMethod(this, "loadOutput", Q_ARG(QScreen *, s), Q_ARG(QString, QString(name)), Q_ARG(uint32_t, serial));
-}
-
 void Client::handleLocked(desktop_shell *desktop_shell)
 {
     d_ptr->locked = true;
@@ -649,7 +638,6 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleWindowAdded),
     wrapInterface(&Client::handleWorkspaceAdded),
     wrapInterface(&Client::handleDesktopRect),
-    wrapInterface(&Client::handleLoadOutput),
     wrapInterface(&Client::handleLocked)
 };
 
@@ -700,6 +688,38 @@ void Client::setGrabSurface()
     if (s) {
         desktop_shell_set_grab_surface(m_shell, s);
     }
+}
+
+void Client::screenAdded(QScreen *s)
+{
+    class Feedback
+    {
+    public:
+        Feedback(Client *c, QScreen *s, desktop_shell_output_feedback *f)
+            : client(c)
+            , screen(s)
+            , feedback(f)
+        {
+            static const desktop_shell_output_feedback_listener listener = {
+                wrapInterface(&Feedback::load)
+            };
+            desktop_shell_output_feedback_add_listener(feedback, &listener, this);
+        }
+
+        void load(desktop_shell_output_feedback *, const char *name, uint32_t serial)
+        {
+            QMetaObject::invokeMethod(client, "loadOutput", Q_ARG(QScreen *, screen), Q_ARG(QString, QString(name)), Q_ARG(uint32_t, serial));
+
+            desktop_shell_output_feedback_destroy(feedback);
+            delete this;
+        }
+
+        Client *client;
+        QScreen *screen;
+        desktop_shell_output_feedback *feedback;
+    };
+
+    new Feedback(this, s, desktop_shell_output_bound(m_shell, nativeOutput(s)));
 }
 
 bool Client::event(QEvent *e)

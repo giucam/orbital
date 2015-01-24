@@ -95,6 +95,11 @@
             <arg name="height" type="int"/>
         </request>
 
+        <request name="output_bound">
+            <arg name="id" type="new_id" interface="desktop_shell_output_feedback"/>
+            <arg name="output" type="object" interface="wl_output"/>
+        </request>
+
         <event name="ping">
             <arg name="serial" type="uint"/>
         </event>
@@ -143,12 +148,6 @@
             <arg name="y" type="int"/>
             <arg name="width" type="int"/>
             <arg name="height" type="int"/>
-        </event>
-
-        <event name="load_output">
-            <arg name="output" type="object" interface="wl_output"/>
-            <arg name="name" type="string"/>
-            <arg name="serial" type="uint"/>
         </event>
 
         <enum name="window_state">
@@ -274,6 +273,13 @@
 
         <event name="moved">
             <arg name="position" type="uint"/>
+        </event>
+    </interface>
+
+    <interface name="desktop_shell_output_feedback" version="1">
+        <event name="load">
+            <arg name="name" type="string"/>
+            <arg name="serial" type="uint"/>
         </event>
     </interface>
 
