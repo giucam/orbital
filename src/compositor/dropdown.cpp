@@ -105,6 +105,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         }
         ~DropdownSurface()
         {
+            dropdown->m_surface = nullptr;
             wl_resource_set_destructor(resource, nullptr);
             delete m_toggleBinding;
         }
