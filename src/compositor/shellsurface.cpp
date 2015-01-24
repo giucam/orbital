@@ -68,6 +68,9 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
 
 ShellSurface::~ShellSurface()
 {
+    if (m_popup.seat) {
+        m_popup.seat->ungrabPopup(this);
+    }
     qDeleteAll(m_views);
 }
 
