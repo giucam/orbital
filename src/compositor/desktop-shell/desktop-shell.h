@@ -59,6 +59,7 @@ private:
     void unsetGrabCursor(Pointer *p);
     void outputCreated(Output *o);
     void session(bool active);
+    void givingUp();
 
     void setBackground(wl_resource *outputResource, wl_resource *surfaceResource);
     void setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position);
@@ -88,6 +89,7 @@ private:
     DesktopShellSplash *m_splash;
     uint32_t m_loadSerial;
     bool m_loaded;
+    bool m_loadedOnce;
     QHash<Pointer *, PointerCursor> m_grabCursor;
     bool m_lockRequested;
 };

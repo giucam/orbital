@@ -52,6 +52,7 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_splash(new DesktopShellSplash(shell))
             , m_loadSerial(0)
             , m_loaded(false)
+            , m_loadedOnce(false)
             , m_lockRequested(false)
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
@@ -60,7 +61,7 @@ DesktopShell::DesktopShell(Shell *shell)
 
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
-    connect(m_client, &ChildProcess::givingUp, shell->compositor(), &Compositor::quit);
+    connect(m_client, &ChildProcess::givingUp, this, &DesktopShell::givingUp);
 
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
@@ -149,6 +150,13 @@ void DesktopShell::session(bool active)
 {
     if (active && !m_lockRequested) {
         m_shell->unlock();
+    }
+}
+
+void DesktopShell::givingUp()
+{
+    if (!m_loadedOnce) {
+        m_shell->compositor()->quit();
     }
 }
 
@@ -573,6 +581,7 @@ void DesktopShell::outputLoaded(uint32_t serial)
     if (serial > 0 && serial == m_loadSerial && !m_loaded) {
         m_splash->hide();
         m_loaded = true;
+        m_loadedOnce = true;
         m_loadSerial = 0;
 
         for (auto i = m_grabCursor.begin(); i != m_grabCursor.end(); ++i) {
