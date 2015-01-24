@@ -271,6 +271,10 @@ Pointer::Pointer(Seat *seat, weston_pointer *p)
 {
     m_hotSpotState.lastTime = 0;
     m_hotSpotState.enterHotZone = 0;
+
+    QObject::connect(m_seat->compositor(), &Compositor::outputRemoved, [this](Output *o) {
+        m_defaultGrab.outputs.remove(o);
+    });
 }
 
 Pointer::~Pointer()
