@@ -136,11 +136,7 @@ Compositor::Compositor(Backend *backend)
 Compositor::~Compositor()
 {
     delete m_shell;
-    wl_list_remove(&m_listener->listener.link);
-    wl_list_remove(&m_listener->outputCreatedSignal.link);
-    wl_list_remove(&m_listener->outputMovedSignal.link);
-    delete m_listener;
-    delete m_backend;
+    qDeleteAll(m_outputs);
     delete m_rootLayer;
     delete m_overlayLayer;
     delete m_panelsLayer;
@@ -151,6 +147,8 @@ Compositor::~Compositor()
 
     if (m_compositor)
         weston_compositor_destroy(m_compositor);
+    delete m_listener;
+    delete m_backend;
 
     wl_display_destroy(m_display);
 }

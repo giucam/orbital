@@ -594,11 +594,15 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
             ActiveView(Surface *s, View *p)
                 : View(s), parent(p)
             {
-                connect(p, &QObject::destroyed, this, &View::unmap);
+                connect(p, &QObject::destroyed, this, &ActiveView::destroy);
             }
             View *pointerEnter(const Pointer *pointer) override
             {
                 return parent;
+            }
+            void destroy()
+            {
+                delete this;
             }
             View *parent;
         };
