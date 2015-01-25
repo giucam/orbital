@@ -48,5 +48,8 @@ to normal mode) it will save the configuration file *orbital/orbital.conf*, in
 the configuration file, but Orbital has (or will have) graphical tools
 for configuring the environment.
 
+You can use a tool like [qt5ct](http://qt-apps.org/content/show.php/Qt5+Configuration+Tool?content=168066)
+to configure Qt5 apps, and Orbital will obey many of those settings.
+
 You can see a screencast of some of Orbital functionalities at this link:
 http://www.youtube.com/watch?v=bd1hguj2bPE
