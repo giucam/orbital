@@ -43,7 +43,6 @@
 const char *defaultShell =
 "{\n"
 "    \"properties\": {\n"
-"        \"iconTheme\": \"oxygen\",\n"
 "        \"numWorkspaces\": 4,\n"
 "        \"styleName\": \"chiaro\"\n"
 "    }\n"
