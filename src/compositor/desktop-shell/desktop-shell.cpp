@@ -162,9 +162,11 @@ void DesktopShell::givingUp()
 
 void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
 {
-    p->setFocus(m_grabView, 0, 0);
     m_grabCursor[p] = c;
-    desktop_shell_send_grab_cursor(m_resource, (uint32_t)c);
+    if (m_resource) {
+        p->setFocus(m_grabView, 0, 0);
+        desktop_shell_send_grab_cursor(m_resource, (uint32_t)c);
+    }
 }
 
 void DesktopShell::unsetGrabCursor(Pointer *p)
