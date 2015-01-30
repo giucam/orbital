@@ -205,6 +205,8 @@ void ShellView::mapFullscreen()
     }
 
     if (ow == sw && oh == sh) {
+        Transform tr;
+        setTransform(tr);
         setPos(0, 0);
         return;
     }
