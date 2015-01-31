@@ -144,6 +144,7 @@ class ChildProcess : public QObject
 public:
     ~ChildProcess();
 
+    void restart();
     void setAutoRestart(bool enabled);
     wl_client *client() const;
 

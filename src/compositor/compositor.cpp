@@ -646,6 +646,17 @@ void ChildProcess::start()
     }
 }
 
+void ChildProcess::restart()
+{
+    if (m_client) {
+        wl_list_remove(&m_listener->listener.link);
+        wl_list_init(&m_listener->listener.link);
+        wl_client_destroy(m_client);
+        m_client = nullptr;
+    }
+    start();
+}
+
 void ChildProcess::finished()
 {
     m_client = nullptr;

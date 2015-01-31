@@ -17,6 +17,8 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <linux/input.h>
+
 #include <QDebug>
 
 #include <wayland-server.h>
@@ -66,6 +68,11 @@ DesktopShell::DesktopShell(Shell *shell)
     shell->setGrabCursorSetter([this](Pointer *p, PointerCursor c) { setGrabCursor(p, c); });
     shell->setGrabCursorUnsetter([this](Pointer *p) { unsetGrabCursor(p); });
     connect(shell->compositor(), &Compositor::sessionActivated, this, &DesktopShell::session);
+
+    KeyBinding *b = shell->compositor()->createKeyBinding(KEY_BACKSPACE, KeyboardModifiers::Super);
+    connect(b, &KeyBinding::triggered, [this]() {
+        m_client->restart();
+    });
 }
 
 DesktopShell::~DesktopShell()
