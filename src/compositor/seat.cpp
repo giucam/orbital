@@ -189,7 +189,7 @@ public:
         double sx, sy;
         View *view = pointer()->pickView(&sx, &sy);
 
-        if (view && view->client() ==client) {
+        if (view && view->client() == client) {
             pointer()->setFocus(view, sx, sy);
         } else {
             pointer()->setFocus(nullptr, 0, 0);
