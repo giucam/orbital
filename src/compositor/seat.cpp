@@ -333,6 +333,12 @@ View *Pointer::focus() const
 
 void Pointer::move(double x, double y)
 {
+    if (focus()) {
+        QPointF pos = focus()->mapFromGlobal(QPointF(x, y));
+        m_pointer->sx = wl_fixed_from_double(pos.x());
+        m_pointer->sy = wl_fixed_from_double(pos.y());
+    }
+
     weston_pointer_move(m_pointer, wl_fixed_from_double(x), wl_fixed_from_double(y));
 
     weston_view *view;
@@ -444,12 +450,6 @@ void Pointer::defaultGrabFocus()
 
 void Pointer::defaultGrabMotion(uint32_t time, double x, double y)
 {
-    if (focus()) {
-        QPointF pos = focus()->mapFromGlobal(QPointF(x, y));
-        m_pointer->sx = wl_fixed_from_double(pos.x());
-        m_pointer->sy = wl_fixed_from_double(pos.y());
-    }
-
     move(x, y);
     sendMotion(time);
     handleMotionBinding(time, x, y);
