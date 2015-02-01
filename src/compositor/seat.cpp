@@ -268,6 +268,7 @@ Seat *Seat::fromResource(wl_resource *res)
 Pointer::Pointer(Seat *seat, weston_pointer *p)
        : m_seat(seat)
        , m_pointer(p)
+       , m_currentOutput(nullptr)
 {
     m_hotSpotState.lastTime = 0;
     m_hotSpotState.enterHotZone = 0;
@@ -333,6 +334,43 @@ View *Pointer::focus() const
 
 void Pointer::move(double x, double y)
 {
+    double oldX = this->x();
+    double oldY = this->y();
+    m_currentOutput = nullptr;
+    foreach (Output *o, m_seat->compositor()->outputs()) {
+        if (!m_currentOutput || o->contains(oldX, oldY)) {
+            m_currentOutput = o;
+        }
+    }
+
+    QRect geom = m_currentOutput->geometry();
+    const int m = 10;
+    const int l = geom.x();
+    const int r = geom.right();
+    const int t = geom.y();
+    const int b = geom.bottom();
+    if (x < l + m && y < t + m) {
+        if (x - oldX < 0 && x < l)
+            x = l;
+        if (y - oldY < 0 && y < t)
+            y = t;
+    } else if (x > r - m && y < t + m) {
+        if (x - oldX > 0 && x > r)
+            x = r;
+        if (y - oldY < 0 && y < t)
+            y = t;
+    } else if (x > r - m && y > b - m) {
+        if (x - oldX > 0 && x > r)
+            x = r;
+        if (y - oldY > 0 && y > b)
+            y = b;
+    } else if (x < l + m && y > b - m) {
+        if (x - oldX < 0 && x < l)
+            x = l;
+        if (y - oldY > 0 && y > b)
+            y = b;
+    }
+
     if (focus()) {
         QPointF pos = focus()->mapFromGlobal(QPointF(x, y));
         m_pointer->sx = wl_fixed_from_double(pos.x());
@@ -461,15 +499,14 @@ void Pointer::handleMotionBinding(uint32_t time, double x, double y)
         return;
     }
 
-    Output *out = Output::fromOutput(m_pointer->sprite->output);
-    if (!out) {
+    if (!m_currentOutput) {
         return;
     }
 
     const int pushTime = 150;
     PointerHotSpot hs;
     bool inHs = true;
-    QRect geom = out->geometry();
+    QRect geom = m_currentOutput->geometry();
     if (x <= geom.x() && y <= geom.y()) {
         hs = PointerHotSpot::TopLeftCorner;
     } else if (x >= geom.right() - 1 && y <= geom.y()) {

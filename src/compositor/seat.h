@@ -125,6 +125,8 @@ public:
     double x() const;
     double y() const;
 
+    Output *currentOutput() const;
+
     bool isGrabActive() const;
     PointerGrab *activeGrab() const;
     uint32_t grabSerial() const;
@@ -142,6 +144,7 @@ private:
 
     Seat *m_seat;
     weston_pointer *m_pointer;
+    Output *m_currentOutput;
     struct {
         QSet<Output *> outputs;
     } m_defaultGrab;
