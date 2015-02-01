@@ -461,11 +461,9 @@ void Pointer::handleMotionBinding(uint32_t time, double x, double y)
         return;
     }
 
-    Output *out = nullptr;
-    foreach (Output *o, m_seat->compositor()->outputs()) {
-        if (!out || o->contains(x, y)) {
-            out = o;
-        }
+    Output *out = Output::fromOutput(m_pointer->sprite->output);
+    if (!out) {
+        return;
     }
 
     const int pushTime = 150;
