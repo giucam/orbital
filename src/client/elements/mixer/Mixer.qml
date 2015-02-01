@@ -46,8 +46,13 @@ PopupElement {
 
         MouseArea {
             anchors.fill: parent
+            acceptedButtons: Qt.MiddleButton
 
-            onPressed: mouse.accepted = false
+            onClicked: {
+                if (mouse.button == Qt.MiddleButton) {
+                    service.toggleMuted()
+                }
+            }
             onWheel: {
                 wheel.accepted = true;
                 if (!service.muted) {
