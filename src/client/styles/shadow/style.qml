@@ -168,7 +168,7 @@ Style {
                 width: horizontal ? parent.width : head.size
                 height: horizontal ? head.size : parent.height
                 x: location == 1 ? 10 : (location == 3 ? parent.width - 30 : 0)
-                y: (location == 0 !! location == 4) ? 10 : (location == 2 ? parent.height - 30 : 0)
+                y: (location == 0 || location == 4) ? 10 : (location == 2 ? parent.height - 30 : 0)
 
                 Rotator {
                     anchors.fill: parent
