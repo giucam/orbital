@@ -37,11 +37,13 @@ class ShellSurface;
 class Pointer;
 class ButtonBinding;
 class KeyBinding;
+class AxisBinding;
 class Seat;
 class Pager;
 class Output;
 class Client;
 enum class PointerCursor: unsigned int;
+enum class PointerAxis : unsigned char;
 
 class Shell : public Object
 {
@@ -90,6 +92,7 @@ private:
     void killSurface(Seat *s);
     void nextWs(Seat *s);
     void prevWs(Seat *s);
+    void setAlpha(Seat *s, uint32_t time, PointerAxis axis, double value);
     void initEnvironment();
     void autostartClients();
 
@@ -104,6 +107,7 @@ private:
     KeyBinding *m_killBinding;
     KeyBinding *m_nextWsBinding;
     KeyBinding *m_prevWsBinding;
+    AxisBinding *m_alphaBinding;
     Pager *m_pager;
     QHash<QString, QList<Client *>> m_trustedClients;
     bool m_locked;
