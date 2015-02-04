@@ -152,6 +152,7 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.set_window_geometry = [](shell_surface *shsurf, int32_t x, int32_t y, int32_t w, int32_t h) {
         _this->setGeometry(x, y, w, h);
     };
+    compositor->shell_interface.set_maximized = [](shell_surface *shsurf) { _this->setMaximized(); };
 #undef _this
 }
 
