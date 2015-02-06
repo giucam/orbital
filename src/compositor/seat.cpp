@@ -206,6 +206,7 @@ public:
             pointer()->sendButton(time, button, state);
         } else if (state == Pointer::ButtonState::Released && (initialUp || time - pointer()->grabTime() > 500)) {
             end();
+            return;
         }
 
         if (state == Pointer::ButtonState::Released) {
