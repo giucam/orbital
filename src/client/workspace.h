@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QSet>
+#include <QPoint>
 
 struct wl_output;
 struct desktop_shell_workspace;
@@ -32,21 +33,27 @@ class UiScreen;
 class Workspace : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QPoint position READ position NOTIFY positionChanged)
 public:
     Workspace(desktop_shell_workspace *ws, QObject *p = nullptr);
     ~Workspace();
+
+    QPoint position() const;
 
     Q_INVOKABLE bool isActiveForScreen(UiScreen *screen) const;
 
 signals:
     void activeChanged();
+    void positionChanged();
 
 private:
     void handleActivated(desktop_shell_workspace *ws, wl_output *output);
     void handleDeactivated(desktop_shell_workspace *ws, wl_output *output);
+    void handlePosition(desktop_shell_workspace *wd, int x, int y);
 
     desktop_shell_workspace *m_workspace;
     QSet<wl_output *> m_active;
+    QPoint m_position;
 
     static const desktop_shell_workspace_listener m_workspace_listener;
 

@@ -35,62 +35,68 @@ Element {
     property int _rows: 1
     property int _cols: 1
 
-    onHorizontalChanged: {
-        if (horizontal) {
-            _rows = Qt.binding(function() { return Client.workspaces.length > 2 ? 2 : 1 });
-            _cols = Qt.binding(function() { return Client.workspaces.length > 0 ? Client.workspaces.length / _rows : 1 });
-        } else {
-            _rows = Qt.binding(function() { return Client.workspaces.length > 0 ? Client.workspaces.length / _cols : 1 });
-            _cols = Qt.binding(function() { return Client.workspaces.length > 2 ? 2 : 1 });
+    Connections {
+        target: Client
+        onWorkspacesChanged: updateSize()
+    }
+    Component.onCompleted: updateSize()
+
+    function updateSize() {
+        _rows = 1;
+        _cols = 1;
+        for (var i = 0; i < Client.workspaces.length; ++i) {
+            var ws = Client.workspaces[i];
+            if (ws.position.x >= _cols) {
+                _cols = ws.position.x + 1;
+            }
+            if (ws.position.y >= _rows) {
+                _rows = ws.position.y + 1;
+            }
         }
     }
 
     contentItem: StyleItem {
         component: CurrentStyle.pagerBackground
         anchors.fill: parent
-        Grid {
-            width: parent.width
-            height: parent.height
-            id: grid
+        id: grid
 
-            rows: _rows
-            readonly property bool fitWidth: width / _cols * _rows >= height * pager.ratio
+        readonly property bool fitWidth: width / _cols * _rows >= height * pager.ratio
 
-            property int itemH: fitWidth ? height / rows : (width / _cols) / pager.ratio
-            property int itemW: itemH * pager.ratio
+        property int itemH: fitWidth ? height / _rows : (width / _cols) / pager.ratio
+        property int itemW: itemH * pager.ratio
 
-            x: (width - itemW * _cols) / 2
-            y: (height - itemH * rows) / 2
+        Repeater {
+            model: Client.workspaces
 
-            Repeater {
-                model: Client.workspaces
+            Item {
+                height: grid.itemH
+                width: grid.itemW
 
-                Item {
-                    height: grid.itemH
-                    width: grid.itemW
+                x: width * modelData.position.x
+                y: height * modelData.position.y
 
-                    Connections {
-                        target: modelData
-                        onActiveChanged: updateActive()
-                    }
-
-                    function updateActive() {
-                        si.item.active = modelData.isActiveForScreen(pager.screen)
-                    }
-
-                    StyleItem {
-                        id: si
-                        anchors.fill: parent
-                        component: CurrentStyle.pagerWorkspace
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: Client.selectWorkspace(pager.screen, modelData)
-                    }
-
-                    Component.onCompleted: updateActive()
+                Connections {
+                    target: modelData
+                    onActiveChanged: updateActive()
+                    onPositionChanged: pager.updateSize()
                 }
+
+                function updateActive() {
+                    si.item.active = modelData.isActiveForScreen(pager.screen)
+                }
+
+                StyleItem {
+                    id: si
+                    anchors.fill: parent
+                    component: CurrentStyle.pagerWorkspace
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: Client.selectWorkspace(pager.screen, modelData)
+                }
+
+                Component.onCompleted: updateActive()
             }
         }
     }

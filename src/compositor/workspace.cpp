@@ -35,6 +35,13 @@
 
 namespace Orbital {
 
+class Root : public DummySurface
+{
+public:
+    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
+    View *view;
+};
+
 Workspace::Workspace(Shell *shell, int id)
          : Object(shell)
          , m_shell(shell)
@@ -65,6 +72,7 @@ WorkspaceView *Workspace::viewForOutput(Output *o)
     if (!m_views.contains(o->id())) {
         WorkspaceView *view = new WorkspaceView(this, o);
         m_views.insert(o->id(), view);
+        view->m_root->view->setPos(m_x * o->width(), m_y * o->height());
         return view;
     }
 
@@ -87,18 +95,36 @@ int Workspace::mask() const
     return 1 << m_id;
 }
 
+void Workspace::setPos(int x, int y)
+{
+    if (m_x == x && m_y == y) {
+        return;
+    }
+
+    m_x = x;
+    m_y = y;
+
+    foreach (WorkspaceView *v, m_views) {
+        v->m_root->view->setPos(x * v->m_output->width(), y * v->m_output->height());
+    }
+    emit positionChanged(x, y);
+}
+
+int Workspace::x() const
+{
+    return m_x;
+}
+
+int Workspace::y() const
+{
+    return m_y;
+}
+
 void Workspace::outputRemoved(Output *o)
 {
     delete m_views.take(o->id());
 }
 
-
-class Root : public DummySurface
-{
-public:
-    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
-    View *view;
-};
 
 WorkspaceView::WorkspaceView(Workspace *ws, Output *o)
              : QObject()
@@ -148,11 +174,6 @@ bool WorkspaceView::ownsView(View *view) const
 {
     Layer *l = view->layer();
     return l == m_layer || l == m_backgroundLayer || l == m_fullscreenLayer;
-}
-
-void WorkspaceView::setPos(int x, int y)
-{
-    m_root->view->setPos(x * m_output->width(), y * m_output->height());
 }
 
 void WorkspaceView::setTransformParent(View *p)

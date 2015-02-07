@@ -44,6 +44,11 @@ bool Workspace::isActiveForScreen(UiScreen *screen) const
     return m_active.contains(out);
 }
 
+QPoint Workspace::position() const
+{
+    return m_position;
+}
+
 void Workspace::handleActivated(desktop_shell_workspace *ws, wl_output *out)
 {
     m_active.insert(out);
@@ -56,7 +61,14 @@ void Workspace::handleDeactivated(desktop_shell_workspace *ws, wl_output *out)
     emit activeChanged();
 }
 
+void Workspace::handlePosition(desktop_shell_workspace *ws, int x, int y)
+{
+    m_position = QPoint(x, y);
+    emit positionChanged();
+}
+
 const desktop_shell_workspace_listener Workspace::m_workspace_listener = {
     wrapInterface(&Workspace::handleActivated),
-    wrapInterface(&Workspace::handleDeactivated)
+    wrapInterface(&Workspace::handleDeactivated),
+    wrapInterface(&Workspace::handlePosition)
 };

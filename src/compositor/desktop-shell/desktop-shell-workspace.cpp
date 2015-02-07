@@ -40,6 +40,7 @@ DesktopShellWorkspace::DesktopShellWorkspace(Shell *shell, Workspace *ws)
 {
     connect(shell->pager(), &Pager::workspaceActivated, this, &DesktopShellWorkspace::workspaceActivated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &DesktopShellWorkspace::outputRemoved);
+    connect(ws, &Workspace::positionChanged, this, &DesktopShellWorkspace::sendPosition);
 }
 
 void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
@@ -50,6 +51,7 @@ void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
 
     m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
     wl_resource_set_implementation(m_resource, &implementation, this, 0);
+    sendPosition();
 }
 
 void DesktopShellWorkspace::sendActivatedState()
@@ -57,6 +59,13 @@ void DesktopShellWorkspace::sendActivatedState()
     for (Output *out: m_active) {
         wl_resource *res = out->resource(wl_resource_get_client(m_resource));
         desktop_shell_workspace_send_activated(m_resource, res);
+    }
+}
+
+void DesktopShellWorkspace::sendPosition()
+{
+    if (m_resource) {
+        desktop_shell_workspace_send_position(m_resource, m_workspace->x(), m_workspace->y());
     }
 }
 

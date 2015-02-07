@@ -63,9 +63,20 @@ void Pager::addWorkspace(Workspace *ws)
     for (Output *o: m_compositor->outputs()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
         wsv->setTransformParent(o->rootView());
-        wsv->setPos(ws->id(), 0);
     }
     m_workspaces << ws;
+
+    int n = ws->id();
+    int rows = n > 2 ? 2 : 1;
+    int cols = ceil((double)(n + 1) / (double)rows);
+    int x = 0, y = 0;
+    for (Workspace *w: m_workspaces) {
+        w->setPos(x, y);
+        if (++x >= cols) {
+            x = 0;
+            ++y;
+        }
+    }
 }
 
 void Pager::activate(Workspace *ws, Output *output)
@@ -143,7 +154,6 @@ void Pager::outputCreated(Output *o)
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         WorkspaceView *wsv = ws->viewForOutput(o);
         wsv->setTransformParent(o->rootView());
-        wsv->setPos(ws->id(), 0);
     }
 
     Workspace *ws = m_compositor->shell()->workspaces().first();

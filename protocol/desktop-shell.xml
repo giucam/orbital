@@ -258,6 +258,10 @@
         <event name="deactivated">
             <arg name="output" type="object" interface="wl_output"/>
         </event>
+        <event name="position">
+            <arg name="x" type="int"/>
+            <arg name="y" type="int"/>
+        </event>
     </interface>
 
     <interface name="desktop_shell_surface" version="1">

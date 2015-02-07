@@ -63,8 +63,10 @@ public:
     int mask() const;
     int x() const;
     int y() const;
-    void setX(int x);
-    void setY(int y);
+    void setPos(int x, int y);
+
+signals:
+    void positionChanged(int x, int y);
 
 private:
     void outputRemoved(Output *o);
@@ -102,7 +104,6 @@ public:
     Workspace *workspace() const { return m_workspace; }
 
 private:
-    void setPos(int x, int y);
     void setTransformParent(View *p);
     void updateAnim(double v);
 
