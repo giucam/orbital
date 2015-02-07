@@ -174,6 +174,7 @@ public:
     PopupGrab(Seat *s, wl_client *c)
         : seat(s)
         , client(c)
+        , initialUp(false)
     {
         start(s);
 
@@ -181,7 +182,7 @@ public:
          * a mouse press, and not just by moving around with other
          * popups already open. */
         if (pointer()->buttonCount() == 0) {
-            initialUp = false;
+            initialUp = true;
         }
     }
     void focus() override
