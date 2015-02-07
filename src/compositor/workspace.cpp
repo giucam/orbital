@@ -203,7 +203,7 @@ void WorkspaceView::resetMask()
     m_root->view->update();
     QPointF tl = m_root->view->mapToGlobal(QPointF(0, 0));
     QPointF br = m_root->view->mapToGlobal(QPointF(m_output->width(), m_output->height()));
-    setMask(QRect(QPoint(tl.x(), tl.y()), QPoint(br.x() - 1, br.y() - 1)));
+    setMask(QRect(QPoint(qRound(tl.x()), qRound(tl.y())), QPoint(qRound(br.x() - 1), qRound(br.y() - 1))));
 }
 
 void WorkspaceView::setMask(const QRect &m)
