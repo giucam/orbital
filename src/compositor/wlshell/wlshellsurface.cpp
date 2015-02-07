@@ -126,12 +126,13 @@ void WlShellSurface::setPopup(wl_resource *seatResource, uint32_t serial, wl_res
     Surface *parent = Surface::fromResource(parentResource);
     Seat *seat = Seat::fromResource(seatResource);
 
-    if (serial != seat->pointer()->grabSerial()) {
+    if (serial == seat->pointer()->grabSerial()) {
+        shellSurface()->setPopup(parent, seat, x, y);
+    } else if (serial == seat->keyboard()->grabSerial()) {
+        shellSurface()->setPopup(parent, seat, x, y);
+    } else {
         wl_shell_surface_send_popup_done(m_resource);
-        return;
     }
-
-    shellSurface()->setPopup(parent, seat, x, y);
 }
 
 void WlShellSurface::setMaximized(wl_resource *outputResource)

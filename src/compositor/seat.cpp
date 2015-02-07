@@ -55,6 +55,7 @@ Seat::Seat(Compositor *c, weston_seat *s)
     , m_seat(s)
     , m_listener(new Listener)
     , m_pointer(s->pointer ? new Pointer(this, s->pointer) : nullptr)
+    , m_keyboard(nullptr)
     , m_activeSurface(nullptr)
     , m_popupGrab(nullptr)
 {
@@ -91,6 +92,19 @@ Pointer *Seat::pointer() const
         that->m_pointer = new Pointer(that, m_seat->pointer);
     }
     return m_pointer;
+}
+
+Keyboard *Seat::keyboard() const
+{
+    if (m_keyboard) {
+        return m_keyboard;
+    }
+
+    if (m_seat->keyboard) {
+        Seat *that = const_cast<Seat *>(this);
+        that->m_keyboard = new Keyboard(that, m_seat->keyboard);
+    }
+    return m_keyboard;
 }
 
 Surface *Seat::activate(Surface *surface)
@@ -634,6 +648,19 @@ PointerButton rawToPointerButton(uint32_t button)
     }
 
     return (PointerButton)(button - 0x110);
+}
+
+
+
+Keyboard::Keyboard(Seat *seat, weston_keyboard *k)
+        : m_seat(seat)
+        , m_keyboard(k)
+{
+}
+
+uint32_t Keyboard::grabSerial() const
+{
+    return m_keyboard->grab_serial;
 }
 
 }

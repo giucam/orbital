@@ -35,6 +35,7 @@ struct Listener;
 class Compositor;
 class PointerGrab;
 class Pointer;
+class Keyboard;
 class View;
 class Surface;
 class ShellSurface;
@@ -51,6 +52,7 @@ public:
 
     Compositor *compositor() const;
     Pointer *pointer() const;
+    Keyboard *keyboard() const;
 
     void activate(Workspace *ws);
     Surface *activate(Surface *surface);
@@ -72,6 +74,7 @@ private:
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
+    Keyboard *m_keyboard;
     QLinkedList<Surface *> m_activeSurfaces;
     Surface *m_activeSurface;
     PopupGrab *m_popupGrab;
@@ -191,6 +194,20 @@ private:
 //     static const weston_pointer_grab_interface s_shellGrabInterface;
 
     friend Pointer;
+};
+
+class Keyboard
+{
+public:
+    uint32_t grabSerial() const;
+
+private:
+    explicit Keyboard(Seat *seat, weston_keyboard *k);
+
+    Seat *m_seat;
+    weston_keyboard *m_keyboard;
+
+    friend Seat;
 };
 
 }
