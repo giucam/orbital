@@ -41,6 +41,7 @@ public:
 
     void init(wl_client *client, uint32_t id);
     void sendActivatedState();
+    void sendPosition();
     wl_resource *resource() const { return m_resource; }
     Workspace *workspace() const { return m_workspace; }
 
@@ -50,7 +51,6 @@ private:
     void workspaceActivated(Workspace *ws, Output *o);
     void outputRemoved(Output *o);
     void removed(wl_client *client, wl_resource *res);
-    void sendPosition();
 
     Shell *m_shell;
     Workspace *m_workspace;

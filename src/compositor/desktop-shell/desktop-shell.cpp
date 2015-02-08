@@ -132,6 +132,7 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         dws->init(m_client->client(), 0);
         desktop_shell_send_workspace_added(m_resource, dws->resource());
         dws->sendActivatedState();
+        dws->sendPosition();
     }
     for (ShellSurface *shsurf: m_shell->surfaces()) {
         DesktopShellWindow *w = shsurf->findInterface<DesktopShellWindow>();
@@ -557,6 +558,7 @@ void DesktopShell::addWorkspace(uint32_t id)
     DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
     dws->init(m_client->client(), id);
     dws->sendActivatedState();
+    dws->sendPosition();
 }
 
 void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *workspaceResource)
