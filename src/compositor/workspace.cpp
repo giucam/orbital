@@ -46,6 +46,8 @@ Workspace::Workspace(Shell *shell, int id)
          : Object(shell)
          , m_shell(shell)
          , m_id(id)
+         , m_x(0)
+         , m_y(0)
 {
     connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
 }
