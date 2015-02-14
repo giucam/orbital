@@ -161,6 +161,7 @@ private:
     struct {
         bool maximized;
         bool fullscreen;
+        Output *output;
     } m_toplevel;
     struct {
         int x;

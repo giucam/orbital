@@ -48,7 +48,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_type(Type::None)
             , m_nextType(Type::None)
             , m_popup({ 0, 0, nullptr })
-            , m_toplevel({ false, false })
+            , m_toplevel({ false, false, nullptr })
             , m_transient({ 0, 0, false })
             , m_state({ QSize(), false, false })
 {
@@ -154,11 +154,10 @@ void ShellSurface::setMaximized()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = true;
     m_toplevel.fullscreen = false;
+    m_toplevel.output = selectOutput();
 
-    Output *output = selectOutput();
-
-    QRect rect = output->availableGeometry();
-    qDebug() << "Maximizing surface on output" << output << "with rect" << rect;
+    QRect rect = m_toplevel.output->availableGeometry();
+    qDebug() << "Maximizing surface on output" << m_toplevel.output << "with rect" << rect;
     sendConfigure(rect.width(), rect.height());
 }
 
@@ -627,6 +626,10 @@ void ShellSurface::outputRemoved(Output *o)
     View *v = viewForOutput(o);
     m_views.remove(o->id());
     delete v;
+
+    if (m_nextType == Type::Toplevel && m_toplevel.maximized && m_toplevel.output == o) {
+        setMaximized();
+    }
 }
 
 ShellSurface *ShellSurface::fromSurface(weston_surface *s)
