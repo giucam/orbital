@@ -189,6 +189,11 @@ void DesktopShell::outputBound(uint32_t id, wl_resource *res)
     m_loadSerial = m_shell->compositor()->nextSerial();
     desktop_shell_output_feedback_send_load(r, qPrintable(o->name()), m_loadSerial);
     wl_resource_destroy(r);
+
+    for (Workspace *ws: m_shell->workspaces()) {
+        DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
+        dws->sendActivatedState();
+    }
 }
 
 void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfaceResource)
