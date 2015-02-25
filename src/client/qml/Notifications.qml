@@ -30,18 +30,17 @@ Item {
             id: notif
             inactive: true
             property QtObject notification
-            property alias body: notificationText.text
+            property alias summary: summaryText.text
+            property alias body: bodyText.text
             property alias icon: image.source
 
             StyleItem {
                 id: content
                 component: CurrentStyle.notificationBackground
                 width: 300
-                height: notificationText.height + 2 * margin + item.topContentsMargin + item.bottomContentsMargin
+                height: text.height + 2 * margin + item.topContentsMargin + item.bottomContentsMargin
                 opacity: 0
                 property int margin: 7
-
-                onHeightChanged: console.log(height)
 
                 Image {
                     id: image
@@ -52,17 +51,32 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     sourceSize: Qt.size(32, 32)
                 }
-                Text {
-                    id: notificationText
+                Item {
+                    id: text
                     anchors.left: image.right
                     anchors.right: parent.right
-                    anchors.top: parent.top
                     anchors.margins: content.margin
-                    height: Math.min(150, Math.max(40, implicitHeight))
-                    verticalAlignment: Qt.AlignVCenter
-                    wrapMode: Text.Wrap
-                    elide: Text.ElideRight
-                    color: CurrentStyle.textColor
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: Math.min(maxHeight, Math.max(40, summaryText.height + bodyText.height))
+                    property int maxHeight: 150
+                    Text {
+                        id: summaryText
+                        width: parent.width
+                        height: summaryText.text ? Math.min(implicitHeight, text.maxHeight) : 0
+                        font.bold: true
+                        wrapMode: Text.Wrap
+                        elide: Text.ElideRight
+                        color: CurrentStyle.textColor
+                    }
+                    Text {
+                        id: bodyText
+                        anchors.top: summaryText.bottom
+                        width: parent.width
+                        height: Math.min(implicitHeight, text.maxHeight - summaryText.height) // Math.min(150, Math.max(40, implicitHeight))
+                        wrapMode: Text.Wrap
+                        elide: Text.ElideRight
+                        color: CurrentStyle.textColor
+                    }
                 }
 
                 NumberAnimation { target: content; property: "opacity"; to: 1; duration: 300; running: true }
@@ -83,11 +97,8 @@ Item {
     Connections {
         target: service
         onNotify: {
-            var text = "";
-            if (notification.summary)
-                text += "<b>" + notification.summary + "</b><br>";
-            text += notification.body;
-            component.createObject(root, { notification: notification, body: text,
+            component.createObject(root, { notification: notification, body: notification.body,
+                                           summary: notification.summary,
                                            icon: "image://notifications/" + notification.id });
         }
     }

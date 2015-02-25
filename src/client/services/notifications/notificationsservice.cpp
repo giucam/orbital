@@ -78,7 +78,7 @@ NotificationsService::~NotificationsService()
 
 void NotificationsService::init()
 {
-    QStringList caps = { "actions", "action-icons" };
+    QStringList caps = { "actions", "action-icons", "body-markup" };
     new NotificationsAdaptor(this, caps);
     if (QDBusConnection::sessionBus().registerService("org.freedesktop.Notifications")) {
         QDBusConnection::sessionBus().registerObject("/org/freedesktop/Notifications", this);
