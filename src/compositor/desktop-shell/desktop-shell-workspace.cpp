@@ -50,7 +50,10 @@ void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
     };
 
     m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
-    wl_resource_set_implementation(m_resource, &implementation, this, 0);
+    wl_resource_set_implementation(m_resource, &implementation, this, [](wl_resource *r) {
+        DesktopShellWorkspace *ws = fromResource(r);
+        ws->m_resource = nullptr;
+    });
 }
 
 void DesktopShellWorkspace::sendActivatedState()
