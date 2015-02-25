@@ -353,7 +353,7 @@ static int elementsInfoCount(QQmlListProperty<ElementInfo> *prop)
 
 static ElementInfo *elementsInfoAt(QQmlListProperty<ElementInfo> *prop, int index)
 {
-    const QString &name = Element::elementsInfo().keys().at(index);
+    QString name = Element::elementsInfo().keys().at(index);
     return Element::elementsInfo().value(name);
 }
 
@@ -369,7 +369,7 @@ static int stylesInfoCount(QQmlListProperty<StyleInfo> *prop)
 
 static StyleInfo *stylesInfoAt(QQmlListProperty<StyleInfo> *prop, int index)
 {
-    const QString &name = Style::stylesInfo().keys().at(index);
+    QString name = Style::stylesInfo().keys().at(index);
     return Style::stylesInfo().value(name);
 }
 
