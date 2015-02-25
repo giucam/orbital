@@ -90,6 +90,11 @@ DesktopShellSplash::DesktopShellSplash(Shell *shell)
     m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-splash");
 }
 
+DesktopShellSplash::~DesktopShellSplash()
+{
+    qDeleteAll(m_splashes);
+}
+
 void DesktopShellSplash::hide()
 {
     for (Splash *s: m_splashes) {

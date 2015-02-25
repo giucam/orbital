@@ -37,6 +37,7 @@ class DesktopShellSplash : public Interface, public Global
     Q_OBJECT
 public:
     DesktopShellSplash(Shell *shell);
+    ~DesktopShellSplash();
 
     void hide();
 
