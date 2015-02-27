@@ -21,12 +21,11 @@ import QtQuick 2.2
 import QtQuick.Window 2.2
 import QtQuick.Controls 1.1
 import Orbital 1.0
+import Orbital.LoginService 1.0
 
 Element {
     width: Screen.width
     height: Screen.height
-
-    property variant service: Client.service("LoginService")
 
     contentItem: Item {
         anchors.centerIn: parent
@@ -37,7 +36,7 @@ Element {
             placeholderText: qsTr("Password")
             width: 200
             height: 30
-            enabled: !service.busy
+            enabled: !LoginManager.busy
             echoMode: TextInput.Password
             focus: true
 
@@ -51,14 +50,14 @@ Element {
             width: 100
             height: 30
             caption: qsTr("Unlock")
-            enabled: !service.busy
+            enabled: !LoginManager.busy
 
             onClicked: tryUnlock()
         }
     }
 
     function tryUnlock() {
-        service.tryUnlockSession(password.text, function(res) {
+        LoginManager.tryUnlockSession(password.text, function(res) {
             password.text = "";
         })
     }

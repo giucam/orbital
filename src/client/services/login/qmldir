@@ -1,0 +1,2 @@
+module Orbital.LoginService
+plugin loginservice

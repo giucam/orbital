@@ -25,6 +25,7 @@
 #include <QThread>
 #include <QJSValue>
 #include <QDebug>
+#include <QtQml>
 
 #include "loginservice.h"
 #include "client.h"
@@ -33,7 +34,15 @@
 #include "logindbackend.h"
 #endif
 
-Q_DECLARE_METATYPE(LoginService::Result)
+Q_DECLARE_METATYPE(LoginManager::Result)
+
+void LoginPlugin::registerTypes(const char *uri)
+{
+    qmlRegisterSingletonType<LoginManager>(uri, 1, 0, "LoginManager", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new LoginManager);
+    });
+}
+
 
 class PamAuthenticator : public QObject
 {
@@ -56,14 +65,14 @@ public:
 
         passwd *pwd = getpwuid(getuid());
         if (!pwd) {
-            emit authenticationResult(LoginService::Result::Error);
+            emit authenticationResult(LoginManager::Result::Error);
             return;
         }
 
         int retval = pam_start("su", pwd->pw_name, &local_conversation, &local_auth_handle);
         if (retval != PAM_SUCCESS) {
                 qWarning("pam_start returned %d", retval);
-                emit authenticationResult(LoginService::Result::Error);
+                emit authenticationResult(LoginManager::Result::Error);
                 return;
         }
 
@@ -75,11 +84,11 @@ public:
         retval = pam_authenticate(local_auth_handle, 0);
         if (retval != PAM_SUCCESS) {
             if (retval == PAM_AUTH_ERR) {
-                emit authenticationResult(LoginService::Result::AuthenticationFailed);
+                emit authenticationResult(LoginManager::Result::AuthenticationFailed);
                 return;
             } else {
                 qWarning("pam_authenticate returned %d", retval);
-                emit authenticationResult(LoginService::Result::Error);
+                emit authenticationResult(LoginManager::Result::Error);
                 return;
             }
         }
@@ -87,15 +96,15 @@ public:
         retval = pam_end(local_auth_handle, retval);
         if (retval != PAM_SUCCESS) {
             qWarning("pam_end returned %d", retval);
-            emit authenticationResult(LoginService::Result::Error);
+            emit authenticationResult(LoginManager::Result::Error);
             return;
         }
 
-        emit authenticationResult(LoginService::Result::AuthenticationSucceded);
+        emit authenticationResult(LoginManager::Result::AuthenticationSucceded);
     }
 
 signals:
-    void authenticationResult(LoginService::Result res);
+    void authenticationResult(LoginManager::Result res);
 
 private:
     static int function_conversation(int num_msg, const struct pam_message **msg, struct pam_response **resp,
@@ -109,8 +118,8 @@ private:
     pam_response *m_reply;
 };
 
-LoginService::LoginService()
-            : Service()
+LoginManager::LoginManager(QObject *p)
+            : QObject(p)
             , m_backend(nullptr)
             , m_authenticator(new PamAuthenticator)
             , m_authenticatorThread(new QThread)
@@ -118,18 +127,6 @@ LoginService::LoginService()
 {
     qRegisterMetaType<Result>();
 
-    m_authenticator->moveToThread(m_authenticatorThread);
-    m_authenticatorThread->start();
-}
-
-LoginService::~LoginService()
-{
-    delete m_backend;
-    delete m_authenticator;
-}
-
-void LoginService::init()
-{
 #ifdef USE_LOGIND
     m_backend = LogindBackend::create();
 #endif
@@ -138,85 +135,94 @@ void LoginService::init()
     }
 
     if (m_backend) {
-        connect(m_backend, &LoginServiceBackend::requestLock, this, &LoginService::lockSession);
-        connect(m_backend, &LoginServiceBackend::requestUnlock, this, &LoginService::unlockSession);
-        connect(client(), &Client::locked, m_backend, &LoginServiceBackend::locked);
-        connect(client(), &Client::unlocked, m_backend, &LoginServiceBackend::unlocked);
+        connect(m_backend, &LoginManagerBackend::requestLock, this, &LoginManager::lockSession);
+        connect(m_backend, &LoginManagerBackend::requestUnlock, this, &LoginManager::unlockSession);
+        connect(Client::client(), &Client::locked, m_backend, &LoginManagerBackend::locked);
+        connect(Client::client(), &Client::unlocked, m_backend, &LoginManagerBackend::unlocked);
     }
+
+    m_authenticator->moveToThread(m_authenticatorThread);
+    m_authenticatorThread->start();
 }
 
-bool LoginService::busy() const
+LoginManager::~LoginManager()
+{
+    delete m_backend;
+    delete m_authenticator;
+}
+
+bool LoginManager::busy() const
 {
     return m_busy;
 }
 
-void LoginService::abort()
+void LoginManager::abort()
 {
     m_request = nullptr;
     emit aborted();
 }
 
-void LoginService::logOut()
+void LoginManager::logOut()
 {
-    client()->quit();
+    Client::client()->quit();
 }
 
-void LoginService::poweroff()
+void LoginManager::poweroff()
 {
-    client()->quit();
+    Client::client()->quit();
     if (m_backend) {
         m_backend->poweroff();
     }
 }
 
-void LoginService::reboot()
+void LoginManager::reboot()
 {
-    client()->quit();
+    Client::client()->quit();
     if (m_backend) {
         m_backend->reboot();
     }
 }
 
-void LoginService::requestLogOut()
+void LoginManager::requestLogOut()
 {
-    m_request = &LoginService::logOut;
+    m_request = &LoginManager::logOut;
     m_requestHandled = false;
     QTimer::singleShot(200, this, SLOT(doRequest()));
     emit logOutRequested();
 }
 
-void LoginService::requestPoweroff()
+void LoginManager::requestPoweroff()
 {
-    m_request = &LoginService::poweroff;
+    m_request = &LoginManager::poweroff;
     m_requestHandled = false;
     QTimer::singleShot(200, this, SLOT(doRequest()));
     emit poweroffRequested();
 }
 
-void LoginService::requestReboot()
+void LoginManager::requestReboot()
 {
-    m_request = &LoginService::reboot;
+    m_request = &LoginManager::reboot;
     m_requestHandled = false;
     QTimer::singleShot(200, this, SLOT(doRequest()));
     emit rebootRequested();
 }
 
-void LoginService::requestHandled()
+void LoginManager::requestHandled()
 {
     m_requestHandled = true;
 }
 
-void LoginService::lockSession()
+void LoginManager::lockSession()
 {
-    client()->lockSession();
+    Client::client()->lockSession();
 }
 
-void LoginService::unlockSession()
+void LoginManager::unlockSession()
 {
-    client()->unlockSession();
+    Client::client()->unlockSession();
 }
 
-void LoginService::tryUnlockSession(const QString &password, const QJSValue &callback)
+void LoginManager::tryUnlockSession(const QString &password, const QJSValue &callback)
 {
     if (m_busy) {
         return;
@@ -225,27 +231,27 @@ void LoginService::tryUnlockSession(const QString &password, const QJSValue &cal
     class Authenticator : public QObject
     {
     public:
-        Authenticator(LoginService *s, const QJSValue &cb)
+        Authenticator(LoginManager *s, const QJSValue &cb)
             : service(s)
             , callback(cb)
         {
             connect(service->m_authenticator, &PamAuthenticator::authenticationResult, this, &Authenticator::result);
         }
-        void result(LoginService::Result r)
+        void result(LoginManager::Result r)
         {
             if (callback.isCallable()) {
                 callback.call(QJSValueList() << (int)r);
             }
             service->m_busy = false;
             emit service->busyChanged();
-            if (r == LoginService::Result::AuthenticationSucceded) {
+            if (r == LoginManager::Result::AuthenticationSucceded) {
                 service->unlockSession();
             }
 
             deleteLater();
         }
 
-        LoginService *service;
+        LoginManager *service;
         QJSValue callback;
     };
 
@@ -255,7 +261,7 @@ void LoginService::tryUnlockSession(const QString &password, const QJSValue &cal
     emit busyChanged();
 }
 
-void LoginService::doRequest()
+void LoginManager::doRequest()
 {
     if (!m_requestHandled && m_request) {
         (this->*m_request)();

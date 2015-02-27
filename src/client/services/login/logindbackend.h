@@ -25,7 +25,7 @@
 class QDBusInterface;
 class QDBusPendingCallWatcher;
 
-class LogindBackend : public LoginServiceBackend
+class LogindBackend : public LoginManagerBackend
 {
     Q_OBJECT
 public:

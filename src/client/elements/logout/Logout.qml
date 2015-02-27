@@ -20,6 +20,7 @@
 import QtQuick 2.1
 import QtGraphicalEffects 1.0
 import Orbital 1.0
+import Orbital.LoginService 1.0
 
 Element {
     id: logout
@@ -29,8 +30,6 @@ Element {
     property int orientation: Layout ? Layout.orientation : Qt.Horizontal
     Layout.preferredWidth: height * 3 + 10
     Layout.preferredHeight: width * 3 + 10
-
-    property variant service: Client.service("LoginService")
 
     contentItem: Layout {
         id: row
@@ -48,7 +47,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-lock-screen"
-                onClicked: service.lockSession()
+                onClicked: LoginManager.lockSession()
             }
         }
         MouseArea {
@@ -63,7 +62,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-log-out"
-                onClicked: service.requestLogOut()
+                onClicked: LoginManager.requestLogOut()
             }
         }
         MouseArea {
@@ -78,7 +77,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-shutdown"
-                onClicked: service.requestPoweroff()
+                onClicked: LoginManager.requestPoweroff()
             }
         }
         MouseArea {
@@ -93,7 +92,7 @@ Element {
             Icon {
                 anchors.fill: parent
                 icon: "image://icon/system-reboot"
-                onClicked: service.requestReboot()
+                onClicked: LoginManager.requestReboot()
             }
         }
     }

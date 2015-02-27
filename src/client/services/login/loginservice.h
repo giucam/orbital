@@ -20,17 +20,25 @@
 #ifndef LOGINSERVICE_H
 #define LOGINSERVICE_H
 
-#include "service.h"
+#include <QQmlExtensionPlugin>
 
 class QJSValue;
 
 class PamAuthenticator;
 
-class LoginServiceBackend : public QObject
+class LoginPlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
+
+class LoginManagerBackend : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~LoginServiceBackend() {}
+    virtual ~LoginManagerBackend() {}
 
     virtual void poweroff() = 0;
     virtual void reboot() = 0;
@@ -42,11 +50,9 @@ signals:
     void requestUnlock();
 };
 
-class LoginService : public Service
+class LoginManager : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
 public:
     enum class Result {
@@ -56,10 +62,9 @@ public:
     };
     Q_ENUMS(Result)
 
-    LoginService();
-    ~LoginService();
+    LoginManager(QObject *p = nullptr);
+    ~LoginManager();
 
-    void init();
     bool busy() const;
 
 public slots:
@@ -86,8 +91,8 @@ private slots:
     void doRequest();
 
 private:
-    LoginServiceBackend *m_backend;
-    void (LoginService::*m_request)();
+    LoginManagerBackend *m_backend;
+    void (LoginManager::*m_request)();
     bool m_requestHandled;
     PamAuthenticator *m_authenticator;
     QThread *m_authenticatorThread;
