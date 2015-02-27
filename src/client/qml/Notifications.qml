@@ -19,10 +19,10 @@
 
 import QtQuick 2.2
 import Orbital 1.0
+import Orbital.NotificationsService 1.0
 
 Item {
     id: root
-    property variant service: Client.service("NotificationsService")
 
     Component {
         id: component
@@ -95,7 +95,7 @@ Item {
     }
 
     Connections {
-        target: service
+        target: NotificationsManager
         onNotify: {
             component.createObject(root, { notification: notification, body: notification.body,
                                            summary: notification.summary,

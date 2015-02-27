@@ -23,7 +23,7 @@ class QStringList;
 class QVariant;
 QT_END_NAMESPACE
 
-class NotificationsService;
+class NotificationsManager;
 
 /*
  * Adaptor class for interface org.freedesktop.Notifications
@@ -69,7 +69,7 @@ class NotificationsAdaptor: public QDBusAbstractAdaptor
 "  </interface>\n"
         "")
 public:
-    NotificationsAdaptor(NotificationsService *parent, const QStringList &caps);
+    NotificationsAdaptor(NotificationsManager *parent, const QStringList &caps);
     virtual ~NotificationsAdaptor();
 
 public: // PROPERTIES
@@ -83,7 +83,7 @@ Q_SIGNALS: // SIGNALS
     void NotificationClosed(uint id, uint reason);
 
 private:
-    NotificationsService *m_service;
+    NotificationsManager *m_service;
     QStringList m_capabilities;
 };
 

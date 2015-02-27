@@ -26,6 +26,14 @@
 #include "notificationsadaptor.h"
 #include "notificationsiconprovider.h"
 
+void NotificationsPlugin::registerTypes(const char *uri)
+{
+    qmlRegisterSingletonType<NotificationsManager>(uri, 1, 0, "NotificationsManager", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new NotificationsManager);
+    });
+    qmlRegisterUncreatableType<Notification>(uri, 1, 0, "Notification", "Cannot create Notification objects");
+}
+
 
 Notification::Notification()
             : QObject()
@@ -65,18 +73,8 @@ void Notification::setIconImage(const QPixmap &img)
 
 
 
-NotificationsService::NotificationsService()
-                     : Service()
-{
-    qmlRegisterUncreatableType<Notification>("Orbital", 1, 0, "Notification", "Cannot create Notification objects");
-}
-
-NotificationsService::~NotificationsService()
-{
-
-}
-
-void NotificationsService::init()
+NotificationsManager::NotificationsManager(QObject *p)
+                    : QObject(p)
 {
     QStringList caps = { "actions", "action-icons", "body-markup" };
     new NotificationsAdaptor(this, caps);
@@ -84,10 +82,15 @@ void NotificationsService::init()
         QDBusConnection::sessionBus().registerObject("/org/freedesktop/Notifications", this);
     }
 
-    client()->qmlEngine()->addImageProvider(QStringLiteral("notifications"), new NotificationsIconProvider(this));
+    Client::client()->qmlEngine()->addImageProvider(QStringLiteral("notifications"), new NotificationsIconProvider(this));
 }
 
-void NotificationsService::newNotification(Notification *n)
+NotificationsManager::~NotificationsManager()
+{
+
+}
+
+void NotificationsManager::newNotification(Notification *n)
 {
     int id = n->id();
     m_notifications[id] = n;
@@ -96,7 +99,7 @@ void NotificationsService::newNotification(Notification *n)
     emit notify(n);
 }
 
-Notification *NotificationsService::notification(int id) const
+Notification *NotificationsManager::notification(int id) const
 {
     return m_notifications.value(id);
 }

@@ -24,7 +24,7 @@
 #include "notificationsiconprovider.h"
 #include "notificationsservice.h"
 
-NotificationsIconProvider::NotificationsIconProvider(NotificationsService *service)
+NotificationsIconProvider::NotificationsIconProvider(NotificationsManager *service)
                          : QQuickImageProvider(QQuickImageProvider::Pixmap)
                          , m_service(service)
 {

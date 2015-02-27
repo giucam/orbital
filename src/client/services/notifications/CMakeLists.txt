@@ -11,4 +11,6 @@ set(SOURCES notificationsservice.cpp notificationsadaptor.cpp notificationsiconp
 add_library(notificationsservice SHARED ${SOURCES})
 qt5_use_modules(notificationsservice Core DBus Quick)
 set_target_properties(notificationsservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
-install(TARGETS notificationsservice DESTINATION lib/orbital/services)
+set(dest lib/orbital/qml/Orbital/NotificationsService)
+install(TARGETS notificationsservice DESTINATION ${dest})
+install(FILES qmldir DESTINATION ${dest})

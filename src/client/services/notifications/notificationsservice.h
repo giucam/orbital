@@ -22,8 +22,15 @@
 
 #include <QDBusAbstractAdaptor>
 #include <QPixmap>
+#include <QQmlExtensionPlugin>
 
-#include "service.h"
+class NotificationsPlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
 
 class Notification : public QObject
 {
@@ -61,16 +68,13 @@ private:
     QPixmap m_iconImage;
 };
 
-class NotificationsService : public Service
+class NotificationsManager : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
-    NotificationsService();
-    ~NotificationsService();
+    NotificationsManager(QObject *p = nullptr);
+    ~NotificationsManager();
 
-    void init() override;
     void newNotification(Notification *notification);
 
     Notification *notification(int id) const;

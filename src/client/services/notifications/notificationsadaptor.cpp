@@ -50,7 +50,7 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, DBusImageStruct &
  * Implementation of adaptor class NotificationsAdaptor
  */
 
-NotificationsAdaptor::NotificationsAdaptor(NotificationsService *parent, const QStringList &caps)
+NotificationsAdaptor::NotificationsAdaptor(NotificationsManager *parent, const QStringList &caps)
                     : QDBusAbstractAdaptor(parent)
                     , m_service(parent)
                     , m_capabilities(caps)
