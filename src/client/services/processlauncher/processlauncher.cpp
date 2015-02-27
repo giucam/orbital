@@ -18,11 +18,19 @@
  */
 
 #include <QProcess>
+#include <QtQml>
 
 #include "processlauncher.h"
 
-ProcessLauncher::ProcessLauncher()
-               : Service()
+void ProcessLauncherPlugin::registerTypes(const char *uri)
+{
+    qmlRegisterSingletonType<ProcessLauncher>(uri, 1, 0, "ProcessLauncher", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new ProcessLauncher);
+    });
+}
+
+ProcessLauncher::ProcessLauncher(QObject *p)
+               : QObject(p)
 {
 }
 

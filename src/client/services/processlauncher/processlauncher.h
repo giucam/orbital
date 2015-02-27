@@ -20,15 +20,21 @@
 #ifndef PROCESSLAUNCHER_H
 #define PROCESSLAUNCHER_H
 
-#include "service.h"
+#include <QQmlExtensionPlugin>
 
-class ProcessLauncher : public Service
+class ProcessLauncherPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
 public:
-    ProcessLauncher();
+    void registerTypes(const char *uri) override;
+};
+
+class ProcessLauncher : public QObject
+{
+    Q_OBJECT
+public:
+    ProcessLauncher(QObject *p = nullptr);
 
 public slots:
     void launch(const QString &process);

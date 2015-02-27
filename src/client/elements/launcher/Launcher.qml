@@ -21,6 +21,7 @@ import QtQuick 2.1
 import QtQuick.Controls 1.0 as Controls
 import QtGraphicalEffects 1.0
 import Orbital 1.0
+import Orbital.ProcessLauncherService 1.0
 
 Element {
     id: launcher
@@ -38,13 +39,11 @@ Element {
     Layout.preferredHeight: 32
     Layout.maximumHeight: 50
 
-    property variant service: Client.service("ProcessLauncher")
-
     contentItem: Icon {
         anchors.fill: parent
         icon: launcher.icon
 
-        onClicked: service.launch(process)
+        onClicked: ProcessLauncher.launch(process)
     }
 
     toolTip: Text {
