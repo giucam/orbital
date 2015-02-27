@@ -155,6 +155,7 @@ Client::Client()
     m_engine = new QQmlEngine(this);
     m_engine->rootContext()->setContextProperty("Client", this);
     m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
+    m_engine->addImportPath(LIBRARIES_PATH "/qml");
 
     // TODO: find a way to un-hardcode this
     QQmlComponent *c = new QQmlComponent(m_engine, QUrl("qrc:/qml/Notifications.qml"), this);

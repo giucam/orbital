@@ -23,13 +23,13 @@
 static const char *card = "default";
 static const char *selem_name = "Master";
 
-AlsaMixer::AlsaMixer(MixerService *m)
+AlsaMixer::AlsaMixer(Mixer *m)
          : Backend()
          , m_mixer(m)
 {
 }
 
-AlsaMixer *AlsaMixer::create(MixerService *m)
+AlsaMixer *AlsaMixer::create(Mixer *m)
 {
     AlsaMixer *alsa = new AlsaMixer(m);
     if (!alsa) {

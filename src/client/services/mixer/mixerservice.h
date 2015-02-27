@@ -20,9 +20,17 @@
 #ifndef VOLUMECONTROL_H
 #define VOLUMECONTROL_H
 
-#include "service.h"
+#include <QQmlExtensionPlugin>
 
 class Binding;
+
+class MixerPlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
 
 class Backend
 {
@@ -36,18 +44,14 @@ public:
     virtual void setMuted(bool muted) = 0;
 };
 
-class MixerService : public Service
+class Mixer : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int master READ master WRITE setMaster NOTIFY masterChanged);
     Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
-    MixerService();
-    ~MixerService();
-
-    void init();
+    Mixer(QObject *p = nullptr);
+    ~Mixer();
 
     int master() const;
     bool muted() const;

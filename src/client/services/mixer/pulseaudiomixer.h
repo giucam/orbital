@@ -33,7 +33,7 @@ class PulseAudioMixer : public Backend
 public:
     ~PulseAudioMixer();
 
-    static PulseAudioMixer *create(MixerService *mixer);
+    static PulseAudioMixer *create(Mixer *mixer);
 
     void getBoundaries(int *min, int *max) const override;
 
@@ -43,13 +43,13 @@ public:
     void setMuted(bool muted) override;
 
 private:
-    PulseAudioMixer(MixerService *mixer);
+    PulseAudioMixer(Mixer *mixer);
     void contextStateCallback(pa_context *c);
     void subscribeCallback(pa_context *c, pa_subscription_event_type_t t, uint32_t index);
     void sinkCallback(pa_context *c, const pa_sink_info *i, int eol);
     void cleanup();
 
-    MixerService *m_mixer;
+    Mixer *m_mixer;
     pa_glib_mainloop *m_mainLoop;
     pa_mainloop_api *m_mainloopApi;
     pa_context *m_context;

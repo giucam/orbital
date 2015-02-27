@@ -20,6 +20,7 @@
 #include <linux/input.h>
 
 #include <QDebug>
+#include <QtQml>
 #include <qmath.h>
 
 #include "mixerservice.h"
@@ -30,22 +31,18 @@
 #endif
 #include "pulseaudiomixer.h"
 
-MixerService::MixerService()
-            : Service()
+void MixerPlugin::registerTypes(const char *uri)
+{
+    qmlRegisterSingletonType<Mixer>(uri, 1, 0, "Mixer", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new Mixer);
+    });
+}
+
+
+
+Mixer::Mixer(QObject *p)
+            : QObject(p)
             , m_backend(nullptr)
-{
-
-}
-
-MixerService::~MixerService()
-{
-    delete m_backend;
-    delete m_upBinding;
-    delete m_downBinding;
-    delete m_muteBinding;
-}
-
-void MixerService::init()
 {
     m_backend = PulseAudioMixer::create(this);
     if (!m_backend) {
@@ -54,28 +51,36 @@ void MixerService::init()
 #endif
     }
     if (!m_backend) {
-        qWarning() << "MixerService: could not load a mixer backend.";
+        qWarning() << "Mixer: could not load a mixer backend.";
         return;
     }
 
     m_backend->getBoundaries(&m_min, &m_max);
     m_step = (m_max - m_min) / 50;
 
-    m_upBinding = client()->addKeyBinding(KEY_VOLUMEUP, 0);
-    m_downBinding = client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
-    m_muteBinding = client()->addKeyBinding(KEY_MUTE, 0);
+    m_upBinding = Client::client()->addKeyBinding(KEY_VOLUMEUP, 0);
+    m_downBinding = Client::client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
+    m_muteBinding = Client::client()->addKeyBinding(KEY_MUTE, 0);
 
     connect(m_upBinding, &Binding::triggered, [this]() { increaseMaster(); emit bindingTriggered(); });
     connect(m_downBinding, &Binding::triggered, [this]() { decreaseMaster(); emit bindingTriggered(); });
     connect(m_muteBinding, &Binding::triggered, [this]() { toggleMuted(); emit bindingTriggered(); });
 }
 
-void MixerService::changeMaster(int change)
+Mixer::~Mixer()
+{
+    delete m_backend;
+    delete m_upBinding;
+    delete m_downBinding;
+    delete m_muteBinding;
+}
+
+void Mixer::changeMaster(int change)
 {
     setMaster(master() + change);
 }
 
-void MixerService::increaseMaster()
+void Mixer::increaseMaster()
 {
     if (m_backend) {
         long v = qBound(m_min, m_backend->rawVol() + m_step, m_max);
@@ -83,7 +88,7 @@ void MixerService::increaseMaster()
     }
 }
 
-void MixerService::decreaseMaster()
+void Mixer::decreaseMaster()
 {
     if (m_backend) {
         long v = qBound(m_min, m_backend->rawVol() - m_step, m_max);
@@ -91,7 +96,7 @@ void MixerService::decreaseMaster()
     }
 }
 
-void MixerService::setMaster(int volume)
+void Mixer::setMaster(int volume)
 {
     if (m_backend) {
         int v = qBound(m_min, (int)((double)volume * (double)m_max / 100.), m_max);
@@ -99,7 +104,7 @@ void MixerService::setMaster(int volume)
     }
 }
 
-int MixerService::master() const
+int Mixer::master() const
 {
     if (m_backend) {
         int vol = m_backend->rawVol();
@@ -109,7 +114,7 @@ int MixerService::master() const
     return 0;
 }
 
-bool MixerService::muted() const
+bool Mixer::muted() const
 {
     if (m_backend) {
         return m_backend->muted();
@@ -117,14 +122,14 @@ bool MixerService::muted() const
     return false;
 }
 
-void MixerService::setMuted(bool muted)
+void Mixer::setMuted(bool muted)
 {
     if (m_backend) {
         m_backend->setMuted(muted);
     }
 }
 
-void MixerService::toggleMuted()
+void Mixer::toggleMuted()
 {
     if (m_backend) {
         setMuted(!m_backend->muted());

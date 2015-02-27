@@ -20,9 +20,10 @@
 import QtQuick 2.1
 import QtQuick.Window 2.1
 import QtQuick.Controls 1.0
-import Orbital 1.0
 import QtGraphicalEffects 1.0
 
+import Orbital 1.0
+import Orbital.MixerService 1.0
 
 Rectangle {
     id: volume
@@ -38,8 +39,6 @@ Rectangle {
     visible: opacity > 0
 
     Behavior on opacity { PropertyAnimation { duration: 300 } }
-
-    property variant control: Client.service("MixerService")
 
     RectangularGlow {
         id: effect
@@ -67,9 +66,9 @@ Rectangle {
         anchors.bottomMargin: anchors.topMargin
 
         maximumValue: 100
-        Binding { target: bar; property: "value"; value: control.muted ? 0 : control.master }
+        Binding { target: bar; property: "value"; value: Mixer.muted ? 0 : Mixer.master }
         Connections {
-            target: control
+            target: Mixer
             onBindingTriggered: {
                 volume.opacity = 1;
                 timer.restart();

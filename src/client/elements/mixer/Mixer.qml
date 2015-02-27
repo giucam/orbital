@@ -23,6 +23,7 @@ import QtGraphicalEffects 1.0
 import Orbital 1.0
 import QtQuick.Window 2.1
 import QtQuick.Controls 1.0
+import Orbital.MixerService 1.0
 
 PopupElement {
     id: mixer
@@ -34,8 +35,6 @@ PopupElement {
     minimumWidth: 40
     minimumHeight: 40
     property int horizontal: (mixer.location == 1 || mixer.location == 3)
-
-    property variant service: Client.service("MixerService")
 
     buttonContent: Icon {
         id: icon
@@ -50,23 +49,23 @@ PopupElement {
 
             onClicked: {
                 if (mouse.button == Qt.MiddleButton) {
-                    service.toggleMuted()
+                    Mixer.toggleMuted()
                 }
             }
             onWheel: {
                 wheel.accepted = true;
-                if (!service.muted) {
+                if (!Mixer.muted) {
                     if (wheel.angleDelta.y > 0)
-                        service.increaseMaster();
+                        Mixer.increaseMaster();
                     else
-                        service.decreaseMaster();
+                        Mixer.decreaseMaster();
                 }
             }
         }
 
         function chooseIcon() {
-            var vol = service.master;
-            if (service.muted) {
+            var vol = Mixer.master;
+            if (Mixer.muted) {
                 return "image://icon/audio-volume-muted";
             } else if (vol > 66) {
                 return "image://icon/audio-volume-high";
@@ -93,12 +92,12 @@ PopupElement {
             orientation: style.horizontal ? Qt.Horizontal : Qt.Vertical
             maximumValue: 100
             stepSize: 1
-            value: service.muted ? 0 : service.master;
+            value: Mixer.muted ? 0 : Mixer.master;
 
             // changing the orientation of the slider makes it lose the value and
             // break the binding, so reset it here
             onOrientationChanged: {
-                slider.value = Qt.binding(function() { return service.muted ? 0 : service.master })
+                slider.value = Qt.binding(function() { return Mixer.muted ? 0 : Mixer.master })
             }
 
             MouseArea {
@@ -107,41 +106,41 @@ PopupElement {
                     mouse.accepted = true;
                 }
                 onPositionChanged: {
-                    if (!service.muted) {
+                    if (!Mixer.muted) {
                         behavior.enabled = false;
                         if (slider.orientation == Qt.Vertical) {
                             var h = slider.height - 10;
                             var y = mouse.y - 5;
-                            service.setMaster((1 - y / h) * 100);
+                            Mixer.setMaster((1 - y / h) * 100);
                         } else {
                             var h = slider.width - 10;
                             var y = mouse.x - 5;
-                            service.setMaster((y / h) * 100);
+                            Mixer.setMaster((y / h) * 100);
                         }
                         behavior.enabled = true;
                     }
                 }
                 onReleased: {
-                    if (!service.muted) {
+                    if (!Mixer.muted) {
                         if (slider.orientation == Qt.Vertical) {
                             var h = slider.height - 10;
                             var y = mouse.y - 5;
-                            service.setMaster((1 - y / h) * 100);
+                            Mixer.setMaster((1 - y / h) * 100);
                         } else {
                             var h = slider.width - 10;
                             var y = mouse.x - 5;
-                            service.setMaster((y / h) * 100);
+                            Mixer.setMaster((y / h) * 100);
                         }
                     }
                 }
 
                 onWheel: {
                     wheel.accepted = true;
-                    if (!service.muted) {
+                    if (!Mixer.muted) {
                         if (wheel.angleDelta.y > 0)
-                            service.increaseMaster();
+                            Mixer.increaseMaster();
                         else
-                            service.decreaseMaster();
+                            Mixer.decreaseMaster();
                     }
                 }
             }
@@ -196,7 +195,7 @@ PopupElement {
                 }
             }
             ]
-            onClicked: service.toggleMuted()
+            onClicked: Mixer.toggleMuted()
         }
     }
 
@@ -206,6 +205,6 @@ PopupElement {
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
         color: CurrentStyle.textColor
-        text: service.muted ? qsTr("Muted") : qsTr("Volume at %1\%").arg(service.master)
+        text: Mixer.muted ? qsTr("Muted") : qsTr("Volume at %1\%").arg(Mixer.master)
     }
 }

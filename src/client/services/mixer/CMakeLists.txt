@@ -23,7 +23,7 @@ if (${pulse_FOUND})
 endif()
 
 add_library(mixerservice SHARED ${SOURCES})
-qt5_use_modules(mixerservice Core)
+qt5_use_modules(mixerservice Core Qml)
 
 if (${ALSA_FOUND})
     include_directories("${ALSA_INCLUDE_DIR}")
@@ -43,5 +43,7 @@ endif()
 
 target_link_libraries(mixerservice)
 
+set(dest lib/orbital/qml/Orbital/MixerService)
 set_target_properties(mixerservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
-install(TARGETS mixerservice DESTINATION lib/orbital/services)
+install(TARGETS mixerservice DESTINATION ${dest})
+install(FILES qmldir DESTINATION ${dest})

@@ -33,7 +33,7 @@ struct Sink
     bool muted;
 };
 
-PulseAudioMixer::PulseAudioMixer(MixerService *m)
+PulseAudioMixer::PulseAudioMixer(Mixer *m)
                : Backend()
                , m_mixer(m)
                , m_sink(new Sink)
@@ -46,7 +46,7 @@ PulseAudioMixer::~PulseAudioMixer()
     cleanup();
 }
 
-PulseAudioMixer *PulseAudioMixer::create(MixerService *mixer)
+PulseAudioMixer *PulseAudioMixer::create(Mixer *mixer)
 {
     PulseAudioMixer *pulse = new PulseAudioMixer(mixer);
 
