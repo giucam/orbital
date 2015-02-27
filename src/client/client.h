@@ -54,7 +54,6 @@ class ShellUI;
 class Grab;
 class Workspace;
 class ElementInfo;
-class Service;
 class StyleInfo;
 class Element;
 class CompositorSettings;
@@ -94,7 +93,6 @@ public:
     desktop_shell_surface *setPopup(QWindow *p, QWindow *parent);
 
     Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
-    Q_INVOKABLE Service *service(const QString &name);
 
     Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
@@ -174,7 +172,6 @@ private:
     QList<Binding *> m_bindings;
     QList<QQuickWindow *> m_uiWindows;
     QElapsedTimer m_elapsedTimer;
-    QHash<QString, Service *> m_services;
     ShellUI *m_ui;
 
     QList<Window *> m_windows;

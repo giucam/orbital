@@ -50,7 +50,6 @@
 #include "workspace.h"
 #include "utils.h"
 #include "uiscreen.h"
-#include "service.h"
 #include "style.h"
 #include "notification.h"
 #include "compositorsettings.h"
@@ -115,7 +114,6 @@ Client::Client()
     wl_registry_add_listener(m_registry, &s_registryListener, this);
 
     qmlRegisterType<Binding>();
-    qmlRegisterType<Service>();
     qmlRegisterType<Grab>();
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
     qmlRegisterType<NotificationWindow>("Orbital", 1, 0, "NotificationWindow");
@@ -150,7 +148,6 @@ Client::Client()
 
     Element::loadElementsList();
     Style::loadStylesList();
-    ServiceFactory::searchPlugins();
 
     m_engine = new QQmlEngine(this);
     m_engine->rootContext()->setContextProperty("Client", this);
@@ -173,11 +170,9 @@ Client::~Client()
     delete m_ui;
     delete m_settings;
     qDeleteAll(m_workspaces);
-    qDeleteAll(m_services);
 
     Element::cleanupElementsList();
     Style::cleanupStylesList();
-    ServiceFactory::cleanupPlugins();
 }
 
 static const desktop_shell_binding_listener binding_listener = {
@@ -377,18 +372,6 @@ static StyleInfo *stylesInfoAt(QQmlListProperty<StyleInfo> *prop, int index)
 QQmlListProperty<StyleInfo> ClientPrivate::stylesInfo()
 {
     return QQmlListProperty<StyleInfo>(q_ptr, 0, stylesInfoCount, stylesInfoAt);
-}
-
-Service *Client::service(const QString &name)
-{
-    Service *s = m_services.value(name);
-    if (s) {
-        return s;
-    }
-
-    s = ServiceFactory::createService(name, this);
-    m_services.insert(name, s);
-    return s;
 }
 
 QLocale Client::locale()

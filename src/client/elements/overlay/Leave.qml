@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import Orbital.LoginService 1.0
 import QtGraphicalEffects 1.0
 
 Item {
@@ -27,7 +28,6 @@ Item {
     opacity: 0
     visible: opacity > 0
 
-    property variant service: Client.service("LoginService")
     property QtObject grab: null
 
     Behavior on opacity { PropertyAnimation { duration: 300 } }
@@ -64,11 +64,11 @@ Item {
             timeout--;
             if (timeout == 0) {
                 if (text.op == 0) {
-                    service.logOut();
+                    LoginManager.logOut();
                 } else if (text.op == 1) {
-                    service.poweroff();
+                    LoginManager.poweroff();
                 } else if (text.op == 2) {
-                    service.reboot();
+                    LoginManager.reboot();
                 }
             }
             updateText();
@@ -88,7 +88,7 @@ Item {
     }
 
     function startTimeout(op) {
-        service.requestHandled();
+        LoginManager.requestHandled();
         text.op = op;
         leave.opacity = 1;
         leave.grab = Client.createGrab();
@@ -98,7 +98,7 @@ Item {
     }
 
     Connections {
-        target: service
+        target: LoginManager
         onLogOutRequested: startTimeout(0)
         onPoweroffRequested: startTimeout(1)
         onRebootRequested: startTimeout(2)
@@ -113,7 +113,7 @@ Item {
     Connections {
         target: leave.grab
         onButton: {
-            service.abort();
+            LoginManager.abort();
         }
     }
 }

@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import Orbital 1.0
+import Orbital.ProcessLauncherService 1.0
 
 Element {
     width: 200
@@ -27,8 +28,6 @@ Element {
     Layout.minimumWidth: 10
     Layout.preferredWidth: 200
     Layout.preferredHeight: 30
-
-    property variant service: Client.service("ProcessLauncher")
 
     contentItem: Rectangle {
         color: "white"
@@ -47,7 +46,7 @@ Element {
             clip: true
 
             onAccepted: {
-                service.launch(text.text)
+                ProcessLauncher.launch(text.text)
                 text.text = ""
             }
             Keys.onPressed: {

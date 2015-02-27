@@ -52,7 +52,6 @@ set(SOURCES
     grab.cpp
     layout.cpp
     workspace.cpp
-    service.cpp
     style.cpp
     styleitem.cpp
     tooltip.cpp
