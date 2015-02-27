@@ -34,13 +34,13 @@ public:
 private:
 };
 
-class CliBackend : public HardwareService::Backend
+class CliBackend : public HardwareManager::Backend
 {
 public:
-    static CliBackend *create(HardwareService *hw);
+    static CliBackend *create(HardwareManager *hw);
 
 private:
-    CliBackend(HardwareService *hw);
+    CliBackend(HardwareManager *hw);
 };
 
 #endif

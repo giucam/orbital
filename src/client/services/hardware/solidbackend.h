@@ -49,13 +49,13 @@ public:
 
 };
 
-class SolidBackend : public HardwareService::Backend
+class SolidBackend : public HardwareManager::Backend
 {
 public:
-    static SolidBackend *create(HardwareService *hw);
+    static SolidBackend *create(HardwareManager *hw);
 
 private:
-    SolidBackend(HardwareService *hw);
+    SolidBackend(HardwareManager *hw);
     void add(Solid::Device &device);
 };
 

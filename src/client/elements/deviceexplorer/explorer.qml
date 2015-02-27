@@ -29,14 +29,17 @@ PopupElement {
     Layout.preferredWidth: 30
     Layout.preferredHeight: 30
 
-    property variant service: Client.service("HardwareService")
-
     minimumWidth: 100
     minimumHeight: 100
 
     Loader {
         id: loader
-        source: service ? "maincontent.qml" : "noservice.qml"
+        source: "maincontent.qml"
+        onStatusChanged: {
+            if (status == Loader.Error) {
+                source = "noservice.qml"
+            }
+        }
     }
 
     popupContent: loader.item

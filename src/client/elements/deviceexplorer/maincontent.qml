@@ -20,16 +20,15 @@
 import QtQuick 2.1
 import Orbital 1.0
 import QtQuick.Controls 1.0
+import Orbital.HardwareService 1.0
 
 Rectangle {
     id: mainContent
     color: Qt.rgba(CurrentStyle.backgroundColor.r, CurrentStyle.backgroundColor.g, CurrentStyle.backgroundColor.b, 0.6)
     anchors.fill: parent
 
-    property variant service: Client.service("HardwareService")
-
     Component.onCompleted: {
-        var devices = service.devices;
+        var devices = HardwareManager.devices;
         for (var i = 0; i < devices.length; ++i) {
             var d = devices[i];
             if (d.type == Device.Storage) {
@@ -43,7 +42,7 @@ Rectangle {
     }
 
     Connections {
-        target: service
+        target: HardwareManager
         onDeviceAdded: {
             if (device.type == Device.Storage) {
                 devicesModel.append({ "device": device });

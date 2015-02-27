@@ -101,12 +101,12 @@ bool CliDevice::isMounted() const
 
 
 
-CliBackend::CliBackend(HardwareService *hw)
-            : HardwareService::Backend(hw)
+CliBackend::CliBackend(HardwareManager *hw)
+            : HardwareManager::Backend(hw)
 {
 }
 
-CliBackend *CliBackend::create(HardwareService *hw)
+CliBackend *CliBackend::create(HardwareManager *hw)
 {
     CliBackend *cli = new CliBackend(hw);
     if (!cli) {

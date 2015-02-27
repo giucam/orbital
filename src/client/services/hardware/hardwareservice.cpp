@@ -26,6 +26,17 @@
 #include "solidbackend.h"
 #endif
 
+void HardwarePlugin::registerTypes(const char *uri)
+{
+    qmlRegisterSingletonType<HardwareManager>(uri, 1, 0, "HardwareManager", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new HardwareManager);
+    });
+    qmlRegisterUncreatableType<Device>(uri, 1, 0, "Device", "Cannot create Device");
+    qmlRegisterUncreatableType<Battery>(uri, 1, 0, "Battery", "Cannot create Battery");
+}
+
+
+
 Device::Device(const QString &udi)
       : QObject()
       , m_type(Type::None)
@@ -80,21 +91,9 @@ void Battery::setChargeState(ChargeState cs)
 
 
 
-HardwareService::HardwareService()
-               : Service()
+HardwareManager::HardwareManager(QObject *p)
+               : QObject(p)
                , m_backend(nullptr)
-{
-    qmlRegisterUncreatableType<Device>("Orbital", 1, 0, "Device", "Cannot create Device");
-    qmlRegisterUncreatableType<Battery>("Orbital", 1, 0, "Battery", "Cannot create Battery");
-}
-
-HardwareService::~HardwareService()
-{
-    delete m_backend;
-    qDeleteAll(m_devices);
-}
-
-void HardwareService::init()
 {
 #ifdef USE_SOLID
     m_backend = SolidBackend::create(this);
@@ -104,55 +103,61 @@ void HardwareService::init()
     }
 }
 
-QQmlListProperty<Device> HardwareService::devices()
+HardwareManager::~HardwareManager()
+{
+    delete m_backend;
+    qDeleteAll(m_devices);
+}
+
+QQmlListProperty<Device> HardwareManager::devices()
 {
     return QQmlListProperty<Device>(this, 0, devicesCount, devicesAt);
 }
 
-int HardwareService::devicesCount(QQmlListProperty<Device> *prop)
+int HardwareManager::devicesCount(QQmlListProperty<Device> *prop)
 {
-    HardwareService *h = static_cast<HardwareService *>(prop->object);
+    HardwareManager *h = static_cast<HardwareManager *>(prop->object);
     return h->m_devices.count();
 }
 
-Device *HardwareService::devicesAt(QQmlListProperty<Device> *prop, int index)
+Device *HardwareManager::devicesAt(QQmlListProperty<Device> *prop, int index)
 {
-    HardwareService *h = static_cast<HardwareService *>(prop->object);
+    HardwareManager *h = static_cast<HardwareManager *>(prop->object);
     return h->m_devices.values().at(index);
 }
 
-QQmlListProperty<Battery> HardwareService::batteries()
+QQmlListProperty<Battery> HardwareManager::batteries()
 {
     auto batteriesCount = [](QQmlListProperty<Battery> *prop) {
-        return static_cast<HardwareService *>(prop->object)->m_batteries.count();
+        return static_cast<HardwareManager *>(prop->object)->m_batteries.count();
     };
     auto batteryAt = [](QQmlListProperty<Battery> *prop, int i) {
-        return static_cast<HardwareService *>(prop->object)->m_batteries.values().at(i);
+        return static_cast<HardwareManager *>(prop->object)->m_batteries.values().at(i);
     };
     return QQmlListProperty<Battery>(this, 0, batteriesCount, batteryAt);
 }
 
 
-HardwareService::Backend::Backend(HardwareService *hw)
+HardwareManager::Backend::Backend(HardwareManager *hw)
                         : m_hw(hw)
 {
 }
 
-void HardwareService::Backend::deviceAdded(Device *dev)
+void HardwareManager::Backend::deviceAdded(Device *dev)
 {
     m_hw->m_devices.insert(dev->udi(), dev);
     emit m_hw->devicesChanged();
     emit m_hw->deviceAdded(dev);
 }
 
-void HardwareService::Backend::batteryAdded(Battery *b)
+void HardwareManager::Backend::batteryAdded(Battery *b)
 {
     m_hw->m_batteries.insert(b->udi(), b);
     emit m_hw->batteryAdded(b);
     emit m_hw->batteriesChanged();
 }
 
-void HardwareService::Backend::deviceRemoved(const QString &udi)
+void HardwareManager::Backend::deviceRemoved(const QString &udi)
 {
     if (Device *d = m_hw->m_devices.take(udi)) {
         emit m_hw->devicesChanged();

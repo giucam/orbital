@@ -21,8 +21,16 @@
 #define HARDWARESERVICE_H
 
 #include <QQmlListProperty>
+#include <QQmlExtensionPlugin>
 
-#include "service.h"
+class HardwarePlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
+
 
 class Device : public QObject
 {
@@ -102,19 +110,16 @@ private:
     ChargeState m_chargeState;
 };
 
-class HardwareService : public Service
+class HardwareManager : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
-
     Q_PROPERTY(QQmlListProperty<Device> devices READ devices NOTIFY devicesChanged)
     Q_PROPERTY(QQmlListProperty<Battery> batteries READ batteries NOTIFY batteriesChanged)
 public:
     class Backend
     {
     public:
-        Backend(HardwareService *hw);
+        Backend(HardwareManager *hw);
         virtual ~Backend() {}
 
         void deviceAdded(Device *dev);
@@ -122,13 +127,11 @@ public:
         void deviceRemoved(const QString &udi);
 
     private:
-        HardwareService *m_hw;
+        HardwareManager *m_hw;
     };
 
-    HardwareService();
-    ~HardwareService();
-
-    void init() override;
+    HardwareManager(QObject *p = nullptr);
+    ~HardwareManager();
 
     QQmlListProperty<Device> devices();
     QQmlListProperty<Battery> batteries();

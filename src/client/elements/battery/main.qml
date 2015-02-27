@@ -20,6 +20,7 @@
 import QtQuick 2.1
 import QtQuick.Window 2.1
 import Orbital 1.0
+import Orbital.HardwareService 1.0
 
 Element {
     id: root
@@ -32,13 +33,11 @@ Element {
     height: horizontal ? baseLength : Layout.preferredHeight
     property bool horizontal: true//location == 0 || location == 2 || location == 4
 
-    property var service: Client.service("HardwareService")
-
     contentItem: ListView {
         id: list
         anchors.fill: parent
         orientation: root.horizontal ? ListView.Horizontal : ListView.Vertical
-        model: service.batteries
+        model: HardwareManager.batteries
         spacing: 3
 
         delegate: MouseArea {

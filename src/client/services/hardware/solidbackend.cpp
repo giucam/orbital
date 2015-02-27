@@ -99,12 +99,12 @@ SolidBattery::SolidBattery(Solid::Battery *b, const QString &udi)
 }
 
 
-SolidBackend::SolidBackend(HardwareService *hw)
-            : HardwareService::Backend(hw)
+SolidBackend::SolidBackend(HardwareManager *hw)
+            : HardwareManager::Backend(hw)
 {
 }
 
-SolidBackend *SolidBackend::create(HardwareService *hw)
+SolidBackend *SolidBackend::create(HardwareManager *hw)
 {
     SolidBackend *solid = new SolidBackend(hw);
     if (!solid) {
