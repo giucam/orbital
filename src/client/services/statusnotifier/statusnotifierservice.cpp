@@ -27,36 +27,41 @@
 #include "statusnotifiericonprovider.h"
 #include "client.h"
 
-StatusNotifierService::StatusNotifierService()
-                     : Service()
+void StatusNotifierPlugin::registerTypes(const char *uri)
 {
-    qmlRegisterUncreatableType<StatusNotifierItem>("Orbital", 1, 0, "StatusNotifierItem", "Cannot create StatusNotifierItem");
+    qmlRegisterSingletonType<StatusNotifierManager>(uri, 1, 0, "StatusNotifierManager", [](QQmlEngine *e, QJSEngine *) {
+        StatusNotifierManager *mgr = new StatusNotifierManager;
+        e->addImageProvider(QStringLiteral("statusnotifier"), new StatusNotifierIconProvider(mgr));
+        return static_cast<QObject *>(mgr);
+    });
+    qmlRegisterUncreatableType<StatusNotifierItem>(uri, 1, 0, "StatusNotifierItem", "Cannot create StatusNotifierItem");
 }
 
-StatusNotifierService::~StatusNotifierService()
-{
 
-}
-
-void StatusNotifierService::init()
+StatusNotifierManager::StatusNotifierManager(QObject *p)
+                     : QObject(p)
 {
-    Client::client()->qmlEngine()->addImageProvider(QStringLiteral("statusnotifier"), new StatusNotifierIconProvider(this));
     m_watcher = new StatusNotifierWatcher(this);
     if (QDBusConnection::sessionBus().registerService("org.kde.StatusNotifierWatcher")) {
         QDBusConnection::sessionBus().registerObject("/StatusNotifierWatcher", this);
-        connect(m_watcher, &StatusNotifierWatcher::newItem, this, &StatusNotifierService::newItem);
+        connect(m_watcher, &StatusNotifierWatcher::newItem, this, &StatusNotifierManager::newItem);
     }
 }
 
-void StatusNotifierService::newItem(const QString &service)
+StatusNotifierManager::~StatusNotifierManager()
+{
+
+}
+
+void StatusNotifierManager::newItem(const QString &service)
 {
     StatusNotifierItem *item = new StatusNotifierItem(service, this);
-    connect(item, &StatusNotifierItem::removed, this, &StatusNotifierService::itemRemoved);
+    connect(item, &StatusNotifierItem::removed, this, &StatusNotifierManager::itemRemoved);
     m_items << item;
     emit itemsChanged();
 }
 
-StatusNotifierItem *StatusNotifierService::item(const QString &service) const
+StatusNotifierItem *StatusNotifierManager::item(const QString &service) const
 {
     foreach (StatusNotifierItem *item, m_items) {
         if (item->service() == service) {
@@ -66,24 +71,24 @@ StatusNotifierItem *StatusNotifierService::item(const QString &service) const
     return nullptr;
 }
 
-int StatusNotifierService::itemsCount(QQmlListProperty<StatusNotifierItem> *prop)
+int StatusNotifierManager::itemsCount(QQmlListProperty<StatusNotifierItem> *prop)
 {
-    StatusNotifierService *c = static_cast<StatusNotifierService *>(prop->object);
+    StatusNotifierManager *c = static_cast<StatusNotifierManager *>(prop->object);
     return c->m_items.count();
 }
 
-StatusNotifierItem *StatusNotifierService::itemAt(QQmlListProperty<StatusNotifierItem> *prop, int index)
+StatusNotifierItem *StatusNotifierManager::itemAt(QQmlListProperty<StatusNotifierItem> *prop, int index)
 {
-    StatusNotifierService *c = static_cast<StatusNotifierService *>(prop->object);
+    StatusNotifierManager *c = static_cast<StatusNotifierManager *>(prop->object);
     return c->m_items.at(index);
 }
 
-QQmlListProperty<StatusNotifierItem> StatusNotifierService::items()
+QQmlListProperty<StatusNotifierItem> StatusNotifierManager::items()
 {
     return QQmlListProperty<StatusNotifierItem>(this, 0, itemsCount, itemAt);
 }
 
-void StatusNotifierService::itemRemoved()
+void StatusNotifierManager::itemRemoved()
 {
     StatusNotifierItem *item = static_cast<StatusNotifierItem *>(sender());
     m_items.removeOne(item);

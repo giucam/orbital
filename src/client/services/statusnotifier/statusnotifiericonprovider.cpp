@@ -24,7 +24,7 @@
 #include "statusnotifieritem.h"
 #include "statusnotifierservice.h"
 
-StatusNotifierIconProvider::StatusNotifierIconProvider(StatusNotifierService *service)
+StatusNotifierIconProvider::StatusNotifierIconProvider(StatusNotifierManager *service)
                           : QQuickImageProvider(QQuickImageProvider::Pixmap)
                           , m_service(service)
 {
@@ -76,9 +76,11 @@ QPixmap StatusNotifierIconProvider::requestPixmap(const QString &id, QSize *real
     QString name = l.at(1);
 
     StatusNotifierItem *item = m_service->item(service);
-    QPixmap pix = getPixmap(item, size, name);
-    if (!pix.isNull())
-        return pix;
+    if (item) {
+        QPixmap pix = getPixmap(item, size, name);
+        if (!pix.isNull())
+            return pix;
+    }
 
     FAIL
 }

@@ -21,23 +21,26 @@
 #define STATUSNOTIFIERSERVICE_H
 
 #include <QQmlListProperty>
-
-#include "service.h"
+#include <QQmlExtensionPlugin>
 
 class StatusNotifierWatcher;
 class StatusNotifierItem;
 
-class StatusNotifierService : public Service
+class StatusNotifierPlugin : public QQmlExtensionPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
+
+class StatusNotifierManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QQmlListProperty<StatusNotifierItem> items READ items NOTIFY itemsChanged)
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
 public:
-    StatusNotifierService();
-    ~StatusNotifierService();
-
-    void init() override;
+    StatusNotifierManager(QObject *p = nullptr);
+    ~StatusNotifierManager();
 
     StatusNotifierItem *item(const QString &service) const;
     QQmlListProperty<StatusNotifierItem> items();

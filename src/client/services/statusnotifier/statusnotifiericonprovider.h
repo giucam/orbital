@@ -22,17 +22,17 @@
 
 #include <QQuickImageProvider>
 
-class StatusNotifierService;
+class StatusNotifierManager;
 
 class StatusNotifierIconProvider : public QQuickImageProvider
 {
 public:
-    StatusNotifierIconProvider(StatusNotifierService *service);
+    StatusNotifierIconProvider(StatusNotifierManager *service);
 
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requestedSize);
 
 private:
-    StatusNotifierService *m_service;
+    StatusNotifierManager *m_service;
 };
 
 #endif

@@ -15,4 +15,6 @@ set(SOURCES statusnotifierservice.cpp
 add_library(statusnotifierservice SHARED ${SOURCES})
 qt5_use_modules(statusnotifierservice Core DBus Qml Gui Quick)
 set_target_properties(statusnotifierservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
-install(TARGETS statusnotifierservice DESTINATION lib/orbital/services)
+set(dest lib/orbital/qml/Orbital/StatusNotifierService)
+install(TARGETS statusnotifierservice DESTINATION ${dest})
+install(FILES qmldir DESTINATION ${dest})
