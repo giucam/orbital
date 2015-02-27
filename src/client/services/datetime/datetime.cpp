@@ -20,36 +20,40 @@
 #include "datetime.h"
 
 #include <QDebug>
+#include <QtQml>
 
-DateTimeService::DateTimeService()
-               : Service()
+void DateTimePlugin::registerTypes(const char *uri)
 {
-
+    qmlRegisterSingletonType<DateTime>(uri, 1, 0, "DateTime", [](QQmlEngine *, QJSEngine *) {
+        return static_cast<QObject *>(new DateTime);
+    });
 }
 
-DateTimeService::~DateTimeService()
-{
 
-}
-
-void DateTimeService::init()
+DateTime::DateTime(QObject *p)
+        : QObject(p)
 {
     startTimer(250);
 
     setDT(QDateTime::currentDateTime());
 }
 
-QString DateTimeService::time() const
+DateTime::~DateTime()
+{
+
+}
+
+QString DateTime::time() const
 {
     return m_dateTime.time().toString();
 }
 
-QString DateTimeService::date() const
+QString DateTime::date() const
 {
     return m_dateTime.date().toString(Qt::DefaultLocaleShortDate);
 }
 
-void DateTimeService::timerEvent(QTimerEvent *event)
+void DateTime::timerEvent(QTimerEvent *event)
 {
     QDateTime dt = QDateTime::currentDateTime();
     if (dt.toTime_t() != m_nsecs) {
@@ -57,7 +61,7 @@ void DateTimeService::timerEvent(QTimerEvent *event)
     }
 }
 
-void DateTimeService::setDT(const QDateTime &dt)
+void DateTime::setDT(const QDateTime &dt)
 {
     QString d = date();
     m_dateTime = dt;

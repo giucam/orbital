@@ -21,22 +21,24 @@
 #define DATETIMESERVICE_H
 
 #include <QDateTime>
+#include <QQmlExtensionPlugin>
 
-#include "service.h"
-
-class DateTimeService : public Service
+class DateTimePlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_INTERFACES(Service)
-    Q_PLUGIN_METADATA(IID "Orbital.Service")
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+public:
+    void registerTypes(const char *uri) override;
+};
 
+class DateTime : public QObject
+{
+    Q_OBJECT
     Q_PROPERTY(QString time READ time NOTIFY timeChanged)
     Q_PROPERTY(QString date READ date NOTIFY dateChanged)
 public:
-    DateTimeService();
-    ~DateTimeService();
-
-    void init();
+    DateTime(QObject *p = nullptr);
+    ~DateTime();
 
     QString time() const;
     QString date() const;

@@ -20,6 +20,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
 import Orbital 1.0
+import Orbital.DateTimeService 1.0
 
 PopupElement {
     id: element
@@ -32,8 +33,6 @@ PopupElement {
 
     width: orientation == Qt.Horizontal ? Layout.preferredWidth : 100
     height: 20
-
-    property variant service: Client.service("DateTimeService")
 
     TextMetrics {
         id: textMetrics
@@ -67,7 +66,7 @@ PopupElement {
             verticalAlignment: Qt.AlignVCenter
             horizontalAlignment: Qt.AlignHCenter
             color: CurrentStyle.textColor
-            text: service.time
+            text: DateTime.time
         }
         Text {
             id: date
@@ -79,7 +78,7 @@ PopupElement {
             color: CurrentStyle.textColor
             font.pixelSize: 100
             minimumPixelSize: 1
-            text: service.date
+            text: DateTime.date
             fontSizeMode: Text.Fit
         }
 
