@@ -109,6 +109,10 @@ Keyboard *Seat::keyboard() const
 
 Surface *Seat::activate(Surface *surface)
 {
+    if (m_compositor->shell()->isLocked()) {
+        return m_activeSurface;
+    }
+
     bool isNull = !surface;
     if (surface) {
         surface = surface->isActivable() ? surface->activate(this) : nullptr;
