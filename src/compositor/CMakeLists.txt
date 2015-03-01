@@ -23,6 +23,7 @@ set(SOURCES
     output.cpp
     dummysurface.cpp
     seat.cpp
+    focusscope.cpp
     animation.cpp
     transform.cpp
     binding.cpp

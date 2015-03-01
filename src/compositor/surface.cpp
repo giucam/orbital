@@ -134,7 +134,7 @@ void Surface::deref()
     weston_surface_destroy(m_surface);
 }
 
-Surface *Surface::activate(Seat *seat)
+Surface *Surface::activate()
 {
     return this;
 }

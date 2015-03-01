@@ -27,7 +27,7 @@
 #include "output.h"
 #include "global.h"
 #include "seat.h"
-
+#include "focusscope.h"
 #include "utils.h"
 #include "shell.h"
 #include "binding.h"
@@ -74,9 +74,10 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
     class DropdownSurface : public Surface
     {
     public:
-        DropdownSurface(Dropdown *dd, weston_surface *ws, wl_resource *res)
+        DropdownSurface(Dropdown *dd, Shell *sh, weston_surface *ws, wl_resource *res)
             : Surface(ws)
             , dropdown(dd)
+            , shell(sh)
             , resource(res)
             , m_visible(false)
             , m_moving(false)
@@ -135,7 +136,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
 
             m_visible = !m_visible;
             if (m_visible) {
-                s->activate(this);
+                shell->appsFocusScope()->activate(this);
             } else {
                 emit unmapped();
             }
@@ -249,6 +250,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
 
         Dropdown *dropdown;
         View *view;
+        Shell *shell;
         wl_resource *resource;
         KeyBinding *m_toggleBinding;
         Animation m_animation;
@@ -263,7 +265,7 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
     };
 
     delete m_surface;
-    m_surface = new DropdownSurface(this, ws, resource);
+    m_surface = new DropdownSurface(this, m_shell, ws, resource);
 }
 
 }

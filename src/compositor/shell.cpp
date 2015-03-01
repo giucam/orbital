@@ -41,6 +41,7 @@
 #include "pager.h"
 #include "dropdown.h"
 #include "screenshooter.h"
+#include "focusscope.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -57,6 +58,8 @@ Shell::Shell(Compositor *c)
      , m_grabCursorUnsetter(nullptr)
      , m_pager(new Pager(c))
      , m_locked(false)
+     , m_lockScope(new FocusScope(this))
+     , m_appsScope(new FocusScope(this))
 {
     initEnvironment();
 
@@ -68,6 +71,10 @@ Shell::Shell(Compositor *c)
 
     new ZoomEffect(this);
     new DesktopGrid(this);
+
+    for (Seat *s: m_compositor->seats()) {
+        s->activate(m_appsScope);
+    }
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
@@ -336,8 +343,7 @@ void Shell::lock(const LockCallback &callback)
         });
     }
     for (Seat *s: m_compositor->seats()) {
-        Output *o = selectPrimaryOutput(s);
-        s->activate(o->lockSurface());
+        s->activate(m_lockScope);
     }
 }
 
@@ -346,6 +352,9 @@ void Shell::unlock()
     m_locked = false;
     for (Output *o: m_compositor->outputs()) {
         o->unlock();
+    }
+    for (Seat *s: m_compositor->seats()) {
+        s->activate(m_appsScope);
     }
 }
 
@@ -390,9 +399,7 @@ void Shell::configure(ShellSurface *shsurf)
         shsurf->setWorkspace(output->currentWorkspace());
 
         if (isSurfaceActive(shsurf)) {
-            for (Seat *seat: m_compositor->seats()) {
-                seat->activate(shsurf);
-            }
+            m_appsScope->activate(shsurf);
         }
     }
 }
@@ -424,7 +431,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    seat->activate(focus->surface());
+    m_appsScope->activate(focus->surface());
 
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();

@@ -31,6 +31,7 @@
 #include "global.h"
 #include "workspace.h"
 #include "output.h"
+#include "focusscope.h"
 
 namespace Orbital {
 
@@ -56,8 +57,8 @@ Seat::Seat(Compositor *c, weston_seat *s)
     , m_listener(new Listener)
     , m_pointer(s->pointer ? new Pointer(this, s->pointer) : nullptr)
     , m_keyboard(nullptr)
-    , m_activeSurface(nullptr)
     , m_popupGrab(nullptr)
+    , m_activeScope(nullptr)
 {
     m_listener->seat = this;
     m_listener->listener.notify = seatDestroyed;
@@ -71,8 +72,8 @@ Seat::Seat(Compositor *c, weston_seat *s)
 Seat::~Seat()
 {
     delete m_listener;
-    if (m_activeSurface) {
-        emit m_activeSurface->deactivated(this);
+    if (m_activeScope) {
+        m_activeScope->deactivated(this);
     }
 }
 
@@ -107,82 +108,22 @@ Keyboard *Seat::keyboard() const
     return m_keyboard;
 }
 
-Surface *Seat::activate(Surface *surface)
+void Seat::activate(FocusScope *scope)
 {
-    if (m_compositor->shell()->isLocked()) {
-        return m_activeSurface;
+    if (m_activeScope) {
+        m_activeScope->deactivated(this);
     }
-
-    bool isNull = !surface;
-    if (surface) {
-        surface = surface->isActivable() ? surface->activate(this) : nullptr;
-    }
-
-    if (surface || isNull) {
-        weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
-    }
-
-    if ((!surface && !isNull) || surface == m_activeSurface) {
-        return m_activeSurface;
-    }
-
-    if (m_activeSurface) {
-        emit m_activeSurface->deactivated(this);
-    }
-    m_activeSurface = surface;
-    if (m_activeSurface) {
-        emit m_activeSurface->activated(this);
-        connect(m_activeSurface, &Surface::unmapped, this, &Seat::deactivateSurface);
-
-        m_activeSurfaces.removeOne(surface);
-        m_activeSurfaces.prepend(surface);
-    }
-    return m_activeSurface;
-}
-
-void Seat::activate(Workspace *ws)
-{
-    Surface *surface = nullptr;
-    for (Surface *s: m_activeSurfaces) {
-        if (s->workspaceMask() & ws->mask() || s->workspaceMask() == -1) {
-            surface = s;
-            break;
-        }
-    }
-    activate(surface);
-}
-
-void Seat::deactivateSurface()
-{
-    Surface *surface = static_cast<Surface *>(sender());
-
-    m_activeSurfaces.removeOne(surface);
-    if (surface == m_activeSurface) {
-        m_activeSurface->deactivated(this);
-        m_activeSurface = nullptr;
-
-        if (m_activeSurfaces.isEmpty()) {
-            return;
-        }
-
-        int mask = 0;
-        for (Output *out: m_compositor->outputs()) {
-            mask |= out->currentWorkspace()->mask();
-        }
-        for (Surface *surf: m_activeSurfaces) {
-            if (surf->workspaceMask() & mask) {
-                activate(surf);
-                break;
-            }
-        }
+    m_activeScope = scope;
+    if (m_activeScope) {
+        m_activeScope->activated(this);
     }
 }
 
 void Seat::capsUpdated()
 {
     // If we now have a keyboard we want to set the focused surface
-    if (m_activeSurface && m_seat->keyboard) {
-        activate(m_activeSurface);
+    if (m_activeScope && m_seat->keyboard) {
+        activate(m_activeScope);
     }
 }
 

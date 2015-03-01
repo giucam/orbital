@@ -37,6 +37,7 @@
 #include "../shellsurface.h"
 #include "../pager.h"
 #include "../dummysurface.h"
+#include "../focusscope.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
@@ -267,6 +268,7 @@ void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *out
     Surface *surface = Surface::fromResource(surfaceResource);
     Output *output = Output::fromResource(outputResource);
     output->setLockSurface(surface);
+    m_shell->lockFocusScope()->activate(surface);
 }
 
 void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resource *surfaceResource, int x, int y)
@@ -668,7 +670,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
                 v->setPos(x, y);
             }
         }
-        Surface *activate(Seat *seat) override
+        Surface *activate() override
         {
             return m_parent;
         }

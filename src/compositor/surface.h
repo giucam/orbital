@@ -70,7 +70,7 @@ public:
     void ref();
     void deref();
 
-    virtual Surface *activate(Seat *seat);
+    virtual Surface *activate();
     virtual void move(Seat *seat) {}
 
     static Surface *fromSurface(weston_surface *s);

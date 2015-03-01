@@ -42,6 +42,7 @@ class Seat;
 class Pager;
 class Output;
 class Client;
+class FocusScope;
 enum class PointerCursor: unsigned int;
 enum class PointerAxis : unsigned char;
 
@@ -63,6 +64,9 @@ public:
     QList<Workspace *> workspaces() const;
     QList<ShellSurface *> surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
+
+    FocusScope *lockFocusScope() const { return m_lockScope; }
+    FocusScope *appsFocusScope() const { return m_appsScope; }
 
     void lock(const LockCallback &callback = nullptr);
     void unlock();
@@ -111,6 +115,8 @@ private:
     Pager *m_pager;
     QHash<QString, QList<Client *>> m_trustedClients;
     bool m_locked;
+    FocusScope *m_lockScope;
+    FocusScope *m_appsScope;
 };
 
 }

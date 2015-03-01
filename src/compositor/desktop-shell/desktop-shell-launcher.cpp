@@ -33,6 +33,7 @@
 #include "../seat.h"
 #include "../output.h"
 #include "../layer.h"
+#include "../focusscope.h"
 #include "../animation.h"
 #include "desktop-shell-launcher.h"
 #include "wayland-desktop-shell-server-protocol.h"
@@ -87,7 +88,7 @@ public:
         if (m_fadeIn) {
             m_fadeIn = false;
             m_layer.setMask(m_output->x(), m_output->y(), m_output->width(), m_output->height());
-            m_seat->activate(m_view->surface());
+            m_shell->appsFocusScope()->activate(m_view->surface());
             m_view->setOutput(m_output);
             m_view->setPos(m_output->x(), m_output->y());
             m_showAnimation.setStart(m_view->alpha());
@@ -101,7 +102,7 @@ public:
     {
         m_seat = s;
         if (!m_hidden && !m_active) {
-            m_seat->activate(m_view->surface());
+            m_shell->appsFocusScope()->activate(m_view->surface());
             return;
         }
 

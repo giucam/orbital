@@ -33,6 +33,7 @@
 #include "../layer.h"
 #include "../output.h"
 #include "../pager.h"
+#include "../focusscope.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -196,11 +197,11 @@ void DesktopShellWindow::sendTitle()
 void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_resource *output, int32_t state)
 {
     ShellSurface *s = shsurf();
-    Seat *seat = m_desktopShell->compositor()->seats().first();
+    FocusScope *scope = m_desktopShell->shell()->appsFocusScope();
 
     m_sendState = false;
     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        seat->activate(s);
+        scope->activate(s);
         s->restore();
     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         s->minimize();
@@ -209,7 +210,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         Pager *p = m_desktopShell->shell()->pager();
         p->activate(s->workspace(), Output::fromResource(output));
-        seat->activate(s);
+        scope->activate(s);
         for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);
             if (Layer *layer = view->layer()) {

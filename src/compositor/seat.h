@@ -41,6 +41,7 @@ class Surface;
 class ShellSurface;
 class Workspace;
 class Output;
+class FocusScope;
 enum class PointerButton : unsigned char;
 
 class Seat : public QObject
@@ -54,8 +55,8 @@ public:
     Pointer *pointer() const;
     Keyboard *keyboard() const;
 
-    void activate(Workspace *ws);
-    Surface *activate(Surface *surface);
+    void activate(FocusScope *scope);
+
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);
 
@@ -66,7 +67,6 @@ signals:
     void pointerMotion(Pointer *pointer);
 
 private:
-    void deactivateSurface();
     void capsUpdated();
     class PopupGrab;
 
@@ -75,9 +75,10 @@ private:
     Listener *m_listener;
     Pointer *m_pointer;
     Keyboard *m_keyboard;
-    QLinkedList<Surface *> m_activeSurfaces;
-    Surface *m_activeSurface;
     PopupGrab *m_popupGrab;
+    FocusScope *m_activeScope;
+
+    friend FocusScope;
 };
 
 enum class PointerCursor: unsigned int {

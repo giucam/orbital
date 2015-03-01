@@ -28,6 +28,7 @@
 #include "shell.h"
 #include "seat.h"
 #include "transform.h"
+#include "focusscope.h"
 
 namespace Orbital {
 
@@ -136,9 +137,7 @@ void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
     root->active = wsv;
     output->m_currentWs = wsv->workspace();
 
-    for (Seat *seat: m_compositor->seats()) {
-        seat->activate(wsv->workspace());
-    }
+    m_compositor->shell()->appsFocusScope()->activate(wsv->workspace());
 }
 
 void Pager::updateWorkspacesPosition(Output *output)
