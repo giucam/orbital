@@ -40,6 +40,7 @@ public:
 
     void activate(Workspace *ws);
     Surface *activate(Surface *surface);
+    Surface *activeSurface() const { return m_activeSurface; }
 
 private:
     void deactivateSurface();

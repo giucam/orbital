@@ -51,14 +51,15 @@ Surface *FocusScope::activate(Surface *surface)
         surface = surface->isActivable() ? surface->activate() : nullptr;
     }
 
+    if ((!surface && !isNull) || surface == m_activeSurface) {
+        return m_activeSurface;
+    }
+
     if (surface || isNull) {
+        qDebug()<<"act"<<surface;
         foreach (Seat *seat, m_activeSeats) {
             weston_surface_activate(surface ? surface->surface() : nullptr, seat->m_seat);
         }
-    }
-
-    if ((!surface && !isNull) || surface == m_activeSurface) {
-        return m_activeSurface;
     }
 
     if (m_activeSurface) {
@@ -125,10 +126,6 @@ void FocusScope::activated(Seat *s)
         return;
     }
     m_activeSeats << s;
-
-    if (m_activeSurface) {
-        activate(m_activeSurface);
-    }
 }
 
 void FocusScope::deactivated(Seat *s)
