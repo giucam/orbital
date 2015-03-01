@@ -213,7 +213,7 @@ View *View::dispatchPointerEvent(const Pointer *pointer, wl_fixed_t fx, wl_fixed
     int ix = wl_fixed_to_int(fx);
     int iy = wl_fixed_to_int(fy);
 
-    if (pixman_region32_contains_point(&m_view->transform.masked_boundingbox, ix, iy, NULL)) {
+    if (pixman_region32_contains_point(&m_view->transform.boundingbox, ix, iy, NULL)) {
         wl_fixed_t fvx, fvy;
         weston_view_from_global_fixed(m_view, fx, fy, &fvx, &fvy);
         if (pixman_region32_contains_point(&m_view->surface->input, wl_fixed_to_int(fvx), wl_fixed_to_int(fvy), NULL)) {
