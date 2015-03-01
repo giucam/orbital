@@ -17,7 +17,6 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QProcess>
 #include <QtQml>
 
 #include "processlauncher.h"
@@ -27,6 +26,7 @@ void ProcessLauncherPlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<ProcessLauncher>(uri, 1, 0, "ProcessLauncher", [](QQmlEngine *, QJSEngine *) {
         return static_cast<QObject *>(new ProcessLauncher);
     });
+    qmlRegisterType<Process>(uri, 1, 0, "Process");
 }
 
 ProcessLauncher::ProcessLauncher(QObject *p)
@@ -37,4 +37,23 @@ ProcessLauncher::ProcessLauncher(QObject *p)
 void ProcessLauncher::launch(const QString &process)
 {
     QProcess::startDetached(process);
+}
+
+
+Process::Process(QObject *p)
+       : QObject(p)
+{
+    connect(&m_process, (void (QProcess::*)(int, QProcess::ExitStatus))&QProcess::finished, this, &Process::finished);
+}
+
+void Process::start(const QString &command)
+{
+    if (m_process.state() == QProcess::NotRunning) {
+        m_process.start(command);
+    }
+}
+
+QByteArray Process::readAllStandardOutput()
+{
+    return m_process.readAllStandardOutput();
 }

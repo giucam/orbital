@@ -20,6 +20,7 @@
 #ifndef PROCESSLAUNCHER_H
 #define PROCESSLAUNCHER_H
 
+#include <QProcess>
 #include <QQmlExtensionPlugin>
 
 class ProcessLauncherPlugin : public QQmlExtensionPlugin
@@ -39,6 +40,22 @@ public:
 public slots:
     void launch(const QString &process);
 
+};
+
+class Process : public QObject
+{
+    Q_OBJECT
+public:
+    Process(QObject *p = nullptr);
+
+    Q_INVOKABLE void start(const QString &process);
+    Q_INVOKABLE QByteArray readAllStandardOutput();
+
+signals:
+    void finished();
+
+private:
+    QProcess m_process;
 };
 
 #endif
