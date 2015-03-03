@@ -235,15 +235,6 @@ bool Compositor::init(const QString &socketName)
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
 
-    for (int i = KEY_F1; i < KEY_F12; ++i) {
-        KeyBinding *b = createKeyBinding(i, KeyboardModifiers::Ctrl | KeyboardModifiers::Alt);
-        connect(b, &KeyBinding::triggered, [this, i]() {
-            m_shell->lock([this, i]() {
-                weston_compositor_activate_vt(m_compositor, i - KEY_F1 + 1);
-            });
-        });
-    }
-
     m_rootLayer = new Layer(&m_compositor->cursor_layer);
     m_overlayLayer = new Layer(m_rootLayer);
     m_fullscreenLayer = new Layer(m_overlayLayer);
@@ -283,6 +274,20 @@ bool Compositor::init(const QString &socketName)
     if (!m_backend->init(m_compositor)) {
         weston_compositor_shutdown(m_compositor);
         return false;
+    }
+
+    if (m_compositor->launcher) {
+        for (int i = KEY_F1; i < KEY_F12; ++i) {
+            KeyBinding *b = createKeyBinding(i, KeyboardModifiers::Ctrl | KeyboardModifiers::Alt);
+            connect(b, &KeyBinding::triggered, [this, i]() {
+                int vt = i - KEY_F1 + 1;
+                if (weston_launcher_get_vt(m_compositor->launcher) != vt) {
+                    m_shell->lock([this, vt]() {
+                        weston_launcher_activate_vt(m_compositor->launcher, vt);
+                    });
+                }
+            });
+        }
     }
 
     const char *socket = qPrintable(socketName);
