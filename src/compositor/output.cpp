@@ -244,9 +244,6 @@ void Output::unlock()
 {
     m_locked = false;
     m_lockLayer->setMask(0, 0, 0, 0);
-    if (m_lockSurfaceView) {
-        emit m_lockSurfaceView->surface()->unmapped();
-    }
     repaint();
 }
 
