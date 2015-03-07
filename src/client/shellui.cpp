@@ -267,9 +267,6 @@ void ShellUI::reloadConfigFile()
 
 void ShellUI::saveConfig()
 {
-    QFile file(m_configFile);
-    file.open(QIODevice::WriteOnly);
-
     QJsonObject object = m_config["Shell"].toObject();
     QJsonObject properties = object["properties"].toObject();
     for (const QString &prop: m_properties) {
@@ -296,6 +293,12 @@ void ShellUI::saveConfig()
     m_rootConfig["Ui"] = m_config;
 
     QJsonDocument document(m_rootConfig);
+
+    QFile file(m_configFile);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning("Failed to open %s for writing.", qPrintable(m_configFile));
+        return;
+    }
 
     QByteArray data = document.toJson();
     int pos = 0;
