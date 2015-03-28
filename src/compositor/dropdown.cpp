@@ -152,8 +152,10 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         {
             disconnect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
             m_output = o;
-            connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
-            view->setTransformParent(m_output->rootView());
+            if (o) {
+                connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
+                view->setTransformParent(m_output->rootView());
+            }
         }
         QPointF posWhen(bool visible)
         {
@@ -171,6 +173,10 @@ void Dropdown::getDropdownSurface(wl_client *client, wl_resource *dropdown, uint
         }
         void updateGeometry()
         {
+            if (!m_output) {
+                return;
+            }
+
             QRect geom = m_output->availableGeometry();
             orbital_dropdown_surface_send_available_size(resource, geom.width(), geom.height());
             m_forceReposition = true;
