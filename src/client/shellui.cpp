@@ -33,6 +33,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QProcess>
+#include <QFileInfo>
+#include <QDir>
 
 #include "client.h"
 #include "element.h"
@@ -295,6 +297,12 @@ void ShellUI::saveConfig()
     QJsonDocument document(m_rootConfig);
 
     QFile file(m_configFile);
+    QFileInfo info(file);
+    QDir dir(info.absoluteDir());
+    if (!dir.exists() && !dir.mkpath(dir.path())) {
+        qWarning("Failed to create the config directory '%s', cannot save the config.", qPrintable(dir.path()));
+        return;
+    }
     if (!file.open(QIODevice::WriteOnly)) {
         qWarning("Failed to open %s for writing.", qPrintable(m_configFile));
         return;
@@ -313,6 +321,8 @@ void ShellUI::saveConfig()
         }
         file.write(line);
     }
+
+    qDebug("Saved Orbital config to %s.", qPrintable(m_configFile));
 }
 
 void ShellUI::loadScreen(UiScreen *screen)
