@@ -153,6 +153,7 @@ XWayland::XWayland(Shell *shell)
         _this->setGeometry(x, y, w, h);
     };
     compositor->shell_interface.set_maximized = [](shell_surface *shsurf) { _this->setMaximized(); };
+    compositor->shell_interface.set_pid = [](shell_surface *shsurf, pid_t pid) { _this->setPid(pid); };
 #undef _this
 }
 
