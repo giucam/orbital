@@ -145,7 +145,7 @@ void DesktopShellWindow::create()
     }
     QString icon;
     if (!shsurf()->appId().isEmpty()) {
-        QString appId = shsurf()->appId().replace('-', '/');
+        QString appId = shsurf()->appId().replace('-', '/').remove(".desktop");
         static QString xdgDataDir = []() {
             QString s = qgetenv("XDG_DATA_DIRS");
             if (s.isEmpty()) {
@@ -154,7 +154,7 @@ void DesktopShellWindow::create()
             return s;
         }();
         for (const QString &d: xdgDataDir.split(':')) {
-            QString path = QString("%1/applications/%2").arg(d).arg(appId);
+            QString path = QString("%1/applications/%2.desktop").arg(d).arg(appId);
             if (QFile::exists(path)) {
                 QSettings settings(path, QSettings::IniFormat);
                 settings.beginGroup("Desktop Entry");
