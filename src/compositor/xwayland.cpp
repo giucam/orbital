@@ -104,6 +104,31 @@ spawn_xserver(struct weston_xserver *wxs)
     return s_process->processId();
 }
 
+class XWlSurface : public Interface {
+public:
+    XWlSurface(const weston_shell_client *c, ShellSurface *ss)
+        : client(c)
+        , shsurf(ss)
+    {
+        connect(ss, &Surface::pointerFocusEnter, this, &XWlSurface::enter);
+        connect(ss, &Surface::pointerFocusLeave, this, &XWlSurface::leave);
+        leave();
+    }
+
+    void enter()
+    {
+        client->send_position(shsurf->surface(), 0, 0);
+    }
+
+    void leave()
+    {
+        client->send_position(shsurf->surface(), 10000, 10000);
+    }
+
+    const weston_shell_client *client;
+    ShellSurface *shsurf;
+};
+
 XWayland::XWayland(Shell *shell)
         : Interface(shell)
         , m_shell(shell)
@@ -119,13 +144,12 @@ XWayland::XWayland(Shell *shell)
         shsurf->setConfigureSender([client, surface](int w, int h) {
             client->send_configure(surface, w, h);
         });
-        return (shell_surface *)shsurf;
+        XWlSurface *xs = new XWlSurface(client, shsurf);
+        shsurf->addInterface(xs);
+        return (shell_surface *)xs;
     };
 
-#define _this reinterpret_cast<ShellSurface *>(shsurf)
-    compositor->shell_interface.get_primary_view = [](void *shell, shell_surface *shsurf) {
-        return (weston_view*)(*_this->m_views.begin())->m_view;
-    };
+#define _this reinterpret_cast<XWlSurface *>(shsurf)->shsurf
     compositor->shell_interface.set_toplevel = [](shell_surface *shsurf) { _this->setToplevel(); };
     compositor->shell_interface.set_transient = [](shell_surface *shsurf, weston_surface *parent, int x, int y, uint32_t flags) {
         _this->setTransient(Surface::fromSurface(parent), x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);

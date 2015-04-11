@@ -31,7 +31,6 @@ struct weston_pointer;
 
 namespace Orbital {
 
-struct Listener;
 class Compositor;
 class PointerGrab;
 class Pointer;
@@ -48,6 +47,8 @@ class Seat : public QObject
 {
     Q_OBJECT
 public:
+    struct Listener;
+
     explicit Seat(Compositor *c, weston_seat *seat);
     ~Seat();
 
@@ -121,7 +122,7 @@ public:
     void setFocus(View *view);
     void setFocus(View *view, double x, double y);
     inline void setFocus(View *view, const QPointF &p) { setFocus(view, p.x(), p.y()); }
-    View *focus() const;
+    inline View *focus() const { return m_focus; }
     void move(double x, double y);
     void sendMotion(uint32_t time);
     void sendButton(uint32_t time, PointerButton button, ButtonState state);
@@ -145,10 +146,14 @@ public:
 private:
     void setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y);
     void handleMotionBinding(uint32_t time, double x, double y);
+    void updateFocus();
+    struct Listener;
 
     Seat *m_seat;
     weston_pointer *m_pointer;
+    View *m_focus;
     Output *m_currentOutput;
+    Listener *m_listener;
     struct {
         QSet<Output *> outputs;
     } m_defaultGrab;

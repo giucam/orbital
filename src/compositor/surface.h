@@ -35,6 +35,7 @@ namespace Orbital {
 
 class View;
 class Seat;
+class Pointer;
 struct Listener;
 
 class Surface : public Object
@@ -80,6 +81,8 @@ signals:
     void unmapped();
     void activated(Seat *seat);
     void deactivated(Seat *seat);
+    void pointerFocusEnter(Pointer *pointer, View *view);
+    void pointerFocusLeave(Pointer *pointer, View *view);
 
 private:
     static void configure(weston_surface *s, int32_t x, int32_t y);

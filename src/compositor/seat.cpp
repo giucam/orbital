@@ -40,7 +40,7 @@ struct PointerGrab::Grab {
     PointerGrab *parent;
 };
 
-struct Listener {
+struct Seat::Listener {
     wl_listener listener;
     wl_listener capsListener;
     Seat *seat;
@@ -48,7 +48,7 @@ struct Listener {
 
 static void seatDestroyed(wl_listener *listener, void *data)
 {
-    delete reinterpret_cast<Listener *>(listener)->seat;
+    delete reinterpret_cast<Seat::Listener *>(listener)->seat;
 }
 
 Seat::Seat(Compositor *c, weston_seat *s)
@@ -233,10 +233,17 @@ Seat *Seat::fromResource(wl_resource *res)
 
 // -- Pointer
 
+struct Pointer::Listener {
+    wl_listener focusListener;
+    Pointer *pointer;
+};
+
 Pointer::Pointer(Seat *seat, weston_pointer *p)
        : m_seat(seat)
        , m_pointer(p)
+       , m_focus(nullptr)
        , m_currentOutput(nullptr)
+       , m_listener(new Listener)
 {
     m_hotSpotState.lastTime = 0;
     m_hotSpotState.enterHotZone = 0;
@@ -244,10 +251,18 @@ Pointer::Pointer(Seat *seat, weston_pointer *p)
     QObject::connect(m_seat->compositor(), &Compositor::outputRemoved, [this](Output *o) {
         m_defaultGrab.outputs.remove(o);
     });
+
+    m_listener->pointer = this;
+    m_listener->focusListener.notify = [](wl_listener *listener, void *) {
+        reinterpret_cast<Listener *>(listener)->pointer->updateFocus();
+    };
+    wl_signal_add(&p->focus_signal, &m_listener->focusListener);
 }
 
 Pointer::~Pointer()
 {
+    wl_list_remove(&m_listener->focusListener.link);
+    delete m_listener;
 }
 
 View *Pointer::pickView(double *vx, double *vy) const
@@ -288,16 +303,23 @@ void Pointer::setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y)
     weston_pointer_set_focus(m_pointer, view ? view->m_view : nullptr, x, y);
 }
 
-View *Pointer::focus() const
+void Pointer::updateFocus()
 {
+    View *focus = nullptr;
     weston_view *view = m_pointer->focus;
     if (view) {
-        View *v = View::fromView(view);
-        if (v) {
-            return v;
+        focus = View::fromView(view);
+    }
+
+    if (focus != m_focus) {
+        if (m_focus) {
+            emit m_focus->surface()->pointerFocusLeave(this, m_focus);
+        }
+        m_focus = focus;
+        if (m_focus) {
+            emit m_focus->surface()->pointerFocusEnter(this, m_focus);
         }
     }
-    return nullptr;
 }
 
 void Pointer::move(double x, double y)
