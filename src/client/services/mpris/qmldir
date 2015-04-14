@@ -1,0 +1,2 @@
+module Orbital.MprisService
+plugin mprisservice
