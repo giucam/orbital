@@ -76,11 +76,18 @@ void Notification::setIconImage(const QPixmap &img)
 NotificationsManager::NotificationsManager(QObject *p)
                     : QObject(p)
 {
+    static const QString notificationsService = QStringLiteral("org.freedesktop.Notifications");
     QStringList caps = { "actions", "action-icons", "body-markup" };
     new NotificationsAdaptor(this, caps);
-    if (QDBusConnection::sessionBus().registerService("org.freedesktop.Notifications")) {
-        QDBusConnection::sessionBus().registerObject("/org/freedesktop/Notifications", this);
+    if (!QDBusConnection::sessionBus().registerService(notificationsService)) {
+        QDBusServiceWatcher *watcher = new QDBusServiceWatcher(notificationsService, QDBusConnection::sessionBus(),
+                                                               QDBusServiceWatcher::WatchForUnregistration);
+        connect(watcher, &QDBusServiceWatcher::serviceUnregistered, [watcher](const QString &service) {
+            QDBusConnection::sessionBus().registerService(service);
+            watcher->deleteLater();
+        });
     }
+    QDBusConnection::sessionBus().registerObject(QStringLiteral("/org/freedesktop/Notifications"), this);
 
     Client::client()->qmlEngine()->addImageProvider(QStringLiteral("notifications"), new NotificationsIconProvider(this));
 }
