@@ -130,6 +130,7 @@ public:
         : surface(s)
         , view(new View(s))
     {
+        s->setRoleHandler(this);
         s->setActivable(false);
         view->setOutput(o);
     }

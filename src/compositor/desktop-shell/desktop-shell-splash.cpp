@@ -141,6 +141,7 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
     view->update();
 
     Splash *splash = new Splash(this, view);
+    surf->setRoleHandler(splash);
     m_splashes.insert(splash);
     connect(out, &QObject::destroyed, splash, &Splash::outputDestroyed);
 }
