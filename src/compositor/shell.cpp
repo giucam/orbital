@@ -248,7 +248,7 @@ Workspace *Shell::createWorkspace()
     return ws;
 }
 
-ShellSurface *Shell::createShellSurface(weston_surface *s)
+ShellSurface *Shell::createShellSurface(Surface *s)
 {
     ShellSurface *surf = new ShellSurface(this, s);
     surf->addInterface(new DesktopShellWindow(findInterface<DesktopShell>()));
@@ -394,12 +394,12 @@ bool Shell::snapPos(Output *out, QPointF &p, int snapMargin) const
 
 void Shell::configure(ShellSurface *shsurf)
 {
-    if (!shsurf->isMapped() && !shsurf->workspace()) {
+    if (!shsurf->surface()->isMapped() && !shsurf->workspace()) {
         Output *output = selectPrimaryOutput();
         shsurf->setWorkspace(output->currentWorkspace());
 
         if (isSurfaceActive(shsurf)) {
-            m_appsScope->activate(shsurf);
+            m_appsScope->activate(shsurf->surface());
         }
     }
 }

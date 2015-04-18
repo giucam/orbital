@@ -58,8 +58,8 @@ void DesktopShellWindow::added()
     connect(shsurf(), &ShellSurface::mapped, this, &DesktopShellWindow::mapped);
     connect(shsurf(), &ShellSurface::contentLost, this, &DesktopShellWindow::destroy);
     connect(shsurf(), &ShellSurface::titleChanged, this, &DesktopShellWindow::sendTitle);
-    connect(shsurf(), &Surface::activated, this, &DesktopShellWindow::activated);
-    connect(shsurf(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
+    connect(shsurf()->surface(), &Surface::activated, this, &DesktopShellWindow::activated);
+    connect(shsurf()->surface(), &Surface::deactivated, this, &DesktopShellWindow::deactivated);
     connect(shsurf(), &ShellSurface::minimized, this, &DesktopShellWindow::minimized);
     connect(shsurf(), &ShellSurface::restored, this, &DesktopShellWindow::restored);
 }
@@ -137,10 +137,7 @@ void DesktopShellWindow::create()
 
     QString title = shsurf()->title();
     if (title.isEmpty()) {
-        pid_t pid;
-        wl_client_get_credentials(shsurf()->client(), &pid, nullptr, nullptr);
-
-        QFileInfo exe(QString("/proc/%1/exe").arg(pid));
+        QFileInfo exe(QString("/proc/%1/exe").arg(shsurf()->pid()));
         title = QFileInfo(exe.symLinkTarget()).fileName();
     }
     QString icon;
@@ -201,7 +198,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
 
     m_sendState = false;
     if (m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        scope->activate(s);
+        scope->activate(s->surface());
         s->restore();
     } else if (state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED && !(m_state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         s->minimize();
@@ -210,7 +207,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         Pager *p = m_desktopShell->shell()->pager();
         p->activate(s->workspace(), Output::fromResource(output));
-        scope->activate(s);
+        scope->activate(s->surface());
         for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);
             if (Layer *layer = view->layer()) {

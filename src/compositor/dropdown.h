@@ -39,12 +39,14 @@ public:
     ~Dropdown();
 
 private:
+    class DropdownSurface;
+
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
     void getDropdownSurface(wl_client *client, wl_resource *dropdown, uint32_t id, wl_resource *surface);
 
     Shell *m_shell;
     Layer *m_layer;
-    Surface *m_surface;
+    DropdownSurface *m_surface;
 };
 
 }

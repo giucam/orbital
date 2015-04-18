@@ -198,7 +198,7 @@ public:
 void Seat::grabPopup(ShellSurface *surf)
 {
     if (!m_popupGrab) {
-        m_popupGrab = new PopupGrab(this, surf->client());
+        m_popupGrab = new PopupGrab(this, surf->surface()->client());
     }
     m_popupGrab->surfaces.insert(surf);
 }

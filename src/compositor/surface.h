@@ -42,8 +42,18 @@ class Surface : public Object
 {
     Q_OBJECT
 public:
-    typedef std::function<void (int, int)> ConfigureHandler;
-    struct Role { };
+    class RoleHandler {
+    public:
+        RoleHandler() : surface(nullptr) {}
+        virtual ~RoleHandler();
+    protected:
+        virtual void configure(int x, int y) = 0;
+        virtual void move(Seat *seat) = 0;
+
+    private:
+        Surface *surface;
+        friend Surface;
+    };
 
     Surface(weston_surface *s, QObject *parent = nullptr);
     ~Surface();
@@ -58,9 +68,11 @@ public:
 
     void repaint();
     void damage();
-    void setRole(Role *role, const ConfigureHandler &handler);
-    Role *role() const;
-    ConfigureHandler configureHandler() const;
+
+    bool setRole(const char *roleName, wl_resource *errorResource, uint32_t errorCode);
+    void setRoleHandler(RoleHandler *handler);
+    const char *role() const;
+    RoleHandler *roleHandler() const;
 
     void setWorkspaceMask(int mask);
     int workspaceMask() const { return m_workspaceMask; }
@@ -72,7 +84,7 @@ public:
     void deref();
 
     virtual Surface *activate();
-    virtual void move(Seat *seat) {}
+    void move(Seat *seat);
 
     static Surface *fromSurface(weston_surface *s);
     static Surface *fromResource(wl_resource *resource);
@@ -86,10 +98,10 @@ signals:
 
 private:
     static void configure(weston_surface *s, int32_t x, int32_t y);
+    static void destroy(wl_listener *listener, void *data);
 
     weston_surface *m_surface;
-    Role *m_role;
-    ConfigureHandler m_configureHandler;
+    RoleHandler *m_roleHandler;
     Listener *m_listener;
     bool m_activable;
     QList<View *> m_views;

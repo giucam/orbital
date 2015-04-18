@@ -36,7 +36,8 @@ namespace Orbital {
 
 static const int ANIMATION_DURATION = 200;
 
-class DesktopShellNotifications::NotificationSurface : public QObject {
+class DesktopShellNotifications::NotificationSurface : public QObject, public Surface::RoleHandler
+{
 public:
     struct NSView : public View
     {
@@ -102,25 +103,7 @@ public:
             c->overlayLayer()->addView(v);
         }
 
-        static Surface::Role role;
-
-        s->setRole(&role, [this](int x, int y) {
-            // All notifications (currently) come from the same client. If there are many
-            // notifications so that one or more is pushed offscreen, its weston_surface::output_mask
-            // will be 0, being outside the output. That means trying to repaint the surface or
-            // the view will not really repaint it, so the frame callbacks for that surface will
-            // not be sent, blocking the client.
-            // To solve it manually redraw all the outputs, this way we're sure the surface gets
-            // repainted and the frame callbacks sent.
-            for (Output *o: m_compositor->outputs()) {
-                o->repaint();
-            }
-            if (!manager->m_notifications.contains(this)) {
-                manager->m_notifications.prepend(this);
-                manager->relayout();
-            }
-        });
-
+        s->setRoleHandler(this);
         connect(c, &Compositor::outputCreated, this, &NotificationSurface::outputCreated);
         connect(c, &Compositor::outputRemoved, this, &NotificationSurface::outputRemoved);
     }
@@ -162,6 +145,24 @@ public:
             }
         }
     }
+    void configure(int x, int y) override
+    {
+        // All notifications (currently) come from the same client. If there are many
+        // notifications so that one or more is pushed offscreen, its weston_surface::output_mask
+        // will be 0, being outside the output. That means trying to repaint the surface or
+        // the view will not really repaint it, so the frame callbacks for that surface will
+        // not be sent, blocking the client.
+        // To solve it manually redraw all the outputs, this way we're sure the surface gets
+        // repainted and the frame callbacks sent.
+        for (Output *o: m_compositor->outputs()) {
+            o->repaint();
+        }
+        if (!manager->m_notifications.contains(this)) {
+            manager->m_notifications.prepend(this);
+            manager->relayout();
+        }
+    }
+    void move(Seat *seat) override {}
 
     wl_resource *resource;
     Surface *m_surface;
@@ -197,10 +198,14 @@ void DesktopShellNotifications::bind(wl_client *client, uint32_t version, uint32
     wl_resource_set_implementation(resource, &implementation, this, nullptr);
 }
 
-void DesktopShellNotifications::pushNotification(uint32_t id, wl_resource *surfaceResource, int32_t flags)
+void DesktopShellNotifications::pushNotification(wl_client *, wl_resource *res, uint32_t id, wl_resource *surfaceResource, int32_t flags)
 {
     wl_resource *resource = wl_resource_create(wl_resource_get_client(surfaceResource), &notification_surface_interface, 1, id);
     Surface *surface = Surface::fromResource(surfaceResource);
+
+    if (!surface->setRole("notification_surface", res, NOTIFICATIONS_MANAGER_ERROR_ROLE)) {
+        return;
+    }
 
     NotificationSurface *surf = new NotificationSurface(m_shell->compositor(), surface);
     surf->resource = resource;

@@ -40,7 +40,7 @@ protected:
 
 private:
     class NotificationSurface;
-    void pushNotification(uint32_t id, wl_resource *surfaceResource, int32_t flags);
+    void pushNotification(wl_client *, wl_resource *res, uint32_t id, wl_resource *surfaceResource, int32_t flags);
     void relayout();
 
     Shell *m_shell;

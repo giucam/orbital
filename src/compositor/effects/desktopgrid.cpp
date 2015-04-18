@@ -74,7 +74,7 @@ public:
                 }
             }
             if (moved) {
-                ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
+                ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
                 Workspace *w = shsurf->workspace();
                 Output *out = moving->output();
                 WorkspaceView *wsv = w->viewForOutput(out);
@@ -99,7 +99,7 @@ public:
     {
         View *view = pointer()->pickView();
         if (state == Pointer::ButtonState::Pressed) {
-            if (qobject_cast<ShellSurface *>(view->surface())) {
+            if (ShellSurface::fromSurface(view->surface())) {
                 moving = view;
                 moved = false;
                 QPointF pp(pointer()->x(), pointer()->y());
@@ -113,7 +113,7 @@ public:
         } else if (moving && moved) {
             QPointF pp(pointer()->x(), pointer()->y());
             WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
-            ShellSurface *shsurf = static_cast<ShellSurface *>(moving->surface());
+            ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
             if (wsv) {
                 QPointF p = moving->mapToGlobal(QPointF(0,0));
                 p = wsv->map(p.x(), p.y());

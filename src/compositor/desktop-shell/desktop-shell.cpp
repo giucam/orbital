@@ -201,7 +201,10 @@ void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfa
 {
     Output *output = Output::fromResource(outputResource);
     Surface *surface = Surface::fromResource(surfaceResource);
-    output->setBackground(surface);
+
+    if (surface->setRole("desktop_shell_background_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
+        output->setBackground(surface);
+    }
 }
 
 void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resource *surfaceResource, uint32_t position)
@@ -209,8 +212,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
     Output *output = Output::fromResource(outputResource);
     Surface *surface = Surface::fromResource(surfaceResource);
 
-    if (!surface) {
-        wl_resource_post_error(surfaceResource, WL_DISPLAY_ERROR_INVALID_OBJECT, "surface role already assigned");
+    if (!surface->setRole("desktop_shell_panel_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         return;
     }
 
@@ -266,6 +268,11 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
 void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *outputResource)
 {
     Surface *surface = Surface::fromResource(surfaceResource);
+
+    if (!surface->setRole("desktop_shell_lock_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
+        return;
+    }
+
     Output *output = Output::fromResource(outputResource);
     output->setLockSurface(surface);
     m_shell->lockFocusScope()->activate(surface);
@@ -275,23 +282,14 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
 {
     Surface *parent = Surface::fromResource(parentResource);
     Surface *surface = Surface::fromResource(surfaceResource);
+
+    if (!surface->setRole("desktop_shell_popup_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
+        return;
+    }
+
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
-    static Surface::Role role;
-
-    if (!surface || (surface->role() && surface->role() != &role)) {
-        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "The surface has a role already");
-        wl_resource_destroy(resource);
-        return;
-    }
-
-    if (surface->configureHandler()) {
-        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "Cannot create two popup surfaces for the same wl_surface");
-        wl_resource_destroy(resource);
-        return;
-    }
-
-    class Popup
+    class Popup : public Surface::RoleHandler
     {
     public:
         Popup(Surface *s, Surface *p, wl_resource *r, int x_, int y_)
@@ -301,37 +299,38 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
             , x(x_)
             , y(y_)
         {
-            s->setRole(&role, [this](int, int) {
-                if (surface->views().isEmpty()) {
-                    int w = surface->width();
-                    int h = surface->height();
-                    for (View *view: parent->views()) {
-                        View *v = new View(surface);
-                        v->setTransformParent(view);
-
-                        Output *o = view->output();
-                        int x_ = x > 0 ? x : 0;
-                        if (x_ + w > o->width()) {
-                            x_ = o->width() - w;
-                        }
-                        int y_ = y > 0 ? y : 0;
-                        if (y_ + h > o->height()) {
-                            y_ = o->height() - h;
-                        }
-                        v->setPos(x_, y_);
-                        view->layer()->addView(v);
-                        v->update();
-
-                        connect(view, &QObject::destroyed, v, &QObject::deleteLater);
-                    }
-                }
-            });
         }
         ~Popup() {
-            surface->setRole(&role, nullptr);
             qDeleteAll(surface->views());
             delete grab;
         }
+        void configure(int x, int y) override
+        {
+            if (surface->views().isEmpty()) {
+                int w = surface->width();
+                int h = surface->height();
+                for (View *view: parent->views()) {
+                    View *v = new View(surface);
+                    v->setTransformParent(view);
+
+                    Output *o = view->output();
+                    int x_ = x > 0 ? x : 0;
+                    if (x_ + w > o->width()) {
+                        x_ = o->width() - w;
+                    }
+                    int y_ = y > 0 ? y : 0;
+                    if (y_ + h > o->height()) {
+                        y_ = o->height() - h;
+                    }
+                    v->setPos(x_, y_);
+                    view->layer()->addView(v);
+                    v->update();
+
+                    connect(view, &QObject::destroyed, v, &QObject::deleteLater);
+                }
+            }
+        }
+        void move(Seat *) override {}
 
         Surface *surface;
         Surface *parent;
@@ -416,6 +415,11 @@ void DesktopShell::unlock()
 void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
 {
     Surface *surface = Surface::fromResource(surfaceResource);
+
+    if (!surface->setRole("desktop_shell_grab_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
+        return;
+    }
+
     if (m_grabView) {
         if (surface == m_grabView->surface()) {
             return;
@@ -459,7 +463,10 @@ void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceR
 {
     Output *output = Output::fromResource(outputResource);
     Surface *surface = Surface::fromResource(surfaceResource);
-    output->setOverlay(surface);
+
+    if (surface->setRole("desktop_shell_overlay_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
+        output->setOverlay(surface);
+    }
 }
 
 void DesktopShell::minimizeWindows()

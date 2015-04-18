@@ -31,30 +31,24 @@ struct Listener {
     Surface *surface;
 };
 
+void Surface::destroy(wl_listener *listener, void *data)
+{
+    Surface *surface = reinterpret_cast<Listener *>(listener)->surface;
+    surface->m_surface = nullptr;
+    delete surface;
+}
+
 Surface::Surface(weston_surface *surface, QObject *p)
        : Object(p)
        , m_surface(surface)
-       , m_role(nullptr)
-       , m_configureHandler(nullptr)
+       , m_roleHandler(nullptr)
        , m_listener(new Listener)
        , m_activable(true)
        , m_workspaceMask(-1)
 {
-    if (surface->configure) {
-        qFatal("Error: trying to create a Surface for an already taken weston_surface.");
-    }
-
-    m_listener->listener.notify = [](wl_listener *listener, void *data)
-    {
-        Surface *surface = reinterpret_cast<Listener *>(listener)->surface;
-        surface->m_surface = nullptr;
-        delete surface;
-    };
+    m_listener->listener.notify = destroy;
     m_listener->surface = this;
     wl_signal_add(&surface->destroy_signal, &m_listener->listener);
-
-    surface->configure_private = this;
-    surface->configure = configure;
 }
 
 Surface::~Surface()
@@ -93,25 +87,35 @@ void Surface::damage()
     weston_surface_damage(m_surface);
 }
 
-void Surface::setRole(Role *role, const ConfigureHandler &handler)
+bool Surface::setRole(const char *roleName, wl_resource *errorResource, uint32_t errorCode)
 {
-    if (m_role && m_role != role) {
-        qWarning("The surface has a different role already.");
-        return;
+    if (weston_surface_set_role(m_surface, roleName, errorResource, errorCode) == 0) {
+        m_surface->configure_private = this;
+        m_surface->configure = configure;
+        return true;
     }
-
-    m_role = role;
-    m_configureHandler = handler;
+    return false;
 }
 
-Surface::Role *Surface::role() const
+void Surface::setRoleHandler(RoleHandler *handler)
 {
-    return m_role;
+    if (m_roleHandler) {
+        m_roleHandler->surface = nullptr;
+    }
+    m_roleHandler = handler;
+    if (handler) {
+        handler->surface = nullptr;
+    }
 }
 
-Surface::ConfigureHandler Surface::configureHandler() const
+const char *Surface::role() const
 {
-    return m_configureHandler;
+    return m_surface->role_name;
+}
+
+Surface::RoleHandler *Surface::roleHandler() const
+{
+    return m_roleHandler;
 }
 
 void Surface::setWorkspaceMask(int mask)
@@ -139,15 +143,22 @@ Surface *Surface::activate()
     return this;
 }
 
+void Surface::move(Seat *seat)
+{
+    if (m_surface->configure == configure && m_roleHandler) {
+        m_roleHandler->move(seat);
+    }
+}
+
 Surface *Surface::fromSurface(weston_surface *surf)
 {
     if (surf->configure == configure) {
         return static_cast<Surface *>(surf->configure_private);
-    } else if (!surf->configure && !surf->configure_private) {
-        return new Surface(surf);
+    } else if (wl_listener *listener = wl_signal_get(&surf->destroy_signal, destroy)) {
+        return reinterpret_cast<Listener *>(listener)->surface;
     }
 
-    return nullptr;
+    return new Surface(surf);
 }
 
 Surface *Surface::fromResource(wl_resource *res)
@@ -159,8 +170,15 @@ Surface *Surface::fromResource(wl_resource *res)
 void Surface::configure(weston_surface *s, int32_t x, int32_t y)
 {
     Surface *surf = static_cast<Surface *>(s->configure_private);
-    if (surf->m_role && surf->m_configureHandler) {
-        surf->m_configureHandler(x, y);
+    if (surf->m_roleHandler) {
+        surf->m_roleHandler->configure(x, y);
+    }
+}
+
+Surface::RoleHandler::~RoleHandler()
+{
+    if (surface) {
+        surface->setRoleHandler(nullptr);
     }
 }
 

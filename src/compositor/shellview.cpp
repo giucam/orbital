@@ -62,7 +62,7 @@ public:
 };
 
 ShellView::ShellView(ShellSurface *surf)
-         : View(surf)
+         : View(surf->surface())
          , m_surface(surf)
          , m_designedOutput(nullptr)
          , m_initialPosSet(false)

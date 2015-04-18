@@ -45,11 +45,11 @@ class Seat;
 class Compositor;
 struct Listener;
 
-class ShellSurface : public Surface
+class ShellSurface : public Object, public Surface::RoleHandler
 {
     Q_OBJECT
 public:
-    ShellSurface(Shell *shell, weston_surface *surface);
+    ShellSurface(Shell *shell, Surface *surface);
     ~ShellSurface();
 
     typedef std::function<void (int, int)> ConfigureSender;
@@ -72,6 +72,7 @@ public:
         BottomRight = Bottom | Right
     };
 
+    Surface *surface() const { return m_surface; }
     ShellView *viewForOutput(Output *o);
     void setWorkspace(Workspace *ws);
     Compositor *compositor() const;
@@ -108,7 +109,10 @@ public:
     Maybe<QPoint> cachedPos() const;
     pid_t pid() const { return m_pid; }
 
-    static ShellSurface *fromSurface(weston_surface *s);
+    static ShellSurface *fromSurface(Surface *s);
+
+protected:
+    void configure(int x, int y) override;
 
 signals:
     void mapped();
@@ -122,7 +126,6 @@ signals:
 private:
     void parentSurfaceDestroyed();
     QRect surfaceTreeBoundingBox() const;
-    void configure(int x, int y);
     void configureToplevel(bool map, bool maximized, bool fullscreen, int dx, int dy);
     void updateState();
     void sendConfigure(int w, int h);
@@ -134,6 +137,7 @@ private:
     inline QString cacheId() const;
 
     Shell *m_shell;
+    Surface *m_surface;
     ConfigureSender m_configureSender;
     Workspace *m_workspace;
     QHash<int, ShellView *> m_views;

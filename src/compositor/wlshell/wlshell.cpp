@@ -49,22 +49,15 @@ void WlShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wl_resource_set_implementation(resource, &shell_implementation, this, nullptr);
 }
 
-ShellSurface *WlShell::getShellSurface(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *surface_resource)
+void WlShell::getShellSurface(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *surface_resource)
 {
-    weston_surface *surface = static_cast<weston_surface *>(wl_resource_get_user_data(surface_resource));
+    Surface *surface = Surface::fromResource(surface_resource);
 
-    if (surface->configure) {
-        wl_resource_post_error(surface_resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "The surface has a role already");
-        return nullptr;
+    if (surface->setRole("wl_shell_surface", resource, WL_SHELL_ERROR_ROLE)) {
+        ShellSurface *shsurf = m_shell->createShellSurface(surface);
+        WlShellSurface *wlss = new WlShellSurface(this, shsurf, client, id);
+        shsurf->addInterface(wlss);
     }
-
-    ShellSurface *shsurf = m_shell->createShellSurface(surface);
-    WlShellSurface *wlss = new WlShellSurface(this, shsurf, client, id);
-    shsurf->addInterface(wlss);
-
-//     wlss->responsivenessChangedSignal.connect(this, &WlShell::surfaceResponsiveness);
-//
-    return shsurf;
 }
 //
 // void WlShell::pointerFocus(ShellSeat *, weston_pointer *pointer)

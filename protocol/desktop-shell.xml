@@ -7,6 +7,10 @@
             background, panels and locking surfaces.
         </description>
 
+        <enum name="error">
+            <entry name="role" value="0" summary="given wl_surface has another role"/>
+        </enum>
+
         <request name="set_background">
             <arg name="output" type="object" interface="wl_output"/>
             <arg name="surface" type="object" interface="wl_surface"/>
@@ -288,6 +292,11 @@
     </interface>
 
     <interface name="desktop_shell_splash" version="1">
+
+        <enum name="error">
+            <entry name="role" value="0" summary="given wl_surface has another role"/>
+        </enum>
+
         <request name="set_surface">
             <arg name="output" type="object" interface="wl_output"/>
             <arg name="surface" type="object" interface="wl_surface"/>
@@ -296,6 +305,11 @@
     </interface>
 
     <interface name="notifications_manager" version="1">
+
+        <enum name="error">
+            <entry name="role" value="0" summary="given wl_surface has another role"/>
+        </enum>
+
         <request name="push_notification">
             <arg name="id" type="new_id" interface="notification_surface"/>
             <arg name="surface" type="object" interface="wl_surface"/>
@@ -317,6 +331,11 @@
     </interface>
 
     <interface name="orbital_launcher" version="1">
+
+        <enum name="error">
+            <entry name="role" value="0" summary="given wl_surface has another role"/>
+        </enum>
+
         <request name="get_launcher_surface">
             <arg name="id" type="new_id" interface="orbital_launcher_surface"/>
             <arg name="surface" type="object" interface="wl_surface"/>

@@ -26,7 +26,6 @@
 
 #include "interface.h"
 
-struct weston_surface;
 
 namespace Orbital {
 
@@ -43,6 +42,7 @@ class Pager;
 class Output;
 class Client;
 class FocusScope;
+class Surface;
 enum class PointerCursor: unsigned int;
 enum class PointerAxis : unsigned char;
 
@@ -60,7 +60,7 @@ public:
     Compositor *compositor() const;
     Pager *pager() const;
     Workspace *createWorkspace();
-    ShellSurface *createShellSurface(weston_surface *surface);
+    ShellSurface *createShellSurface(Surface *surface);
     QList<Workspace *> workspaces() const;
     QList<ShellSurface *> surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);

@@ -110,19 +110,19 @@ public:
         : client(c)
         , shsurf(ss)
     {
-        connect(ss, &Surface::pointerFocusEnter, this, &XWlSurface::enter);
-        connect(ss, &Surface::pointerFocusLeave, this, &XWlSurface::leave);
+        connect(ss->surface(), &Surface::pointerFocusEnter, this, &XWlSurface::enter);
+        connect(ss->surface(), &Surface::pointerFocusLeave, this, &XWlSurface::leave);
         leave();
     }
 
     void enter()
     {
-        client->send_position(shsurf->surface(), 0, 0);
+        client->send_position(shsurf->surface()->surface(), 0, 0);
     }
 
     void leave()
     {
-        client->send_position(shsurf->surface(), 10000, 10000);
+        client->send_position(shsurf->surface()->surface(), 10000, 10000);
     }
 
     const weston_shell_client *client;
@@ -140,7 +140,7 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.shell = this;
     compositor->shell_interface.create_shell_surface = [](void *shell, weston_surface *surface, const weston_shell_client *client) {
         XWayland *xwl = static_cast<XWayland *>(shell);
-        ShellSurface *shsurf = xwl->m_shell->createShellSurface(surface);
+        ShellSurface *shsurf = xwl->m_shell->createShellSurface(Surface::fromSurface(surface));
         shsurf->setConfigureSender([client, surface](int w, int h) {
             client->send_configure(surface, w, h);
         });

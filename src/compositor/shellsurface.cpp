@@ -38,9 +38,10 @@ namespace Orbital
 
 QHash<QString, QPoint> ShellSurface::s_posCache;
 
-ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
-            : Surface(surface, shell)
+ShellSurface::ShellSurface(Shell *shell, Surface *surface)
+            : Object()
             , m_shell(shell)
+            , m_surface(surface)
             , m_configureSender(nullptr)
             , m_workspace(nullptr)
             , m_resizeEdges(Edges::None)
@@ -52,8 +53,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
             , m_transient({ 0, 0, false })
             , m_state({ QSize(), false, false })
 {
-    static Role role;
-    setRole(&role, [this](int x, int y) { configure(x, y); });
+    surface->setRoleHandler(this);
 
     for (Output *o: shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this);
@@ -63,7 +63,7 @@ ShellSurface::ShellSurface(Shell *shell, weston_surface *surface)
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
 
-    wl_client_get_credentials(client(), &m_pid, NULL, NULL);
+    wl_client_get_credentials(surface->client(), &m_pid, NULL, NULL);
 }
 
 ShellSurface::~ShellSurface()
@@ -82,7 +82,7 @@ ShellView *ShellSurface::viewForOutput(Output *o)
 void ShellSurface::setWorkspace(Workspace *ws)
 {
     m_workspace = ws;
-    setWorkspaceMask(ws->mask());
+    m_surface->setWorkspaceMask(ws->mask());
     m_forceMap = true;
     configure(0, 0);
 }
@@ -137,8 +137,8 @@ void ShellSurface::connectParent()
 {
     disconnectParent();
     m_parentConnections << connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
-    m_parentConnections << connect(this, &Surface::activated, m_parent, &Surface::activated);
-    m_parentConnections << connect(this, &Surface::deactivated, m_parent, &Surface::deactivated);
+    m_parentConnections << connect(m_surface, &Surface::activated, m_parent, &Surface::activated);
+    m_parentConnections << connect(m_surface, &Surface::deactivated, m_parent, &Surface::deactivated);
 }
 
 void ShellSurface::disconnectParent()
@@ -316,7 +316,7 @@ void ShellSurface::unmap()
     for (ShellView *v: m_views) {
         v->cleanupAndUnmap();
     }
-    emit unmapped();
+    emit m_surface->unmapped();
 }
 
 void ShellSurface::sendPopupDone()
@@ -342,7 +342,7 @@ void ShellSurface::restore()
 void ShellSurface::close()
 {
     pid_t pid;
-    wl_client_get_credentials(client(), &pid, NULL, NULL);
+    wl_client_get_credentials(m_surface->client(), &pid, NULL, NULL);
 
     if (pid != getpid()) {
         kill(pid, SIGTERM);
@@ -437,9 +437,9 @@ QRect ShellSurface::surfaceTreeBoundingBox() const
     pixman_box32_t *box;
     weston_subsurface *subsurface;
 
-    pixman_region32_init_rect(&region, 0, 0, width(), height());
+    pixman_region32_init_rect(&region, 0, 0, m_surface->width(), m_surface->height());
 
-    wl_list_for_each(subsurface, &surface()->subsurface_list, parent_link) {
+    wl_list_for_each(subsurface, &surface()->surface()->subsurface_list, parent_link) {
         pixman_region32_union_rect(&region, &region,
                                    subsurface->position.x,
                                    subsurface->position.y,
@@ -456,15 +456,15 @@ QRect ShellSurface::surfaceTreeBoundingBox() const
 
 void ShellSurface::configure(int x, int y)
 {
-    if (width() == 0 && m_popup.seat) {
-        m_popup.seat->ungrabPopup(this);
-    }
+    if (m_surface->width() == 0) {
+        if (m_popup.seat) {
+            m_popup.seat->ungrabPopup(this);
+        }
 
-    if (width() == 0) {
         m_type = Type::None;
         m_workspace = nullptr;
         emit contentLost();
-        emit unmapped();
+        emit m_surface->unmapped();
         return;
     }
 
@@ -476,9 +476,9 @@ void ShellSurface::configure(int x, int y)
         return;
     }
 
-    setActivable(m_type != Type::Transient || !m_transient.inactive);
+    m_surface->setActivable(m_type != Type::Transient || !m_transient.inactive);
 
-    bool wasMapped = isMapped();
+    bool wasMapped = m_surface->isMapped();
     m_shell->configure(this);
     if (!m_workspace) {
         return;
@@ -551,9 +551,9 @@ void ShellSurface::configure(int x, int y)
             view->configureXWayland(m_transient.x, m_transient.y);
         }
     }
-    damage();
+    m_surface->damage();
 
-    if (!wasMapped && isMapped()) {
+    if (!wasMapped && m_surface->isMapped()) {
         emit mapped();
     }
 }
@@ -632,9 +632,12 @@ void ShellSurface::outputRemoved(Output *o)
     }
 }
 
-ShellSurface *ShellSurface::fromSurface(weston_surface *s)
+ShellSurface *ShellSurface::fromSurface(Surface *surface)
 {
-    return qobject_cast<ShellSurface *>(Surface::fromSurface(s));
+    if (ShellSurface *ss = dynamic_cast<ShellSurface *>(surface->roleHandler())) {
+        return ss;
+    }
+    return nullptr;
 }
 
 }

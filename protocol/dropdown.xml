@@ -2,6 +2,10 @@
 <protocol name="orbital_dropdown">
     <interface name="orbital_dropdown" version="1">
 
+        <enum name="error">
+            <entry name="role" value="0" summary="given wl_surface has another role"/>
+        </enum>
+
         <request name="get_dropdown_surface">
             <arg name="id" type="new_id" interface="orbital_dropdown_surface"/>
             <arg name="surface" type="object" interface="wl_surface"/>

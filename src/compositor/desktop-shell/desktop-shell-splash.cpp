@@ -35,7 +35,7 @@
 namespace Orbital {
 
 
-class Splash : public QObject
+class Splash : public QObject, public Surface::RoleHandler
 {
 public:
     Splash(DesktopShellSplash *p, View *v)
@@ -71,10 +71,16 @@ public:
 
     void outputDestroyed()
     {
-        view->surface()->setRole(view->surface()->role(), nullptr);
         parent->m_splashes.remove(this);
         delete this;
     }
+
+    void configure(int x, int y) override
+    {
+        view->output()->repaint();
+    }
+
+    void move(Seat *seat) override {}
 
 private:
     DesktopShellSplash *parent;
@@ -123,13 +129,11 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
     Surface *surf = Surface::fromResource(surfaceResource);
     Output *out = Output::fromResource(outputResource);
 
+    if (!surf->setRole("desktop_shell_splash", m_resource, DESKTOP_SHELL_SPLASH_ERROR_ROLE)) {
+        return;
+    }
+
     int x = out->x(), y = out->y();
-    static Surface::Role role;
-
-    surf->setRole(&role, [out](int x, int y) {
-        out->repaint();
-    });
-
     View *view = new View(surf);
     view->setPos(x, y);
     m_shell->compositor()->rootLayer()->addView(view);

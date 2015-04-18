@@ -40,12 +40,13 @@
 
 namespace Orbital {
 
-class LauncherSurface : public Surface
+class LauncherSurface : public QObject, public Surface::RoleHandler
 {
 public:
-    LauncherSurface(Shell *shell, weston_surface *s, wl_resource *res)
-        : Surface(s)
+    LauncherSurface(Shell *shell, Surface *s, wl_resource *res)
+        : QObject()
         , m_shell(shell)
+        , m_surface(s)
         , m_resource(res)
         , m_active(false)
         , m_fadeIn(false)
@@ -57,10 +58,9 @@ public:
             delete static_cast<LauncherSurface *>(wl_resource_get_user_data(res));
         });
 
-        static Surface::Role role;
-        setRole(&role, [this](int, int) { configure(); });
+        s->setRoleHandler(this);
 
-        m_view = new View(this);
+        m_view = new View(s);
         m_view->setAlpha(0);
         m_view->update();
         m_hidden = true;
@@ -72,8 +72,8 @@ public:
         connect(&m_showAnimation, &Animation::update, this, &LauncherSurface::updateAnimation);
         m_showAnimation.setSpeed(0.005);
 
-        connect(this, &Surface::activated, [this]() { m_active = true; });
-        connect(this, &Surface::deactivated, [this]() { m_active = false; });
+        connect(s, &Surface::activated, [this]() { m_active = true; });
+        connect(s, &Surface::deactivated, [this]() { m_active = false; });
     }
 
     ~LauncherSurface()
@@ -83,7 +83,7 @@ public:
         }
     }
 
-    void configure()
+    void configure(int x, int y) override
     {
         if (m_fadeIn) {
             m_fadeIn = false;
@@ -137,7 +137,10 @@ public:
         }
     }
 
+    void move(Seat *seat) override {}
+
     Shell *m_shell;
+    Surface *m_surface;
     wl_resource *m_resource;
     View *m_view;
     Animation m_showAnimation;
@@ -173,15 +176,13 @@ void DesktopShellLauncher::bind(wl_client *client, uint32_t version, uint32_t id
 void DesktopShellLauncher::getLauncherSurface(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *surfaceResource)
 {
     wl_resource *res = wl_resource_create(client, &orbital_launcher_surface_interface, wl_resource_get_version(resource), id);
-    weston_surface *ws = static_cast<weston_surface *>(wl_resource_get_user_data(surfaceResource));
+    Surface *surf = Surface::fromResource(surfaceResource);
 
-    if (ws->configure) {
-        wl_resource_post_error(surfaceResource, WL_DISPLAY_ERROR_INVALID_OBJECT, "The surface has a role already");
-        wl_resource_destroy(res);
+    if (!surf->setRole("orbital_launcher_surface", resource, ORBITAL_LAUNCHER_ERROR_ROLE)) {
         return;
     }
 
-    m_surface = new LauncherSurface(m_shell, ws, res);
+    m_surface = new LauncherSurface(m_shell, surf, res);
 }
 
 void DesktopShellLauncher::toggle(Seat *s)

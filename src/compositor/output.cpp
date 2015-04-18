@@ -103,7 +103,7 @@ Output::Output(weston_output *out)
 Output::~Output()
 {
     if (m_backgroundSurface) {
-        m_backgroundSurface->setRole(m_backgroundSurface->role(), nullptr);
+        delete m_backgroundSurface->roleHandler();
     }
 
     qDeleteAll(m_panels);
@@ -122,24 +122,22 @@ Workspace *Output::currentWorkspace() const
     return m_currentWs;
 }
 
-class OutputSurface
+class OutputSurface : public Surface::RoleHandler
 {
 public:
     // TODO: delete this
-    OutputSurface(Surface *s, Output *o, Surface::Role *role)
+    OutputSurface(Surface *s, Output *o)
         : surface(s)
         , view(new View(s))
     {
-        s->setRole(role, [this](int sx, int sy) {
-            view->update();
-        });
         s->setActivable(false);
         view->setOutput(o);
     }
-    ~OutputSurface()
+    void configure(int x, int y) override
     {
-        surface->setRole(surface->role(), nullptr);
+        view->update();
     }
+    void move(Seat *) override {}
 
     Surface *surface;
     View *view;
@@ -147,15 +145,31 @@ public:
 
 void Output::setBackground(Surface *surface)
 {
-    static Surface::Role role;
+    class Background : public Surface::RoleHandler
+    {
+    public:
+        void configure(int x, int y) override
+        {
+            weston_output_schedule_repaint(m_output);
+        }
+        void move(Seat *) override {}
 
+        weston_output *m_output;
+    };
+
+    Surface::RoleHandler *handler = nullptr;
     if (m_backgroundSurface) {
-        m_backgroundSurface->setRole(m_backgroundSurface->role(), nullptr);
+        handler = m_backgroundSurface->roleHandler();
+        m_backgroundSurface->setRoleHandler(nullptr);
     }
+
+    if (!handler) {
+        handler = new Background;
+        static_cast<Background *>(handler)->m_output = m_output;
+    }
+
     m_backgroundSurface = surface;
-    surface->setRole(&role, [this](int sx, int sy) {
-        weston_output_schedule_repaint(m_output);
-    });
+    surface->setRoleHandler(handler);
     surface->setActivable(false);
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
@@ -166,7 +180,7 @@ void Output::setBackground(Surface *surface)
 
 void Output::setPanel(Surface *surface, int pos)
 {
-    class PanelSurface
+    class PanelSurface : public Surface::RoleHandler
     {
     public:
         // TODO: delete this
@@ -175,21 +189,19 @@ void Output::setPanel(Surface *surface, int pos)
             , view(new View(s))
             , notified(false)
         {
-            static Surface::Role role;
-            s->setRole(&role, [this, o](int sx, int sy) {
-                view->update();
-                if (!notified) {
-                    emit o->availableGeometryChanged();
-                    notified = true;
-                }
-            });
+            s->setRoleHandler(this);
             s->setActivable(false);
             view->setOutput(o);
         }
-        ~PanelSurface()
+        void configure(int x, int y) override
         {
-            surface->setRole(surface->role(), nullptr);
+            view->update();
+            if (!notified) {
+                emit view->output()->availableGeometryChanged();
+                notified = true;
+            }
         }
+        void move(Seat *) override {}
 
         Surface *surface;
         View *view;
@@ -205,10 +217,9 @@ void Output::setPanel(Surface *surface, int pos)
 
 void Output::setOverlay(Surface *surface)
 {
-    static Surface::Role role;
     pixman_region32_fini(&surface->surface()->pending.input);
     pixman_region32_init_rect(&surface->surface()->pending.input, 0, 0, 0, 0);
-    OutputSurface *s = new OutputSurface(surface, this, &role);
+    OutputSurface *s = new OutputSurface(surface, this);
     m_compositor->overlayLayer()->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() { m_overlays.removeOne(s->view); delete s; });
@@ -219,8 +230,7 @@ void Output::setLockSurface(Surface *surface)
 {
     delete m_lockSurfaceView;
 
-    static Surface::Role role;
-    OutputSurface *s = new OutputSurface(surface, this, &role);
+    OutputSurface *s = new OutputSurface(surface, this);
     surface->setActivable(true);
     m_lockLayer->addView(s->view);
     m_lockSurfaceView = s->view;
