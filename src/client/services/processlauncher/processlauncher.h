@@ -50,9 +50,12 @@ public:
 
     Q_INVOKABLE void start(const QString &process);
     Q_INVOKABLE QByteArray readAllStandardOutput();
+    Q_INVOKABLE QByteArray readAllStandardError();
 
 signals:
     void finished();
+    void readyReadStandardOutput();
+    void readyReadStandardError();
 
 private:
     QProcess m_process;

@@ -44,6 +44,8 @@ Process::Process(QObject *p)
        : QObject(p)
 {
     connect(&m_process, (void (QProcess::*)(int, QProcess::ExitStatus))&QProcess::finished, this, &Process::finished);
+    connect(&m_process, &QProcess::readyReadStandardOutput, this, &Process::readyReadStandardOutput);
+    connect(&m_process, &QProcess::readyReadStandardError, this, &Process::readyReadStandardError);
 }
 
 void Process::start(const QString &command)
@@ -56,4 +58,9 @@ void Process::start(const QString &command)
 QByteArray Process::readAllStandardOutput()
 {
     return m_process.readAllStandardOutput();
+}
+
+QByteArray Process::readAllStandardError()
+{
+    return m_process.readAllStandardError();
 }
