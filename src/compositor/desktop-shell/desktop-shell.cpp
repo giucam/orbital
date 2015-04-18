@@ -299,12 +299,13 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
             , x(x_)
             , y(y_)
         {
+            s->setRoleHandler(this);
         }
         ~Popup() {
             qDeleteAll(surface->views());
             delete grab;
         }
-        void configure(int x, int y) override
+        void configure(int, int) override
         {
             if (surface->views().isEmpty()) {
                 int w = surface->width();
