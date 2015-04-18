@@ -62,6 +62,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
+    connect(surface, &QObject::destroyed, [this]() { m_views.clear(); delete this; });
 
     wl_client_get_credentials(surface->client(), &m_pid, NULL, NULL);
 }
