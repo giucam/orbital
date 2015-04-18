@@ -66,6 +66,7 @@ public:
         connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
         connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
         connect(c, &Compositor::outputRemoved, this, &DropdownSurface::outputRemoved);
+        connect(s, &QObject::destroyed, [this]() { delete this; });
     }
     ~DropdownSurface()
     {
