@@ -515,7 +515,7 @@ void ShellSurface::configure(int x, int y)
             view->configureToplevel(map || !view->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup && typeChanged) {
-        ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);
+        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
             for (View *view: m_parent->views()) {
                 ShellView *v = new ShellView(this);
@@ -533,7 +533,7 @@ void ShellSurface::configure(int x, int y)
         }
         m_popup.seat->grabPopup(this);
     } else if (m_type == Type::Transient) {
-        ShellSurface *parent = qobject_cast<ShellSurface *>(m_parent);
+        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
             View *parentView = View::fromView(container_of(m_parent->surface()->views.next, weston_view, surface_link));
             ShellView *view = viewForOutput(parentView->output());

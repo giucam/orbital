@@ -436,7 +436,7 @@ void Shell::giveFocus(Seat *seat)
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
     if (!useSeparateRaise) {
-        ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
+        ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
         if (shsurf && shsurf->isFullscreen()) {
             return;
         }
@@ -461,7 +461,7 @@ void Shell::raise(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = qobject_cast<ShellSurface *>(focus->surface());
+    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
     if (shsurf && shsurf->isFullscreen()) {
         return;
     }
