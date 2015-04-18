@@ -111,7 +111,7 @@ void Surface::setRoleHandler(RoleHandler *handler)
     }
     m_roleHandler = handler;
     if (handler) {
-        handler->surface = nullptr;
+        handler->surface = this;
     }
 }
 
@@ -185,7 +185,7 @@ void Surface::configure(weston_surface *s, int32_t x, int32_t y)
 Surface::RoleHandler::~RoleHandler()
 {
     if (surface) {
-        surface->setRoleHandler(nullptr);
+        surface->m_roleHandler = nullptr;
     }
 }
 

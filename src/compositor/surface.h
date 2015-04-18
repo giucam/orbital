@@ -109,6 +109,7 @@ private:
     int m_workspaceMask;
 
     friend View;
+    friend RoleHandler;
 };
 
 }
