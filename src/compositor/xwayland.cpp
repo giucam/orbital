@@ -140,7 +140,9 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.shell = this;
     compositor->shell_interface.create_shell_surface = [](void *shell, weston_surface *surface, const weston_shell_client *client) {
         XWayland *xwl = static_cast<XWayland *>(shell);
-        ShellSurface *shsurf = xwl->m_shell->createShellSurface(Surface::fromSurface(surface));
+        Surface *surf = Surface::fromSurface(surface);
+        surf->setRole("xwayland_surface");
+        ShellSurface *shsurf = xwl->m_shell->createShellSurface(surf);
         shsurf->setConfigureSender([client, surface](int w, int h) {
             client->send_configure(surface, w, h);
         });

@@ -70,6 +70,7 @@ public:
     void damage();
 
     bool setRole(const char *roleName, wl_resource *errorResource, uint32_t errorCode);
+    void setRole(const char *roleName);
     void setRoleHandler(RoleHandler *handler);
     const char *role() const;
     RoleHandler *roleHandler() const;

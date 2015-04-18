@@ -97,6 +97,13 @@ bool Surface::setRole(const char *roleName, wl_resource *errorResource, uint32_t
     return false;
 }
 
+void Surface::setRole(const char *roleName)
+{
+    m_surface->role_name = roleName;
+    m_surface->configure_private = this;
+    m_surface->configure = configure;
+}
+
 void Surface::setRoleHandler(RoleHandler *handler)
 {
     if (m_roleHandler) {
