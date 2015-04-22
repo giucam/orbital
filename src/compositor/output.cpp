@@ -129,6 +129,7 @@ public:
     OutputSurface(Surface *s, Output *o)
         : surface(s)
         , view(new View(s))
+        , output(o)
     {
         s->setRoleHandler(this);
         s->setActivable(false);
@@ -136,12 +137,13 @@ public:
     }
     void configure(int x, int y) override
     {
-        view->update();
+        output->repaint();
     }
     void move(Seat *) override {}
 
     Surface *surface;
     View *view;
+    Output *output;
 };
 
 void Output::setBackground(Surface *surface)
