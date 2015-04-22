@@ -42,10 +42,15 @@ void ProcessLauncher::launch(const QString &process)
 
 Process::Process(QObject *p)
        : QObject(p)
+       , m_state(State::NotRunning)
 {
     connect(&m_process, (void (QProcess::*)(int, QProcess::ExitStatus))&QProcess::finished, this, &Process::finished);
     connect(&m_process, &QProcess::readyReadStandardOutput, this, &Process::readyReadStandardOutput);
     connect(&m_process, &QProcess::readyReadStandardError, this, &Process::readyReadStandardError);
+    connect(&m_process, &QProcess::stateChanged, [this](QProcess::ProcessState st) {
+        m_state = (State)st;
+        emit stateChanged();
+    });
 }
 
 void Process::start(const QString &command)

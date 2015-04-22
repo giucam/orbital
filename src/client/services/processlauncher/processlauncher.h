@@ -45,8 +45,18 @@ public slots:
 class Process : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(State state READ state NOTIFY stateChanged)
 public:
+    enum class State {
+        NotRunning = 0,
+        Starting = 1,
+        Running = 2
+    };
+    Q_ENUMS(State);
+
     Process(QObject *p = nullptr);
+
+    State state() const { return m_state; }
 
     Q_INVOKABLE void start(const QString &process);
     Q_INVOKABLE QByteArray readAllStandardOutput();
@@ -56,9 +66,11 @@ signals:
     void finished();
     void readyReadStandardOutput();
     void readyReadStandardError();
+    void stateChanged();
 
 private:
     QProcess m_process;
+    State m_state;
 };
 
 #endif
