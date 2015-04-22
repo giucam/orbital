@@ -40,6 +40,45 @@ cmake -DCMAKE_INSTALL_PREFIX=/my/prefix ..
 Now you can just run *orbital*, to run it if you are inside an X or a Wayland
 session. To start its own dedicated session run *orbital-launch* from a tty.
 
+If you are using a systemd system you can use this unit to start Orbital at
+startup automatically:
+```
+[Unit]
+Description=Orbital compositor
+
+[Service]
+ExecStartPre=/usr/bin/chvt %I
+ExecStart=/usr/local/bin/orbital-launch
+User=giulio
+TTYPath=/dev/tty%I
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+PAMName=login
+WorkingDirectory=/home/giulio
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=QT_WAYLAND_FORCE_DPI=96
+Environment=QT_PLUGIN_PATH=/usr/lib/kde4/plugins/
+Environment=QT_QPA_PLATFORMTHEME=qt5ct
+Restart=always
+RestartSec=2
+StandardInput=tty
+StandardError=journal
+StandardOutput=journal
+Nice=-5
+
+[Install]
+WantedBy=graphical.target
+```
+
+Change the 'User' option to your own user and then enable it with
+```
+sudo systemctl enable orbital@7
+```
+for having it run on tty7, or change the option to the tty you prefer. Note that
+there must not be getty running on that tty or else the unit will fail. If you
+know how to get it running on all ttys please tell me ;).
+
 ## Configuring Orbital
 The first time you start Orbital it will load a default configuration. If you
 save the configuration (by closing the config dialog or by going from edit mode
