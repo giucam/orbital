@@ -46,6 +46,7 @@ Item {
                     id: image
                     width: 32
                     height: 32
+                    fillMode: Image.PreserveAspectFit
                     anchors.left: parent.left
                     anchors.margins: content.margin
                     anchors.verticalCenter: parent.verticalCenter
