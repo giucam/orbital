@@ -45,7 +45,11 @@ Mpris::Mpris(QObject *p)
             : QObject(p)
             , m_pid(0)
             , m_playbackStatus(PlaybackStatus::Stopped)
+            , m_trackLength(0)
+            , m_trackPosition(0)
 {
+    m_posTimer.setInterval(1000);
+    connect(&m_posTimer, &QTimer::timeout, this, &Mpris::updatePos);
 }
 
 Mpris::~Mpris()
@@ -154,7 +158,7 @@ static QDBusPendingCall getProperty(const QString &service, const QString &path,
 
 void Mpris::checkService(const QString &service)
 {
-    QDBusPendingCall call = getProperty(service, mprisPath, mprisInterface, QStringLiteral("Identity"));
+    QDBusPendingCall call = ::getProperty(service, mprisPath, mprisInterface, QStringLiteral("Identity"));
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this, service](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
@@ -173,8 +177,13 @@ void Mpris::checkService(const QString &service)
             QDBusConnection::sessionBus().connect(service, mprisPath, dbusPropertiesInterface,
                                                 QStringLiteral("PropertiesChanged"),
                                                 this, SLOT(propertiesChanged(QString, QMap<QString, QVariant>, QStringList)));
+            QDBusConnection::sessionBus().connect(service, mprisPath, mprisPlayerInterface,
+                                                  QStringLiteral("Seeked"),
+                                                  this, SLOT(seeked(qint64)));
             getMetadata();
+            getPosition();
             getPlaybackStatus();
+            getRate();
         }
     });
 }
@@ -187,20 +196,28 @@ inline void Mpris::setValid(bool v)
     }
 }
 
-void Mpris::getMetadata()
+void Mpris::getProperty(const QString &property, const std::function<void (const QVariant &v)> &func)
 {
-    QDBusPendingCall call = getProperty(m_service, mprisPath, mprisPlayerInterface, QStringLiteral("Metadata"));
+    QDBusPendingCall call = ::getProperty(m_service, mprisPath, mprisPlayerInterface, property);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
-    watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this](QDBusPendingCallWatcher *watcher) {
+    watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [property, func](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
         QDBusPendingReply<QVariant> reply = *watcher;
 
-        QVariantMap md;
         if (reply.isError()) {
-            qDebug("Failed to retrieve mpris metadata.");
+            qDebug("Mpris: failed to retrieve property '%s'.", qPrintable(property));
+            func(QVariant());
         } else {
-            reply.value().value<QDBusArgument>() >> md;
+            func(reply.value());
         }
+    });
+}
+
+void Mpris::getMetadata()
+{
+    getProperty(QStringLiteral("Metadata"), [this](const QVariant &v) {
+        QVariantMap md;
+        v.value<QDBusArgument>() >> md;
         updateMetadata(md);
     });
 }
@@ -208,29 +225,23 @@ void Mpris::getMetadata()
 void Mpris::updateMetadata(const QVariantMap &md)
 {
     m_trackTitle = QString();
+    m_trackLength = 0;
+    m_trackPosition = 0;
     for (auto i = md.begin(); i != md.end(); ++i) {
         if (i.key() == QStringLiteral("xesam:title")) {
             m_trackTitle = i.value().toString();
+        } else if (i.key() == QStringLiteral("mpris:length")) {
+            m_trackLength = i.value().toLongLong() / 1000;
         }
     }
     emit trackTitleChanged();
+    emit trackLengthChanged();
 }
 
 void Mpris::getPlaybackStatus()
 {
-    QDBusPendingCall call = getProperty(m_service, mprisPath, mprisPlayerInterface, QStringLiteral("PlaybackStatus"));
-    QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
-    watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this](QDBusPendingCallWatcher *watcher) {
-        watcher->deleteLater();
-        QDBusPendingReply<QVariant> reply = *watcher;
-
-        QString st;
-        if (reply.isError()) {
-            qDebug("Failed to retrieve mpris metadata.");
-        } else {
-            st = reply.value().toString();
-        }
-        updatePlaybackStatus(st);
+    getProperty(QStringLiteral("PlaybackStatus"), [this](const QVariant &v) {
+        updatePlaybackStatus(v.toString());
     });
 }
 
@@ -238,16 +249,48 @@ void Mpris::updatePlaybackStatus(const QString &st)
 {
     PlaybackStatus old = m_playbackStatus;
 
+    m_posTimer.stop();
     if (st == "Playing") {
         m_playbackStatus = PlaybackStatus::Playing;
+        m_posTimer.start();
     } else if (st == "Paused") {
         m_playbackStatus = PlaybackStatus::Paused;
+        m_trackPosition += m_posTimer.remainingTime();
+        emit trackPositionChanged();
     } else {
         m_playbackStatus = PlaybackStatus::Stopped;
+        m_trackPosition = 0;
+        emit trackPositionChanged();
     }
     if (m_playbackStatus != old) {
         emit playbackStatusChanged();
     }
+}
+
+void Mpris::getRate()
+{
+    getProperty(QStringLiteral("Rate"), [this](const QVariant &v) {
+        updateRate(v.toDouble());
+    });
+}
+
+void Mpris::updateRate(double rate)
+{
+    m_rate = rate;
+    emit rateChanged();
+}
+
+void Mpris::getPosition()
+{
+    getProperty(QStringLiteral("Position"), [this](const QVariant &v) {
+        m_trackPosition = v.toDouble() / 1000;
+    });
+}
+
+void Mpris::updatePos()
+{
+    m_trackPosition += m_posTimer.interval();
+    emit trackPositionChanged();
 }
 
 void Mpris::propertiesChanged(const QString &, const QMap<QString, QVariant> &changed, const QStringList &invalidated)
@@ -266,4 +309,17 @@ void Mpris::propertiesChanged(const QString &, const QMap<QString, QVariant> &ch
     } else if (invalidated.contains(playbackStatus)) {
         getPlaybackStatus();
     }
+
+    static const QString rate = QStringLiteral("Rate");
+    if (changed.contains(rate)) {
+        updateRate(changed.value(rate).toDouble());
+    } else if (invalidated.contains(rate)) {
+        getRate();
+    }
+}
+
+void Mpris::seeked(qint64 time)
+{
+    m_trackPosition = time / 1000;
+    emit trackPositionChanged();
 }

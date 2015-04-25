@@ -20,7 +20,10 @@
 #ifndef MPRISSERVICE_H
 #define MPRISSERVICE_H
 
+#include <functional>
+
 #include <QQmlExtensionPlugin>
+#include <QTimer>
 
 class MprisPlugin : public QQmlExtensionPlugin
 {
@@ -36,6 +39,8 @@ class Mpris : public QObject
     Q_PROPERTY(quint64 pid READ pid WRITE setPid NOTIFY targetChanged)
     Q_PROPERTY(PlaybackStatus playbackStatus READ playbackStatus NOTIFY playbackStatusChanged)
     Q_PROPERTY(QString trackTitle READ trackTitle NOTIFY trackTitleChanged)
+    Q_PROPERTY(quint32 trackLength READ trackLength NOTIFY trackLengthChanged)
+    Q_PROPERTY(quint32 trackPosition READ trackPosition NOTIFY trackPositionChanged)
     Q_OBJECT
 public:
     enum class PlaybackStatus {
@@ -53,6 +58,8 @@ public:
     void setPid(quint64 pid);
     inline PlaybackStatus playbackStatus() const { return m_playbackStatus; }
     inline QString trackTitle() const { return m_trackTitle; }
+    inline quint32 trackLength() const { return m_trackLength; }
+    inline quint32 trackPosition() const { return m_trackPosition; }
 
 public slots:
     void playPause();
@@ -65,25 +72,38 @@ signals:
     bool targetChanged();
     void playbackStatusChanged();
     void trackTitleChanged();
+    void trackLengthChanged();
+    void trackPositionChanged();
+    void rateChanged();
 
 private slots:
     void propertiesChanged(const QString &service, const QMap<QString, QVariant> &, const QStringList &);
+    void seeked(qint64 time);
 
 private:
     void checkConnection();
     void checkServices(const QStringList &services);
     void checkService(const QString &service);
     void setValid(bool v);
+    void getProperty(const QString &property, const std::function<void (const QVariant &v)> &func);
     void getMetadata();
     void updateMetadata(const QVariantMap &md);
     void getPlaybackStatus();
     void updatePlaybackStatus(const QString &st);
+    void getRate();
+    void updateRate(double rate);
+    void getPosition();
+    void updatePos();
 
     bool m_valid;
     quint64 m_pid;
     QString m_service;
     PlaybackStatus m_playbackStatus;
     QString m_trackTitle;
+    quint32 m_trackLength;
+    quint32 m_trackPosition;
+    double m_rate;
+    QTimer m_posTimer;
 };
 
 #endif
