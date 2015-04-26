@@ -51,7 +51,7 @@ Item {
                 } else {
                     controls = incubator.object;
                 }
-            } else {
+            } else if (controls) {
                 controls.destroy();
                 controls = null;
             }
