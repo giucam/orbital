@@ -139,6 +139,13 @@ Item {
             Binding { target: style.item; property: "icon"; value: window ? window.icon : "" }
             Binding { target: style.item; property: "state"; value: window.state }
         }
+
+        Rectangle {
+            width: mpris.trackLength ? parent.width * mpris.trackPosition / mpris.trackLength : 0
+            height: 10
+            y: parent.height - 0.5
+            color: "#C12E78"
+        }
     }
 
     Menu {
