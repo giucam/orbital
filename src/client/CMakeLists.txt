@@ -11,7 +11,7 @@ function(INSTALL_ELEMENT _sources _dir)
             get_filename_component(_abs_ts ${ts} ABSOLUTE)
             get_filename_component(_name ${ts} NAME_WE)
             set(qm "${CMAKE_CURRENT_BINARY_DIR}/${_dir}/${_name}.qm")
-            add_custom_command(OUTPUT ${qm} COMMAND ${LRELEASE_EXECUTABLE} ARGS -qt5 ${_abs_ts} -qm ${qm} DEPENDS ${_abs} VERBATIM)
+            add_custom_command(OUTPUT ${qm} COMMAND ${LRELEASE_EXECUTABLE} ARGS ${_abs_ts} -qm ${qm} DEPENDS ${_abs} VERBATIM)
 
             list(APPEND ${_sources} "${qm}")
             install(FILES ${qm} DESTINATION share/orbital/${_dir})
