@@ -74,6 +74,7 @@ struct Listener {
     wl_listener outputCreatedSignal;
     wl_listener outputMovedSignal;
     wl_listener sessionSignal;
+    wl_listener seatCreatedSignal;
     Compositor *compositor;
 };
 
@@ -269,6 +270,13 @@ bool Compositor::init(const QString &socketName)
         emit listener->compositor->sessionActivated(listener->compositor->m_compositor->session_active);
     };
     wl_signal_add(&m_compositor->session_signal, &m_listener->sessionSignal);
+    m_listener->seatCreatedSignal.notify = [](wl_listener *l, void *data)
+    {
+        Listener *listener = container_of(l, Listener, seatCreatedSignal);
+        weston_seat *s = static_cast<weston_seat *>(data);
+        emit listener->compositor->seatCreated(Seat::fromSeat(s));
+    };
+    wl_signal_add(&m_compositor->seat_created_signal, &m_listener->seatCreatedSignal);
 //     text_backend_init(m_compositor, "");
 
     if (!m_backend->init(m_compositor)) {
