@@ -43,6 +43,7 @@ void MprisPlugin::registerTypes(const char *uri)
 
 Mpris::Mpris(QObject *p)
             : QObject(p)
+            , m_valid(false)
             , m_pid(0)
             , m_playbackStatus(PlaybackStatus::Stopped)
             , m_trackLength(0)
