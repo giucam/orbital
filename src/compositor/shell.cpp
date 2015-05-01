@@ -44,6 +44,7 @@
 #include "focusscope.h"
 #include "clipboard.h"
 #include "dashboard.h"
+#include "gammacontrol.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -71,6 +72,7 @@ Shell::Shell(Compositor *c)
     addInterface(new Dropdown(this));
     addInterface(new Screenshooter(this));
     addInterface(new ClipboardManager(this));
+    addInterface(new GammaControlManager(this));
 
     new ZoomEffect(this);
     new DesktopGrid(this);
