@@ -1,0 +1,8 @@
+
+<protocol name="orbital_clipboard">
+
+    <interface name="orbital_clipboard_manager" version="1">
+        <request name="destroy" type="destructor"/>
+    </interface>
+
+</protocol>

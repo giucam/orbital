@@ -170,7 +170,7 @@ Style {
 
     popup: StyleComponent {
         clip: true
-        property int _margin: head.size + 5
+        property int _margin: head.size
         topContentsMargin: (location == 0 || location == 4) ? _margin : 0
         leftContentsMargin: location == 1 ? _margin : 0
         bottomContentsMargin: location == 2 ? _margin : 0

@@ -42,6 +42,7 @@
 #include "dropdown.h"
 #include "screenshooter.h"
 #include "focusscope.h"
+#include "clipboard.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -68,6 +69,7 @@ Shell::Shell(Compositor *c)
     addInterface(new DesktopShell(this));
     addInterface(new Dropdown(this));
     addInterface(new Screenshooter(this));
+    addInterface(new ClipboardManager(this));
 
     new ZoomEffect(this);
     new DesktopGrid(this);

@@ -26,8 +26,11 @@
 #include <QSet>
 
 struct wl_resource;
+struct wl_client;
 struct weston_seat;
 struct weston_pointer;
+struct weston_pointer_grab;
+struct weston_keyboard;
 
 namespace Orbital {
 
@@ -58,6 +61,8 @@ public:
 
     void activate(FocusScope *scope);
 
+    void sendSelection(wl_client *client);
+
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);
 
@@ -66,6 +71,7 @@ public:
 
 signals:
     void pointerMotion(Pointer *pointer);
+    void selection(Seat *seat);
 
 private:
     void capsUpdated();

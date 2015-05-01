@@ -43,6 +43,7 @@ struct PointerGrab::Grab {
 struct Seat::Listener {
     wl_listener listener;
     wl_listener capsListener;
+    wl_listener selectionListener;
     Seat *seat;
 };
 
@@ -67,6 +68,11 @@ Seat::Seat(Compositor *c, weston_seat *s)
         container_of(listener, Listener, capsListener)->seat->capsUpdated();
     };
     wl_signal_add(&s->updated_caps_signal, &m_listener->capsListener);
+    m_listener->selectionListener.notify = [](wl_listener *l, void *) {
+        Seat *s = container_of(l, Listener, selectionListener)->seat;
+        emit s->selection(s);
+    };
+    wl_signal_add(&s->selection_signal, &m_listener->selectionListener);
 }
 
 Seat::~Seat()
@@ -123,6 +129,11 @@ void Seat::activate(FocusScope *scope)
         Surface *surface = m_activeScope->activeSurface();
         weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
     }
+}
+
+void Seat::sendSelection(wl_client *client)
+{
+    weston_seat_send_selection(m_seat, client);
 }
 
 void Seat::capsUpdated()

@@ -40,6 +40,7 @@
 
 #include "wayland-desktop-shell-client-protocol.h"
 #include "wayland-settings-client-protocol.h"
+#include "wayland-clipboard-client-protocol.h"
 
 #include "client.h"
 #include "iconimageprovider.h"
@@ -54,6 +55,7 @@
 #include "notification.h"
 #include "compositorsettings.h"
 #include "activeregion.h"
+#include "clipboard.h"
 
 Client *Client::s_client = nullptr;
 
@@ -123,6 +125,7 @@ Client::Client()
     qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
     qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
     qmlRegisterUncreatableType<UiScreen>("Orbital", 1, 0, "UiScreen", "UiScreen is not creatable");
+    qmlRegisterUncreatableType<Clipboard>("Orbital", 1, 0, "Clipboard", QStringLiteral("Clipboard is only available via attached properties"));
 
     qRegisterMetaType<QScreen *>();
 
@@ -489,6 +492,8 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
         m_notifications = static_cast<notifications_manager *>(wl_registry_bind(registry, id, &notifications_manager_interface, 1));
     } else if (strcmp(interface, "wl_subcompositor") == 0) {
         m_subcompositor = static_cast<wl_subcompositor *>(wl_registry_bind(registry, id, &wl_subcompositor_interface, 1));
+    } else if (strcmp(interface, "orbital_clipboard_manager") == 0) {
+        wl_registry_bind(registry, id, &orbital_clipboard_manager_interface, 1);
     }
 }
 

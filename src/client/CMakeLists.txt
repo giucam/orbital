@@ -59,6 +59,7 @@ set(SOURCES
     panel.cpp
     notification.cpp
     activeregion.cpp
+    clipboard.cpp
     compositorsettings.cpp)
 
 wayland_add_protocol_client(SOURCES
@@ -69,6 +70,7 @@ wayland_add_protocol_client(SOURCES
     ../../protocol/settings.xml
     settings
 )
+wayland_add_protocol_client(SOURCES ../../protocol/orbital-clipboard.xml clipboard)
 
 file(GLOB translations translations/*.ts)
 qt5_add_resources(RESOURCES resources.qrc)
@@ -88,6 +90,7 @@ install_element(SOURCES elements/deviceexplorer)
 install_element(SOURCES elements/lockscreen)
 install_element(SOURCES elements/systray)
 install_element(SOURCES elements/battery)
+install_element(SOURCES elements/clipboard)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")
