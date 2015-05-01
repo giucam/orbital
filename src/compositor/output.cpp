@@ -361,6 +361,16 @@ bool Output::contains(double x, double y) const
     return geometry().contains(x, y);
 }
 
+uint16_t Output::gammaSize() const
+{
+    return m_output->gamma_size;
+}
+
+void Output::setGamma(uint16_t size, uint16_t *r, uint16_t *g, uint16_t *b)
+{
+    m_output->set_gamma(m_output, size, r, g, b);
+}
+
 Output *Output::fromOutput(weston_output *o)
 {
     wl_listener *listener = wl_signal_get(&o->destroy_signal, outputDestroyed);

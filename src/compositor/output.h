@@ -76,6 +76,8 @@ public:
     View *rootView() const;
     QString name() const;
     bool contains(double x, double y) const;
+    uint16_t gammaSize() const;
+    void setGamma(uint16_t size, uint16_t *r, uint16_t *g, uint16_t *b);
 
     static Output *fromOutput(weston_output *out);
     static Output *fromResource(wl_resource *res);
