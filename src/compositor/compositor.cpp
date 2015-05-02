@@ -230,8 +230,12 @@ bool Compositor::init(const QString &socketName)
 
     QJsonObject kbdConfig = m_config["Compositor"].toObject()["Keyboard"].toObject();
     QString keylayout = kbdConfig["Layout"].toString();
+    QString keyoptions = kbdConfig["Options"].toString();
 
-    xkb_rule_names xkb = { NULL, NULL, keylayout.isEmpty() ? NULL : strdup(qPrintable(keylayout)), NULL, NULL };
+    xkb_rule_names xkb = { nullptr, nullptr,
+                           keylayout.isEmpty() ? nullptr : strdup(qPrintable(keylayout)),
+                           nullptr,
+                           keyoptions.isEmpty() ? nullptr : strdup(qPrintable(keyoptions)) };
 
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
