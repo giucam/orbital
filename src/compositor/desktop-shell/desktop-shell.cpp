@@ -194,6 +194,7 @@ void DesktopShell::outputBound(uint32_t id, wl_resource *res)
     for (Workspace *ws: m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
         dws->sendActivatedState();
+        dws->sendPosition();
     }
 }
 

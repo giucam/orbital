@@ -157,6 +157,7 @@ void Pager::outputCreated(Output *o)
 
     Workspace *ws = m_compositor->shell()->workspaces().first();
     activate(ws->viewForOutput(o), o, false);
+    emit workspaceActivated(ws, o);
 }
 
 void Pager::outputRemoved(Output *o)
