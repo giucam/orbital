@@ -82,8 +82,8 @@ PopupElement {
         id: historyModel
     }
 
-    popupWidth: 200
-    popupHeight: 250
+    popupWidth: 300
+    popupHeight: 350
     popupContent: MouseArea {
         id: mousearea
         anchors.fill: parent
