@@ -146,7 +146,6 @@ Client::Client()
         delete tr;
     }
 
-    QCoreApplication::setApplicationName("orbital");
     QQuickWindow::setDefaultAlphaBuffer(true);
 
     Element::loadElementsList();

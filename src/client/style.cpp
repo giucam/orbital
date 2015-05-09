@@ -75,10 +75,9 @@ Style *Style::loadStyle(const QString &name, QQmlEngine *engine)
 
 void Style::loadStylesList()
 {
-    QStringList dirs = QStandardPaths::locateAll(QStandardPaths::DataLocation, "styles", QStandardPaths::LocateDirectory);
-
+    QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
     for (const QString &path: dirs) {
-        QDir dir(path);
+        QDir dir(QUrl(QString("%1/../orbital/styles").arg(path)).toString(QUrl::NormalizePathSegments));
         QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &subdir: subdirs) {
             dir.cd(subdir);

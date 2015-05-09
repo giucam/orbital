@@ -429,10 +429,9 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
 
 void Element::loadElementsList()
 {
-    QStringList dirs = QStandardPaths::locateAll(QStandardPaths::DataLocation, "elements", QStandardPaths::LocateDirectory);
-
+    QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
     for (const QString &path: dirs) {
-        QDir dir(path);
+        QDir dir(QUrl(QString("%1/../orbital/elements").arg(path)).toString(QUrl::NormalizePathSegments));
         QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &subdir: subdirs) {
             dir.cd(subdir);
