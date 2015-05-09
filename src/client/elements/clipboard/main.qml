@@ -47,7 +47,6 @@ PopupElement {
     Clipboard.onTextChanged: {
         var curr = historyModel.count > 0 ? historyModel.get(0).text : ""
         var text = Clipboard.text;
-        console.log("text",text,curr)
         if (!text) {
             selectionActive = -1;
             return;
