@@ -45,7 +45,7 @@ public:
     void setVisible(bool v);
 
     QQuickItem *content() const { return m_content; }
-    void setContent(QQuickItem *c) { m_content = c; }
+    void setContent(QQuickItem *c);
 
 public slots:
     void show();
@@ -59,6 +59,8 @@ private slots:
 
 private:
     void close(desktop_shell_surface *s);
+    void contentWidthChanged();
+    void contentHeightChanged();
 
     QQuickWindow *m_window;
     QQuickItem *m_parent;

@@ -57,6 +57,23 @@ void Popup::setVisible(bool v)
     v ? show() : hide();
 }
 
+void Popup::setContent(QQuickItem *i)
+{
+    if (m_content == i) {
+        return;
+    }
+
+    if (m_content) {
+        disconnect(m_content, &QQuickItem::widthChanged, this, &Popup::contentWidthChanged);
+        disconnect(m_content, &QQuickItem::heightChanged, this, &Popup::contentHeightChanged);
+    }
+    m_content = i;
+    if (m_content) {
+        connect(m_content, &QQuickItem::widthChanged, this, &Popup::contentWidthChanged);
+        connect(m_content, &QQuickItem::heightChanged, this, &Popup::contentHeightChanged);
+    }
+}
+
 void Popup::show()
 {
     if (!m_parent || !m_content || m_shsurf) {
@@ -133,6 +150,20 @@ void Popup::hideEvent()
 void Popup::close(desktop_shell_surface *s)
 {
     QMetaObject::invokeMethod(this, "hideEvent");
+}
+
+void Popup::contentWidthChanged()
+{
+    if (m_window) {
+        m_window->setWidth(m_content->width());
+    }
+}
+
+void Popup::contentHeightChanged()
+{
+    if (m_window) {
+        m_window->setHeight(m_content->height());
+    }
 }
 
 const desktop_shell_surface_listener Popup::m_shsurf_listener = {
