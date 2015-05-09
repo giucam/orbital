@@ -128,6 +128,9 @@ void Element::setInputRegion(const QRectF &rect)
 {
     m_inputRegion = rect;
     m_inputRegionSet = true;
+    if (window() && window()->handle()) {
+        Client::client()->setInputRegion(window(), rect);
+    }
     emit inputRegionChanged();
 }
 
