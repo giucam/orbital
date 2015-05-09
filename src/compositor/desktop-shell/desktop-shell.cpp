@@ -308,29 +308,40 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         }
         void configure(int, int) override
         {
+            if (surface->width() == 0) {
+                return;
+            }
+
             if (surface->views().isEmpty()) {
-                int w = surface->width();
-                int h = surface->height();
                 for (View *view: parent->views()) {
                     View *v = new View(surface);
                     v->setTransformParent(view);
-
-                    Output *o = view->output();
-                    int x_ = x > 0 ? x : 0;
-                    if (x_ + w > o->width()) {
-                        x_ = o->width() - w;
-                    }
-                    int y_ = y > 0 ? y : 0;
-                    if (y_ + h > o->height()) {
-                        y_ = o->height() - h;
-                    }
-                    v->setPos(x_, y_);
                     view->layer()->addView(v);
-                    v->update();
+                    v->setOutput(view->output());
+                    configureView(v);
 
                     connect(view, &QObject::destroyed, v, &QObject::deleteLater);
                 }
+            } else {
+                for (View *view: surface->views()) {
+                    configureView(view);
+                }
             }
+        }
+        void configureView(View *v)
+        {
+            int w = surface->width();
+            int h = surface->height();
+            Output *o = v->output();
+            int x_ = x > 0 ? x : 0;
+            if (x_ + w > o->width()) {
+                x_ = o->width() - w;
+            }
+            int y_ = y > 0 ? y : 0;
+            if (y_ + h > o->height()) {
+                y_ = o->height() - h;
+            }
+            v->setPos(x_, y_);
         }
         void move(Seat *) override {}
 
