@@ -56,7 +56,6 @@ Surface *FocusScope::activate(Surface *surface)
     }
 
     if (surface || isNull) {
-        qDebug()<<"act"<<surface;
         foreach (Seat *seat, m_activeSeats) {
             weston_surface_activate(surface ? surface->surface() : nullptr, seat->m_seat);
         }
