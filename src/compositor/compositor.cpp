@@ -332,6 +332,7 @@ bool Compositor::init(const QString &socketName)
     weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
                           terminate_binding, this);
+    weston_install_debug_key_binding(m_compositor, MODIFIER_SUPER);
 
     weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
 
