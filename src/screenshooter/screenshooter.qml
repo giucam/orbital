@@ -31,13 +31,23 @@ Item {
 
     Image {
         id: image
-        anchors.bottom: buttons.top
+        anchors.bottom: uploadStatus.top
         anchors.margins: 7
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
         cache: false
         fillMode: Image.PreserveAspectFit
+    }
+
+    TextArea {
+        id: uploadStatus
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: buttons.top
+        anchors.margins: 7
+        height: 50
+        readOnly: true
     }
 
     Row {
@@ -61,6 +71,13 @@ Item {
 
             onClicked: fileDialog.open()
         }
+        Button {
+            text: "Upload to Imgur"
+            height: 30
+            width: 100
+
+            onClicked: Screenshooter.upload()
+        }
     }
 
     FileDialog {
@@ -76,6 +93,9 @@ Item {
         onNewShot: {
             image.source = "";
             image.source = "image://screenshoter/shot";
+        }
+        onUploadOutput: {
+            uploadStatus.text = output;
         }
     }
 }

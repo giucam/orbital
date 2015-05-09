@@ -30,6 +30,9 @@
 #include <QScreen>
 #include <QDir>
 #include <QDebug>
+#include <QTemporaryFile>
+#include <QProcess>
+#include <QClipboard>
 #include <qpa/qplatformnativeinterface.h>
 
 #include <wayland-client.h>
@@ -246,9 +249,36 @@ public slots:
             m_imageProvider->m_image.save(p + ".jpg");
         }
     }
+    void upload()
+    {
+        QTemporaryFile *file = new QTemporaryFile(QStringLiteral("/tmp/orbital-screenshooter-XXXXXX.jpg"));
+        if (!m_imageProvider->m_image.save(file)) {
+            qWarning("Cannot save the screenshot to a temporary file");
+            delete file;
+            return;
+        }
+        emit uploadOutput("Uploading...");
+
+        QProcess *proc = new QProcess;
+        QProcessEnvironment env;
+        proc->setProcessEnvironment(env);
+        proc->start(QString("sh " LIBEXEC_PATH "/imgur %1").arg(file->fileName()));
+        connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc, file]() {
+            QString stdout(proc->readAllStandardOutput());
+            QString stderr(proc->readAllStandardError());
+
+            QClipboard *cb = QGuiApplication::clipboard();
+            cb->setText(stdout);
+
+            QString s = QString("Image uploaded: %1\n%2").arg(stdout).arg(stderr);
+            emit uploadOutput(s);
+            delete file;
+        });
+    }
 
 signals:
     void newShot();
+    void uploadOutput(const QString &output);
 
 private:
     wl_display *m_display;

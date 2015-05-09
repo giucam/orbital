@@ -21,8 +21,13 @@ wayland_add_protocol_client(SOURCES ../../protocol/screenshooter.xml screenshoot
 
 qt5_add_resources(RESOURCES resources.qrc)
 
+list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
+
 add_executable(orbital-screenshooter ${SOURCES} ${RESOURCES})
 qt5_use_modules(orbital-screenshooter Widgets Qml Quick)
 target_link_libraries(orbital-screenshooter wayland-client)
+set_target_properties(orbital-screenshooter PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital-screenshooter DESTINATION libexec)
+
+install(FILES imgur DESTINATION libexec)
