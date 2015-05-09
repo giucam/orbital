@@ -160,6 +160,7 @@ public:
         m_window->rootContext()->setContextProperty("Screenshooter", this);
         m_window->setSource(QUrl("qrc:///screenshooter.qml"));
         m_window->create();
+        connect(m_window->engine(), &QQmlEngine::quit, qApp, &QCoreApplication::quit);
 
         takeShot();
     }

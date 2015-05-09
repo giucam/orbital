@@ -25,6 +25,9 @@ Item {
     id: root
     width: 450
     height: 300
+    focus: true
+
+    Keys.onEscapePressed: Qt.quit()
 
     Image {
         id: image
