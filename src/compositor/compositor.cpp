@@ -643,6 +643,9 @@ void ChildProcess::start()
     };
 
     Process *process = new Process(sv[1]);
+    connect(process, (void (QProcess::*)(QProcess::ProcessError))&QProcess::error, [this](QProcess::ProcessError err) {
+        qDebug("%s: error %d\n", qPrintable(m_program), (int)err);
+    });
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->start(m_program);
     connect(process, &QProcess::started, [sv]() { close(sv[1]); });
