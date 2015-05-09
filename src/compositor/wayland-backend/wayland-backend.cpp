@@ -39,7 +39,7 @@ bool WaylandBackend::init(weston_compositor *c)
         return false;
 
     if (!sprawl) {
-        wayland_output *output = wayland_output_create(b, 0, 0, 400, 400, "WL1", 0, 0, 1);
+        wayland_output *output = wayland_output_create(b, 0, 0, 800, 400, "WL1", 0, 0, 1);
         wayland_output_set_windowed(output);
     }
 
