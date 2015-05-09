@@ -54,6 +54,7 @@ list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")
 list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
 list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
+list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)

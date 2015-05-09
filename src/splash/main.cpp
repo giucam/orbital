@@ -121,8 +121,6 @@ const desktop_shell_splash_listener Splash::s_splashListener = {
 
 int main(int argc, char *argv[])
 {
-    setenv("QT_MESSAGE_PATTERN", "[orbital-splash %{type}] %{message}", 0);
-
     QGuiApplication app(argc, argv);
     Splash splash;
 

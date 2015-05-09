@@ -22,6 +22,7 @@ wayland_add_protocol_client(SOURCES ../../protocol/screenshooter.xml screenshoot
 qt5_add_resources(RESOURCES resources.qrc)
 
 list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
+list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital-screenshooter ${SOURCES} ${RESOURCES})
 qt5_use_modules(orbital-screenshooter Widgets Qml Quick)

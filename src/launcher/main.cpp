@@ -160,7 +160,6 @@ const orbital_launcher_surface_listener Launcher::s_launcherListener = {
 int main(int argc, char *argv[])
 {
     setenv("QT_QPA_PLATFORM", "wayland", 1);
-    setenv("QT_MESSAGE_PATTERN", "[orbital-launcher %{type}] %{message}", 0);
 
     QGuiApplication app(argc, argv);
     Launcher launcher;

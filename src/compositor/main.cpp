@@ -27,7 +27,8 @@
 
 int main(int argc, char **argv)
 {
-    setenv("QT_MESSAGE_PATTERN", "[orbital %{type}] %{message}", 0);
+    setenv("QT_MESSAGE_PATTERN", "[%{if-debug}D%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif} %{appname}"
+                                 " - %{file}:%{line}] == %{message}", 0);
 
     QCoreApplication app(argc, argv);
     app.setApplicationName("Orbital");
