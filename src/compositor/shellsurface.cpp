@@ -59,6 +59,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
         ShellView *view = new ShellView(this);
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
+        connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
@@ -612,6 +613,7 @@ void ShellSurface::outputCreated(Output *o)
 {
     ShellView *view = new ShellView(this);
     view->setDesignedOutput(o);
+    connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
 
     if (View *v = *m_views.begin()) {
         view->setInitialPos(v->pos());
@@ -630,6 +632,15 @@ void ShellSurface::outputRemoved(Output *o)
 
     if (m_nextType == Type::Toplevel && m_toplevel.maximized && m_toplevel.output == o) {
         setMaximized();
+    }
+}
+
+void ShellSurface::availableGeometryChanged()
+{
+    Output *o = static_cast<Output *>(sender());
+    if (m_nextType == Type::Toplevel && m_toplevel.maximized && m_toplevel.output == o) {
+        QRect rect = o->availableGeometry();
+        sendConfigure(rect.width(), rect.height());
     }
 }
 

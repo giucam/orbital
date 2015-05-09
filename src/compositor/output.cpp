@@ -191,17 +191,26 @@ void Output::setPanel(Surface *surface, int pos)
             : surface(s)
             , view(new View(s))
             , notified(false)
+            , output(o)
         {
             s->setRoleHandler(this);
             s->setActivable(false);
             view->setOutput(o);
+            pixman_region32_init_rect(&inputRegion, 0, 0, 0, 0);
+        }
+        ~PanelSurface()
+        {
+            if (pixman_region32_not_empty(&inputRegion)) {
+                emit output->availableGeometryChanged();
+            }
+            pixman_region32_fini(&inputRegion);
         }
         void configure(int x, int y) override
         {
             view->update();
-            if (!notified) {
-                emit view->output()->availableGeometryChanged();
-                notified = true;
+            if (!pixman_region32_equal(&inputRegion, &view->surface()->surface()->input)) {
+                pixman_region32_copy(&inputRegion, &view->surface()->surface()->input);
+                emit output->availableGeometryChanged();
             }
         }
         void move(Seat *) override {}
@@ -209,12 +218,17 @@ void Output::setPanel(Surface *surface, int pos)
         Surface *surface;
         View *view;
         bool notified;
+        Output *output;
+        pixman_region32_t inputRegion;
     };
 
     PanelSurface *s = new PanelSurface(surface, this);
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
-    connect(s->view, &QObject::destroyed, [this, s]() { m_panels.removeOne(s->view); delete s; });
+    connect(s->view, &QObject::destroyed, [this, s]() {
+        m_panels.removeOne(s->view);
+        delete s;
+    });
     m_panels << s->view;
 }
 

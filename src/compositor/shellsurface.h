@@ -135,6 +135,7 @@ private:
     void connectParent();
     void disconnectParent();
     inline QString cacheId() const;
+    void availableGeometryChanged();
 
     Shell *m_shell;
     Surface *m_surface;
