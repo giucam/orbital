@@ -356,6 +356,10 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     public:
         void focus() override
         {
+            if (pointer()->buttonCount() > 0) {
+                return;
+            }
+
             double sx, sy;
             View *v = pointer()->pickView(&sx, &sy);
 
@@ -379,7 +383,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
 
             // this time check is to ensure the window doesn't get shown and hidden very fast, mainly because
             // there is a bug in QQuickWindow, which hangs up the process.
-            if (!inside && state == Pointer::ButtonState::Released && time - creationTime > 500) {
+            if (!inside && state == Pointer::ButtonState::Pressed && time - creationTime > 500) {
                 desktop_shell_surface_send_popup_close(popup->resource);
                 end();
             }
