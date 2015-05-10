@@ -89,8 +89,8 @@ Element {
 
             content: StyleItem {
                 id: style
-                width: element.popupWidth
-                height: element.popupHeight
+                width: element.popupWidth || element.popupContent.width + item.leftContentsMargin + item.rightContentsMargin
+                height: element.popupHeight || element.popupContent.height + item.topContentsMargin + item.bottomContentsMargin
 
                 component: CurrentStyle.popup
                 Binding { target: style.item; property: "header"; value: element.prettyName }
