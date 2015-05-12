@@ -344,32 +344,34 @@ void Pointer::move(double x, double y)
         }
     }
 
-    QRect geom = m_currentOutput->geometry();
-    const int m = 10;
-    const int l = geom.x();
-    const int r = geom.right();
-    const int t = geom.y();
-    const int b = geom.bottom();
-    if (x < l + m && y < t + m) {
-        if (x - oldX < 0 && x < l)
-            x = l;
-        if (y - oldY < 0 && y < t)
-            y = t;
-    } else if (x > r - m && y < t + m) {
-        if (x - oldX > 0 && x > r)
-            x = r;
-        if (y - oldY < 0 && y < t)
-            y = t;
-    } else if (x > r - m && y > b - m) {
-        if (x - oldX > 0 && x > r)
-            x = r;
-        if (y - oldY > 0 && y > b)
-            y = b;
-    } else if (x < l + m && y > b - m) {
-        if (x - oldX < 0 && x < l)
-            x = l;
-        if (y - oldY > 0 && y > b)
-            y = b;
+    if (m_currentOutput) {
+        QRect geom = m_currentOutput->geometry();
+        const int m = 10;
+        const int l = geom.x();
+        const int r = geom.right();
+        const int t = geom.y();
+        const int b = geom.bottom();
+        if (x < l + m && y < t + m) {
+            if (x - oldX < 0 && x < l)
+                x = l;
+            if (y - oldY < 0 && y < t)
+                y = t;
+        } else if (x > r - m && y < t + m) {
+            if (x - oldX > 0 && x > r)
+                x = r;
+            if (y - oldY < 0 && y < t)
+                y = t;
+        } else if (x > r - m && y > b - m) {
+            if (x - oldX > 0 && x > r)
+                x = r;
+            if (y - oldY > 0 && y > b)
+                y = b;
+        } else if (x < l + m && y > b - m) {
+            if (x - oldX < 0 && x < l)
+                x = l;
+            if (y - oldY > 0 && y > b)
+                y = b;
+        }
     }
 
     if (focus()) {
