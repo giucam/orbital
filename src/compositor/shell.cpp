@@ -332,17 +332,24 @@ void Shell::lock(const LockCallback &callback)
     }
 
     emit aboutToLock();
-    int *numOuts = new int;
-    *numOuts = m_compositor->outputs().count();
-    for (Output *o: m_compositor->outputs()) {
-        o->lock([this, numOuts, callback]() {
-            m_locked = true;
-            emit locked();
-            if (--*numOuts == 0 && callback) {
-                callback();
-                delete numOuts;
-            }
-        });
+    if (m_compositor->outputs().isEmpty()) {
+        m_locked = true;
+        emit locked();
+    } else {
+        int *numOuts = new int;
+        *numOuts = m_compositor->outputs().count();
+        for (Output *o: m_compositor->outputs()) {
+            o->lock([this, numOuts, callback]() {
+                if (--*numOuts == 0) {
+                    m_locked = true;
+                    emit locked();
+                    if (callback) {
+                        callback();
+                    }
+                    delete numOuts;
+                }
+            });
+        }
     }
     for (Seat *s: m_compositor->seats()) {
         s->activate(m_lockScope);
