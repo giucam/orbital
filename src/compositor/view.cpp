@@ -191,7 +191,6 @@ Output *View::output() const
         return nullptr;
     }
     return Output::fromOutput(m_view->output);
-    return m_output;
 }
 
 Surface *View::surface() const

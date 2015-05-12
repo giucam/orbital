@@ -115,7 +115,6 @@ private:
     Root *m_root;
     View *m_background;
     QList<View *> m_views;
-    bool m_attached;
     QRect m_mask;
     struct {
         Transform orig, target;
