@@ -268,17 +268,16 @@ void Element::motion(uint32_t time, int x, int y)
 
 void Element::button(uint32_t time, uint32_t button, uint32_t state)
 {
-    if (m_target) {
-        setParentElement(m_target);
-        m_target->m_screen->addElement(this);
-        m_target->createConfig(this);
-        emit m_target->elementAdded(this, m_pos, m_offset);
-    } else {
-        delete this;
-    }
-    m_target->window()->unsetCursor();
-
     static_cast<Grab *>(sender())->end();
+    if (!m_target) {
+        return;
+    }
+
+    setParentElement(m_target);
+    m_target->m_screen->addElement(this);
+    m_target->createConfig(this);
+    emit m_target->elementAdded(this, m_pos, m_offset);
+    m_target->window()->unsetCursor();
 }
 
 void Element::setParentElement(Element *parent)
