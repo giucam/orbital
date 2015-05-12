@@ -29,6 +29,7 @@ NotificationWindow::NotificationWindow(QObject *p)
                   , m_window(new QQuickWindow)
                   , m_contentItem(nullptr)
                   , m_inactive(false)
+                  , m_surface(nullptr)
 {
     m_window->setFlags(Qt::BypassWindowManagerHint);
     m_window->setColor(Qt::transparent);
