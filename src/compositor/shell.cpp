@@ -111,7 +111,6 @@ Shell::~Shell()
 void Shell::initEnvironment()
 {
     setenv("QT_QPA_PLATFORM", "wayland", 0);
-    setenv("QSG_RENDER_LOOP", "windows", 0);
 
     if (qEnvironmentVariableIsSet("DBUS_SESSION_BUS_ADDRESS")) {
         return;
