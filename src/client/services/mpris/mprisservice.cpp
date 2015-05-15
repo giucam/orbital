@@ -39,6 +39,20 @@ void MprisPlugin::registerTypes(const char *uri)
     qmlRegisterType<Mpris>(uri, 1, 0, "Mpris");
 }
 
+/* QDBusInterface uses blocking calls in its constructor.
+ * If the remote app is slow it may block us too, so that is not acceptable.
+ * QDBusAbstractInterface does not block, but it only has a protected constructor
+ * so subclass it.
+ * https://bugreports.qt.io/browse/QTBUG-14485
+ */
+class DBusInterface : public QDBusAbstractInterface
+{
+public:
+    DBusInterface(const QString &service, const QString &path, const QString &interface,
+                  const QDBusConnection &connection = QDBusConnection::sessionBus())
+        : QDBusAbstractInterface(service, path, qPrintable(interface), connection, nullptr)
+    { }
+};
 
 
 Mpris::Mpris(QObject *p)
@@ -109,7 +123,7 @@ void Mpris::checkConnection()
                                                  this, SLOT(propertiesChanged(QString, QMap<QString, QVariant>, QStringList)));
     }
 
-    QDBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
+    DBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
     if (!iface.isValid()) {
         return;
     }
@@ -130,7 +144,7 @@ void Mpris::checkConnection()
 
 void Mpris::checkServices(const QStringList &services)
 {
-    QDBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
+    DBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
     foreach (QString service, services) {
         QDBusPendingCall call = iface.asyncCall(QStringLiteral("GetConnectionUnixProcessID"), service);
         QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
@@ -153,7 +167,7 @@ void Mpris::checkServices(const QStringList &services)
 static QDBusPendingCall getProperty(const QString &service, const QString &path,
                                     const QString &interface, const QString &property)
 {
-    QDBusInterface iface(service, path, dbusPropertiesInterface);
+    DBusInterface iface(service, path, dbusPropertiesInterface);
     return iface.asyncCall(QStringLiteral("Get"), interface, property);
 }
 
