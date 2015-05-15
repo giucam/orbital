@@ -162,6 +162,11 @@ void PulseAudioMixer::getBoundaries(int *min, int *max) const
 
 void PulseAudioMixer::setRawVol(int vol)
 {
+    if (!pa_channels_valid(m_sink->volume.channels)) {
+        qWarning("Cannot change Pulseaudio volume: invalid channels %d", m_sink->volume.channels);
+        return;
+    }
+
     setMuted(false);
     pa_cvolume_set(&m_sink->volume, m_sink->volume.channels, vol);
     pa_context_set_sink_volume_by_index(m_context, m_sink->index, &m_sink->volume, nullptr, nullptr);
