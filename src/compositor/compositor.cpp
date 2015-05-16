@@ -558,7 +558,7 @@ HotSpotBinding *Compositor::createHotSpotBinding(PointerHotSpot hs)
 
 void Compositor::handleHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs)
 {
-    for (auto i = m_hotSpotBindings.find((int)hs); i != m_hotSpotBindings.end(); ++i) {
+    for (auto i = m_hotSpotBindings.find((int)hs); i != m_hotSpotBindings.end() && i.key() == (int)hs; ++i) {
         emit (*i)->triggered(seat, time, hs);
     }
 }
