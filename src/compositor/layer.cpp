@@ -33,6 +33,7 @@ struct Wrapper {
 
 Layer::Layer(weston_layer *l)
      : m_layer(new Wrapper)
+     , m_parent(nullptr)
 {
     m_layer->parent = this;
 
@@ -41,28 +42,38 @@ Layer::Layer(weston_layer *l)
     wl_list_insert(&l->link, &m_layer->layer.link);
 }
 
-Layer::Layer(Layer *p)
+Layer::Layer(Layer *parent)
      : m_layer(new Wrapper)
+     , m_parent(parent)
 {
     m_layer->parent = this;
 
     weston_layer_init(&m_layer->layer, nullptr);
     wl_list_init(&m_layer->layer.link);
 
-    if (p) {
-        append(p);
-    }
+    parent->addChild(this);
 }
 
 Layer::~Layer()
 {
+    if (m_parent) {
+        m_parent->m_children.removeOne(this);
+    }
+    foreach (Layer *c, m_children) {
+        c->m_parent = nullptr;
+        wl_list_remove(&c->m_layer->layer.link);
+        wl_list_init(&c->m_layer->layer.link);
+    }
     wl_list_remove(&m_layer->layer.link);
 }
 
-void Layer::append(Layer *l)
+void Layer::addChild(Layer *l)
 {
-    wl_list_remove(&m_layer->layer.link);
-    wl_list_insert(&l->m_layer->layer.link, &m_layer->layer.link);
+    int n = m_children.count();
+    Layer *p = n ? m_children.at(n - 1) : this;
+
+    wl_list_insert(&p->m_layer->layer.link, &l->m_layer->layer.link);
+    m_children << l;
 }
 
 void Layer::addView(View *view)

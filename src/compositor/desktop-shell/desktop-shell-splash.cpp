@@ -136,7 +136,7 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
     int x = out->x(), y = out->y();
     View *view = new View(surf);
     view->setPos(x, y);
-    m_shell->compositor()->rootLayer()->addView(view);
+    m_shell->compositor()->lockLayer()->addView(view);
     view->setOutput(out);
     view->update();
 

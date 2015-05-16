@@ -63,8 +63,8 @@ Output::Output(weston_output *out)
       , m_compositor(Compositor::fromCompositor(out->compositor))
       , m_output(out)
       , m_listener(new Listener)
-      , m_panelsLayer(new Layer)
-      , m_lockLayer(new Layer(m_compositor->rootLayer()))
+      , m_panelsLayer(new Layer(m_compositor->panelsLayer()))
+      , m_lockLayer(new Layer(m_compositor->lockLayer()))
       , m_transformRoot(new Root(m_compositor, out->width, out->height))
       , m_background(nullptr)
       , m_currentWs(nullptr)
@@ -79,8 +79,6 @@ Output::Output(weston_output *out)
     m_lockLayer->addView(m_lockBackgroundSurface->view);
     m_lockBackgroundSurface->view->setTransformParent(m_transformRoot->view);
     m_lockLayer->setMask(0, 0, 0, 0);
-
-    m_panelsLayer->append(m_compositor->panelsLayer());
 
     m_listener->output = this;
     m_listener->listener.notify = outputDestroyed;

@@ -69,7 +69,7 @@ public:
 
     inline wl_display *display() const { return m_display; }
     Shell *shell() const;
-    Layer *rootLayer() const;
+    Layer *lockLayer() const;
     Layer *overlayLayer() const;
     Layer *fullscreenLayer() const;
     Layer *panelsLayer() const;
@@ -118,6 +118,7 @@ private:
     Backend *m_backend;
     Shell *m_shell;
     Layer *m_rootLayer;
+    Layer *m_lockLayer;
     Layer *m_overlayLayer;
     Layer *m_fullscreenLayer;
     Layer *m_panelsLayer;

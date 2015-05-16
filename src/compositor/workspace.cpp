@@ -132,20 +132,16 @@ WorkspaceView::WorkspaceView(Workspace *ws, Output *o)
              : QObject()
              , m_workspace(ws)
              , m_output(o)
-             , m_backgroundLayer(new Layer)
-             , m_layer(new Layer)
-             , m_fullscreenLayer(new Layer)
+             , m_backgroundLayer(new Layer(ws->compositor()->backgroundLayer()))
+             , m_layer(new Layer(ws->compositor()->appsLayer()))
+             , m_fullscreenLayer(new Layer(ws->compositor()->fullscreenLayer()))
              , m_background(nullptr)
 {
     m_root = new Root(ws->compositor());
 
-    m_backgroundLayer->append(ws->compositor()->backgroundLayer());
-    m_layer->append(ws->compositor()->appsLayer());
-    m_fullscreenLayer->append(ws->compositor()->fullscreenLayer());
-
     connect(&m_transformAnim.anim, &Animation::update, this, &WorkspaceView::updateAnim);
 
-    setMask(QRect());
+    resetMask();
 }
 
 WorkspaceView::~WorkspaceView()
