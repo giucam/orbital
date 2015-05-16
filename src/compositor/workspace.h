@@ -70,6 +70,7 @@ signals:
 
 private:
     void outputRemoved(Output *o);
+    inline void newOutput(Output *o);
 
     Shell *m_shell;
     int m_id;

@@ -61,10 +61,6 @@ Pager::Pager(Compositor *c)
 
 void Pager::addWorkspace(Workspace *ws)
 {
-    for (Output *o: m_compositor->outputs()) {
-        WorkspaceView *wsv = ws->viewForOutput(o);
-        wsv->setTransformParent(o->rootView());
-    }
     m_workspaces << ws;
 
     int n = ws->id();
@@ -150,10 +146,6 @@ void Pager::outputCreated(Output *o)
 {
     Root *root = new Root(o, m_compositor);
     m_roots.insert(o->id(), root);
-    for (Workspace *ws: m_compositor->shell()->workspaces()) {
-        WorkspaceView *wsv = ws->viewForOutput(o);
-        wsv->setTransformParent(o->rootView());
-    }
 
     Workspace *ws = m_compositor->shell()->workspaces().first();
     activate(ws->viewForOutput(o), o, false);

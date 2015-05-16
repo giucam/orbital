@@ -50,6 +50,11 @@ Workspace::Workspace(Shell *shell, int id)
          , m_y(0)
 {
     connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
+    connect(shell->compositor(), &Compositor::outputCreated, this, &Workspace::newOutput);
+
+    for (Output *o: shell->compositor()->outputs()) {
+        newOutput(o);
+    }
 }
 
 Workspace::~Workspace()
@@ -69,11 +74,18 @@ Pager *Workspace::pager() const
     return m_shell->pager();
 }
 
+void Workspace::newOutput(Output *o)
+{
+    // make sure to create the workspace view immediately so that the layers order is right
+    viewForOutput(o);
+}
+
 WorkspaceView *Workspace::viewForOutput(Output *o)
 {
     if (!m_views.contains(o->id())) {
         WorkspaceView *view = new WorkspaceView(this, o);
         m_views.insert(o->id(), view);
+        view->setTransformParent(o->rootView());
         view->m_root->view->setPos(m_x * o->width(), m_y * o->height());
         return view;
     }
