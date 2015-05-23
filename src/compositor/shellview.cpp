@@ -140,7 +140,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
     }
 
     if (map) {
-        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        AbstractWorkspace::View *wsv = workspaceViewForOutput(m_surface->workspace(), m_designedOutput);
         if (fullscreen) {
             wsv->configureFullscreen(this, m_blackSurface->view);
         } else {
@@ -168,7 +168,7 @@ void ShellView::configurePopup(View *parent, int x, int y)
 void ShellView::configureTransient(View *parent, int x, int y)
 {
     if (!isMapped()) {
-        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        AbstractWorkspace::View *wsv = workspaceViewForOutput(m_surface->workspace(), m_designedOutput);
         wsv->configure(this);
         setOutput(m_designedOutput);
         setPos(parent->x() + x, parent->y() + y);
@@ -179,7 +179,7 @@ void ShellView::configureTransient(View *parent, int x, int y)
 void ShellView::configureXWayland(int x, int y)
 {
     if (!isMapped()) {
-        WorkspaceView *wsv = m_surface->workspace()->viewForOutput(m_designedOutput);
+        AbstractWorkspace::View *wsv = workspaceViewForOutput(m_surface->workspace(), m_designedOutput);
         wsv->configure(this);
         setPos(x, y);
     }

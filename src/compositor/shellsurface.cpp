@@ -81,7 +81,7 @@ ShellView *ShellSurface::viewForOutput(Output *o)
     return m_views.value(o->id());
 }
 
-void ShellSurface::setWorkspace(Workspace *ws)
+void ShellSurface::setWorkspace(AbstractWorkspace *ws)
 {
     m_workspace = ws;
     m_surface->setWorkspaceMask(ws->mask());
@@ -94,7 +94,7 @@ Compositor *ShellSurface::compositor() const
     return m_shell->compositor();
 }
 
-Workspace *ShellSurface::workspace() const
+AbstractWorkspace *ShellSurface::workspace() const
 {
     return m_workspace;
 }

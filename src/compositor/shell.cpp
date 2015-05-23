@@ -43,6 +43,7 @@
 #include "screenshooter.h"
 #include "focusscope.h"
 #include "clipboard.h"
+#include "dashboard.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -73,6 +74,7 @@ Shell::Shell(Compositor *c)
 
     new ZoomEffect(this);
     new DesktopGrid(this);
+    new Dashboard(this);
 
     for (Seat *s: m_compositor->seats()) {
         s->activate(m_appsScope);

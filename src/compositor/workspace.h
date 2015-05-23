@@ -35,7 +35,6 @@ class Shell;
 class Layer;
 class View;
 class ShellSurface;
-class WorkspaceView;
 class Output;
 class Compositor;
 class DummySurface;
@@ -44,23 +43,108 @@ class Surface;
 class Root;
 class Transform;
 
+
+class AbstractWorkspace
+{
+protected:
+    AbstractWorkspace() : m_mask(0) {}
+
+public:
+    class View
+    {
+    public:
+        View(Compositor *c, Output *o);
+        virtual ~View();
+
+        virtual void configure(Orbital::View *view) = 0;
+        virtual void configureFullscreen(Orbital::View *view, Orbital::View *blackSurface) = 0;
+        virtual void setMask(const QRect &mask) {}
+
+        QPointF map(double x, double y) const;
+        QPoint pos() const;
+        void setPos(double x, double y);
+        void setTransformParent(Orbital::View *p);
+        void takeView(Orbital::View *p);
+        void resetMask();
+        inline QRect mask() const { return m_mask; }
+        void setTransform(const Transform &tf, bool animate);
+        const Transform &transform() const;
+
+    private:
+        void updateAnim(double v);
+
+        Root *m_root;
+        Output *m_output;
+        struct {
+            Transform orig, target;
+            Animation anim;
+        } m_transformAnim;
+        QRect m_mask;
+    };
+
+    virtual View *viewForOutput(Output *o) = 0;
+    virtual void activate(Output *o) = 0;
+
+    int mask() const { return m_mask; }
+
+protected:
+    void setMask(int m) { m_mask = m; }
+
+private:
+    int m_mask;
+};
+
+template<class T>
+typename T::View *workspaceViewForOutput(T *ws, Output *o)
+{
+    AbstractWorkspace::View *v = ws->viewForOutput(o);
+    return static_cast<typename T::View *>(v);
+}
+
 // Due to mask() being an int, we can have up to 31 workspaces
-class Workspace : public Object
+class Workspace : public Object, public AbstractWorkspace
 {
     Q_OBJECT
-//     Q_PROPERTY(int x READ x WRITE setX)
-//     Q_PROPERTY(int y READ y WRITE setY)
 public:
+    class View : public AbstractWorkspace::View
+    {
+    public:
+        View(Workspace *ws, Output *o);
+        ~View();
+
+        void configure(Orbital::View *view) override;
+        void configureFullscreen(Orbital::View *view, Orbital::View *blackSurface) override;
+
+        void setBackground(Surface *surface);
+        void setMask(const QRect &r);
+        QPoint logicalPos() const;
+
+        bool ownsView(Orbital::View *view) const;
+
+        Workspace *workspace() const { return m_workspace; }
+
+    private:
+        Workspace *m_workspace;
+        Output *m_output;
+        Layer *m_backgroundLayer;
+        Layer *m_layer;
+        Layer *m_fullscreenLayer;
+        Orbital::View *m_background;
+
+        friend Pager;
+        friend Workspace;
+    };
+
     Workspace(Shell *shell, int id);
     ~Workspace();
 
     Compositor *compositor() const;
     Pager *pager() const;
-    WorkspaceView *viewForOutput(Output *o);
-    View *topView() const;
+    AbstractWorkspace::View *viewForOutput(Output *o) override;
+    void activate(Output *o) override;
+    Orbital::View *topView() const;
 
     int id() const;
-    int mask() const;
     int x() const;
     int y() const;
     void setPos(int x, int y);
@@ -76,54 +160,9 @@ private:
     int m_id;
     int m_x;
     int m_y;
-    QHash<int, WorkspaceView *> m_views;
+    QHash<int, View *> m_views;
 
     friend Pager;
-};
-
-class WorkspaceView : public QObject
-{
-public:
-    WorkspaceView(Workspace *ws, Output *o);
-    ~WorkspaceView();
-
-    void configure(View *view);
-    void configureFullscreen(View *view, View *blackSurface);
-
-    void setBackground(Surface *surface);
-    void resetMask();
-    void setMask(const QRect &rect);
-    inline QRect mask() const { return m_mask; }
-    void setTransform(const Transform &tf, bool animate);
-    const Transform &transform() const;
-    QPoint pos() const;
-    QPoint logicalPos() const;
-    QPointF map(double x, double y) const;
-
-    bool ownsView(View *view) const;
-
-    Workspace *workspace() const { return m_workspace; }
-
-private:
-    void setTransformParent(View *p);
-    void updateAnim(double v);
-
-    Workspace *m_workspace;
-    Output *m_output;
-    Layer *m_backgroundLayer;
-    Layer *m_layer;
-    Layer *m_fullscreenLayer;
-    Root *m_root;
-    View *m_background;
-    QList<View *> m_views;
-    QRect m_mask;
-    struct {
-        Transform orig, target;
-        Animation anim;
-    } m_transformAnim;
-
-    friend Pager;
-    friend Workspace;
 };
 
 }

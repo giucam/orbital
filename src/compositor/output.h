@@ -34,7 +34,6 @@ class Compositor;
 class Workspace;
 class View;
 class Layer;
-class WorkspaceView;
 class Root;
 class Animation;
 class Pager;

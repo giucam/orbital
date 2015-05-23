@@ -34,7 +34,6 @@ namespace Orbital
 
 class Output;
 class Layer;
-class WorkspaceView;
 class Pointer;
 class Transform;
 class Surface;

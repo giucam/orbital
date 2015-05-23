@@ -46,7 +46,7 @@ public:
     }
 
     Output *output;
-    WorkspaceView *active;
+    Workspace::View *active;
 };
 
 Pager::Pager(Compositor *c)
@@ -78,7 +78,7 @@ void Pager::addWorkspace(Workspace *ws)
 
 void Pager::activate(Workspace *ws, Output *output)
 {
-    WorkspaceView *wsv = ws->viewForOutput(output);
+    Workspace::View *wsv = workspaceViewForOutput(ws, output);
     activate(wsv, output, true);
     emit workspaceActivated(wsv->workspace(), output);
 }
@@ -110,13 +110,13 @@ void Pager::changeWorkspace(Output *output, int d)
     activate(m_workspaces.at(index), output);
 }
 
-bool Pager::isWorkspaceActive(Workspace *ws, Output *output) const
+bool Pager::isWorkspaceActive(AbstractWorkspace *ws, Output *output) const
 {
     Root *root = m_roots.value(output->id());
     return root->active && root->active->workspace() == ws;
 }
 
-void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
+void Pager::activate(Workspace::View *wsv, Output *output, bool animate)
 {
     Root *root = m_roots.value(output->id());
     QPoint p = wsv->pos();
@@ -124,7 +124,7 @@ void Pager::activate(WorkspaceView *wsv, Output *output, bool animate)
     double dy = p.y();
 
     foreach (Workspace *ws, m_workspaces) {
-        WorkspaceView *wsv = ws->viewForOutput(output);
+        Workspace::View *wsv = workspaceViewForOutput(ws, output);
         Transform tr;
         tr.translate(-dx, -dy);
         wsv->setTransform(tr, animate);
@@ -148,7 +148,7 @@ void Pager::outputCreated(Output *o)
     m_roots.insert(o->id(), root);
 
     Workspace *ws = m_compositor->shell()->workspaces().first();
-    activate(ws->viewForOutput(o), o, false);
+    activate(workspaceViewForOutput(ws, o), o, false);
     emit workspaceActivated(ws, o);
 }
 

@@ -42,6 +42,78 @@ public:
     View *view;
 };
 
+AbstractWorkspace::View::View(Compositor *c, Output *o)
+                 : m_root(new Root(c))
+                 , m_output(o)
+{
+    QObject::connect(&m_transformAnim.anim, &Animation::update, [this](float v) { updateAnim(v); });
+    resetMask();
+}
+
+AbstractWorkspace::View::~View()
+{
+    delete m_root;
+}
+
+QPointF AbstractWorkspace::View::map(double x, double y) const
+{
+    return m_root->view->mapFromGlobal(QPointF(x, y));
+}
+
+QPoint AbstractWorkspace::View::pos() const
+{
+    return QPoint(m_root->view->x(), m_root->view->y());
+}
+
+void AbstractWorkspace::View::setPos(double x, double y)
+{
+    m_root->view->setPos(x, y);
+}
+
+void AbstractWorkspace::View::setTransformParent(Orbital::View *p)
+{
+    m_root->view->setTransformParent(p);
+}
+
+void AbstractWorkspace::View::takeView(Orbital::View *p)
+{
+    p->setTransformParent(m_root->view);
+}
+
+void AbstractWorkspace::View::resetMask()
+{
+    m_root->view->update();
+    QPointF tl = m_root->view->mapToGlobal(QPointF(0, 0));
+    QPointF br = m_root->view->mapToGlobal(QPointF(m_output->width(), m_output->height()));
+    QRect mask(QRect(QPoint(qRound(tl.x()), qRound(tl.y())), QPoint(qRound(br.x() - 1), qRound(br.y() - 1))));
+    m_mask = mask;
+    setMask(m_output->geometry().intersected(mask));
+}
+
+void AbstractWorkspace::View::setTransform(const Transform &tf, bool animate)
+{
+    m_transformAnim.target = tf;
+    if (animate) {
+        m_transformAnim.orig = transform();
+        m_transformAnim.anim.run(m_output, 300);
+    } else {
+        updateAnim(1.);
+    }
+}
+
+void AbstractWorkspace::View::updateAnim(double v)
+{
+    m_root->view->setTransform(Transform::interpolate(m_transformAnim.orig, m_transformAnim.target, v));
+    resetMask();
+    m_output->repaint();
+}
+
+const Transform &AbstractWorkspace::View::transform() const
+{
+    return m_root->view->transform();
+}
+
+
 Workspace::Workspace(Shell *shell, int id)
          : Object(shell)
          , m_shell(shell)
@@ -49,6 +121,7 @@ Workspace::Workspace(Shell *shell, int id)
          , m_x(0)
          , m_y(0)
 {
+    setMask(1 << m_id);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
     connect(shell->compositor(), &Compositor::outputCreated, this, &Workspace::newOutput);
 
@@ -59,7 +132,7 @@ Workspace::Workspace(Shell *shell, int id)
 
 Workspace::~Workspace()
 {
-    for (WorkspaceView *wsv: m_views) {
+    for (View *wsv: m_views) {
         delete wsv;
     }
 }
@@ -80,33 +153,33 @@ void Workspace::newOutput(Output *o)
     viewForOutput(o);
 }
 
-WorkspaceView *Workspace::viewForOutput(Output *o)
+AbstractWorkspace::View *Workspace::viewForOutput(Output *o)
 {
     if (!m_views.contains(o->id())) {
-        WorkspaceView *view = new WorkspaceView(this, o);
+        View *view = new View(this, o);
         m_views.insert(o->id(), view);
         view->setTransformParent(o->rootView());
-        view->m_root->view->setPos(m_x * o->width(), m_y * o->height());
+        view->setPos(m_x * o->width(), m_y * o->height());
         return view;
     }
 
     return m_views.value(o->id());
 }
 
-View *Workspace::topView() const
+void Workspace::activate(Output *o)
 {
-    WorkspaceView *view = *m_views.begin();
+    m_shell->pager()->activate(this, o);
+}
+
+Orbital::View *Workspace::topView() const
+{
+    View *view = *m_views.begin();
     return view->m_layer->topView();
 }
 
 int Workspace::id() const
 {
     return m_id;
-}
-
-int Workspace::mask() const
-{
-    return 1 << m_id;
 }
 
 void Workspace::setPos(int x, int y)
@@ -118,8 +191,8 @@ void Workspace::setPos(int x, int y)
     m_x = x;
     m_y = y;
 
-    foreach (WorkspaceView *v, m_views) {
-        v->m_root->view->setPos(x * v->m_output->width(), y * v->m_output->height());
+    foreach (View *v, m_views) {
+        v->setPos(x * v->m_output->width(), y * v->m_output->height());
     }
     emit positionChanged(x, y);
 }
@@ -140,58 +213,37 @@ void Workspace::outputRemoved(Output *o)
 }
 
 
-WorkspaceView::WorkspaceView(Workspace *ws, Output *o)
-             : QObject()
-             , m_workspace(ws)
-             , m_output(o)
-             , m_backgroundLayer(new Layer(ws->compositor()->backgroundLayer()))
-             , m_layer(new Layer(ws->compositor()->appsLayer()))
-             , m_fullscreenLayer(new Layer(ws->compositor()->fullscreenLayer()))
-             , m_background(nullptr)
+Workspace::View::View(Workspace *ws, Output *o)
+               : AbstractWorkspace::View(ws->compositor(), o)
+               , m_workspace(ws)
+               , m_output(o)
+               , m_backgroundLayer(new Layer(ws->compositor()->backgroundLayer()))
+               , m_layer(new Layer(ws->compositor()->appsLayer()))
+               , m_fullscreenLayer(new Layer(ws->compositor()->fullscreenLayer()))
+               , m_background(nullptr)
 {
-    m_root = new Root(ws->compositor());
-
-    connect(&m_transformAnim.anim, &Animation::update, this, &WorkspaceView::updateAnim);
-
-    resetMask();
 }
 
-WorkspaceView::~WorkspaceView()
+Workspace::View::~View()
 {
-    delete m_root;
     delete m_background;
     delete m_backgroundLayer;
     delete m_layer;
     delete m_fullscreenLayer;
 }
 
-QPoint WorkspaceView::pos() const
+QPoint Workspace::View::logicalPos() const
 {
-    return QPoint(m_root->view->x(), m_root->view->y());
+    return QPoint(pos().x() / m_output->width(), pos().y() / m_output->height());
 }
 
-QPoint WorkspaceView::logicalPos() const
-{
-    return QPoint(m_root->view->x() / m_output->width(), m_root->view->y() / m_output->height());
-}
-
-QPointF WorkspaceView::map(double x, double y) const
-{
-    return m_root->view->mapFromGlobal(QPointF(x, y));
-}
-
-bool WorkspaceView::ownsView(View *view) const
+bool Workspace::View::ownsView(Orbital::View *view) const
 {
     Layer *l = view->layer();
     return l == m_layer || l == m_backgroundLayer || l == m_fullscreenLayer;
 }
 
-void WorkspaceView::setTransformParent(View *p)
-{
-    m_root->view->setTransformParent(p);
-}
-
-void WorkspaceView::setBackground(Surface *s)
+void Workspace::View::setBackground(Surface *s)
 {
     if (m_background && m_background->surface() == s) {
         return;
@@ -203,65 +255,32 @@ void WorkspaceView::setBackground(Surface *s)
     // increase the ref count for the background, so to keep it alive when the shell client
     // crashes, until a new one is set
     s->ref();
-    m_background = new View(s);
-    m_background->setTransformParent(m_root->view);
+    m_background = new Orbital::View(s);
+    takeView(m_background);
     m_backgroundLayer->addView(m_background);
 }
 
-void WorkspaceView::resetMask()
+void Workspace::View::setMask(const QRect &r)
 {
-    m_root->view->update();
-    QPointF tl = m_root->view->mapToGlobal(QPointF(0, 0));
-    QPointF br = m_root->view->mapToGlobal(QPointF(m_output->width(), m_output->height()));
-    setMask(QRect(QPoint(qRound(tl.x()), qRound(tl.y())), QPoint(qRound(br.x() - 1), qRound(br.y() - 1))));
-}
-
-void WorkspaceView::setMask(const QRect &m)
-{
-    QRect r = m_output->geometry().intersected(m);
     m_backgroundLayer->setMask(r.x(), r.y(), r.width(), r.height());
     m_layer->setMask(r.x(), r.y(), r.width(), r.height());
     m_fullscreenLayer->setMask(r.x(), r.y(), r.width(), r.height());
-    m_mask = r;
 }
 
-void WorkspaceView::setTransform(const Transform &tf, bool animate)
-{
-    m_transformAnim.target = tf;
-    if (animate) {
-        m_transformAnim.orig = transform();
-        m_transformAnim.anim.run(m_output, 300);
-    } else {
-        updateAnim(1.);
-    }
-}
-
-void WorkspaceView::updateAnim(double v)
-{
-    m_root->view->setTransform(Transform::interpolate(m_transformAnim.orig, m_transformAnim.target, v));
-    resetMask();
-    m_output->repaint();
-}
-
-const Transform &WorkspaceView::transform() const
-{
-    return m_root->view->transform();
-}
-
-void WorkspaceView::configure(View *view)
+void Workspace::View::configure(Orbital::View *view)
 {
     if (view->layer() != m_layer) {
         m_layer->addView(view);
-        view->setTransformParent(m_root->view);
+        takeView(view);
     }
 }
 
-void WorkspaceView::configureFullscreen(View *view, View *blackSurface)
+void Workspace::View::configureFullscreen(Orbital::View *view, Orbital::View *blackSurface)
 {
     m_fullscreenLayer->addView(blackSurface);
     m_fullscreenLayer->addView(view);
-    view->setTransformParent(m_root->view);
-    blackSurface->setTransformParent(m_root->view);
+    takeView(view);
+    takeView(blackSurface);
 }
 
 }

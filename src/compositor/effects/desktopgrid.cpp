@@ -43,10 +43,10 @@ class DesktopGrid::Grab : public PointerGrab
 {
 public:
     Grab() : moving(nullptr), moved(false) {}
-    WorkspaceView *workspace(Output *out, double x, double y)
+    Workspace::View *workspace(Output *out, double x, double y)
     {
         foreach (Workspace *ws, shell->workspaces()) {
-            WorkspaceView *wsv = ws->viewForOutput(out);
+            Workspace::View *wsv = workspaceViewForOutput(ws, out);
             if (wsv->mask().contains(x, y)) {
                 return wsv;
             }
@@ -75,9 +75,9 @@ public:
             }
             if (moved) {
                 ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
-                Workspace *w = shsurf->workspace();
+                AbstractWorkspace *w = shsurf->workspace();
                 Output *out = moving->output();
-                WorkspaceView *wsv = w->viewForOutput(out);
+                AbstractWorkspace::View *wsv = workspaceViewForOutput(w, out);
                 QPointF p = wsv->map(x, y) + QPointF(dx, dy);
                 QRect surfaceGeometry = shsurf->geometry();
 
@@ -103,7 +103,7 @@ public:
                 moving = view;
                 moved = false;
                 QPointF pp(pointer()->x(), pointer()->y());
-                WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
+                Workspace::View *wsv = workspace(moving->output(), pp.x(), pp.y());
                 QPointF p = wsv->map(pp.x(), pp.y());
                 dx = moving->x() - p.x();
                 dy = moving->y() - p.y();
@@ -112,7 +112,7 @@ public:
             }
         } else if (moving && moved) {
             QPointF pp(pointer()->x(), pointer()->y());
-            WorkspaceView *wsv = workspace(moving->output(), pp.x(), pp.y());
+            Workspace::View *wsv = workspace(moving->output(), pp.x(), pp.y());
             ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
             if (wsv) {
                 QPointF p = moving->mapToGlobal(QPointF(0,0));
@@ -132,7 +132,7 @@ public:
             if (!out) {
                 return;
             }
-            if (WorkspaceView *wsv = workspace(out, pointer()->x(), pointer()->y())) {
+            if (Workspace::View *wsv = workspace(out, pointer()->x(), pointer()->y())) {
                 desktopgrid->terminate(out, wsv->workspace());
             }
         }
@@ -207,7 +207,7 @@ void DesktopGrid::run(Seat *seat)
 
         QRect fullRect;
         foreach (Workspace *w, m_shell->workspaces()) {
-            WorkspaceView *wsv = w->viewForOutput(out);
+            Workspace::View *wsv = workspaceViewForOutput(w, out);
             QPoint p = wsv->logicalPos();
             p.rx() = (p.x() + 2) * margin_w + p.x() * out->geometry().width();
             p.ry() = (p.y() + 2) * margin_h + p.y() * out->geometry().height();
@@ -235,7 +235,7 @@ void DesktopGrid::run(Seat *seat)
 
         for (int i = 0; i < numWs; ++i) {
             Workspace *w = m_shell->workspaces().at(i);
-            WorkspaceView *wsv = w->viewForOutput(out);
+            Workspace::View *wsv = workspaceViewForOutput(w, out);
 
             QPoint p = wsv->logicalPos();
             p.rx() = (p.x() * out->width() + (p.x() + 1) * margin_w) * rx;

@@ -33,6 +33,7 @@ set(SOURCES
     dropdown.cpp
     screenshooter.cpp
     clipboard.cpp
+    dashboard.cpp
     effect.cpp
     effects/zoomeffect.cpp
     effects/desktopgrid.cpp

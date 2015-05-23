@@ -174,7 +174,7 @@ void Output::setBackground(Surface *surface)
     surface->setActivable(false);
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
-        WorkspaceView *wsv = ws->viewForOutput(this);
+        Workspace::View *wsv = workspaceViewForOutput(ws, this);
         wsv->setBackground(surface);
     }
 }

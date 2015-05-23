@@ -71,6 +71,7 @@ public:
     Shell *shell() const;
     Layer *lockLayer() const;
     Layer *overlayLayer() const;
+    Layer *dashboardLayer() const;
     Layer *fullscreenLayer() const;
     Layer *panelsLayer() const;
     Layer *stickyLayer() const;
@@ -120,6 +121,7 @@ private:
     Layer *m_rootLayer;
     Layer *m_lockLayer;
     Layer *m_overlayLayer;
+    Layer *m_dashboardLayer;
     Layer *m_fullscreenLayer;
     Layer *m_panelsLayer;
     Layer *m_stickyLayer;

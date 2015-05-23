@@ -205,8 +205,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
     }
 
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
-        Pager *p = m_desktopShell->shell()->pager();
-        p->activate(s->workspace(), Output::fromResource(output));
+        s->workspace()->activate(Output::fromResource(output));
         scope->activate(s->surface());
         for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);

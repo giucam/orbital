@@ -246,6 +246,7 @@ bool Compositor::init(const QString &socketName)
     m_fullscreenLayer = new Layer(m_rootLayer);
     m_panelsLayer = new Layer(m_rootLayer);
     m_stickyLayer = new Layer(m_rootLayer);
+    m_dashboardLayer = new Layer(m_rootLayer);
     m_appsLayer = new Layer(m_rootLayer);
     m_backgroundLayer = new Layer(m_rootLayer);
     m_baseBackgroundLayer = new Layer(m_rootLayer);
@@ -428,6 +429,11 @@ Layer *Compositor::lockLayer() const
 Layer *Compositor::overlayLayer() const
 {
     return m_overlayLayer;
+}
+
+Layer *Compositor::dashboardLayer() const
+{
+    return m_dashboardLayer;
 }
 
 Layer *Compositor::fullscreenLayer() const

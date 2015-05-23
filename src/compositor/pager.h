@@ -23,13 +23,13 @@
 #include <QObject>
 #include <QHash>
 
+#include "workspace.h"
+
 namespace Orbital {
 
 class Compositor;
 class DummySurface;
-class Workspace;
 class Output;
-class WorkspaceView;
 
 class Pager : public QObject
 {
@@ -41,14 +41,14 @@ public:
     void activate(Workspace *ws, Output *output);
     void activateNextWorkspace(Output *output);
     void activatePrevWorkspace(Output *output);
-    bool isWorkspaceActive(Workspace *ws, Output *output) const;
+    bool isWorkspaceActive(AbstractWorkspace *ws, Output *output) const;
     void updateWorkspacesPosition(Output *o);
 
 signals:
     void workspaceActivated(Workspace *ws, Output *o);
 
 private:
-    void activate(WorkspaceView *wsv, Output *o, bool animate);
+    void activate(Workspace::View *wsv, Output *o, bool animate);
     void outputCreated(Output *o);
     void outputRemoved(Output *o);
     void changeWorkspace(Output *o, int d);

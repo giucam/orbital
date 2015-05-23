@@ -39,7 +39,7 @@ namespace Orbital
 
 class Shell;
 class ShellView;
-class Workspace;
+class AbstractWorkspace;
 class Output;
 class Seat;
 class Compositor;
@@ -74,9 +74,9 @@ public:
 
     Surface *surface() const { return m_surface; }
     ShellView *viewForOutput(Output *o);
-    void setWorkspace(Workspace *ws);
+    void setWorkspace(AbstractWorkspace *ws);
     Compositor *compositor() const;
-    Workspace *workspace() const;
+    AbstractWorkspace *workspace() const;
 
     void setConfigureSender(ConfigureSender sender);
     void setToplevel();
@@ -140,7 +140,7 @@ private:
     Shell *m_shell;
     Surface *m_surface;
     ConfigureSender m_configureSender;
-    Workspace *m_workspace;
+    AbstractWorkspace *m_workspace;
     QHash<int, ShellView *> m_views;
     QList<ShellView *> m_extraViews;
     Edges m_resizeEdges;
