@@ -44,6 +44,8 @@ public:
     View *topView() const;
 
     void setMask(int x, int y, int w, int h);
+    void setAcceptInput(bool accept);
+    bool acceptInput() const { return m_acceptInput; }
 
     static Layer *fromLayer(weston_layer *layer);
 
@@ -53,7 +55,7 @@ private:
     Wrapper *m_layer;
     Layer *m_parent;
     QList<Layer *> m_children;
-
+    bool m_acceptInput;
 };
 
 }

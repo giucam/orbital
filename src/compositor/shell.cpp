@@ -436,7 +436,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    View *focus = m_compositor->pickView(seat->pointer()->x(), seat->pointer()->y());
+    View *focus = seat->pointer()->focus();
     if (!focus) {
         return;
     }
@@ -494,7 +494,7 @@ void Shell::moveSurface(Seat *seat)
         return;
     }
 
-    View *focus = seat->pointer()->focus();
+    View *focus = m_compositor->pickView(seat->pointer()->x(), seat->pointer()->y());
     if (!focus) {
         return;
     }
@@ -513,7 +513,7 @@ void Shell::killSurface(Seat *s)
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {
-            View *view = pointer()->pickView();
+            View *view = compositor->pickView(pointer()->x(), pointer()->y());
             compositor->kill(view->surface());
 
             end();
@@ -553,7 +553,7 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
         return;
     }
 
-    View *focus = seat->pointer()->focus();
+    View *focus = m_compositor->pickView(seat->pointer()->x(), seat->pointer()->y());
     if (!focus) {
         return;
     }

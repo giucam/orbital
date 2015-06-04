@@ -32,6 +32,7 @@
 #include "workspace.h"
 #include "output.h"
 #include "focusscope.h"
+#include "layer.h"
 
 namespace Orbital {
 
@@ -276,12 +277,16 @@ Pointer::~Pointer()
     delete m_listener;
 }
 
-View *Pointer::pickView(double *vx, double *vy) const
+View *Pointer::pickView(double *vx, double *vy, const std::function<bool (View *view)> &filter) const
 {
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
         if (!v) {
+            continue;
+        }
+
+        if (filter && !filter(v)) {
             continue;
         }
 
@@ -480,7 +485,13 @@ void Pointer::defaultGrabFocus()
     }
 
     double dx, dy;
-    View *view = pickView(&dx, &dy);
+    View *view = pickView(&dx, &dy, [](View *view) {
+        Layer *l = view->layer();
+        if (!l || !l->acceptInput()) {
+            return false;
+        }
+        return true;
+    });
     wl_fixed_t sx = wl_fixed_from_double(dx);
     wl_fixed_t sy = wl_fixed_from_double(dy);
 

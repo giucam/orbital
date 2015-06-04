@@ -34,6 +34,7 @@ struct Wrapper {
 Layer::Layer(weston_layer *l)
      : m_layer(new Wrapper)
      , m_parent(nullptr)
+     , m_acceptInput(true)
 {
     m_layer->parent = this;
 
@@ -45,6 +46,7 @@ Layer::Layer(weston_layer *l)
 Layer::Layer(Layer *parent)
      : m_layer(new Wrapper)
      , m_parent(parent)
+     , m_acceptInput(true)
 {
     m_layer->parent = this;
 
@@ -118,6 +120,11 @@ View *Layer::topView() const
 void Layer::setMask(int x, int y, int w, int h)
 {
     weston_layer_set_mask(&m_layer->layer, x, y, w, h);
+}
+
+void Layer::setAcceptInput(bool accept)
+{
+    m_acceptInput = accept;
 }
 
 Layer *Layer::fromLayer(weston_layer *l)

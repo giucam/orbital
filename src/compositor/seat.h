@@ -20,6 +20,8 @@
 #ifndef ORBITAL_SEAT_H
 #define ORBITAL_SEAT_H
 
+#include <functional>
+
 #include <QObject>
 #include <QPointF>
 #include <QLinkedList>
@@ -123,7 +125,8 @@ public:
     ~Pointer();
 
     inline Seat *seat() const { return m_seat; }
-    View *pickView(double *x = nullptr, double *y = nullptr) const;
+    View *pickView(double *x = nullptr, double *y = nullptr,
+                   const std::function<bool (View *view)> &filter = nullptr) const;
 
     void setFocus(View *view);
     void setFocus(View *view, double x, double y);

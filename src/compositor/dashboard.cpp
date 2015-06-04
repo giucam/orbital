@@ -35,6 +35,7 @@ public:
         : AbstractWorkspace::View(c, o)
         , m_layer(new Layer(c->dashboardLayer()))
     {
+        m_layer->setAcceptInput(false);
     }
 
     void configure(Orbital::View *view)
@@ -87,7 +88,7 @@ void Dashboard::toggleSurface(Seat *seat)
         return;
     }
 
-    Orbital::View *focus = seat->pointer()->focus();
+    Orbital::View *focus = m_shell->compositor()->pickView(seat->pointer()->x(), seat->pointer()->y());
     if (!focus) {
         return;
     }
