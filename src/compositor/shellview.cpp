@@ -110,6 +110,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
             }
             QRect rect = m_designedOutput->availableGeometry();
             QRect bbox = m_surface->geometry();
+            setTransform(Transform());
             setPos(rect.topLeft() - bbox.topLeft());
         } else if (fullscreen) {
             if (!m_posSaved) {
@@ -118,6 +119,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
             }
             mapFullscreen();
         } else {
+            setTransform(Transform());
             if (m_posSaved) {
                 setPos(m_savedPos);
                 m_posSaved = false;
