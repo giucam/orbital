@@ -46,7 +46,6 @@ constexpr static auto createWrapper(R (T::*func)(Args...)) -> InterfaceWrapper<R
     return InterfaceWrapper<R, T, Args...>();
 }
 
-}
 
 #define wrapInterface(method) createWrapper(method).forward<method>
 
@@ -66,6 +65,8 @@ public:
 private:
     bool m_isSet;
 };
+
+}
 
 
 #define DECLARE_OPERATORS_FOR_FLAGS(F) \
