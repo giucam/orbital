@@ -302,6 +302,35 @@ View *Pointer::pickView(double *vx, double *vy, const std::function<bool (View *
     return nullptr;
 }
 
+View *Pointer::pickActivableView(double *vx, double *vy) const
+{
+    int ix = wl_fixed_to_int(m_pointer->x);
+    int iy = wl_fixed_to_int(m_pointer->y);
+
+    weston_view *view;
+    wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
+        View *v = View::fromView(view);
+        if (!v) {
+            continue;
+        }
+
+        if (!v->surface()->isActivable()) {
+            continue;
+        }
+
+        if (pixman_region32_contains_point(&v->m_view->transform.boundingbox, ix, iy, NULL)) {
+            wl_fixed_t fvx, fvy;
+            weston_view_from_global_fixed(v->m_view, m_pointer->x, m_pointer->y, &fvx, &fvy);
+            if (pixman_region32_contains_point(&v->m_view->surface->input, wl_fixed_to_int(fvx), wl_fixed_to_int(fvy), NULL)) {
+                if (vx) *vx = wl_fixed_to_double(fvx);
+                if (vy) *vy = wl_fixed_to_double(fvy);
+                return v;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void Pointer::setFocus(View *view)
 {
     setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : QPointF());

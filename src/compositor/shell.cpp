@@ -436,7 +436,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    View *focus = seat->pointer()->focus();
+    View *focus = seat->pointer()->pickActivableView();
     if (!focus) {
         return;
     }

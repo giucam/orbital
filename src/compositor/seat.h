@@ -127,6 +127,7 @@ public:
     inline Seat *seat() const { return m_seat; }
     View *pickView(double *x = nullptr, double *y = nullptr,
                    const std::function<bool (View *view)> &filter = nullptr) const;
+    View *pickActivableView(double *x = nullptr, double *y = nullptr) const;
 
     void setFocus(View *view);
     void setFocus(View *view, double x, double y);
