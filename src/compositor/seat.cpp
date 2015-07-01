@@ -314,7 +314,8 @@ View *Pointer::pickActivableView(double *vx, double *vy) const
             continue;
         }
 
-        if (!v->surface()->isActivable()) {
+        Layer *l = v->layer();
+        if (!l || !l->acceptInput()) {
             continue;
         }
 
