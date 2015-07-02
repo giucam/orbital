@@ -43,6 +43,7 @@ class AbstractWorkspace;
 class Output;
 class Seat;
 class Compositor;
+class Workspace;
 struct Listener;
 
 class ShellSurface : public Object, public Surface::RoleHandler
@@ -136,6 +137,7 @@ private:
     void disconnectParent();
     inline QString cacheId() const;
     void availableGeometryChanged();
+    void workspaceActivated(Workspace *w, Output *o);
 
     Shell *m_shell;
     Surface *m_surface;

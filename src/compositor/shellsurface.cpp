@@ -64,6 +64,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
     connect(surface, &QObject::destroyed, [this]() { m_views.clear(); delete this; });
+    connect(shell->pager(), &Pager::workspaceActivated, this, &ShellSurface::workspaceActivated);
 
     wl_client_get_credentials(surface->client(), &m_pid, NULL, NULL);
 }
@@ -641,6 +642,21 @@ void ShellSurface::availableGeometryChanged()
     if (m_nextType == Type::Toplevel && m_toplevel.maximized && m_toplevel.output == o) {
         QRect rect = o->availableGeometry();
         sendConfigure(rect.width(), rect.height());
+    }
+}
+
+void ShellSurface::workspaceActivated(Workspace *w, Output *o)
+{
+    if (w != workspace()) {
+        return;
+    }
+
+    if (m_nextType != Type::Toplevel || !m_toplevel.maximized) {
+        return;
+    }
+
+    if (m_toplevel.output->currentWorkspace() != w) {
+        setMaximized();
     }
 }
 
