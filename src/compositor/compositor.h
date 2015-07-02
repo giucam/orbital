@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QJsonObject>
 #include <QMultiHash>
+#include <QVector>
 
 struct wl_display;
 struct wl_event_loop;
@@ -61,6 +62,19 @@ class Compositor : public QObject
 {
     Q_OBJECT
 public:
+    enum class Layer {
+        Lock,
+        Overlay,
+        Fullscreen,
+        Panels,
+        Sticky,
+        Dashboard,
+        Apps,
+        Background,
+        BaseBackground,
+        Minimized,
+    };
+
     explicit Compositor(Backend *backend);
     ~Compositor();
 
@@ -69,16 +83,7 @@ public:
 
     inline wl_display *display() const { return m_display; }
     Shell *shell() const;
-    Layer *lockLayer() const;
-    Layer *overlayLayer() const;
-    Layer *dashboardLayer() const;
-    Layer *fullscreenLayer() const;
-    Layer *panelsLayer() const;
-    Layer *stickyLayer() const;
-    Layer *appsLayer() const;
-    Layer *backgroundLayer() const;
-    Layer *baseBackgroundLayer() const;
-    Layer *minimizedLayer() const;
+    Orbital::Layer *layer(Layer l) const;
     QList<Output *> outputs() const;
     QList<Seat *> seats() const;
 
@@ -118,17 +123,7 @@ private:
     Listener *m_listener;
     Backend *m_backend;
     Shell *m_shell;
-    Layer *m_rootLayer;
-    Layer *m_lockLayer;
-    Layer *m_overlayLayer;
-    Layer *m_dashboardLayer;
-    Layer *m_fullscreenLayer;
-    Layer *m_panelsLayer;
-    Layer *m_stickyLayer;
-    Layer *m_appsLayer;
-    Layer *m_backgroundLayer;
-    Layer *m_baseBackgroundLayer;
-    Layer *m_minimizedLayer;
+    QVector<Orbital::Layer *> m_layers;
     QList<Output *> m_outputs;
     QTimer m_fakeRepaintLoopTimer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;

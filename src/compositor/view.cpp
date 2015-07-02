@@ -168,7 +168,7 @@ void View::unmap()
 {
     weston_view_unmap(m_view);
     Compositor *c = Compositor::fromCompositor(m_view->surface->compositor);
-    c->minimizedLayer()->addView(this);
+    c->layer(Compositor::Layer::Minimized)->addView(this);
 }
 
 wl_client *View::client() const

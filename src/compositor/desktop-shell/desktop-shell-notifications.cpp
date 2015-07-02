@@ -100,7 +100,7 @@ public:
             v->setTransformParent(o->rootView());
             connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
             connect(&v->moveAnim, &Animation::update, v, &NSView::move);
-            c->overlayLayer()->addView(v);
+            c->layer(Compositor::Layer::Overlay)->addView(v);
         }
 
         s->setRoleHandler(this);
@@ -133,7 +133,7 @@ public:
         v->setTransformParent(o->rootView());
         connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
         connect(&v->moveAnim, &Animation::update, v, &NSView::move);
-        m_compositor->overlayLayer()->addView(v);
+        m_compositor->layer(Compositor::Layer::Overlay)->addView(v);
         manager->relayout();
     }
     void outputRemoved(Output *o)

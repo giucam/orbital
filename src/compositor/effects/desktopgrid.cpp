@@ -70,7 +70,7 @@ public:
             if (!moved) {
                 moved = QPointF(origMousePos - QPointF(x, y)).manhattanLength() > 2;
                 if (moved) {
-                    shell->compositor()->appsLayer()->addView(moving);
+                    shell->compositor()->layer(Compositor::Layer::Apps)->addView(moving);
                 }
             }
             if (moved) {
