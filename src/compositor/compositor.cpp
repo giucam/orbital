@@ -138,12 +138,7 @@ Compositor::~Compositor()
 {
     delete m_shell;
     qDeleteAll(m_outputs);
-    delete m_rootLayer;
-    delete m_overlayLayer;
-    delete m_panelsLayer;
-    delete m_stickyLayer;
-    delete m_appsLayer;
-    delete m_backgroundLayer;
+    qDeleteAll(m_layers);
     delete m_bindingsCleanupHandler;
 
     if (m_compositor)
@@ -240,18 +235,10 @@ bool Compositor::init(const QString &socketName)
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
 
-    m_rootLayer = new Layer(&m_compositor->cursor_layer);
-    m_lockLayer = new Layer(m_rootLayer);
-    m_overlayLayer = new Layer(m_rootLayer);
-    m_fullscreenLayer = new Layer(m_rootLayer);
-    m_panelsLayer = new Layer(m_rootLayer);
-    m_stickyLayer = new Layer(m_rootLayer);
-    m_dashboardLayer = new Layer(m_rootLayer);
-    m_appsLayer = new Layer(m_rootLayer);
-    m_backgroundLayer = new Layer(m_rootLayer);
-    m_baseBackgroundLayer = new Layer(m_rootLayer);
-    m_minimizedLayer = new Layer(m_rootLayer);
-    m_minimizedLayer->setMask(0, 0, 0, 0);
+    for (int i = 0; i <= (int)Layer::Minimized; ++i) {
+        m_layers << new Orbital::Layer(&m_compositor->cursor_layer);
+    }
+    layer(Layer::Minimized)->setMask(0, 0, 0, 0);
 
     m_compositor->kb_repeat_rate = 40;
     m_compositor->kb_repeat_delay = 400;
@@ -421,54 +408,9 @@ Shell *Compositor::shell() const
     return m_shell;
 }
 
-Layer *Compositor::lockLayer() const
+Orbital::Layer *Compositor::layer(Layer l) const
 {
-    return m_lockLayer;
-}
-
-Layer *Compositor::overlayLayer() const
-{
-    return m_overlayLayer;
-}
-
-Layer *Compositor::dashboardLayer() const
-{
-    return m_dashboardLayer;
-}
-
-Layer *Compositor::fullscreenLayer() const
-{
-    return m_fullscreenLayer;
-}
-
-Layer *Compositor::panelsLayer() const
-{
-    return m_panelsLayer;
-}
-
-Layer *Compositor::stickyLayer() const
-{
-    return m_stickyLayer;
-}
-
-Layer *Compositor::appsLayer() const
-{
-    return m_appsLayer;
-}
-
-Layer *Compositor::backgroundLayer() const
-{
-    return m_backgroundLayer;
-}
-
-Layer *Compositor::baseBackgroundLayer() const
-{
-    return m_baseBackgroundLayer;
-}
-
-Layer *Compositor::minimizedLayer() const
-{
-    return m_minimizedLayer;
+    return m_layers.at((int)Layer::Minimized - (int)l);
 }
 
 QList<Output *> Compositor::outputs() const

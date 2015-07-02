@@ -63,8 +63,8 @@ Output::Output(weston_output *out)
       , m_compositor(Compositor::fromCompositor(out->compositor))
       , m_output(out)
       , m_listener(new Listener)
-      , m_panelsLayer(new Layer(m_compositor->panelsLayer()))
-      , m_lockLayer(new Layer(m_compositor->lockLayer()))
+      , m_panelsLayer(new Layer(m_compositor->layer(Compositor::Layer::Panels)))
+      , m_lockLayer(new Layer(m_compositor->layer(Compositor::Layer::Lock)))
       , m_transformRoot(new Root(m_compositor, out->width, out->height))
       , m_background(nullptr)
       , m_currentWs(nullptr)
@@ -75,7 +75,7 @@ Output::Output(weston_output *out)
 {
     weston_output_init_zoom(m_output);
     m_transformRoot->view->setPos(out->x, out->y);
-    m_compositor->baseBackgroundLayer()->addView(m_transformRoot->view);
+    m_compositor->layer(Compositor::Layer::BaseBackground)->addView(m_transformRoot->view);
     m_lockLayer->addView(m_lockBackgroundSurface->view);
     m_lockBackgroundSurface->view->setTransformParent(m_transformRoot->view);
     m_lockLayer->setMask(0, 0, 0, 0);
@@ -235,7 +235,7 @@ void Output::setOverlay(Surface *surface)
     pixman_region32_fini(&surface->surface()->pending.input);
     pixman_region32_init_rect(&surface->surface()->pending.input, 0, 0, 0, 0);
     OutputSurface *s = new OutputSurface(surface, this);
-    m_compositor->overlayLayer()->addView(s->view);
+    m_compositor->layer(Compositor::Layer::Overlay)->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() { m_overlays.removeOne(s->view); delete s; });
     m_overlays << s->view;

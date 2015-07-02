@@ -217,9 +217,9 @@ Workspace::View::View(Workspace *ws, Output *o)
                : AbstractWorkspace::View(ws->compositor(), o)
                , m_workspace(ws)
                , m_output(o)
-               , m_backgroundLayer(new Layer(ws->compositor()->backgroundLayer()))
-               , m_layer(new Layer(ws->compositor()->appsLayer()))
-               , m_fullscreenLayer(new Layer(ws->compositor()->fullscreenLayer()))
+               , m_backgroundLayer(new Layer(ws->compositor()->layer(Compositor::Layer::Background)))
+               , m_layer(new Layer(ws->compositor()->layer(Compositor::Layer::Apps)))
+               , m_fullscreenLayer(new Layer(ws->compositor()->layer(Compositor::Layer::Fullscreen)))
                , m_background(nullptr)
 {
 }

@@ -50,7 +50,7 @@ public:
         , m_resource(res)
         , m_active(false)
         , m_fadeIn(false)
-        , m_layer(m_shell->compositor()->overlayLayer())
+        , m_layer(m_shell->compositor()->layer(Compositor::Layer::Overlay))
     {
         static const struct orbital_launcher_surface_interface implementation = {
             wrapInterface(&LauncherSurface::done)

@@ -33,7 +33,7 @@ class Dashboard::View : public AbstractWorkspace::View
 public:
     View(Compositor *c, Output *o)
         : AbstractWorkspace::View(c, o)
-        , m_layer(new Layer(c->dashboardLayer()))
+        , m_layer(new Layer(c->layer(Compositor::Layer::Dashboard)))
     {
         m_layer->setAcceptInput(false);
     }

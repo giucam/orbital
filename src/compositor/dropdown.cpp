@@ -239,7 +239,7 @@ Dropdown::Dropdown(Shell *shell)
         : Interface(shell)
         , Global(shell->compositor(), &orbital_dropdown_interface, 1)
         , m_shell(shell)
-        , m_layer(new Layer(shell->compositor()->stickyLayer()))
+        , m_layer(new Layer(shell->compositor()->layer(Compositor::Layer::Sticky)))
         , m_surface(nullptr)
 {
 }
