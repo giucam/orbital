@@ -45,7 +45,12 @@ void View::viewDestroyed(wl_listener *listener, void *data)
 }
 
 View::View(Surface *s)
-    : m_view(weston_view_create(s->surface()))
+    : View(s, weston_view_create(s->surface()))
+{
+}
+
+View::View(Surface *s, weston_view *view)
+    : m_view(view)
     , m_surface(s)
     , m_listener(new Listener)
     , m_output(nullptr)
@@ -202,7 +207,7 @@ View *View::fromView(weston_view *v)
 {
     wl_listener *listener = wl_signal_get(&v->destroy_signal, viewDestroyed);
     if (!listener) {
-        return nullptr;
+        return new View(Surface::fromSurface(v->surface), v);
     }
     return reinterpret_cast<Listener *>(listener)->view;
 }

@@ -282,10 +282,6 @@ View *Pointer::pickView(double *vx, double *vy, const std::function<bool (View *
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
-        if (!v) {
-            continue;
-        }
-
         if (filter && !filter(v)) {
             continue;
         }
@@ -310,12 +306,8 @@ View *Pointer::pickActivableView(double *vx, double *vy) const
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
         View *v = View::fromView(view);
-        if (!v) {
-            continue;
-        }
-
         Layer *l = v->layer();
-        if (!l || !l->acceptInput()) {
+        if (l && !l->acceptInput()) {
             continue;
         }
 
@@ -517,7 +509,7 @@ void Pointer::defaultGrabFocus()
     double dx, dy;
     View *view = pickView(&dx, &dy, [](View *view) {
         Layer *l = view->layer();
-        if (!l || !l->acceptInput()) {
+        if (l && !l->acceptInput()) {
             return false;
         }
         return true;
