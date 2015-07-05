@@ -82,6 +82,7 @@ protected:
     virtual bool pointerLeave(const Pointer *pointer) { return true; }
 
 private:
+    explicit View(Surface *s, weston_view *view);
     static void viewDestroyed(wl_listener *listener, void *data);
 
     weston_view *m_view;
