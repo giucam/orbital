@@ -104,7 +104,7 @@ Item {
         }
     }
 
-    property string title: mpris.playbackStatus != Mpris.Stopped ? mpris.trackTitle : window.title
+    property string title: (mpris.playbackStatus != Mpris.Stopped ? mpris.trackTitle : null) || window.title
 
     MouseArea {
         id: mousearea
