@@ -106,6 +106,12 @@ Item {
 
     property string title: (mpris.playbackStatus != Mpris.Stopped ? mpris.trackTitle : null) || window.title
 
+    Timer {
+        id: previewTimer
+        interval: 200
+        onTriggered: window.preview(item.screen)
+    }
+
     MouseArea {
         id: mousearea
         anchors.fill: parent
@@ -127,6 +133,14 @@ Item {
                 item.shrinked = !item.shrinked;
             } else {
                 menu.popup();
+            }
+        }
+        onEntered: previewTimer.start()
+        onExited: {
+            if (previewTimer.running) {
+                previewTimer.stop();
+            } else {
+                window.endPreview(item.screen);
             }
         }
 

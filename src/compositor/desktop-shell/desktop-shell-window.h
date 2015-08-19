@@ -55,6 +55,8 @@ private:
     void sendTitle();
     void setState(wl_client *client, wl_resource *resource, wl_resource *output, int32_t state);
     void close(wl_client *client, wl_resource *resource);
+    void preview(wl_resource *output);
+    void endPreview(wl_resource *output);
 
     DesktopShell *m_desktopShell;
     wl_resource *m_resource;

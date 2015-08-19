@@ -68,8 +68,14 @@ ShellView::ShellView(ShellSurface *surf)
          , m_initialPosSet(false)
          , m_posSaved(false)
          , m_blackSurface(nullptr)
+         , m_animDone(nullptr)
 {
-
+    connect(&m_alphaAnimation, &Animation::update, this, &View::setAlpha);
+    connect(&m_alphaAnimation, &Animation::done, [this]() {
+        if (m_animDone) {
+            m_animDone();
+        }
+    });
 }
 
 ShellView::~ShellView()
@@ -230,6 +236,14 @@ void ShellView::mapFullscreen()
     double x = (ow - sw * scale) / 2 - rect.x();
     double y = (oh - sh * scale) / 2 - rect.y();
     setPos(x, y);
+}
+
+void ShellView::animateAlphaTo(double a, const std::function<void ()> &done)
+{
+    m_animDone = done;
+    m_alphaAnimation.setStart(alpha());
+    m_alphaAnimation.setTarget(a);
+    m_alphaAnimation.run(m_designedOutput, 200, Animation::Flags::SendDone);
 }
 
 }

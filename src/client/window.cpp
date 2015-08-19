@@ -117,3 +117,15 @@ void Window::close()
 {
     desktop_shell_window_close(m_window);
 }
+
+void Window::preview(UiScreen *screen)
+{
+    wl_output *o = Client::client()->nativeOutput(screen->screen());
+    desktop_shell_window_preview(m_window, o);
+}
+
+void Window::endPreview(UiScreen *screen)
+{
+    wl_output *o = Client::client()->nativeOutput(screen->screen());
+    desktop_shell_window_end_preview(m_window, o);
+}

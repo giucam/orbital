@@ -62,6 +62,8 @@ public:
 
 public slots:
     void close();
+    void preview(UiScreen *screen);
+    void endPreview(UiScreen *screen);
 
 signals:
     void destroyed(Window *w);

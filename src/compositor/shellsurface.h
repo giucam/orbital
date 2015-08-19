@@ -94,6 +94,9 @@ public:
     void restore();
     void close();
 
+    void preview(Output *output);
+    void endPreview(Output *output);
+
     void moveViews(double x, double y);
 
     void setTitle(const QString &title);
@@ -145,6 +148,7 @@ private:
     AbstractWorkspace *m_workspace;
     QHash<int, ShellView *> m_views;
     QList<ShellView *> m_extraViews;
+    ShellView *m_previewView;
     Edges m_resizeEdges;
     bool m_resizing;
     int m_height, m_width;

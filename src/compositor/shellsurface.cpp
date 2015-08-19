@@ -32,6 +32,7 @@
 #include "compositor.h"
 #include "seat.h"
 #include "pager.h"
+#include "layer.h"
 
 namespace Orbital
 {
@@ -44,6 +45,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
             , m_surface(surface)
             , m_configureSender(nullptr)
             , m_workspace(nullptr)
+            , m_previewView(nullptr)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
             , m_type(Type::None)
@@ -349,6 +351,30 @@ void ShellSurface::close()
 
     if (pid != getpid()) {
         kill(pid, SIGTERM);
+    }
+}
+
+void ShellSurface::preview(Output *output)
+{
+    ShellView *v = viewForOutput(output);
+
+    if (!m_previewView) {
+        m_previewView = new ShellView(this);
+    }
+
+    m_previewView->setDesignedOutput(output);
+    m_previewView->setPos(v->x(), v->y());
+
+    m_shell->compositor()->layer(Compositor::Layer::Dashboard)->addView(m_previewView);
+    m_previewView->setTransformParent(output->rootView());
+    m_previewView->setAlpha(0.);
+    m_previewView->animateAlphaTo(0.8);
+}
+
+void ShellSurface::endPreview(Output *output)
+{
+    if (m_previewView) {
+        m_previewView->animateAlphaTo(0., [this]() { m_previewView->unmap(); });
     }
 }
 

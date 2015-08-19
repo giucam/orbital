@@ -220,6 +220,12 @@
             <arg name="state" type="int"/>
         </request>
         <request name="close"/>
+        <request name="preview">
+            <arg name="output" type="object" interface="wl_output"/>
+        </request>
+        <request name="end_preview">
+            <arg name="output" type="object" interface="wl_output"/>
+        </request>
 
         <event name="title">
             <arg name="title" type="string"/>

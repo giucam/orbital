@@ -20,9 +20,12 @@
 #ifndef ORBITAL_SHELLVIEW_H
 #define ORBITAL_SHELLVIEW_H
 
+#include <functional>
+
 #include <QPoint>
 
 #include "view.h"
+#include "animation.h"
 
 namespace Orbital {
 
@@ -48,6 +51,8 @@ public:
     void configureTransient(View *parent, int x, int y);
     void configureXWayland(int x, int y);
 
+    void animateAlphaTo(double alpha, const std::function<void ()> &done = nullptr);
+
     void cleanupAndUnmap();
 
 private:
@@ -60,6 +65,8 @@ private:
     QPointF m_savedPos;
     bool m_posSaved;
     BlackSurface *m_blackSurface;
+    Animation m_alphaAnimation;
+    std::function<void ()> m_animDone;
 };
 
 }
