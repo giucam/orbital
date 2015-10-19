@@ -24,9 +24,9 @@
 #include <qmath.h>
 #include <QDBusReply>
 #include <QDBusConnectionInterface>
-#include <QDBusInterface>
 
 #include "mprisservice.h"
+#include "dbusinterface.h"
 
 static const QString dbusService = QStringLiteral("org.freedesktop.DBus");
 static const QString mprisPath = QStringLiteral("/org/mpris/MediaPlayer2");
@@ -38,22 +38,6 @@ void MprisPlugin::registerTypes(const char *uri)
 {
     qmlRegisterType<Mpris>(uri, 1, 0, "Mpris");
 }
-
-/* QDBusInterface uses blocking calls in its constructor.
- * If the remote app is slow it may block us too, so that is not acceptable.
- * QDBusAbstractInterface does not block, but it only has a protected constructor
- * so subclass it.
- * https://bugreports.qt.io/browse/QTBUG-14485
- */
-class DBusInterface : public QDBusAbstractInterface
-{
-public:
-    DBusInterface(const QString &service, const QString &path, const QString &interface,
-                  const QDBusConnection &connection = QDBusConnection::sessionBus())
-        : QDBusAbstractInterface(service, path, qPrintable(interface), connection, nullptr)
-    { }
-};
-
 
 Mpris::Mpris(QObject *p)
             : QObject(p)
@@ -92,7 +76,7 @@ void Mpris::setPid(quint64 pid)
 }
 
 #define CALL(method) \
-    QDBusInterface iface(m_service, mprisPath, mprisPlayerInterface); \
+    DBusInterface iface(m_service, mprisPath, mprisPlayerInterface); \
     iface.asyncCall(QStringLiteral(method))
 
 void Mpris::playPause()

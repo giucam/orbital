@@ -22,8 +22,9 @@
 
 #include "loginservice.h"
 
-class QDBusInterface;
 class QDBusPendingCallWatcher;
+
+class DBusInterface;
 
 class LogindBackend : public LoginManagerBackend
 {
@@ -45,7 +46,7 @@ private:
     void takeSleepLock();
     void getSession(QDBusPendingCallWatcher *watcher);
 
-    QDBusInterface *m_interface;
+    DBusInterface *m_interface;
     QString m_sessionPath;
     int m_inhibitFd;
 };

@@ -22,8 +22,6 @@
 
 #include "loginservice.h"
 
-class QDBusInterface;
-
 class CliBackend : public LoginManagerBackend
 {
 public:
@@ -35,8 +33,6 @@ public:
 
 private:
     CliBackend();
-
-    QDBusInterface *m_interface;
 };
 
 #endif

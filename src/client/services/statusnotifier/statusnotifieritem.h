@@ -22,8 +22,9 @@
 
 #include <QObject>
 #include <QVector>
-#include <QDBusInterface>
 #include <QPixmap>
+
+#include "dbusinterface.h"
 
 //Custom message type for DBus
 struct DBusImageStruct {
@@ -102,7 +103,7 @@ private:
     Icon m_attentionIcon;
     DBusToolTipStruct m_tooltip;
     Status m_status;
-    QDBusInterface m_interface;
+    DBusInterface m_interface;
 };
 
 #endif

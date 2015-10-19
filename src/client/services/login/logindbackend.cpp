@@ -20,13 +20,13 @@
 #include <unistd.h>
 
 #include <QDebug>
-#include <QDBusInterface>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
 #include <QDBusUnixFileDescriptor>
 
 #include "logindbackend.h"
 #include "client.h"
+#include "dbusinterface.h"
 
 const static QString s_login1Service = QStringLiteral("org.freedesktop.login1");
 const static QString s_login1Path = QStringLiteral("/org/freedesktop/login1");
@@ -54,8 +54,8 @@ LogindBackend *LogindBackend::create()
         return nullptr;
     }
 
-    logind->m_interface = new QDBusInterface(s_login1Service, s_login1Path,
-                                             s_login1ManagerInterface, QDBusConnection::systemBus());
+    logind->m_interface = new DBusInterface(s_login1Service, s_login1Path,
+                                            s_login1ManagerInterface, QDBusConnection::systemBus());
     if (!logind->m_interface || !logind->m_interface->isValid()) {
         delete logind;
         return nullptr;

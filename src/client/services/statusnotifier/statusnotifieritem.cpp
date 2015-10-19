@@ -70,7 +70,7 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, DBusToolTipStruct
 
 static void getProperty(const QString service, const QString property, std::function<void (const QVariant &)> func)
 {
-    QDBusInterface iface(service, path, QStringLiteral("org.freedesktop.DBus.Properties"), QDBusConnection::sessionBus());
+    DBusInterface iface(service, path, QStringLiteral("org.freedesktop.DBus.Properties"), QDBusConnection::sessionBus());
 
     QDBusPendingCall call = iface.asyncCall("Get", interface, property);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
