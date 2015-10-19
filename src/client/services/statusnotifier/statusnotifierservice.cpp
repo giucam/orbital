@@ -53,8 +53,20 @@ StatusNotifierManager::~StatusNotifierManager()
 
 }
 
+static bool checkSanity(const QString &service)
+{
+    if (service.contains('/')) {
+        return false;
+    }
+    return true;
+}
+
 void StatusNotifierManager::newItem(const QString &service)
 {
+    if (!checkSanity(service)) {
+        return;
+    }
+
     StatusNotifierItem *item = new StatusNotifierItem(service, this);
     connect(item, &StatusNotifierItem::removed, this, &StatusNotifierManager::itemRemoved);
     m_items << item;
