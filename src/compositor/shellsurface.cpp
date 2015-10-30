@@ -391,6 +391,7 @@ void ShellSurface::setTitle(const QString &t)
     if (m_title != t) {
         m_title = t;
         emit titleChanged();
+        m_surface->setLabel(t);
     }
 }
 

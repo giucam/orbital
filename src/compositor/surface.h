@@ -81,6 +81,8 @@ public:
     void setActivable(bool activable);
     inline bool isActivable() const { return m_activable; }
 
+    void setLabel(const QString &label);
+
     void ref();
     void deref();
 
@@ -107,6 +109,7 @@ private:
     bool m_activable;
     QList<View *> m_views;
     int m_workspaceMask;
+    QString m_label;
 
     friend View;
     friend RoleHandler;

@@ -205,6 +205,7 @@ void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfa
 
     if (surface->setRole("desktop_shell_background_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setBackground(surface);
+        surface->setLabel("background");
     }
 }
 
@@ -216,6 +217,8 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
     if (!surface->setRole("desktop_shell_panel_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         return;
     }
+
+    surface->setLabel("panel");
 
     class Panel {
     public:
@@ -276,6 +279,7 @@ void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *out
 
     Output *output = Output::fromResource(outputResource);
     output->setLockSurface(surface);
+    surface->setLabel("lock");
     m_shell->lockFocusScope()->activate(surface);
 }
 
@@ -288,6 +292,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         return;
     }
 
+    surface->setLabel("popup");
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
     class Popup : public Surface::RoleHandler
@@ -483,6 +488,7 @@ void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceR
 
     if (surface->setRole("desktop_shell_overlay_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setOverlay(surface);
+        surface->setLabel("overlay");
     }
 }
 

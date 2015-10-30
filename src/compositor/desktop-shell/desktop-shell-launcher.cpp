@@ -59,6 +59,7 @@ public:
             delete static_cast<LauncherSurface *>(wl_resource_get_user_data(res));
         });
 
+        s->setLabel("launcher");
         s->setRoleHandler(this);
 
         m_view = new View(s);
