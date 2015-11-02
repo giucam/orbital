@@ -59,7 +59,7 @@ public:
     inline PlaybackStatus playbackStatus() const { return m_playbackStatus; }
     inline QString trackTitle() const { return m_trackTitle; }
     inline quint32 trackLength() const { return m_trackLength; }
-    inline quint32 trackPosition() const { return m_trackPosition; }
+    quint32 trackPosition() const;
 
 public slots:
     void playPause();

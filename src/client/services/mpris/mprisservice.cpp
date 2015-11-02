@@ -253,9 +253,11 @@ void Mpris::updatePlaybackStatus(const QString &st)
         m_playbackStatus = PlaybackStatus::Playing;
         m_posTimer.start();
     } else if (st == "Paused") {
+        if (m_playbackStatus == PlaybackStatus::Playing) {
+            m_trackPosition += m_posTimer.remainingTime();
+            emit trackPositionChanged();
+        }
         m_playbackStatus = PlaybackStatus::Paused;
-        m_trackPosition += m_posTimer.remainingTime();
-        emit trackPositionChanged();
     } else {
         m_playbackStatus = PlaybackStatus::Stopped;
         m_trackPosition = 0;
@@ -283,6 +285,7 @@ void Mpris::getPosition()
 {
     getProperty(QStringLiteral("Position"), [this](const QVariant &v) {
         m_trackPosition = v.toDouble() / 1000;
+        emit trackPositionChanged();
     });
 }
 
@@ -290,6 +293,15 @@ void Mpris::updatePos()
 {
     m_trackPosition += m_posTimer.interval();
     emit trackPositionChanged();
+}
+
+quint32 Mpris::trackPosition() const
+{
+    // https://github.com/clementine-player/Clementine/issues/5097
+    if (m_trackPosition > m_trackLength) {
+        return 0;
+    }
+    return m_trackPosition;
 }
 
 void Mpris::propertiesChanged(const QString &, const QMap<QString, QVariant> &changed, const QStringList &invalidated)
