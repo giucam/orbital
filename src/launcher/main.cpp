@@ -34,6 +34,32 @@
 
 static const QEvent::Type ConfigureEventType = (QEvent::Type)QEvent::registerEventType();
 
+class Launcher;
+
+class Command
+{
+public:
+    explicit Command(Launcher *l)
+        : m_launcher(l)
+    {
+    }
+
+    virtual void run(const QStringList &args) = 0;
+
+    Launcher *m_launcher;
+};
+
+class KeymapCommand : public Command
+{
+public:
+    explicit KeymapCommand(Launcher *l)
+        : Command(l)
+    {
+    }
+
+    void run(const QStringList &args) override;
+};
+
 class ConfigureEvent : public QEvent
 {
 public:
@@ -72,10 +98,13 @@ public:
             }
         };
         wl_callback_add_listener(callback, &callbackListener, this);
+
+        m_commands.insert(QStringLiteral("km"), new KeymapCommand(this));
     }
     ~Launcher()
     {
         orbital_launcher_destroy(m_launcher);
+        orbital_settings_destroy(m_settings);
         wl_registry_destroy(m_registry);
     }
 
@@ -110,19 +139,34 @@ public:
         return QObject::event(e);
     }
 
+    orbital_settings *settings() const { return m_settings; }
+
 private slots:
     void run(const QString &exec, const QString &fullLine)
     {
-        QStringList args = fullLine.split(' ');
-        args.removeFirst();
-        if (QProcess::startDetached(exec, args)) {
-            QString fullCommand = exec;
-            for (const QString &arg: args) {
-                fullCommand += QString(" %1").arg(arg);
-            }
-            m_matcher->addInHistory(fullCommand);
-        }
         orbital_launcher_surface_done(m_surface);
+        QStringList args = fullLine.split(' ');
+        if (fullLine.startsWith(':')) {
+            if (args.count() < 2) {
+                return;
+            }
+
+            QString command = args.at(0).mid(1);
+            if (!m_commands.contains(command)) {
+                return;
+            }
+            args.removeFirst();
+            m_commands.value(command)->run(args);
+        } else {
+            args.removeFirst();
+            if (QProcess::startDetached(exec, args)) {
+                QString fullCommand = exec;
+                for (const QString &arg: args) {
+                    fullCommand += QString(" %1").arg(arg);
+                }
+                m_matcher->addInHistory(fullCommand);
+            }
+        }
     }
 
 private:
@@ -132,6 +176,8 @@ private:
     orbital_launcher_surface *m_surface;
     QQuickView *m_window;
     MatcherModel *m_matcher;
+    orbital_settings *m_settings;
+    QHash<QString, Command *> m_commands;
 
     static const wl_registry_listener s_registryListener;
     static const orbital_launcher_surface_listener s_launcherListener;
@@ -141,9 +187,14 @@ const wl_registry_listener Launcher::s_registryListener = {
     [](void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version) {
         Launcher *launcher = static_cast<Launcher *>(data);
 
+#define bind(type, ver) \
+        static_cast<type *>(wl_registry_bind(registry, id, &type##_interface, qMin(version, ver)));
+
         if (strcmp(interface, "orbital_launcher") == 0) {
-            launcher->m_launcher = static_cast<orbital_launcher *>(wl_registry_bind(registry, id, &orbital_launcher_interface, 1));
+            launcher->m_launcher = bind(orbital_launcher, 1u);
             QMetaObject::invokeMethod(launcher, "create");
+        } else if (strcmp(interface, "orbital_settings") == 0) {
+            launcher->m_settings = bind(orbital_settings, 1u);
         }
     },
     [](void *, wl_registry *registry, uint32_t id) {}
@@ -165,6 +216,13 @@ int main(int argc, char *argv[])
     Launcher launcher;
 
     return app.exec();
+}
+
+void KeymapCommand::run(const QStringList &args)
+{
+    if (m_launcher->settings()) {
+        orbital_settings_set_keymap(m_launcher->settings(), qPrintable(args.at(0)));
+    }
 }
 
 #include "main.moc"
