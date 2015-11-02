@@ -191,9 +191,9 @@ private:
     friend class XWayland;
 };
 
-}
+DECLARE_OPERATORS_FOR_FLAGS(ShellSurface::Type)
+DECLARE_OPERATORS_FOR_FLAGS(ShellSurface::Edges)
 
-DECLARE_OPERATORS_FOR_FLAGS(Orbital::ShellSurface::Type)
-DECLARE_OPERATORS_FOR_FLAGS(Orbital::ShellSurface::Edges)
+}
 
 #endif
