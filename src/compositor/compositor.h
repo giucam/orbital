@@ -26,6 +26,8 @@
 #include <QMultiHash>
 #include <QVector>
 
+#include "global.h"
+
 struct wl_display;
 struct wl_event_loop;
 struct wl_client;
@@ -86,6 +88,7 @@ public:
     Orbital::Layer *layer(Layer l) const;
     QList<Output *> outputs() const;
     QList<Seat *> seats() const;
+    const Keymap &defaultKeymap() const { return m_defaultKeymap; }
 
     uint32_t nextSerial() const;
 
@@ -130,6 +133,7 @@ private:
     QSocketNotifier *m_signalsNotifier;
     QJsonObject m_config;
     QMultiHash<int, HotSpotBinding *> m_hotSpotBindings;
+    Keymap m_defaultKeymap;
 
     friend class Global;
     friend class XWayland;

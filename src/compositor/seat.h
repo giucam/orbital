@@ -46,6 +46,7 @@ class ShellSurface;
 class Workspace;
 class Output;
 class FocusScope;
+class Keymap;
 enum class PointerButton : unsigned char;
 
 class Seat : public QObject
@@ -64,6 +65,8 @@ public:
     void activate(FocusScope *scope);
 
     void sendSelection(wl_client *client);
+
+    void setKeymap(const Keymap &keymap);
 
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);

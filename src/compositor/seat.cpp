@@ -36,6 +36,25 @@
 
 namespace Orbital {
 
+
+Keymap::Keymap(const Maybe<QString> &layout, const Maybe<QString> &options)
+      : m_layout(layout)
+      , m_options(options)
+{
+}
+
+void Keymap::fill(const Keymap &other)
+{
+    if (!m_layout) {
+        m_layout = other.m_layout;
+    }
+    if (!m_options) {
+        m_options = other.m_options;
+    }
+}
+
+
+
 struct PointerGrab::Grab {
     weston_pointer_grab base;
     PointerGrab *parent;
@@ -135,6 +154,27 @@ void Seat::activate(FocusScope *scope)
 void Seat::sendSelection(wl_client *client)
 {
     weston_seat_send_selection(m_seat, client);
+}
+
+void Seat::setKeymap(const Keymap &keymap)
+{
+    Keymap km = keymap;
+    km.fill(m_compositor->defaultKeymap());
+
+    xkb_rule_names names = { nullptr, nullptr,
+                             km.layout() ? strdup(qPrintable(km.layout().value)) : nullptr,
+                             nullptr,
+                             km.options() ? strdup(qPrintable(km.options().value)) : nullptr };
+
+    xkb_keymap *xkb = xkb_keymap_new_from_names(m_seat->compositor->xkb_context, &names, (xkb_keymap_compile_flags)0);
+    if (xkb) {
+        weston_seat_update_keymap(m_seat, xkb);
+    }
+    free((char *)names.layout);
+    free((char *)names.options);
+    free((char *)names.rules),
+    free((char *)names.model);
+    free((char *)names.variant);
 }
 
 void Seat::capsUpdated()

@@ -45,7 +45,8 @@ set(SOURCES
     desktop-shell/desktop-shell-window.cpp
     desktop-shell/desktop-shell-notifications.cpp
     desktop-shell/desktop-shell-launcher.cpp
-    desktop-shell/desktop-shell-workspace.cpp)
+    desktop-shell/desktop-shell-workspace.cpp
+    desktop-shell/desktop-shell-settings.cpp)
 
 wayland_add_protocol_server(SOURCES ../../protocol/desktop-shell.xml desktop-shell)
 wayland_add_protocol_server(SOURCES ../../protocol/dropdown.xml dropdown)
@@ -61,7 +62,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server weston-1 weston-xwayland-1 pixman-1)
+target_link_libraries(orbital wayland-server weston-1 weston-xwayland-1 pixman-1 xkbcommon)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)

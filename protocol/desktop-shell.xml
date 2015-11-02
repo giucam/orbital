@@ -357,4 +357,11 @@
         </event>
     </interface>
 
+    <interface name="orbital_settings" version="1">
+        <request name="destroy" type="destructor"/>
+        <request name="set_keymap">
+            <arg name="layout" type="string"/>
+        </request>
+    </interface>
+
 </protocol>

@@ -59,7 +59,7 @@ public:
 
     inline bool isSet() const { return m_isSet; }
     inline operator bool() const { return m_isSet; }
-    inline Maybe<T> &operator=(const Maybe<T> &m) { value = m.value; m_isSet = m.m_isSet; }
+    inline Maybe<T> &operator=(const Maybe<T> &m) { value = m.value; m_isSet = m.m_isSet; return *this; }
 
     T value;
 private:

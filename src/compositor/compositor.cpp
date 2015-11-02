@@ -227,6 +227,9 @@ bool Compositor::init(const QString &socketName)
     QString keylayout = kbdConfig["Layout"].toString();
     QString keyoptions = kbdConfig["Options"].toString();
 
+    m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<QString>() : keylayout,
+                             keyoptions.isEmpty() ? Maybe<QString>() : keyoptions);
+
     xkb_rule_names xkb = { nullptr, nullptr,
                            keylayout.isEmpty() ? nullptr : strdup(qPrintable(keylayout)),
                            nullptr,

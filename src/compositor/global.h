@@ -53,6 +53,23 @@ enum class PointerAxis : unsigned char {
 uint32_t pointerButtonToRaw(PointerButton b);
 PointerButton rawToPointerButton(uint32_t b);
 
+class Keymap
+{
+public:
+    Keymap() {}
+    Keymap(const Maybe<QString> &layout, const Maybe<QString> &options);
+
+    const Maybe<QString> &layout() const { return m_layout; }
+    const Maybe<QString> &options() const { return m_options; }
+
+    void fill(const Keymap &other);
+
+private:
+    Maybe<QString> m_layout;
+    Maybe<QString> m_options;
+};
+
+
 }
 
 #endif
