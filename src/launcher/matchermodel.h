@@ -30,6 +30,9 @@ class MatcherModel : public QAbstractListModel
 public:
     MatcherModel();
 
+    void setCommandPrefix(const QString &prefix);
+    void addCommand(const QString &command);
+
     QString expression() const;
     void setExpression(const QString &expr);
 
@@ -44,6 +47,8 @@ private:
     QString m_expression;
     QStringList m_items;
     QStringList m_matches;
+    QString m_commandPrefix;
+    QStringList m_commands;
 };
 
 #endif

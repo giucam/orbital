@@ -98,8 +98,6 @@ public:
             }
         };
         wl_callback_add_listener(callback, &callbackListener, this);
-
-        m_commands.insert(QStringLiteral("km"), new KeymapCommand(this));
     }
     ~Launcher()
     {
@@ -124,6 +122,10 @@ public:
         wl_surface *wlSurface = static_cast<wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_window));
         m_surface = orbital_launcher_get_launcher_surface(m_launcher, wlSurface);
         orbital_launcher_surface_add_listener(m_surface, &s_launcherListener, this);
+
+        m_matcher->setCommandPrefix(QStringLiteral(":"));
+        m_matcher->addCommand(QStringLiteral("km"));
+        m_commands.insert(QStringLiteral("km"), new KeymapCommand(this));
     }
 
     bool event(QEvent *e) override

@@ -62,6 +62,16 @@ void MatcherModel::setExpression(const QString &expr)
     matchExpression();
 }
 
+void MatcherModel::setCommandPrefix(const QString &prefix)
+{
+    m_commandPrefix = prefix;
+}
+
+void MatcherModel::addCommand(const QString &command)
+{
+    m_commands << command;
+}
+
 int MatcherModel::rowCount(const QModelIndex &parent) const
 {
     return m_matches.count();
@@ -79,11 +89,25 @@ void MatcherModel::matchExpression()
     endResetModel();
 
     QStringList matches;
-    for (const QString &entry: m_items) {
-        if (entry == m_expression) {
-            matches.prepend(entry);
-        } else if (entry.startsWith(m_expression)) {
-            matches.append(entry);
+
+    if (m_expression == m_commandPrefix) {
+        matches = m_commands;
+    } else if (m_expression.startsWith(m_commandPrefix)) {
+        QString command = m_expression.mid(m_commandPrefix.length());
+        for (const QString &entry: m_commands) {
+            if (entry == command) {
+                matches.prepend(entry);
+            } else if (entry.startsWith(command)) {
+                matches.append(entry);
+            }
+        }
+    } else {
+        for (const QString &entry: m_items) {
+            if (entry == m_expression) {
+                matches.prepend(entry);
+            } else if (entry.startsWith(m_expression)) {
+                matches.append(entry);
+            }
         }
     }
     beginInsertRows(QModelIndex(), 0, matches.count());
