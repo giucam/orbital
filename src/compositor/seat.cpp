@@ -162,9 +162,9 @@ void Seat::setKeymap(const Keymap &keymap)
     km.fill(m_compositor->defaultKeymap());
 
     xkb_rule_names names = { nullptr, nullptr,
-                             km.layout() ? strdup(qPrintable(km.layout().value)) : nullptr,
+                             km.layout() ? strdup(qPrintable(km.layout().value())) : nullptr,
                              nullptr,
-                             km.options() ? strdup(qPrintable(km.options().value)) : nullptr };
+                             km.options() ? strdup(qPrintable(km.options().value())) : nullptr };
 
     xkb_keymap *xkb = xkb_keymap_new_from_names(m_seat->compositor->xkb_context, &names, (xkb_keymap_compile_flags)0);
     if (xkb) {

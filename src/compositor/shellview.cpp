@@ -135,7 +135,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
                 if (!m_initialPosSet) {
                     QPoint p(20, 100);
                     if (Maybe<QPoint> cache = m_surface->cachedPos()) {
-                        p = cache.value;
+                        p = cache.value();
                     }
                     setPos(p);
                 } else {
