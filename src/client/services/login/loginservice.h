@@ -86,6 +86,8 @@ signals:
     void rebootRequested();
     void aborted();
     void busyChanged();
+    void sessionLocked();
+    void sessionUnlocked();
 
 private slots:
     void doRequest();

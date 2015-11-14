@@ -27,6 +27,11 @@ Element {
     width: Screen.width
     height: Screen.height
 
+    Connections {
+        target: LoginManager
+        onSessionUnlocked: password.text = ""
+    }
+
     contentItem: Item {
         anchors.centerIn: parent
 

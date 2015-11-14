@@ -139,6 +139,8 @@ LoginManager::LoginManager(QObject *p)
         connect(m_backend, &LoginManagerBackend::requestUnlock, this, &LoginManager::unlockSession);
         connect(Client::client(), &Client::locked, m_backend, &LoginManagerBackend::locked);
         connect(Client::client(), &Client::unlocked, m_backend, &LoginManagerBackend::unlocked);
+        connect(Client::client(), &Client::locked, this, &LoginManager::sessionLocked);
+        connect(Client::client(), &Client::unlocked, this, &LoginManager::sessionUnlocked);
     }
 
     m_authenticator->moveToThread(m_authenticatorThread);
