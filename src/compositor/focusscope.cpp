@@ -51,6 +51,14 @@ Surface *FocusScope::activate(Surface *surface)
         surface = surface->isActivable() ? surface->activate() : nullptr;
     }
 
+    if (surface) {
+        if (surface->focusScope() != this && surface->focusScope()) {
+            qWarning("Tried to activate surface %p on wrong FocusScope. This: %p, surface has %p", surface, this, surface->focusScope());
+            return nullptr;
+        }
+        surface->setFocusScope(this);
+    }
+
     if ((!surface && !isNull) || surface == m_activeSurface) {
         return m_activeSurface;
     }

@@ -37,6 +37,7 @@ class View;
 class Seat;
 class Pointer;
 struct Listener;
+class FocusScope;
 
 class Surface : public Object
 {
@@ -75,6 +76,9 @@ public:
     const char *role() const;
     RoleHandler *roleHandler() const;
 
+    void setFocusScope(FocusScope *FocusScope);
+    FocusScope *focusScope() const { return m_focusScope; }
+
     void setWorkspaceMask(int mask);
     int workspaceMask() const { return m_workspaceMask; }
 
@@ -110,6 +114,7 @@ private:
     QList<View *> m_views;
     int m_workspaceMask;
     QString m_label;
+    FocusScope *m_focusScope;
 
     friend View;
     friend RoleHandler;

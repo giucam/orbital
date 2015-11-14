@@ -443,12 +443,14 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    m_appsScope->activate(focus->surface());
+    Surface *surf = focus->surface();
+    FocusScope *scope = surf->focusScope();
+    (scope ? scope : m_appsScope)->activate(surf);
 
     // TODO: make this a proper config option
     static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
     if (!useSeparateRaise) {
-        ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+        ShellSurface *shsurf = ShellSurface::fromSurface(surf);
         if (shsurf && shsurf->isFullscreen()) {
             return;
         }

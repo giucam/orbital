@@ -45,6 +45,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_listener(new Listener)
        , m_activable(true)
        , m_workspaceMask(-1)
+       , m_focusScope(nullptr)
 {
     m_listener->listener.notify = destroy;
     m_listener->surface = this;
@@ -197,6 +198,11 @@ Surface::RoleHandler::~RoleHandler()
     if (surface) {
         surface->m_roleHandler = nullptr;
     }
+}
+
+void Surface::setFocusScope(FocusScope *focusScope)
+{
+    m_focusScope = focusScope;
 }
 
 }
