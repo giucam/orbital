@@ -38,7 +38,7 @@ public:
         , m_splash(nullptr)
     {
         QTranslator *tr = new QTranslator;
-        if (tr->load(QLocale::system(), "", "", DATA_PATH "/translations", ".qm")) {
+        if (tr->load(QLocale::system(), QString(), QString(), QStringLiteral(DATA_PATH "/translations"), QStringLiteral(".qm"))) {
             QCoreApplication::installTranslator(tr);
         } else {
             delete tr;
@@ -70,8 +70,8 @@ public:
     Q_INVOKABLE void create()
     {
         QQuickWindow::setDefaultAlphaBuffer(true);
-        for (QScreen *screen: QGuiApplication::screens()) {
-            QQuickView *w = new QQuickView(QUrl("qrc:///splash.qml"));
+        foreach (QScreen *screen, QGuiApplication::screens()) {
+            QQuickView *w = new QQuickView(QUrl(QStringLiteral("qrc:///splash.qml")));
             w->setColor(Qt::transparent);
             w->setResizeMode(QQuickView::SizeRootObjectToView);
             w->setScreen(screen);
