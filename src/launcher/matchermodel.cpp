@@ -30,9 +30,9 @@ MatcherModel::MatcherModel()
             : QAbstractListModel()
 {
     QString path = qgetenv("PATH");
-    for (const QString &p: path.split(':')) {
+    foreach (const QString &p, path.split(':')) {
         QDir dir(p);
-        for (const QFileInfo &f: dir.entryInfoList(QDir::Files)) {
+        foreach (const QFileInfo &f, dir.entryInfoList(QDir::Files)) {
             if (!f.isExecutable()) {
                 continue;
             }
@@ -94,7 +94,7 @@ void MatcherModel::matchExpression()
         matches = m_commands;
     } else if (m_expression.startsWith(m_commandPrefix)) {
         QString command = m_expression.mid(m_commandPrefix.length());
-        for (const QString &entry: m_commands) {
+        foreach (const QString &entry, m_commands) {
             if (entry == command) {
                 matches.prepend(entry);
             } else if (entry.startsWith(command)) {
@@ -102,7 +102,7 @@ void MatcherModel::matchExpression()
             }
         }
     } else {
-        for (const QString &entry: m_items) {
+        foreach (const QString &entry, m_items) {
             if (entry == m_expression) {
                 matches.prepend(entry);
             } else if (entry.startsWith(m_expression)) {

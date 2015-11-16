@@ -113,10 +113,10 @@ public:
         m_window = new QQuickView;
         m_window->setColor(Qt::transparent);
         m_window->setFlags(Qt::BypassWindowManagerHint);
-        m_window->rootContext()->setContextProperty("availableWidth", 0.);
-        m_window->rootContext()->setContextProperty("availableHeight", 0.);
-        m_window->rootContext()->setContextProperty("matcherModel", m_matcher);
-        m_window->setSource(QUrl("qrc:///launcher.qml"));
+        m_window->rootContext()->setContextProperty(QStringLiteral("availableWidth"), 0.);
+        m_window->rootContext()->setContextProperty(QStringLiteral("availableHeight"), 0.);
+        m_window->rootContext()->setContextProperty(QStringLiteral("matcherModel"), m_matcher);
+        m_window->setSource(QUrl(QStringLiteral("qrc:///launcher.qml")));
         connect(m_window->rootObject(), SIGNAL(selected(QString, QString)), this, SLOT(run(QString, QString)));
         m_window->show();
         wl_surface *wlSurface = static_cast<wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", m_window));
@@ -132,8 +132,8 @@ public:
     {
         if (e->type() == ConfigureEventType) {
             ConfigureEvent *ce = static_cast<ConfigureEvent *>(e);
-            m_window->rootContext()->setContextProperty("availableWidth", ce->width);
-            m_window->rootContext()->setContextProperty("availableHeight", ce->height);
+            m_window->rootContext()->setContextProperty(QStringLiteral("availableWidth"), ce->width);
+            m_window->rootContext()->setContextProperty(QStringLiteral("availableHeight"), ce->height);
             QMetaObject::invokeMethod(m_window->rootObject(), "reset");
             m_window->update();
             return true;
@@ -163,8 +163,8 @@ private slots:
             args.removeFirst();
             if (QProcess::startDetached(exec, args)) {
                 QString fullCommand = exec;
-                for (const QString &arg: args) {
-                    fullCommand += QString(" %1").arg(arg);
+                foreach (const QString &arg, args) {
+                    fullCommand += QStringLiteral(" %1").arg(arg);
                 }
                 m_matcher->addInHistory(fullCommand);
             }
