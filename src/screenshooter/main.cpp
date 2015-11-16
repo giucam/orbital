@@ -146,7 +146,7 @@ public:
             exit(1);
         }
 
-        for (QScreen *screen: QGuiApplication::screens()) {
+        foreach (QScreen *screen, QGuiApplication::screens()) {
             Screenshot *screenshot = Screenshot::create(this, m_shm, screen);
             if (!screenshot) {
                 exit(1);
@@ -157,11 +157,11 @@ public:
 
         QQuickWindow::setDefaultAlphaBuffer(true);
         m_window = new QQuickView;
-        m_window->setTitle("Orbital screenshooter");
+        m_window->setTitle(QStringLiteral("Orbital screenshooter"));
         m_window->setResizeMode(QQuickView::SizeRootObjectToView);
-        m_window->engine()->addImageProvider(QLatin1String("screenshoter"), m_imageProvider);
-        m_window->rootContext()->setContextProperty("Screenshooter", this);
-        m_window->setSource(QUrl("qrc:///screenshooter.qml"));
+        m_window->engine()->addImageProvider(QStringLiteral("screenshoter"), m_imageProvider);
+        m_window->rootContext()->setContextProperty(QStringLiteral("Screenshooter"), this);
+        m_window->setSource(QUrl(QStringLiteral("qrc:///screenshooter.qml")));
         m_window->create();
         connect(m_window->engine(), &QQmlEngine::quit, qApp, &QCoreApplication::quit);
 
@@ -192,7 +192,7 @@ public:
         int height = 0;
         int minX, minY;
         minX = minY = INT_MAX;
-        for (Screenshot *s: m_screenshots) {
+        foreach (Screenshot *s, m_screenshots) {
             QRect geom = s->screen->geometry();
             minX = qMin(minX, geom.x());
             minY = qMin(minY, geom.y());
@@ -205,7 +205,7 @@ public:
         uchar *data = new uchar[stride * height];
         memset(data, 0, stride * height);
 
-        for (Screenshot *ss: m_screenshots) {
+        foreach (Screenshot *ss, m_screenshots) {
             QRect geom = ss->screen->geometry();
             int output_stride = geom.width() * 4;
             uchar *s = ss->data;
@@ -234,7 +234,7 @@ public slots:
     void takeShot()
     {
         m_window->hide();
-        for (Screenshot *ss: m_screenshots) {
+        foreach (Screenshot *ss, m_screenshots) {
             m_pendingScreenshots << ss;
             wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", ss->screen));
             ss->screenshot = orbital_screenshooter_shoot(m_shooter, output, ss->buffer);
@@ -257,12 +257,12 @@ public slots:
             delete file;
             return;
         }
-        emit uploadOutput("Uploading...");
+        emit uploadOutput(QStringLiteral("Uploading..."));
 
         QProcess *proc = new QProcess;
         QProcessEnvironment env;
         proc->setProcessEnvironment(env);
-        proc->start(QString("sh " LIBEXEC_PATH "/imgur %1").arg(file->fileName()));
+        proc->start(QStringLiteral("sh " LIBEXEC_PATH "/imgur %1").arg(file->fileName()));
         connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc, file]() {
             QString stdout(proc->readAllStandardOutput());
             QString stderr(proc->readAllStandardError());
@@ -270,7 +270,7 @@ public slots:
             QClipboard *cb = QGuiApplication::clipboard();
             cb->setText(stdout);
 
-            QString s = QString("Image uploaded: %1\n%2").arg(stdout).arg(stderr);
+            QString s = QStringLiteral("Image uploaded: %1\n%2").arg(stdout, stderr);
             emit uploadOutput(s);
             delete file;
         });
