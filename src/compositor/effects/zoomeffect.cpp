@@ -43,7 +43,7 @@ ZoomEffect::~ZoomEffect()
 
 void ZoomEffect::run(Seat *seat, uint32_t time, PointerAxis axis, double value)
 {
-    for (Output *out: m_shell->compositor()->outputs()) {
+    foreach (Output *out, m_shell->compositor()->outputs()) {
         if (out->contains(seat->pointer()->x(), seat->pointer()->y())) {
             weston_output *output = out->output();
             /* For every pixel zoom 20th of a step */

@@ -35,12 +35,12 @@ Backend::Backend()
 
 void BackendFactory::searchPlugins()
 {
-    QDir pluginsDir(QLatin1String(LIBRARIES_PATH) + "/compositor/backends");
-    for (const QString &fileName: pluginsDir.entryList(QDir::Files)) {
+    QDir pluginsDir(QStringLiteral(LIBRARIES_PATH "/compositor/backends"));
+    foreach (const QString &fileName, pluginsDir.entryList(QDir::Files)) {
         QPluginLoader *pluginLoader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
         QJsonObject metaData = pluginLoader->metaData();
-        if (metaData.value("IID").toString() == QLatin1String("Orbital.Compositor.Backend")) {
-            QStringList keys = metaData.value("MetaData").toObject().toVariantMap().value("Keys").toStringList();
+        if (metaData.value(QStringLiteral("IID")).toString() == QStringLiteral("Orbital.Compositor.Backend")) {
+            const QStringList keys = metaData.value(QStringLiteral("MetaData")).toObject().toVariantMap().value(QStringLiteral("Keys")).toStringList();
             for (QString key: keys) {
                 s_factory->m_factories.insert(key, pluginLoader);
             }
@@ -52,9 +52,7 @@ void BackendFactory::searchPlugins()
 
 void BackendFactory::cleanupPlugins()
 {
-    for (QPluginLoader *p: s_factory->m_factories) {
-        delete p;
-    }
+    qDeleteAll(s_factory->m_factories);
 }
 
 Backend *BackendFactory::createBackend(const QString &name)

@@ -125,14 +125,14 @@ Workspace::Workspace(Shell *shell, int id)
     connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
     connect(shell->compositor(), &Compositor::outputCreated, this, &Workspace::newOutput);
 
-    for (Output *o: shell->compositor()->outputs()) {
+    foreach (Output *o, shell->compositor()->outputs()) {
         newOutput(o);
     }
 }
 
 Workspace::~Workspace()
 {
-    for (View *wsv: m_views) {
+    foreach (View *wsv, m_views) {
         delete wsv;
     }
 }

@@ -139,12 +139,12 @@ void DesktopShellWindow::create()
 
     QString title = shsurf()->title();
     if (title.isEmpty()) {
-        QFileInfo exe(QString("/proc/%1/exe").arg(shsurf()->pid()));
+        QFileInfo exe(QStringLiteral("/proc/%1/exe").arg(shsurf()->pid()));
         title = QFileInfo(exe.symLinkTarget()).fileName();
     }
     QString icon;
     if (!shsurf()->appId().isEmpty()) {
-        QString appId = shsurf()->appId().replace('-', '/').remove(".desktop");
+        QString appId = shsurf()->appId().replace('-', '/').remove(QStringLiteral(".desktop"));
         static QString xdgDataDir = []() {
             QString s = qgetenv("XDG_DATA_DIRS");
             if (s.isEmpty()) {
@@ -152,12 +152,12 @@ void DesktopShellWindow::create()
             }
             return s;
         }();
-        for (const QString &d: xdgDataDir.split(':')) {
-            QString path = QString("%1/applications/%2.desktop").arg(d).arg(appId);
+        foreach (const QString &d, xdgDataDir.split(':')) {
+            QString path = QStringLiteral("%1/applications/%2.desktop").arg(d, appId);
             if (QFile::exists(path)) {
                 QSettings settings(path, QSettings::IniFormat);
-                settings.beginGroup("Desktop Entry");
-                icon = settings.value("Icon").toString();
+                settings.beginGroup(QStringLiteral("Desktop Entry"));
+                icon = settings.value(QStringLiteral("Icon")).toString();
                 settings.endGroup();
                 break;
             }
@@ -209,7 +209,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         s->workspace()->activate(Output::fromResource(output));
         scope->activate(s->surface());
-        for (Output *o: m_desktopShell->compositor()->outputs()) {
+        foreach (Output *o, m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);
             if (Layer *layer = view->layer()) {
                 layer->raiseOnTop(view);

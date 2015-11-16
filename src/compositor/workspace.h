@@ -116,12 +116,14 @@ public:
         void configureFullscreen(Orbital::View *view, Orbital::View *blackSurface) override;
 
         void setBackground(Surface *surface);
-        void setMask(const QRect &r);
         QPoint logicalPos() const;
 
         bool ownsView(Orbital::View *view) const;
 
         Workspace *workspace() const { return m_workspace; }
+
+    protected:
+        void setMask(const QRect &r) override;
 
     private:
         Workspace *m_workspace;

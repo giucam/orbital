@@ -57,7 +57,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
 {
     surface->setRoleHandler(this);
 
-    for (Output *o: shell->compositor()->outputs()) {
+    foreach (Output *o, shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this);
         view->setDesignedOutput(o);
         m_views.insert(o->id(), view);
@@ -148,7 +148,7 @@ void ShellSurface::connectParent()
 
 void ShellSurface::disconnectParent()
 {
-    for (auto &c: m_parentConnections) {
+    foreach (auto &c, m_parentConnections) {
         disconnect(c);
     }
     m_parentConnections.clear();
@@ -318,7 +318,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
 
 void ShellSurface::unmap()
 {
-    for (ShellView *v: m_views) {
+    foreach (ShellView *v, m_views) {
         v->cleanupAndUnmap();
     }
     emit m_surface->unmapped();
@@ -381,7 +381,7 @@ void ShellSurface::endPreview(Output *output)
 void ShellSurface::moveViews(double x, double y)
 {
     s_posCache[cacheId()] = QPoint(x, y);
-    for (ShellView *view: m_views) {
+    foreach (ShellView *view, m_views) {
         view->move(QPointF(x, y));
     }
 }
@@ -443,7 +443,7 @@ QString ShellSurface::appId() const
 
 inline QString ShellSurface::cacheId() const
 {
-    return QString("%1+%2").arg(m_appId).arg(m_title);
+    return QStringLiteral("%1+%2").arg(m_appId, m_title);
 }
 
 Maybe<QPoint> ShellSurface::cachedPos() const
@@ -541,20 +541,20 @@ void ShellSurface::configure(int x, int y)
         m_state.maximized = m_toplevel.maximized;
         m_state.fullscreen = m_toplevel.fullscreen;
 
-        for (ShellView *view: m_views) {
+        foreach (ShellView *view, m_views) {
             view->configureToplevel(map || !view->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup && typeChanged) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
-            for (View *view: m_parent->views()) {
+            foreach (View *view, m_parent->views()) {
                 ShellView *v = new ShellView(this);
                 v->setDesignedOutput(view->output());
                 v->configurePopup(view, m_popup.x, m_popup.y);
                 m_extraViews << v;
             }
         } else {
-            for (Output *o: m_shell->compositor()->outputs()) {
+            foreach (Output *o, m_shell->compositor()->outputs()) {
                 ShellView *view = viewForOutput(o);
                 ShellView *parentView = parent->viewForOutput(o);
 
@@ -569,7 +569,7 @@ void ShellSurface::configure(int x, int y)
             ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
         } else {
-            for (Output *o: m_shell->compositor()->outputs()) {
+            foreach (Output *o, m_shell->compositor()->outputs()) {
                 ShellView *view = viewForOutput(o);
                 ShellView *parentView = parent->viewForOutput(o);
 
@@ -577,7 +577,7 @@ void ShellSurface::configure(int x, int y)
             }
         }
     } else if (m_type == Type::XWayland) {
-        for (ShellView *view: m_views) {
+        foreach (ShellView *view, m_views) {
             view->configureXWayland(m_transient.x, m_transient.y);
         }
     }
@@ -608,7 +608,7 @@ Output *ShellSurface::selectOutput()
         int vote;
     };
     QList<Out> candidates;
-    for (Output *o: m_shell->compositor()->outputs()) {
+    foreach (Output *o, m_shell->compositor()->outputs()) {
         candidates.append({ o, m_shell->pager()->isWorkspaceActive(m_workspace, o) ? 10 : 0 });
     }
 
@@ -619,15 +619,17 @@ Output *ShellSurface::selectOutput()
         output = candidates.first().output;
     } else {
         QList<Seat *> seats = m_shell->compositor()->seats();
-        for (Out &o: candidates) {
-            for (Seat *s: seats) {
+        for (int i = 0; i < candidates.count(); ++i) {
+            Out &o = candidates[i];
+            foreach (Seat *s, seats) {
                 if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
                     o.vote++;
                 }
             }
         }
         Out *out = nullptr;
-        for (Out &o: candidates) {
+        for (int i = 0; i < candidates.count(); ++i) {
+            Out &o = candidates[i];
             if (!out || out->vote < o.vote) {
                 out = &o;
             }

@@ -52,7 +52,7 @@ public:
 Pager::Pager(Compositor *c)
      : m_compositor(c)
 {
-    for (Output *o: c->outputs()) {
+    foreach (Output *o, c->outputs()) {
         m_roots.insert(o->id(), new Root(o, c));
     }
     connect(c, &Compositor::outputCreated, this, &Pager::outputCreated);
@@ -67,7 +67,7 @@ void Pager::addWorkspace(Workspace *ws)
     int rows = n > 2 ? 2 : 1;
     int cols = ceil((double)(n + 1) / (double)rows);
     int x = 0, y = 0;
-    for (Workspace *w: m_workspaces) {
+    foreach (Workspace *w, m_workspaces) {
         w->setPos(x, y);
         if (++x >= cols) {
             x = 0;

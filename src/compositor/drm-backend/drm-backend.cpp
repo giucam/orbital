@@ -85,12 +85,12 @@ static bool parseModeline(const QString &s, drmModeModeInfo *mode)
 static void output_data(const char *name, struct drm_output_parameters *data)
 {
     if (outputs.contains(name)) {
-        QString mode = outputs[name].toObject()["mode"].toString();
-        if (mode == QLatin1String("off")) {
+        QString mode = outputs[name].toObject()[QStringLiteral("mode")].toString();
+        if (mode == QStringLiteral("off")) {
             data->mode.config = DRM_OUTPUT_CONFIG_OFF;
-        } else if (mode == QLatin1String("preferred")) {
+        } else if (mode == QStringLiteral("preferred")) {
             data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
-        } else if (mode == QLatin1String("current")) {
+        } else if (mode == QStringLiteral("current")) {
             data->mode.config = DRM_OUTPUT_CONFIG_CURRENT;
         } else if (sscanf(qPrintable(mode), "%dx%d", &data->mode.width, &data->mode.height) == 2) {
             data->mode.config = DRM_OUTPUT_CONFIG_MODE;
@@ -145,7 +145,7 @@ bool DrmBackend::init(weston_compositor *c)
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    outputs = doc.object()["Compositor"].toObject()["Outputs"].toObject();
+    outputs = doc.object()[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
 
     param.tty = 0;
     param.format = GBM_FORMAT_XRGB8888;

@@ -31,18 +31,18 @@ int main(int argc, char **argv)
                                  " - %{file}:%{line}] == %{message}", 0);
 
     QCoreApplication app(argc, argv);
-    app.setApplicationName("Orbital");
-    app.setApplicationVersion("0.1");
+    app.setApplicationName(QStringLiteral("Orbital"));
+    app.setApplicationVersion(QStringLiteral("0.1"));
 
     QCommandLineParser parser;
-    parser.setApplicationDescription("Orbital compositor");
+    parser.setApplicationDescription(QStringLiteral("Orbital compositor"));
     parser.addHelpOption();
     parser.addVersionOption();
 
-    QCommandLineOption socketOption(QStringList() << "S" << "socket", "Socket name");
+    QCommandLineOption socketOption({ QStringLiteral("S"), QStringLiteral("socket") }, QStringLiteral("Socket name"));
     parser.addOption(socketOption);
 
-    QCommandLineOption backendOption(QStringList() << "B" << "backend", "Backend plugin", QLatin1String("name"));
+    QCommandLineOption backendOption({ QStringLiteral("B"), QStringLiteral("backend") }, QStringLiteral("Backend plugin"), QStringLiteral("name"));
     parser.addOption(backendOption);
 
     parser.process(app);
@@ -51,11 +51,11 @@ int main(int argc, char **argv)
     if (parser.isSet(backendOption)) {
         backendKey = parser.value(backendOption);
     } else if (getenv("WAYLAND_DISPLAY")) {
-        backendKey = "wayland-backend";
+        backendKey = QStringLiteral("wayland-backend");
     } else if (getenv("DISPLAY")) {
-        backendKey ="x11-backend";
+        backendKey = QStringLiteral("x11-backend");
     } else {
-        backendKey ="drm-backend";
+        backendKey = QStringLiteral("drm-backend");
     }
 
     Orbital::BackendFactory::searchPlugins();

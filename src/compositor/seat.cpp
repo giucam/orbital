@@ -234,7 +234,7 @@ public:
     }
     void ended() override
     {
-        for (ShellSurface *shsurf: surfaces) {
+        foreach (ShellSurface *shsurf, surfaces) {
             shsurf->sendPopupDone();
         }
         seat->m_popupGrab = nullptr;

@@ -39,7 +39,7 @@ void Screenshooter::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     wl_resource *resource = wl_resource_create(client, &orbital_screenshooter_interface, version, id);
 
-    if (!m_shell->isClientTrusted("screenshooter", client)) {
+    if (!m_shell->isClientTrusted(QStringLiteral("screenshooter"), client)) {
         wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "permission to bind screenshooter denied");
         wl_resource_destroy(resource);
         return;

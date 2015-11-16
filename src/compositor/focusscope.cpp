@@ -115,7 +115,7 @@ void FocusScope::deactivateSurface()
         }
 
         int mask = 0;
-        for (Output *out: m_shell->compositor()->outputs()) {
+        foreach (Output *out, m_shell->compositor()->outputs()) {
             mask |= out->currentWorkspace()->mask();
         }
         for (Surface *surf: m_activeSurfaces) {

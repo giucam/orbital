@@ -173,7 +173,7 @@ void Output::setBackground(Surface *surface)
     surface->setRoleHandler(handler);
     surface->setActivable(false);
 
-    for (Workspace *ws: m_compositor->shell()->workspaces()) {
+    foreach (Workspace *ws, m_compositor->shell()->workspaces()) {
         Workspace::View *wsv = workspaceViewForOutput(ws, this);
         wsv->setBackground(surface);
     }
@@ -396,10 +396,10 @@ void Output::onMoved()
         m_lockLayer->setMask(x(), y(), width(), height());
     }
 
-    for (View *view: m_panels) {
+    foreach (View *view, m_panels) {
         view->setPos(0, 0);
     }
-    for (View *view: m_overlays) {
+    foreach (View *view, m_overlays) {
         view->setPos(0, 0);
     }
     if (Shell *shell = m_compositor->shell()) {

@@ -223,9 +223,9 @@ bool Compositor::init(const QString &socketName)
     m_compositor->wl_display = m_display;
     m_compositor->idle_time = 300;
 
-    QJsonObject kbdConfig = m_config["Compositor"].toObject()["Keyboard"].toObject();
-    QString keylayout = kbdConfig["Layout"].toString();
-    QString keyoptions = kbdConfig["Options"].toString();
+    QJsonObject kbdConfig = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Keyboard")].toObject();
+    QString keylayout = kbdConfig[QStringLiteral("Layout")].toString();
+    QString keyoptions = kbdConfig[QStringLiteral("Options")].toString();
 
     m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<QString>() : keylayout,
                              keyoptions.isEmpty() ? Maybe<QString>() : keyoptions);
@@ -330,7 +330,7 @@ bool Compositor::init(const QString &socketName)
 
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
-    for (Output *o: m_outputs) {
+    foreach (Output *o, m_outputs) {
         m_shell->pager()->activate(ws, o);
     }
 
@@ -347,15 +347,15 @@ bool Compositor::init(const QString &socketName)
 
 void Compositor::newOutput(weston_output *output)
 {
-    QJsonObject outputs = m_config["Compositor"].toObject()["Outputs"].toObject();
+    QJsonObject outputs = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
     QJsonObject cfg = outputs[output->name].toObject();
     int x = output->x;
     int y = output->y;
-    if (cfg.contains("x")) {
-        x = cfg["x"].toInt();
+    if (cfg.contains(QStringLiteral("x"))) {
+        x = cfg[QStringLiteral("x")].toInt();
     }
-    if (cfg.contains("y")) {
-        y = cfg["y"].toInt();
+    if (cfg.contains(QStringLiteral("y"))) {
+        y = cfg[QStringLiteral("y")].toInt();
     }
     weston_output_move(output, x, y);
 

@@ -64,7 +64,7 @@ DesktopShell::DesktopShell(Shell *shell)
     m_shell->addInterface(new DesktopShellSettings(shell));
     m_shell->addInterface(m_splash);
 
-    m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
+    m_client = shell->compositor()->launchProcess(QStringLiteral(LIBEXEC_PATH "/startorbital"));
     m_client->setAutoRestart(true);
     connect(m_client, &ChildProcess::givingUp, this, &DesktopShell::givingUp);
 
@@ -130,14 +130,14 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     });
     m_resource = resource;
 
-    for (Workspace *ws: m_shell->workspaces()) {
+    foreach (Workspace *ws, m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
         dws->init(m_client->client(), 0);
         desktop_shell_send_workspace_added(m_resource, dws->resource());
         dws->sendActivatedState();
         dws->sendPosition();
     }
-    for (ShellSurface *shsurf: m_shell->surfaces()) {
+    foreach (ShellSurface *shsurf, m_shell->surfaces()) {
         DesktopShellWindow *w = shsurf->findInterface<DesktopShellWindow>();
         if (w) {
             w->create();
@@ -193,7 +193,7 @@ void DesktopShell::outputBound(uint32_t id, wl_resource *res)
     desktop_shell_output_feedback_send_load(r, qPrintable(o->name()), m_loadSerial);
     wl_resource_destroy(r);
 
-    for (Workspace *ws: m_shell->workspaces()) {
+    foreach (Workspace *ws, m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
         dws->sendActivatedState();
         dws->sendPosition();
@@ -207,7 +207,7 @@ void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfa
 
     if (surface->setRole("desktop_shell_background_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setBackground(surface);
-        surface->setLabel("background");
+        surface->setLabel(QStringLiteral("background"));
     }
 }
 
@@ -220,7 +220,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
         return;
     }
 
-    surface->setLabel("panel");
+    surface->setLabel(QStringLiteral("panel"));
 
     class Panel {
     public:
@@ -281,7 +281,7 @@ void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *out
 
     Output *output = Output::fromResource(outputResource);
     output->setLockSurface(surface);
-    surface->setLabel("lock");
+    surface->setLabel(QStringLiteral("lock"));
     m_shell->lockFocusScope()->activate(surface);
 }
 
@@ -294,7 +294,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         return;
     }
 
-    surface->setLabel("popup");
+    surface->setLabel(QStringLiteral("popup"));
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
     class Popup : public Surface::RoleHandler
@@ -320,7 +320,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
             }
 
             if (surface->views().isEmpty()) {
-                for (View *view: parent->views()) {
+                foreach (View *view, parent->views()) {
                     View *v = new View(surface);
                     v->setTransformParent(view);
                     view->layer()->addView(v);
@@ -330,7 +330,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
                     connect(view, &QObject::destroyed, v, &QObject::deleteLater);
                 }
             } else {
-                for (View *view: surface->views()) {
+                foreach (View *view, surface->views()) {
                     configureView(view);
                 }
             }
@@ -490,7 +490,7 @@ void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceR
 
     if (surface->setRole("desktop_shell_overlay_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setOverlay(surface);
-        surface->setLabel("overlay");
+        surface->setLabel(QStringLiteral("overlay"));
     }
 }
 
@@ -671,7 +671,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
             , m_resource(resource)
             , m_parent(parent)
         {
-            for (View *view: parent->views()) {
+            foreach (View *view, parent->views()) {
                 ActiveView *v = new ActiveView(this, view);
                 v->setAlpha(0.);
                 v->setTransformParent(view);
@@ -698,7 +698,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
         void setGeometry(int32_t x, int32_t y, int32_t w, int32_t h)
         {
             setSize(w, h);
-            for (View *v: views()) {
+            foreach (View *v, views()) {
                 v->setPos(x, y);
             }
         }

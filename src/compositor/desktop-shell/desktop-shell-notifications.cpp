@@ -94,7 +94,7 @@ public:
         , m_compositor(c)
         , initialMove(false)
     {
-        for (Output *o: c->outputs()) {
+        foreach (Output *o, c->outputs()) {
             NSView *v = new NSView(o, this, s);
             m_views << v;
             v->setTransformParent(o->rootView());
@@ -113,7 +113,7 @@ public:
     }
     void moveTo(int x, int y)
     {
-        for (NSView *view: m_views) {
+        foreach (NSView *view, m_views) {
             view->endPos = QPointF(x + view->output->width() - m_surface->width() - 20, y + 20);
             if (initialMove) {
                 view->startPos = view->pos();
@@ -138,7 +138,7 @@ public:
     }
     void outputRemoved(Output *o)
     {
-        for (NSView *v: m_views) {
+        foreach (NSView *v, m_views) {
             if (v->output == o) {
                 delete v;
                 break;
@@ -154,7 +154,7 @@ public:
         // not be sent, blocking the client.
         // To solve it manually redraw all the outputs, this way we're sure the surface gets
         // repainted and the frame callbacks sent.
-        for (Output *o: m_compositor->outputs()) {
+        foreach (Output *o, m_compositor->outputs()) {
             o->repaint();
         }
         if (!manager->m_notifications.contains(this)) {
@@ -218,7 +218,7 @@ void DesktopShellNotifications::relayout()
     int x = 0;
     int y = 0;
     int margin = 10;
-    for (NotificationSurface *notification: m_notifications) {
+    foreach (NotificationSurface *notification, m_notifications) {
         notification->moveTo(x, y);
         y += notification->m_surface->height() + margin;
     }

@@ -69,9 +69,9 @@ spawn_xserver(struct weston_xserver *wxs)
     }
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("WAYLAND_SOCKET", QString::number(dup(sv[1])));
+    env.insert(QStringLiteral("WAYLAND_SOCKET"), QString::number(dup(sv[1])));
 
-    QString display = QString(":%1").arg(wxs->display);
+    QString display = QStringLiteral(":%1").arg(wxs->display);
     QString abstract_fd = QString::number(dup(wxs->abstract_fd));
     QString unix_fd = QString::number(dup(wxs->unix_fd));
     QString wm_fd = QString::number(dup(wm[1]));
@@ -87,13 +87,13 @@ spawn_xserver(struct weston_xserver *wxs)
             s_process = nullptr;
         }
     });
-    s_process->start("Xwayland", QStringList() <<
-              display <<
-              "-rootless" <<
-              "-listen" << abstract_fd <<
-              "-listen" << unix_fd <<
-              "-wm" << wm_fd <<
-              "-terminate");
+    s_process->start(QStringLiteral("Xwayland"), {
+              display,
+              QStringLiteral("-rootless"),
+              QStringLiteral("-listen"), abstract_fd,
+              QStringLiteral("-listen"), unix_fd,
+              QStringLiteral("-wm"), wm_fd,
+              QStringLiteral("-terminate") });
 
     close(sv[1]);
     wxs->client = wl_client_create(wxs->wl_display, sv[0]);

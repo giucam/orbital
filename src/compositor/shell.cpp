@@ -78,7 +78,7 @@ Shell::Shell(Compositor *c)
     new DesktopGrid(this);
     new Dashboard(this);
 
-    for (Seat *s: m_compositor->seats()) {
+    foreach (Seat *s, m_compositor->seats()) {
         s->activate(m_appsScope);
     }
 
@@ -103,7 +103,7 @@ Shell::Shell(Compositor *c)
 Shell::~Shell()
 {
     qDeleteAll(m_surfaces);
-    for (Workspace *w: m_workspaces) {
+    foreach (Workspace *w, m_workspaces) {
         delete w;
     }
     delete m_pager;
@@ -121,7 +121,7 @@ void Shell::initEnvironment()
     }
 
     QProcess proc;
-    proc.start("dbus-launch", { "--binary-syntax" });
+    proc.start(QStringLiteral("dbus-launch"), { QStringLiteral("--binary-syntax") });
     if (!proc.waitForStarted()) {
         qWarning("Could not start the DBus session.");
         return;
@@ -136,22 +136,22 @@ void Shell::initEnvironment()
 
 static bool shouldAutoStart(const QSettings &settings)
 {
-    bool hidden = settings.value("Hidden").toBool();
+    bool hidden = settings.value(QStringLiteral("Hidden")).toBool();
     if (hidden) {
         return false;
     }
-    if (settings.contains("OnlyShowIn")) {
-        QString onlyShowIn = settings.value("OnlyShowIn").toString();
-        for (const QString s: onlyShowIn.split(';')) {
-            if (s == "Orbital") {
+    if (settings.contains(QStringLiteral("OnlyShowIn"))) {
+        QString onlyShowIn = settings.value(QStringLiteral("OnlyShowIn")).toString();
+        foreach (const QString &s, onlyShowIn.split(';')) {
+            if (s == QStringLiteral("Orbital")) {
                 return true;
             }
         }
         return false;
-    } else if (settings.contains("NotShowIn")) {
-        QString notShowIn = settings.value("NotShowIn").toString();
-        for (const QString s: notShowIn.split(';')) {
-            if (s == "Orbital") {
+    } else if (settings.contains(QStringLiteral("NotShowIn"))) {
+        QString notShowIn = settings.value(QStringLiteral("NotShowIn")).toString();
+        foreach (const QString &s, notShowIn.split(';')) {
+            if (s == QStringLiteral("Orbital")) {
                 return false;
             }
         }
@@ -163,7 +163,8 @@ static void populateAutostartList(QStringList &files, const QString &autostartDi
 {
     QDir dir(autostartDir);
     if (dir.exists()) {
-        for (const QFileInfo &fi: dir.entryInfoList({"*.desktop"}, QDir::Files)) {
+        QFileInfoList infos = dir.entryInfoList({ QStringLiteral("*.desktop") }, QDir::Files);
+        foreach (const QFileInfo &fi, infos) {
             QString path = fi.absoluteFilePath();
             QString filename = fi.fileName();
             bool add = true;
@@ -171,7 +172,7 @@ static void populateAutostartList(QStringList &files, const QString &autostartDi
                 continue;
             }
 
-            for (const QString &p: files) {
+            foreach (const QString &p, files) {
                 if (QFileInfo(p).fileName() == filename) {
                     add = false;
                     break;
@@ -190,37 +191,37 @@ void Shell::autostartClients()
 
     QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
     if (!xdgConfigHome.isEmpty()) {
-        populateAutostartList(files, QString("%1/autostart").arg(xdgConfigHome));
+        populateAutostartList(files, QStringLiteral("%1/autostart").arg(xdgConfigHome));
     } else {
-        populateAutostartList(files, QString("%1/.config/autostart").arg(QDir::homePath()));
+        populateAutostartList(files, QStringLiteral("%1/.config/autostart").arg(QDir::homePath()));
     }
 
     QString xdgConfigDirs = qgetenv("XDG_CONFIG_DIRS");
     if (!xdgConfigDirs.isEmpty()) {
-        for (const QString &d: xdgConfigDirs.split(';')) {
-            populateAutostartList(files, QString("%1/autostart").arg(d));
+        foreach (const QString &d, xdgConfigDirs.split(';')) {
+            populateAutostartList(files, QStringLiteral("%1/autostart").arg(d));
         }
     } else {
-        populateAutostartList(files, QString("/etc/xdg/autostart"));
+        populateAutostartList(files, QStringLiteral("/etc/xdg/autostart"));
     }
 
     QDir outputDir = QDir::temp();
-    QString dirName = QString("orbital-%1").arg(getpid());
+    QString dirName = QStringLiteral("orbital-%1").arg(getpid());
     outputDir.mkdir(dirName);
     outputDir.cd(dirName);
 
-    for (const QString &fi: files) {
+    foreach (const QString &fi, files) {
         QSettings settings(fi, QSettings::IniFormat);
-        settings.beginGroup("Desktop Entry");
+        settings.beginGroup(QStringLiteral("Desktop Entry"));
         if (!shouldAutoStart(settings)) {
             continue;
         }
 
         QString exec;
-        if (settings.contains("TryExec")) {
-            exec = settings.value("TryExec").toString();
+        if (settings.contains(QStringLiteral("TryExec"))) {
+            exec = settings.value(QStringLiteral("TryExec")).toString();
         } else {
-            exec = settings.value("Exec").toString();
+            exec = settings.value(QStringLiteral("Exec")).toString();
         }
         qDebug("Autostarting '%s'", qPrintable(exec));
 
@@ -294,7 +295,7 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
     };
     QList<Out> candidates;
 
-    for (Output *o: compositor()->outputs()) {
+    foreach (Output *o, compositor()->outputs()) {
         candidates.append({ o, 0 });
     }
 
@@ -310,15 +311,17 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
         } else {
             seats = compositor()->seats();
         }
-        for (Out &o: candidates) {
-            for (Seat *s: seats) {
+        for (int i = 0; i < candidates.count(); ++i) {
+            Out &o = candidates[i];
+            foreach (Seat *s, seats) {
                 if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
                     o.vote++;
                 }
             }
         }
         Out *out = nullptr;
-        for (Out &o: candidates) {
+        for (int i = 0; i < candidates.count(); ++i) {
+            Out &o = candidates[i];
             if (!out || out->vote < o.vote) {
                 out = &o;
             }
@@ -341,7 +344,7 @@ void Shell::lock(const LockCallback &callback)
     } else {
         int *numOuts = new int;
         *numOuts = m_compositor->outputs().count();
-        for (Output *o: m_compositor->outputs()) {
+        foreach (Output *o, m_compositor->outputs()) {
             o->lock([this, numOuts, callback]() {
                 if (--*numOuts == 0) {
                     m_locked = true;
@@ -354,7 +357,7 @@ void Shell::lock(const LockCallback &callback)
             });
         }
     }
-    for (Seat *s: m_compositor->seats()) {
+    foreach (Seat *s, m_compositor->seats()) {
         s->activate(m_lockScope);
     }
 }
@@ -362,10 +365,10 @@ void Shell::lock(const LockCallback &callback)
 void Shell::unlock()
 {
     m_locked = false;
-    for (Output *o: m_compositor->outputs()) {
+    foreach (Output *o, m_compositor->outputs()) {
         o->unlock();
     }
-    for (Seat *s: m_compositor->seats()) {
+    foreach (Seat *s, m_compositor->seats()) {
         s->activate(m_appsScope);
     }
 }
@@ -448,7 +451,7 @@ void Shell::giveFocus(Seat *seat)
     (scope ? scope : m_appsScope)->activate(surf);
 
     // TODO: make this a proper config option
-    static bool useSeparateRaise = qgetenv("ORBITAL_SEPARATE_RAISE").toInt();
+    static bool useSeparateRaise = qEnvironmentVariableIntValue("ORBITAL_SEPARATE_RAISE");
     if (!useSeparateRaise) {
         ShellSurface *shsurf = ShellSurface::fromSurface(surf);
         if (shsurf && shsurf->isFullscreen()) {
@@ -456,7 +459,7 @@ void Shell::giveFocus(Seat *seat)
         }
 
         if (shsurf) {
-            for (Output *o: compositor()->outputs()) {
+            foreach (Output *o, compositor()->outputs()) {
                 ShellView *view = shsurf->viewForOutput(o);
                 view->layer()->raiseOnTop(view);
             }
@@ -481,7 +484,7 @@ void Shell::raise(Seat *seat)
     }
 
     if (shsurf) {
-        for (Output *o: compositor()->outputs()) {
+        foreach (Output *o, compositor()->outputs()) {
             ShellView *view = shsurf->viewForOutput(o);
             if (view->layer()->topView() == view) {
                 view->layer()->lower(view);
