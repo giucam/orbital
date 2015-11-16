@@ -120,7 +120,9 @@ SolidBackend *SolidBackend::create(HardwareManager *hw)
         solid->deviceRemoved(udi);
     });
 
-    for (Solid::Device &device: Solid::Device::allDevices()) {
+    auto devices = Solid::Device::allDevices();
+    for (int i = 0; i < devices.count(); ++i) {
+        Solid::Device &device = devices[i];
         solid->add(device);
     }
 

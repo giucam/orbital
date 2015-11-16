@@ -23,6 +23,7 @@
 
 #include "grab.h"
 #include "utils.h"
+#include "client.h"
 
 Grab::Grab(desktop_shell_grab *g)
     : QObject()
@@ -48,7 +49,7 @@ void Grab::handleEnded(desktop_shell_grab *grab)
 
 void Grab::handleFocus(desktop_shell_grab *grab, wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
 {
-    emit focus(surface, wl_fixed_to_int(x), wl_fixed_to_int(y));
+    emit focus(Client::client()->findWindow(surface), wl_fixed_to_int(x), wl_fixed_to_int(y));
 }
 
 void Grab::handleMotion(desktop_shell_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y)

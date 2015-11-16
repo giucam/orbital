@@ -28,8 +28,8 @@ static int run(const QString &cmd, QString *out = nullptr)
 {
     QProcess proc;
     QString c = cmd;
-    c.replace("\"", "\\\"");
-    proc.start(QString("/bin/sh"), QStringList() << "-c" << c);
+    c.replace(QStringLiteral("\""), QStringLiteral("\\\""));
+    proc.start(QStringLiteral("/bin/sh"), QStringList() << QStringLiteral("-c") << c);
     proc.waitForFinished();
     if (out) {
         *out = proc.readAllStandardOutput();
@@ -41,8 +41,8 @@ static QProcess *start(const QString &cmd)
 {
     QProcess *proc = new QProcess;
     QString c = cmd;
-    c.replace("\"", "\\\"");
-    proc->start(QString("/bin/sh"), QStringList() << "-c" << c);
+    c.replace(QStringLiteral("\""), QStringLiteral("\\\""));
+    proc->start(QStringLiteral("/bin/sh"), QStringList() << QStringLiteral("-c") << c);
     return proc;
 }
 
@@ -58,7 +58,7 @@ bool CliDevice::umount()
         return false;
     }
 
-    QProcess *proc = start(QString("udisksctl unmount -b %1").arg(udi()));
+    QProcess *proc = start(QStringLiteral("udisksctl unmount -b %1").arg(udi()));
 //     QProcess *proc = start(QString("umount %1").arg(udi()));
     QObject::connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc](int exitCode) {
         if (exitCode == 0) {
@@ -76,7 +76,7 @@ bool CliDevice::mount()
         return false;
     }
 
-    QProcess *proc = start(QString("udisksctl mount -b %1").arg(udi()));
+    QProcess *proc = start(QStringLiteral("udisksctl mount -b %1").arg(udi()));
 //     QProcess *proc = start(QString("mkdir ~/`basename %1` && mount %1 ~/`basename %1`").arg(udi()));
     QObject::connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc](int exitCode) {
         if (exitCode == 0) {
@@ -95,7 +95,7 @@ bool CliDevice::isMounted() const
     }
 
     QString out;
-    run(QString("findmnt %1").arg(udi()), &out);
+    run(QStringLiteral("findmnt %1").arg(udi()), &out);
     return !out.isEmpty();
 }
 
@@ -114,24 +114,24 @@ CliBackend *CliBackend::create(HardwareManager *hw)
     }
 
     QString out;
-    run("lsblk -pPo NAME,FSTYPE | grep -iE 'FSTYPE=\".+\"' | grep  -Po '(?<=NAME=\").+?(?=\")'", &out);
-    QStringList list = out.split("\n");
+    run(QStringLiteral("lsblk -pPo NAME,FSTYPE | grep -iE 'FSTYPE=\".+\"' | grep  -Po '(?<=NAME=\").+?(?=\")'"), &out);
+    QStringList list = out.split('\n');
     list.removeLast();
-    for (const QString &c: list) {
-        bool isSwap = run(QString("lsblk -o FSTYPE %1 | grep swap").arg(c)) == 0;
+    foreach (const QString &c, list) {
+        bool isSwap = run(QStringLiteral("lsblk -o FSTYPE %1 | grep swap").arg(c)) == 0;
         Device *d = new CliDevice(c);
         if (!isSwap) {
             d->setType(Device::Type::Storage);
-            bool isOptical = run(QString("lsblk -o TYPE  %1 | grep rom").arg(c)) == 0;
+            bool isOptical = run(QStringLiteral("lsblk -o TYPE  %1 | grep rom").arg(c)) == 0;
             if (isOptical) {
-                d->setIconName("media-optical");
+                d->setIconName(QStringLiteral("media-optical"));
             } else {
-                bool isRemovable = run(QString("lsblk -o RM  %1 | grep 1").arg(c)) == 0;
-                d->setIconName(isRemovable ? "drive-removable-media" : "drive-harddisk");
+                bool isRemovable = run(QStringLiteral("lsblk -o RM  %1 | grep 1").arg(c)) == 0;
+                d->setIconName(isRemovable ? QStringLiteral("drive-removable-media") : QStringLiteral("drive-harddisk"));
             }
 
             QString label;
-            run(QString("lsblk -no LABEL %1 | awk 1 ORS=''").arg(c), &label);
+            run(QStringLiteral("lsblk -no LABEL %1 | awk 1 ORS=''").arg(c), &label);
             label.isEmpty() ? d->setName(c) : d->setName(label);
         }
         cli->deviceAdded(d);

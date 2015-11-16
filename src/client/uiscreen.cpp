@@ -52,7 +52,7 @@ UiScreen::~UiScreen()
 
 void UiScreen::loadConfig(QJsonObject &config)
 {
-    for (Element *elm: m_elements) {
+    foreach (Element *elm, m_elements) {
         if (elm->m_parent) {
             elm->setParentElement(nullptr);
         }
@@ -61,7 +61,7 @@ void UiScreen::loadConfig(QJsonObject &config)
     QHash<int, Element *> oldElements = m_elements;
     m_elements.clear();
 
-    QJsonArray elements = config["elements"].toArray();
+    QJsonArray elements = config[QStringLiteral("elements")].toArray();
     for (auto i = elements.begin(); i != elements.end(); ++i) {
         QJsonObject element = (*i).toObject();
         Element *elm = loadElement(nullptr, element, &oldElements);
@@ -71,14 +71,14 @@ void UiScreen::loadConfig(QJsonObject &config)
         }
         *i = element;
     }
-    config["elements"] = elements;
+    config[QStringLiteral("elements")] = elements;
 
-    for (Element *e: oldElements) {
+    foreach (Element *e, oldElements) {
         e->deleteLater();
         m_children.removeOne(e);
     }
 
-    for (Element *elm: m_children) {
+    foreach (Element *elm, m_children) {
         if (elm->type() == ElementInfo::Type::Item)
             continue;
 
@@ -123,20 +123,20 @@ void UiScreen::loadConfig(QJsonObject &config)
     }
 
     // wait until all the objects have finished what they're doing before sending the loaded event
-    QTimer::singleShot(0, this, SLOT(screenLoaded()));
+    QTimer::singleShot(0, this, &UiScreen::screenLoaded);
 }
 
 Element *UiScreen::loadElement(Element *parent, QJsonObject &config, QHash<int, Element *> *elements)
 {
-    if (!config.keys().contains("type")) {
+    if (!config.keys().contains(QStringLiteral("type"))) {
         return nullptr;
     }
 
     bool created = false;
-    int id = config.contains("id") ? config["id"].toInt() : -1;
+    int id = config.contains(QStringLiteral("id")) ? config[QStringLiteral("id")].toInt() : -1;
     Element *elm = (elements ? elements->take(id) : nullptr);
     if (!elm) {
-        QString type = config["type"].toString();
+        QString type = config[QStringLiteral("type")].toString();
         elm = Element::create(m_ui, this, m_ui->qmlEngine(), type, id);
         if (!elm) {
             return nullptr;
@@ -149,14 +149,14 @@ Element *UiScreen::loadElement(Element *parent, QJsonObject &config, QHash<int, 
     }
     elm->m_properties.clear();
     m_elements.insert(elm->m_id, elm);
-    config["id"] = elm->m_id;
+    config[QStringLiteral("id")] = elm->m_id;
 
-    QJsonObject properties = config["properties"].toObject();
+    QJsonObject properties = config[QStringLiteral("properties")].toObject();
     for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
         QString name = i.key();
         QVariant value = i.value().toVariant();
 
-        if (name == "location") {
+        if (name == QStringLiteral("location")) {
             elm->setLocation((Element::Location)value.toInt());
         } else {
             QQmlProperty::write(elm, name, value);
@@ -164,13 +164,13 @@ Element *UiScreen::loadElement(Element *parent, QJsonObject &config, QHash<int, 
         elm->addProperty(name);
     }
 
-    QJsonArray children = config["elements"].toArray();
+    QJsonArray children = config[QStringLiteral("elements")].toArray();
     for (auto i = children.begin(); i != children.end(); ++i) {
         QJsonObject cfg = (*i).toObject();
         loadElement(elm, cfg, elements);
         *i = cfg;
     }
-    config["elements"] = children;
+    config[QStringLiteral("elements")] = children;
 
     if (created && parent) {
         parent->createConfig(elm);
@@ -189,7 +189,7 @@ void UiScreen::saveProperties(QObject *obj, const QStringList &properties, QJson
     if (properties.isEmpty()) {
         return;
     }
-    QJsonObject cfg = config["properties"].toObject();
+    QJsonObject cfg = config[QStringLiteral("properties")].toObject();
     for (const QString &prop: properties) {
         QVariant value = obj->property(qPrintable(prop));
         bool ok;
@@ -200,7 +200,7 @@ void UiScreen::saveProperties(QObject *obj, const QStringList &properties, QJson
             cfg[prop] = value.toString();
         }
     }
-    config["properties"] = cfg;
+    config[QStringLiteral("properties")] = cfg;
 }
 
 void UiScreen::saveChildren(const QList<Element *> &children, QJsonObject &config)
@@ -212,8 +212,8 @@ void UiScreen::saveChildren(const QList<Element *> &children, QJsonObject &confi
     QJsonArray elements;
     for (Element *child: children) {
         QJsonObject cfg;
-        cfg["type"] = child->m_typeName;
-        cfg["id"] = child->m_id;
+        cfg[QStringLiteral("type")] = child->m_typeName;
+        cfg[QStringLiteral("id")] = child->m_id;
 
         saveProperties(child, child->m_ownProperties, cfg);
         saveProperties(child, child->m_properties, cfg);
@@ -222,7 +222,7 @@ void UiScreen::saveChildren(const QList<Element *> &children, QJsonObject &confi
 
         elements << cfg;
     }
-    config["elements"] = elements;
+    config[QStringLiteral("elements")] = elements;
 }
 
 void UiScreen::addElement(Element *elm)

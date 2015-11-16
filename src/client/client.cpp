@@ -120,16 +120,16 @@ Client::Client()
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
     qmlRegisterType<NotificationWindow>("Orbital", 1, 0, "NotificationWindow");
     qmlRegisterType<ActiveRegion>("Orbital", 1, 0, "ActiveRegion");
-    qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", "Cannot create Window");
-    qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", "Cannot create Workspace");
-    qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", "ElementInfo is not creatable");
-    qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", "StyleInfo is not creatable");
-    qmlRegisterUncreatableType<UiScreen>("Orbital", 1, 0, "UiScreen", "UiScreen is not creatable");
+    qmlRegisterUncreatableType<Window>("Orbital", 1, 0, "Window", QStringLiteral("Cannot create Window"));
+    qmlRegisterUncreatableType<Workspace>("Orbital", 1, 0, "Workspace", QStringLiteral("Cannot create Workspace"));
+    qmlRegisterUncreatableType<ElementInfo>("Orbital", 1, 0, "ElementInfo", QStringLiteral("ElementInfo is not creatable"));
+    qmlRegisterUncreatableType<StyleInfo>("Orbital", 1, 0, "StyleInfo", QStringLiteral("StyleInfo is not creatable"));
+    qmlRegisterUncreatableType<UiScreen>("Orbital", 1, 0, "UiScreen", QStringLiteral("UiScreen is not creatable"));
     qmlRegisterUncreatableType<Clipboard>("Orbital", 1, 0, "Clipboard", QStringLiteral("Clipboard is only available via attached properties"));
 
     qRegisterMetaType<QScreen *>();
 
-#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QString(":/qml/") + type + ".qml"), "Orbital", 1, 0, type)
+#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QStringLiteral(":/qml/") + QStringLiteral(type) + ".qml"), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Icon");
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
@@ -140,7 +140,7 @@ Client::Client()
     REGISTER_QMLFILE("PopupElement");
 
     QTranslator *tr = new QTranslator;
-    if (tr->load(d_ptr->locale, "", "", DATA_PATH "/translations", ".qm")) {
+    if (tr->load(d_ptr->locale, QString(), QString(), QStringLiteral(DATA_PATH "/translations"), QStringLiteral(".qm"))) {
         QCoreApplication::installTranslator(tr);
     } else {
         delete tr;
@@ -152,12 +152,12 @@ Client::Client()
     Style::loadStylesList();
 
     m_engine = new QQmlEngine(this);
-    m_engine->rootContext()->setContextProperty("Client", this);
-    m_engine->addImageProvider(QLatin1String("icon"), new IconImageProvider);
-    m_engine->addImportPath(LIBRARIES_PATH "/qml");
+    m_engine->rootContext()->setContextProperty(QStringLiteral("Client"), this);
+    m_engine->addImageProvider(QStringLiteral("icon"), new IconImageProvider);
+    m_engine->addImportPath(QStringLiteral(LIBRARIES_PATH "/qml"));
 
     // TODO: find a way to un-hardcode this
-    QQmlComponent *c = new QQmlComponent(m_engine, QUrl("qrc:/qml/Notifications.qml"), this);
+    QQmlComponent *c = new QQmlComponent(m_engine, QUrl(QStringLiteral("qrc:/qml/Notifications.qml")), this);
     if (!c->isReady()) {
         qDebug() << c->errorString();
     } else {
@@ -275,7 +275,7 @@ QProcess *Client::createTrustedClient(const QString &interface)
     socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     int fd = dup(sv[1]);
-    env.insert("WAYLAND_SOCKET", QString::number(fd));
+    env.insert(QStringLiteral("WAYLAND_SOCKET"), QString::number(fd));
     close(sv[1]);
     QProcess *process = new QProcess;
     process->setProcessChannelMode(QProcess::ForwardedChannels);
@@ -297,8 +297,8 @@ void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
 
 void Client::takeScreenshot()
 {
-    QProcess *proc = createTrustedClient("screenshooter");
-    proc->start(LIBEXEC_PATH "/orbital-screenshooter");
+    QProcess *proc = createTrustedClient(QStringLiteral("screenshooter"));
+    proc->start(QStringLiteral(LIBEXEC_PATH "/orbital-screenshooter"));
     wl_display_flush(m_display); //Make sure the server receives the fd asap
     connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });
 }
@@ -638,7 +638,7 @@ QQuickWindow *Client::window(Element *elm)
     if (elm->type() == ElementInfo::Type::Item)
         return nullptr;
 
-    for (QQuickWindow *w: m_uiWindows) {
+    foreach (QQuickWindow *w, m_uiWindows) {
         if (w->property("element").value<Element *>() == elm) {
             return w;
         }

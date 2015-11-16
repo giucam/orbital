@@ -38,7 +38,7 @@ LayoutAttached::LayoutAttached(QObject *object)
               , m_fillWidth(false)
               , m_fillHeight(false)
 {
-    QQmlProperty property(object, "layoutItem");
+    QQmlProperty property(object, QStringLiteral("layoutItem"));
     property.write(QVariant::fromValue(this));
 }
 
@@ -274,7 +274,7 @@ void Layout::relayout()
         qreal w;
     };
     QList<It> _items;
-    for (QQuickItem *i: m_items) {
+    foreach (QQuickItem *i, m_items) {
         if (i->isVisible()) {
             _items.append({ i, attachedLayoutObject(i), true, 0, 0 });
         }
@@ -282,7 +282,8 @@ void Layout::relayout()
 
     const bool horizontal = m_orientation == Qt::Horizontal;
     qreal x = 0;
-    for (It &i: _items) {
+    for (int j = 0; j < _items.count(); ++j) {
+        It &i = _items[j];
         i.x = x;
         i.w = horizontal ? i.la->minimumWidth() : i.la->minimumHeight();
 
@@ -300,7 +301,8 @@ void Layout::relayout()
 
         spaceLeft /= num;
         x = 0;
-        for (It &i: _items) {
+        for (int j = 0; j < _items.count(); ++j) {
+            It &i = _items[j];
             i.x = x;
             if (i.resize) {
                 i.w += spaceLeft;
@@ -327,14 +329,16 @@ void Layout::relayout()
     } while (again);
 
     if (horizontal) {
-        for (It &i: _items) {
+        for (int j = 0; j < _items.count(); ++j) {
+            It &i = _items[j];
             i.item->setProperty("x", i.x);
             i.item->setProperty("y", 0);
             i.item->setProperty("width", i.w);
             i.item->setProperty("height", height());
         }
     } else {
-        for (It &i: _items) {
+        for (int j = 0; j < _items.count(); ++j) {
+            It &i = _items[j];
             i.item->setProperty("y", i.x);
             i.item->setProperty("x", 0);
             i.item->setProperty("height", i.w);

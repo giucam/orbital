@@ -39,10 +39,10 @@ CliBackend *CliBackend::create()
 
 void CliBackend::poweroff()
 {
-    QProcess::execute("shutdown -h now");
+    QProcess::execute(QStringLiteral("shutdown -h now"));
 }
 
 void CliBackend::reboot()
 {
-    QProcess::execute("shutdown -r now");
+    QProcess::execute(QStringLiteral("shutdown -r now"));
 }

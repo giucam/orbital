@@ -28,11 +28,11 @@
 #include "mprisservice.h"
 #include "dbusinterface.h"
 
-static const QString dbusService = QStringLiteral("org.freedesktop.DBus");
-static const QString mprisPath = QStringLiteral("/org/mpris/MediaPlayer2");
-static const QString mprisInterface = QStringLiteral("org.mpris.MediaPlayer2");
-static const QString mprisPlayerInterface = QStringLiteral("org.mpris.MediaPlayer2.Player");
-static const QString dbusPropertiesInterface = QStringLiteral("org.freedesktop.DBus.Properties");
+#define DBUS_SERVICE QStringLiteral("org.freedesktop.DBus")
+#define MPRIS_PATH QStringLiteral("/org/mpris/MediaPlayer2")
+#define MPRIS_INTERFACE QStringLiteral("org.mpris.MediaPlayer2")
+#define MPRIS_PLAYER_INTERFACE QStringLiteral("org.mpris.MediaPlayer2.Player")
+#define DBUS_PROPERTIES_INTERFACE QStringLiteral("org.freedesktop.DBus.Properties")
 
 void MprisPlugin::registerTypes(const char *uri)
 {
@@ -76,7 +76,7 @@ void Mpris::setPid(quint64 pid)
 }
 
 #define CALL(method) \
-    DBusInterface iface(m_service, mprisPath, mprisPlayerInterface); \
+    DBusInterface iface(m_service, MPRIS_PATH, MPRIS_PLAYER_INTERFACE); \
     iface.asyncCall(QStringLiteral(method))
 
 void Mpris::playPause()
@@ -102,12 +102,12 @@ void Mpris::next()
 void Mpris::checkConnection()
 {
     if (m_valid) {
-        QDBusConnection::sessionBus().disconnect(m_service, mprisPath, dbusPropertiesInterface,
+        QDBusConnection::sessionBus().disconnect(m_service, MPRIS_PATH, DBUS_PROPERTIES_INTERFACE,
                                                  QStringLiteral("PropertiesChanged"),
                                                  this, SLOT(propertiesChanged(QString, QMap<QString, QVariant>, QStringList)));
     }
 
-    DBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
+    DBusInterface iface(DBUS_SERVICE, QStringLiteral("/"), DBUS_SERVICE);
     if (!iface.isValid()) {
         return;
     }
@@ -128,8 +128,8 @@ void Mpris::checkConnection()
 
 void Mpris::checkServices(const QStringList &services)
 {
-    DBusInterface iface(dbusService, QStringLiteral("/"), dbusService);
-    foreach (QString service, services) {
+    DBusInterface iface(DBUS_SERVICE, QStringLiteral("/"), DBUS_SERVICE);
+    foreach (const QString &service, services) {
         QDBusPendingCall call = iface.asyncCall(QStringLiteral("GetConnectionUnixProcessID"), service);
         QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
         watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this, service](QDBusPendingCallWatcher *watcher) {
@@ -151,13 +151,13 @@ void Mpris::checkServices(const QStringList &services)
 static QDBusPendingCall getProperty(const QString &service, const QString &path,
                                     const QString &interface, const QString &property)
 {
-    DBusInterface iface(service, path, dbusPropertiesInterface);
+    DBusInterface iface(service, path, DBUS_PROPERTIES_INTERFACE);
     return iface.asyncCall(QStringLiteral("Get"), interface, property);
 }
 
 void Mpris::checkService(const QString &service)
 {
-    QDBusPendingCall call = ::getProperty(service, mprisPath, mprisInterface, QStringLiteral("Identity"));
+    QDBusPendingCall call = ::getProperty(service, MPRIS_PATH, MPRIS_INTERFACE, QStringLiteral("Identity"));
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this, service](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
@@ -173,10 +173,10 @@ void Mpris::checkService(const QString &service)
             m_service = service;
             qDebug("Found %s at %s.", qPrintable(reply.value().toString()), qPrintable(service));
 
-            QDBusConnection::sessionBus().connect(service, mprisPath, dbusPropertiesInterface,
+            QDBusConnection::sessionBus().connect(service, MPRIS_PATH, DBUS_PROPERTIES_INTERFACE,
                                                 QStringLiteral("PropertiesChanged"),
                                                 this, SLOT(propertiesChanged(QString, QMap<QString, QVariant>, QStringList)));
-            QDBusConnection::sessionBus().connect(service, mprisPath, mprisPlayerInterface,
+            QDBusConnection::sessionBus().connect(service, MPRIS_PATH, MPRIS_PLAYER_INTERFACE,
                                                   QStringLiteral("Seeked"),
                                                   this, SLOT(seeked(qint64)));
             getMetadata();
@@ -197,7 +197,7 @@ inline void Mpris::setValid(bool v)
 
 void Mpris::getProperty(const QString &property, const std::function<void (const QVariant &v)> &func)
 {
-    QDBusPendingCall call = ::getProperty(m_service, mprisPath, mprisPlayerInterface, property);
+    QDBusPendingCall call = ::getProperty(m_service, MPRIS_PATH, MPRIS_PLAYER_INTERFACE, property);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [property, func](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
@@ -249,10 +249,10 @@ void Mpris::updatePlaybackStatus(const QString &st)
     PlaybackStatus old = m_playbackStatus;
 
     m_posTimer.stop();
-    if (st == "Playing") {
+    if (st == QStringLiteral("Playing")) {
         m_playbackStatus = PlaybackStatus::Playing;
         m_posTimer.start();
-    } else if (st == "Paused") {
+    } else if (st == QStringLiteral("Paused")) {
         if (m_playbackStatus == PlaybackStatus::Playing) {
             m_trackPosition += m_posTimer.remainingTime();
             emit trackPositionChanged();

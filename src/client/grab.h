@@ -24,6 +24,8 @@
 
 #include <wayland-client.h>
 
+class QQuickWindow;
+
 struct desktop_shell_grab;
 struct desktop_shell_grab_listener;
 
@@ -39,7 +41,7 @@ public slots:
 
 signals:
     void ended();
-    void focus(wl_surface *surface, int x, int y);
+    void focus(QQuickWindow *window, int x, int y);
     void motion(uint32_t time, int x, int y);
     void button(uint32_t time, uint32_t button, uint32_t state);
 

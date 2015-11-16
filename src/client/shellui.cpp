@@ -96,7 +96,7 @@ ShellUI::ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, cons
        , m_numWorkspaces(1)
        , m_style(nullptr)
 {
-    m_engine->rootContext()->setContextProperty("Ui", this);
+    m_engine->rootContext()->setContextProperty(QStringLiteral("Ui"), this);
 
     client->addWorkspace(0);
     reloadConfigFile();
@@ -185,7 +185,7 @@ void ShellUI::setStyleName(const QString &name)
     delete m_style;
     m_style = Style::loadStyle(name, m_engine);
     m_styleName = name;
-    m_engine->rootContext()->setContextProperty("CurrentStyle", m_style);
+    m_engine->rootContext()->setContextProperty(QStringLiteral("CurrentStyle"), m_style);
 }
 
 void ShellUI::setOverrideCursorShape(Qt::CursorShape shape)
@@ -217,23 +217,23 @@ void ShellUI::reloadConfig()
     m_bindings.clear();
 
     QJsonObject object;
-    if (m_config.contains("Shell")) {
-        object = m_config["Shell"].toObject();
+    if (m_config.contains(QStringLiteral("Shell"))) {
+        object = m_config[QStringLiteral("Shell")].toObject();
     } else {
         QJsonDocument doc = QJsonDocument::fromJson(defaultShell);
         object = doc.object();
     }
-    QJsonObject properties = object["properties"].toObject();
+    QJsonObject properties = object[QStringLiteral("properties")].toObject();
     for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
         setProperty(qPrintable(i.key()), i.value().toVariant());
         m_properties << i.key();
     }
 
-    QJsonArray bindings = object["bindings"].toArray();
+    QJsonArray bindings = object[QStringLiteral("bindings")].toArray();
     for (auto i = bindings.begin(); i != bindings.end(); ++i) {
         QJsonObject binding = (*i).toObject();
-        int key = binding["key"].toInt(-1);
-        QString exec = binding["exec"].toString();
+        int key = binding[QStringLiteral("key")].toInt(-1);
+        QString exec = binding[QStringLiteral("exec")].toString();
         if (key < 0 || exec.isEmpty()) {
             qDebug() << "Cannot parse binding" << binding;
             continue;
@@ -243,7 +243,7 @@ void ShellUI::reloadConfig()
         connect(b, &Binding::triggered, [exec]() { QProcess::startDetached(exec); });
     }
 
-    for (UiScreen *screen: m_screens) {
+    foreach (UiScreen *screen, m_screens) {
         loadScreen(screen);
     }
 }
@@ -261,7 +261,7 @@ void ShellUI::reloadConfigFile()
             qWarning("Error parsing the config file at offset %d: %s", error.offset, qPrintable(error.errorString()));
         } else {
             m_rootConfig = document.object();
-            m_config = m_rootConfig["Ui"].toObject();
+            m_config = m_rootConfig[QStringLiteral("Ui")].toObject();
         }
         file.close();
     }
@@ -269,9 +269,9 @@ void ShellUI::reloadConfigFile()
 
 void ShellUI::saveConfig()
 {
-    QJsonObject object = m_config["Shell"].toObject();
-    QJsonObject properties = object["properties"].toObject();
-    for (const QString &prop: m_properties) {
+    QJsonObject object = m_config[QStringLiteral("Shell")].toObject();
+    QJsonObject properties = object[QStringLiteral("properties")].toObject();
+    foreach (const QString &prop, m_properties) {
         QVariant value = property(qPrintable(prop));
         bool ok;
         int v = value.toInt(&ok);
@@ -281,18 +281,18 @@ void ShellUI::saveConfig()
             properties[prop] = value.toString();
         }
     }
-    object["properties"] = properties;
+    object[QStringLiteral("properties")] = properties;
 
-    QJsonObject screens = m_config["Screens"].toObject();
-    for (UiScreen *screen: m_screens) {
+    QJsonObject screens = m_config[QStringLiteral("Screens")].toObject();
+    foreach (UiScreen *screen, m_screens) {
         QJsonObject screenConfig = screens[screen->name()].toObject();
         screen->saveConfig(screenConfig);
         screens[screen->name()] = screenConfig;
     }
-    m_config["Screens"] = screens;
+    m_config[QStringLiteral("Screens")] = screens;
 
-    m_config["Shell"] = object;
-    m_rootConfig["Ui"] = m_config;
+    m_config[QStringLiteral("Shell")] = object;
+    m_rootConfig[QStringLiteral("Ui")] = m_config;
 
     QJsonDocument document(m_rootConfig);
 
@@ -327,7 +327,7 @@ void ShellUI::saveConfig()
 
 void ShellUI::loadScreen(UiScreen *screen)
 {
-    QJsonObject screens = m_config["Screens"].toObject();
+    QJsonObject screens = m_config[QStringLiteral("Screens")].toObject();
     QJsonObject screenConfig;
     if (screens.contains(screen->name())) {
         screenConfig = screens[screen->name()].toObject();
@@ -339,5 +339,5 @@ void ShellUI::loadScreen(UiScreen *screen)
     screen->loadConfig(screenConfig);
     screens[screen->name()] = screenConfig;
 
-    m_config["Screens"] = screens;
+    m_config[QStringLiteral("Screens")] = screens;
 }

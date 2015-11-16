@@ -31,8 +31,8 @@ void HardwarePlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<HardwareManager>(uri, 1, 0, "HardwareManager", [](QQmlEngine *, QJSEngine *) {
         return static_cast<QObject *>(new HardwareManager);
     });
-    qmlRegisterUncreatableType<Device>(uri, 1, 0, "Device", "Cannot create Device");
-    qmlRegisterUncreatableType<Battery>(uri, 1, 0, "Battery", "Cannot create Battery");
+    qmlRegisterUncreatableType<Device>(uri, 1, 0, "Device", QStringLiteral("Cannot create Device"));
+    qmlRegisterUncreatableType<Battery>(uri, 1, 0, "Battery", QStringLiteral("Cannot create Battery"));
 }
 
 

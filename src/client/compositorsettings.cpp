@@ -42,8 +42,8 @@ void CompositorSettings::load(QXmlStreamReader *xml)
         if (xml->isStartElement()) {
             if (xml->name() == "option") {
                 QXmlStreamAttributes attribs = xml->attributes();
-                QString name = attribs.value("name").toString();
-                QString value = attribs.value("value").toString();
+                QString name = attribs.value(QStringLiteral("name")).toString();
+                QString value = attribs.value(QStringLiteral("value")).toString();
                 set(name, value);
             }
         }
@@ -55,9 +55,9 @@ void CompositorSettings::save(QXmlStreamWriter *xml)
     for (auto it = m_options.begin(); it != m_options.end(); ++it) {
         const Option &o = it.value();
         if (o.used) {
-            xml->writeStartElement("option");
-            xml->writeAttribute("name", it.key());
-            xml->writeAttribute("value", o.value);
+            xml->writeStartElement(QStringLiteral("option"));
+            xml->writeAttribute(QStringLiteral("name"), it.key());
+            xml->writeAttribute(QStringLiteral("value"), o.value);
             xml->writeEndElement();
         }
     }
@@ -65,19 +65,19 @@ void CompositorSettings::save(QXmlStreamWriter *xml)
 
 static bool typeFromString(const QString &t, nuclear_settings_binding_type *type)
 {
-    if (t == "key") {
+    if (t == QStringLiteral("key")) {
         *type =  NUCLEAR_SETTINGS_BINDING_TYPE_KEY;
         return true;
     }
-    if (t == "button") {
+    if (t == QStringLiteral("button")) {
         *type = NUCLEAR_SETTINGS_BINDING_TYPE_BUTTON;
         return true;
     }
-    if (t == "axis") {
+    if (t == QStringLiteral("axis")) {
         *type =  NUCLEAR_SETTINGS_BINDING_TYPE_AXIS;
         return true;
     }
-    if (t == "hotspot") {
+    if (t == QStringLiteral("hotspot")) {
         *type =  NUCLEAR_SETTINGS_BINDING_TYPE_HOTSPOT;
         return true;
     }
@@ -86,19 +86,19 @@ static bool typeFromString(const QString &t, nuclear_settings_binding_type *type
 
 static bool modFromString(const QString &t, nuclear_settings_modifier *mod)
 {
-    if (t == "ctrl") {
+    if (t == QStringLiteral("ctrl")) {
         *mod = NUCLEAR_SETTINGS_MODIFIER_CTRL;
         return true;
     }
-    if (t == "alt") {
+    if (t == QStringLiteral("alt")) {
         *mod = NUCLEAR_SETTINGS_MODIFIER_ALT;
         return true;
     }
-    if (t == "super") {
+    if (t == QStringLiteral("super")) {
         *mod = NUCLEAR_SETTINGS_MODIFIER_SUPER;
         return true;
     }
-    if (t == "shift") {
+    if (t == QStringLiteral("shift")) {
         *mod = NUCLEAR_SETTINGS_MODIFIER_SHIFT;
         return true;
     }
@@ -210,19 +210,19 @@ static bool buttonFromString(const QString &t, int *button)
 
 static bool hsFromString(const QString &t, nuclear_settings_hotspot *hs)
 {
-    if (t == "topleft_corner") {
+    if (t == QStringLiteral("topleft_corner")) {
         *hs = NUCLEAR_SETTINGS_HOTSPOT_TOP_LEFT_CORNER;
         return true;
     }
-    if (t == "topright_corner") {
+    if (t == QStringLiteral("topright_corner")) {
         *hs = NUCLEAR_SETTINGS_HOTSPOT_TOP_RIGHT_CORNER;
         return true;
     }
-    if (t == "bottomleft_corner") {
+    if (t == QStringLiteral("bottomleft_corner")) {
         *hs = NUCLEAR_SETTINGS_HOTSPOT_BOTTOM_LEFT_CORNER;
         return true;
     }
-    if (t == "bottomright_corner") {
+    if (t == QStringLiteral("bottomright_corner")) {
         *hs = NUCLEAR_SETTINGS_HOTSPOT_BOTTOM_RIGHT_CORNER;
         return true;
     }
@@ -231,11 +231,11 @@ static bool hsFromString(const QString &t, nuclear_settings_hotspot *hs)
 
 static bool axisFromString(const QString &t, int *axis)
 {
-    if (t == "axis_vertical") {
+    if (t == QStringLiteral("axis_vertical")) {
         *axis = WL_POINTER_AXIS_VERTICAL_SCROLL;
         return true;
     }
-    if (t == "axis_horizontal") {
+    if (t == QStringLiteral("axis_horizontal")) {
         *axis = WL_POINTER_AXIS_HORIZONTAL_SCROLL;
         return true;
     }
@@ -258,7 +258,7 @@ bool CompositorSettings::set(const QString &option, const QString &v)
     } else if (o.type == Option::Type::Int) {
         nuclear_settings_set_integer(m_settings, qPrintable(path), qPrintable(name), v.toInt());
     } else {
-        QStringList binds = v.toLower().split(';');
+        const QStringList binds = v.toLower().split(';');
         for (const QString &b: binds) {
             QStringList s = b.split(':');
             nuclear_settings_binding_type type;
@@ -270,7 +270,7 @@ bool CompositorSettings::set(const QString &option, const QString &v)
             if (type == NUCLEAR_SETTINGS_BINDING_TYPE_KEY) {
                 nuclear_settings_modifier mod = (nuclear_settings_modifier)0;
                 int key;
-                for (const QString &part: binding.split('+')) {
+                foreach (const QString &part, binding.split('+')) {
                     nuclear_settings_modifier m;
                     if (modFromString(part, &m)) {
                         mod = (nuclear_settings_modifier)(mod | m);
@@ -282,7 +282,7 @@ bool CompositorSettings::set(const QString &option, const QString &v)
             } else if (type == NUCLEAR_SETTINGS_BINDING_TYPE_BUTTON) {
                 nuclear_settings_modifier mod = (nuclear_settings_modifier)0;
                 int button;
-                for (const QString &part: binding.split('+')) {
+                foreach (const QString &part, binding.split('+')) {
                     nuclear_settings_modifier m;
                     if (modFromString(part, &m)) {
                         mod = (nuclear_settings_modifier)(mod | m);
@@ -294,7 +294,7 @@ bool CompositorSettings::set(const QString &option, const QString &v)
             } else if (type == NUCLEAR_SETTINGS_BINDING_TYPE_AXIS) {
                 nuclear_settings_modifier mod = (nuclear_settings_modifier)0;
                 int axis;
-                for (const QString &part: binding.split('+')) {
+                foreach (const QString &part, binding.split('+')) {
                     nuclear_settings_modifier m;
                     if (modFromString(part, &m)) {
                         mod = (nuclear_settings_modifier)(mod | m);

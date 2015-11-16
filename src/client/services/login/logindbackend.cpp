@@ -28,10 +28,10 @@
 #include "client.h"
 #include "dbusinterface.h"
 
-const static QString s_login1Service = QStringLiteral("org.freedesktop.login1");
-const static QString s_login1Path = QStringLiteral("/org/freedesktop/login1");
-const static QString s_login1ManagerInterface = QStringLiteral("org.freedesktop.login1.Manager");
-const static QString s_login1SessionInterface = QStringLiteral("org.freedesktop.login1.Session");
+#define LOGIN1_SERVICE QStringLiteral("org.freedesktop.login1")
+#define LOGIN1_PATH QStringLiteral("/org/freedesktop/login1")
+#define LOGIN1_MANAGER_INTERFACE QStringLiteral("org.freedesktop.login1.Manager")
+#define LOGIN1_SESSION_INTERFACE QStringLiteral("org.freedesktop.login1.Session")
 
 LogindBackend::LogindBackend()
              : m_inhibitFd(-1)
@@ -54,17 +54,17 @@ LogindBackend *LogindBackend::create()
         return nullptr;
     }
 
-    logind->m_interface = new DBusInterface(s_login1Service, s_login1Path,
-                                            s_login1ManagerInterface, QDBusConnection::systemBus());
+    logind->m_interface = new DBusInterface(LOGIN1_SERVICE, LOGIN1_PATH,
+                                            LOGIN1_MANAGER_INTERFACE, QDBusConnection::systemBus());
     if (!logind->m_interface || !logind->m_interface->isValid()) {
         delete logind;
         return nullptr;
     }
 
-    logind->m_interface->connection().connect(s_login1Service, s_login1Path, s_login1ManagerInterface,
+    logind->m_interface->connection().connect(LOGIN1_SERVICE, LOGIN1_PATH, LOGIN1_MANAGER_INTERFACE,
                                               QStringLiteral("PrepareForSleep"), logind, SLOT(prepareForSleep(bool)));
 
-    QDBusPendingCall call = logind->m_interface->asyncCall("GetSessionByPID", (quint32)getpid());
+    QDBusPendingCall call = logind->m_interface->asyncCall(QStringLiteral("GetSessionByPID"), (quint32)getpid());
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     logind->connect(watcher, &QDBusPendingCallWatcher::finished, logind, &LogindBackend::getSession);
 
@@ -74,12 +74,12 @@ LogindBackend *LogindBackend::create()
 
 void LogindBackend::poweroff()
 {
-    m_interface->call("PowerOff", true);
+    m_interface->call(QStringLiteral("PowerOff"), true);
 }
 
 void LogindBackend::reboot()
 {
-    m_interface->call("Reboot", true);
+    m_interface->call(QStringLiteral("Reboot"), true);
 }
 
 void LogindBackend::takeSleepLock()
@@ -143,8 +143,8 @@ void LogindBackend::getSession(QDBusPendingCallWatcher *watcher)
     m_sessionPath = reply.value().path();
     qDebug() << "Session" << m_sessionPath;
 
-    m_interface->connection().connect(s_login1Service, m_sessionPath, s_login1SessionInterface,
+    m_interface->connection().connect(LOGIN1_SERVICE, m_sessionPath, LOGIN1_SESSION_INTERFACE,
                                       QStringLiteral("Lock"), this, SIGNAL(requestLock()));
-    m_interface->connection().connect(s_login1Service, m_sessionPath, s_login1SessionInterface,
+    m_interface->connection().connect(LOGIN1_SERVICE, m_sessionPath, LOGIN1_SESSION_INTERFACE,
                                       QStringLiteral("Unlock"), this, SIGNAL(requestUnlock()));
 }

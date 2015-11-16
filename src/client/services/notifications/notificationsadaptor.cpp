@@ -77,10 +77,10 @@ QStringList NotificationsAdaptor::GetCapabilities()
 
 QString NotificationsAdaptor::GetServerInformation(QString &return_vendor, QString &return_version, QString &return_spec_version)
 {
-    return_vendor = "Orbital";
-    return_version= "0.1";
-    return_spec_version = "1.2";
-    return QString("");
+    return_vendor = QStringLiteral("Orbital");
+    return_version = QStringLiteral("0.1");
+    return_spec_version = QStringLiteral("1.2");
+    return QString();
 }
 
 template<class... Args>
@@ -109,7 +109,7 @@ uint NotificationsAdaptor::Notify(const QString &app_name, uint id, const QStrin
     notification->setIconName(icon);
 
     QString hint;
-    if (hasHint(hints, hint, "image-data", "image_data")) {
+    if (hasHint(hints, hint, QStringLiteral("image-data"), QStringLiteral("image_data"))) {
         DBusImageStruct img;
         hints.value(hint).value<QDBusArgument>() >> img;
         QImage::Format format = img.hasAlpha ? QImage::Format_RGBA8888 : QImage::Format_RGBX8888;

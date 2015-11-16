@@ -119,12 +119,12 @@ QQmlListProperty<FileInfo> FileBrowser::dirContent()
 
 void FileBrowser::rebuildFilesList()
 {
-    for (FileInfo *f: m_files) {
+    foreach (FileInfo *f, m_files) {
         f->deleteLater();
     }
     m_files.clear();
     QStringList files = m_dir.entryList(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
-    for (const QString &s: files) {
+    foreach (const QString &s, files) {
         m_files << new FileInfo(m_dir.filePath(s));
     }
 }

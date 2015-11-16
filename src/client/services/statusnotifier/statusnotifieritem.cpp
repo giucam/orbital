@@ -29,8 +29,8 @@
 
 #include "statusnotifieritem.h"
 
-static const QString path = QStringLiteral("/StatusNotifierItem");
-static const QString interface = QStringLiteral("org.kde.StatusNotifierItem");
+#define PATH QStringLiteral("/StatusNotifierItem")
+#define INTERFACE QStringLiteral("org.kde.StatusNotifierItem")
 
 Q_DECLARE_METATYPE(DBusToolTipStruct)
 Q_DECLARE_METATYPE(DBusImageStruct)
@@ -70,9 +70,9 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, DBusToolTipStruct
 
 static void getProperty(const QString service, const QString property, std::function<void (const QVariant &)> func)
 {
-    DBusInterface iface(service, path, QStringLiteral("org.freedesktop.DBus.Properties"), QDBusConnection::sessionBus());
+    DBusInterface iface(service, PATH, QStringLiteral("org.freedesktop.DBus.Properties"), QDBusConnection::sessionBus());
 
-    QDBusPendingCall call = iface.asyncCall("Get", interface, property);
+    QDBusPendingCall call = iface.asyncCall(QStringLiteral("Get"), INTERFACE, property);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [func, property](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
@@ -88,7 +88,7 @@ static void getProperty(const QString service, const QString property, std::func
 StatusNotifierItem::StatusNotifierItem(const QString &service, QObject *p)
                   : QObject(p)
                   , m_service(service)
-                  , m_interface(m_service, path, interface, QDBusConnection::sessionBus())
+                  , m_interface(m_service, PATH, INTERFACE, QDBusConnection::sessionBus())
 {
     qDBusRegisterMetaType<DBusImageStruct>();
     qDBusRegisterMetaType<DBusToolTipStruct>();
@@ -96,11 +96,11 @@ StatusNotifierItem::StatusNotifierItem(const QString &service, QObject *p)
     QDBusConnection bus = QDBusConnection::sessionBus();
     QDBusServiceWatcher *watcher = new QDBusServiceWatcher(service, bus, QDBusServiceWatcher::WatchForUnregistration, this);
     connect(watcher, &QDBusServiceWatcher::serviceUnregistered, this, &StatusNotifierItem::removed);
-    bus.connect(service, path, interface, QStringLiteral("NewTitle"), this, SLOT(getTitle()));
-    bus.connect(service, path, interface, QStringLiteral("NewIcon"), this, SLOT(getIcon()));
-    bus.connect(service, path, interface, QStringLiteral("NewAttentionIcon"), this, SLOT(getAttentionIcon()));
-    bus.connect(service, path, interface, QStringLiteral("NewToolTip"), this, SLOT(getTooltip()));
-    bus.connect(service, path, interface, QStringLiteral("NewStatus"), this, SLOT(getStatus()));
+    bus.connect(service, PATH, INTERFACE, QStringLiteral("NewTitle"), this, SLOT(getTitle()));
+    bus.connect(service, PATH, INTERFACE, QStringLiteral("NewIcon"), this, SLOT(getIcon()));
+    bus.connect(service, PATH, INTERFACE, QStringLiteral("NewAttentionIcon"), this, SLOT(getAttentionIcon()));
+    bus.connect(service, PATH, INTERFACE, QStringLiteral("NewToolTip"), this, SLOT(getTooltip()));
+    bus.connect(service, PATH, INTERFACE, QStringLiteral("NewStatus"), this, SLOT(getStatus()));
 
     m_icon.updatePending = 0;
     m_attentionIcon.updatePending = 0;
@@ -256,9 +256,9 @@ void StatusNotifierItem::getStatus()
 {
     getProperty(m_service, QStringLiteral("Status"), [this](const QVariant &v) {
         QString str = v.toString();
-        if (str == "NeedsAttention") {
+        if (str == QStringLiteral("NeedsAttention")) {
             m_status = Status::NeedsAttention;
-        } else if (str == "Active") {
+        } else if (str == QStringLiteral("Active")) {
             m_status = Status::Active;
         } else {
             m_status = Status::Passive;

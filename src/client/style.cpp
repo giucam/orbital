@@ -65,7 +65,7 @@ Style *Style::loadStyle(const QString &name, QQmlEngine *engine)
     QObject *obj = c.create();
     Style *style = qobject_cast<Style *>(obj);
     if (!style) {
-        qWarning() << QString("\'%1\' is not a style type.").arg(name);
+        qWarning() << QStringLiteral("\'%1\' is not a style type.").arg(name);
         delete obj;
         return nullptr;
     }
@@ -75,13 +75,13 @@ Style *Style::loadStyle(const QString &name, QQmlEngine *engine)
 
 void Style::loadStylesList()
 {
-    QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
+    const QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
     for (const QString &path: dirs) {
-        QDir dir(QUrl(QString("%1/../orbital/styles").arg(path)).toString(QUrl::NormalizePathSegments));
-        QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+        QDir dir(QUrl(QStringLiteral("%1/../orbital/styles").arg(path)).toString(QUrl::NormalizePathSegments));
+        const QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &subdir: subdirs) {
             dir.cd(subdir);
-            if (dir.exists("style")) {
+            if (dir.exists(QStringLiteral("style"))) {
                 if (!s_styles.contains(subdir)) {
                     loadStyleInfo(subdir, dir.absolutePath());
                 }
@@ -93,7 +93,7 @@ void Style::loadStylesList()
 
 void Style::cleanupStylesList()
 {
-    for (StyleInfo *info: s_styles) {
+    foreach (StyleInfo *info, s_styles) {
         delete info;
     }
 }
@@ -103,7 +103,7 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
     QString filePath(path + "/style");
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << QString("Failed to load the style '%1'. Could not open %1 for reading.").arg(filePath);
+        qWarning() << QStringLiteral("Failed to load the style '%1'. Could not open %1 for reading.").arg(filePath);
         return;
     }
 
@@ -124,15 +124,15 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
     }
     QJsonObject json = doc.object();
 
-    if (json.contains("prettyName")) {
-        info->m_prettyName = json.value("prettyName").toString();
+    if (json.contains(QStringLiteral("prettyName"))) {
+        info->m_prettyName = json.value(QStringLiteral("prettyName")).toString();
     }
-    if (json.contains("qmlFile")) {
-        info->m_qml = path + "/" + json.value("qmlFile").toString();
+    if (json.contains(QStringLiteral("qmlFile"))) {
+        info->m_qml = path + "/" + json.value(QStringLiteral("qmlFile")).toString();
     }
 
     if (info->m_qml.isEmpty()) {
-        qWarning() << QString("Failed to load the style '%1'. Missing 'qmlFile' field.").arg(path);
+        qWarning() << QStringLiteral("Failed to load the style '%1'. Missing 'qmlFile' field.").arg(path);
         delete info;
         return;
     }

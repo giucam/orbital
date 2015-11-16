@@ -56,5 +56,5 @@ QPixmap NotificationsIconProvider::requestPixmap(const QString &id, QSize *realS
         qDebug("Cannot find the requested notification icon: \"%s\".", qPrintable(iconName));
     }
 
-    return QIcon::fromTheme("dialog-information").pixmap(size);
+    return QIcon::fromTheme(QStringLiteral("dialog-information")).pixmap(size);
 }

@@ -34,7 +34,7 @@ void StatusNotifierPlugin::registerTypes(const char *uri)
         e->addImageProvider(QStringLiteral("statusnotifier"), new StatusNotifierIconProvider(mgr));
         return static_cast<QObject *>(mgr);
     });
-    qmlRegisterUncreatableType<StatusNotifierItem>(uri, 1, 0, "StatusNotifierItem", "Cannot create StatusNotifierItem");
+    qmlRegisterUncreatableType<StatusNotifierItem>(uri, 1, 0, "StatusNotifierItem", QStringLiteral("Cannot create StatusNotifierItem"));
 }
 
 
@@ -42,8 +42,8 @@ StatusNotifierManager::StatusNotifierManager(QObject *p)
                      : QObject(p)
 {
     m_watcher = new StatusNotifierWatcher(this);
-    if (QDBusConnection::sessionBus().registerService("org.kde.StatusNotifierWatcher")) {
-        QDBusConnection::sessionBus().registerObject("/StatusNotifierWatcher", this);
+    if (QDBusConnection::sessionBus().registerService(QStringLiteral("org.kde.StatusNotifierWatcher"))) {
+        QDBusConnection::sessionBus().registerObject(QStringLiteral("/StatusNotifierWatcher"), this);
         connect(m_watcher, &StatusNotifierWatcher::newItem, this, &StatusNotifierManager::newItem);
     }
 }

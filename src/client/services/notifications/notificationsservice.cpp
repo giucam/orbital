@@ -31,7 +31,7 @@ void NotificationsPlugin::registerTypes(const char *uri)
     qmlRegisterSingletonType<NotificationsManager>(uri, 1, 0, "NotificationsManager", [](QQmlEngine *, QJSEngine *) {
         return static_cast<QObject *>(new NotificationsManager);
     });
-    qmlRegisterUncreatableType<Notification>(uri, 1, 0, "Notification", "Cannot create Notification objects");
+    qmlRegisterUncreatableType<Notification>(uri, 1, 0, "Notification", QStringLiteral("Cannot create Notification objects"));
 }
 
 
@@ -77,7 +77,7 @@ NotificationsManager::NotificationsManager(QObject *p)
                     : QObject(p)
 {
     static const QString notificationsService = QStringLiteral("org.freedesktop.Notifications");
-    QStringList caps = { "actions", "action-icons", "body-markup" };
+    QStringList caps = { QStringLiteral("actions"), QStringLiteral("action-icons"), QStringLiteral("body-markup") };
     new NotificationsAdaptor(this, caps);
     if (!QDBusConnection::sessionBus().registerService(notificationsService)) {
         QDBusServiceWatcher *watcher = new QDBusServiceWatcher(notificationsService, QDBusConnection::sessionBus(),

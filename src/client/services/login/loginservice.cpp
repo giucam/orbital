@@ -189,7 +189,7 @@ void LoginManager::requestLogOut()
 {
     m_request = &LoginManager::logOut;
     m_requestHandled = false;
-    QTimer::singleShot(200, this, SLOT(doRequest()));
+    QTimer::singleShot(200, this, &LoginManager::doRequest);
     emit logOutRequested();
 }
 
@@ -197,7 +197,7 @@ void LoginManager::requestPoweroff()
 {
     m_request = &LoginManager::poweroff;
     m_requestHandled = false;
-    QTimer::singleShot(200, this, SLOT(doRequest()));
+    QTimer::singleShot(200, this, &LoginManager::doRequest);
     emit poweroffRequested();
 }
 
@@ -205,7 +205,7 @@ void LoginManager::requestReboot()
 {
     m_request = &LoginManager::reboot;
     m_requestHandled = false;
-    QTimer::singleShot(200, this, SLOT(doRequest()));
+    QTimer::singleShot(200, this, &LoginManager::doRequest);
     emit rebootRequested();
 }
 

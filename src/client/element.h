@@ -169,12 +169,10 @@ protected:
     void setId(int id);
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;
 
-private slots:
-    void focus(wl_surface *surface, int x, int y);
+private:
+    void focus(QQuickWindow *window, int x, int y);
     void motion(uint32_t time, int x, int y);
     void button(uint32_t time, uint32_t button, uint32_t state);
-
-private:
     void setParentElement(Element *parent);
     void sortChildren();
     void createConfig(Element *child);

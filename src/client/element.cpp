@@ -61,7 +61,7 @@ Element::~Element()
     if (m_parent) {
         m_parent->m_children.removeOne(this);
     }
-    for (Element *elm: m_children) {
+    foreach (Element *elm, m_children) {
         elm->m_parent = nullptr;
     }
     delete m_settingsWindow;
@@ -110,7 +110,7 @@ void Element::setContentItem(QQuickItem *item)
 void Element::setChildrenParent(QQuickItem *item)
 {
     m_childrenParent = item;
-    for (Element *elm: m_children) {
+    foreach (Element *elm, m_children) {
         elm->setParentItem(m_childrenParent);
     }
 }
@@ -145,7 +145,7 @@ static void traverse(QObject *object, Element::Location l)
 }
 static void traverse(QQuickItem *object, Element::Location l)
 {
-    for (QQuickItem *o: object->childItems()) {
+    foreach (QQuickItem *o, object->childItems()) {
         if (StyleItem *s = qobject_cast<StyleItem *>(o)) {
             s->updateLocation(l);
         }
@@ -160,7 +160,7 @@ void Element::setLocation(Location p)
         m_location = p;
         emit locationChanged();
 
-        for (Element *elm: m_children) {
+        foreach (Element *elm, m_children) {
             elm->m_location = p;
             emit elm->locationChanged();
         }
@@ -225,7 +225,7 @@ void Element::publish(const QPointF &offset)
         m_target = nullptr;
         m_offset = offset;
         Grab *grab = Client::createGrab();
-        connect(grab, SIGNAL(focus(wl_surface *, int, int)), this, SLOT(focus(wl_surface *, int, int)));
+        connect(grab, &Grab::focus, this, &Element::focus);
         connect(grab, &Grab::motion, this, &Element::motion);
         connect(grab, &Grab::button, this, &Element::button);
         m_properties.clear();
@@ -233,14 +233,13 @@ void Element::publish(const QPointF &offset)
     emit published();
 }
 
-void Element::focus(wl_surface *surface, int x, int y)
+void Element::focus(QQuickWindow *window, int x, int y)
 {
     if (m_target) {
         emit m_target->elementExited(this, m_pos, m_offset);
         m_target->window()->unsetCursor();
     }
 
-    QQuickWindow *window = Client::client()->findWindow(surface);
     QQuickItem *item = window->contentItem()->childAt(x, y);
     m_target = nullptr;
     while (!m_target && item) {
@@ -387,7 +386,7 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
     timer.start();
 
     if (!s_elements.contains(name)) {
-        qWarning() << QString("Could not find the element \'%1\'. Check your configuration or your setup.").arg(name);
+        qWarning() << QStringLiteral("Could not find the element \'%1\'. Check your configuration or your setup.").arg(name);
         return nullptr;
     }
 
@@ -403,7 +402,7 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
     QObject *obj = c.beginCreate(engine->rootContext());
     Element *elm = qobject_cast<Element *>(obj);
     if (!elm) {
-        qWarning() << QString("\'%1\' is not an element type.").arg(name);
+        qWarning() << QStringLiteral("\'%1\' is not an element type.").arg(name);
         delete obj;
         return nullptr;
     }
@@ -429,12 +428,12 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
 void Element::loadElementsList()
 {
     QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
-    for (const QString &path: dirs) {
-        QDir dir(QUrl(QString("%1/../orbital/elements").arg(path)).toString(QUrl::NormalizePathSegments));
-        QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    foreach (const QString &path, dirs) {
+        QDir dir(QUrl(QStringLiteral("%1/../orbital/elements").arg(path)).toString(QUrl::NormalizePathSegments));
+        const QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &subdir: subdirs) {
             dir.cd(subdir);
-            if (dir.exists("element")) {
+            if (dir.exists(QStringLiteral("element"))) {
                 if (!s_elements.contains(subdir)) {
                     loadElementInfo(subdir, dir.absolutePath());
                 }
@@ -446,7 +445,7 @@ void Element::loadElementsList()
 
 void Element::cleanupElementsList()
 {
-    for (ElementInfo *info: s_elements) {
+    foreach (ElementInfo *info, s_elements) {
         delete info;
     }
 }
@@ -456,7 +455,7 @@ void Element::loadElementInfo(const QString &name, const QString &path)
     QString filePath(path + "/element");
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << QString("Failed to load the element '%1'. Could not open %1 for reading.").arg(filePath);
+        qWarning() << QStringLiteral("Failed to load the element '%1'. Could not open %1 for reading.").arg(filePath);
         return;
     }
 
@@ -478,32 +477,32 @@ void Element::loadElementInfo(const QString &name, const QString &path)
     }
     QJsonObject json = doc.object();
 
-    info->m_prettyName = json.value("prettyName").toString();
-    if (json.contains("qmlFile")) {
-        info->m_qml = path + "/" + json.value("qmlFile").toString();
+    info->m_prettyName = json.value(QStringLiteral("prettyName")).toString();
+    if (json.contains(QStringLiteral("qmlFile"))) {
+        info->m_qml = path + "/" + json.value(QStringLiteral("qmlFile")).toString();
     }
-    if (json.contains("type")) {
-        QString value = json.value("type").toString();
-        if (value == "background") {
+    if (json.contains(QStringLiteral("type"))) {
+        QString value = json.value(QStringLiteral("type")).toString();
+        if (value == QStringLiteral("background")) {
             info->m_type = ElementInfo::Type::Background;
-        } else if (value == "panel") {
+        } else if (value == QStringLiteral("panel")) {
             info->m_type = ElementInfo::Type::Panel;
-        } else if (value == "overlay") {
+        } else if (value == QStringLiteral("overlay")) {
             info->m_type = ElementInfo::Type::Overlay;
-        } else if (value == "lockscreen") {
+        } else if (value == QStringLiteral("lockscreen")) {
             info->m_type = ElementInfo::Type::LockScreen;
         }
     }
 
     if (info->m_qml.isEmpty()) {
-        qWarning() << QString("Failed to load the element '%1'. Missing 'qmlFile' field.").arg(path);
+        qWarning() << QStringLiteral("Failed to load the element '%1'. Missing 'qmlFile' field.").arg(path);
         delete info;
         return;
     }
 
     QDir dir(path);
     QTranslator *tr = new QTranslator;
-    if (tr->load(Client::locale(), "", "", path, ".qm")) {
+    if (tr->load(Client::locale(), QString(), QString(), path, QStringLiteral(".qm"))) {
         QCoreApplication::installTranslator(tr);
     } else {
         delete tr;
