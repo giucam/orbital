@@ -66,6 +66,7 @@ public:
     wl_client *client() const;
     weston_surface *surface() const;
     inline QList<View *> views() const { return m_views; }
+    Surface *mainSurface() const;
 
     void repaint();
     void damage();

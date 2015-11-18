@@ -93,6 +93,11 @@ void Surface::damage()
     weston_surface_damage(m_surface);
 }
 
+Surface *Surface::mainSurface() const
+{
+    return Surface::fromSurface(weston_surface_get_main_surface(m_surface));
+}
+
 bool Surface::setRole(const char *roleName, wl_resource *errorResource, uint32_t errorCode)
 {
     if (weston_surface_set_role(m_surface, roleName, errorResource, errorCode) == 0) {

@@ -61,6 +61,8 @@ public:
     QPointF mapFromGlobal(const QPointF &p);
     QPointF mapToGlobal(const QPointF &p);
 
+    View *mainView() const;
+
     void update();
     void unmap();
 

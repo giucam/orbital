@@ -446,7 +446,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    Surface *surf = focus->surface();
+    Surface *surf = focus->surface()->mainSurface();
     FocusScope *scope = surf->focusScope();
     (scope ? scope : m_appsScope)->activate(surf);
 
@@ -478,7 +478,7 @@ void Shell::raise(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
+    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface()->mainSurface());
     if (shsurf && shsurf->isFullscreen()) {
         return;
     }
@@ -506,7 +506,7 @@ void Shell::moveSurface(Seat *seat)
         return;
     }
 
-    focus->surface()->move(seat);
+    focus->surface()->mainSurface()->move(seat);
 }
 
 void Shell::killSurface(Seat *s)

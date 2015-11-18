@@ -242,7 +242,7 @@ void ShellSurface::move(Seat *seat)
 
     MoveGrab *move = new MoveGrab;
 
-    View *view = seat->pointer()->pickView();
+    View *view = seat->pointer()->pickView()->mainView();
     move->dx = view->x() - seat->pointer()->x();
     move->dy = view->y() - seat->pointer()->y();
     move->shsurf = this;
@@ -311,7 +311,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     grab->width = m_width = rect.width();
     grab->height = m_height = rect.height();
     grab->shsurf = this;
-    grab->view = seat->pointer()->pickView();
+    grab->view = seat->pointer()->pickView()->mainView();
 
     grab->start(seat, (PointerCursor)e);
 }

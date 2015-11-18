@@ -164,6 +164,15 @@ QPointF View::mapToGlobal(const QPointF &p)
     return QPointF(x, y);
 }
 
+View *View::mainView() const
+{
+    weston_view *view = m_view;
+    while (view->parent_view) {
+        view = view->parent_view;
+    }
+    return View::fromView(view);
+}
+
 void View::update()
 {
     weston_view_update_transform(m_view);
