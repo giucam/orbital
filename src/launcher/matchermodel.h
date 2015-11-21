@@ -23,6 +23,9 @@
 #include <QAbstractListModel>
 #include <QLinkedList>
 
+
+class QFileSystemWatcher;
+
 class MatcherModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -42,6 +45,7 @@ public:
     void addInHistory(const QString &command);
 
 private:
+    void buildItemsList();
     void matchExpression();
 
     QString m_expression;
@@ -49,6 +53,7 @@ private:
     QStringList m_matches;
     QString m_commandPrefix;
     QStringList m_commands;
+    QFileSystemWatcher *m_watcher;
 };
 
 #endif

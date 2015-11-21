@@ -23,14 +23,27 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QFileSystemWatcher>
 
 #include "matchermodel.h"
 
 MatcherModel::MatcherModel()
             : QAbstractListModel()
+            , m_watcher(new QFileSystemWatcher(this))
 {
     QString path = qgetenv("PATH");
     foreach (const QString &p, path.split(':')) {
+        m_watcher->addPath(p);
+    }
+
+    buildItemsList();
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &MatcherModel::buildItemsList);
+}
+
+void MatcherModel::buildItemsList()
+{
+    m_items.clear();
+    foreach (const QString &p, m_watcher->directories()) {
         QDir dir(p);
         foreach (const QFileInfo &f, dir.entryInfoList(QDir::Files)) {
             if (!f.isExecutable()) {
