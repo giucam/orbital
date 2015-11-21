@@ -6,7 +6,7 @@ find_package(Qt5Core)
 
 set(CMAKE_AUTOMOC ON)
 
-include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${Weston_INCLUDEDIR}/weston-1
+include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${Weston_INCLUDE_DIRS}/weston-1
 ${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCES
