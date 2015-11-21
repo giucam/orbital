@@ -5,6 +5,7 @@ pkg_check_modules(Weston weston REQUIRED)
 find_package(Qt5Core)
 
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${Weston_INCLUDE_DIRS}/weston-1
 ${CMAKE_CURRENT_BINARY_DIR})
