@@ -71,7 +71,8 @@ Nice=-5
 WantedBy=graphical.target
 ```
 
-Change the 'User' option to your own user and then enable it with
+Save it as `/etc/systemd/system/orbital@.service`, change the 'User' option to your
+own user, and then enable it with
 ```
 sudo systemctl enable orbital@7
 ```
