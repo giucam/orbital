@@ -185,6 +185,39 @@ static void populateAutostartList(QStringList &files, const QString &autostartDi
     }
 }
 
+static bool readDesktopFile(QIODevice &device, QSettings::SettingsMap &map)
+{
+    QByteArray currentGroup;
+
+    while (!device.atEnd()) {
+        const QByteArray line = device.readLine();
+        int length = line.length();
+        if (line.contains('\n')) {
+            --length;
+        }
+
+        if (line.indexOf('[') == 0) {
+            int idx = line.indexOf(']');
+            if (idx == -1 || idx != length - 1) {
+                return false;
+            }
+            currentGroup = line.mid(1, length - 2);
+            continue;
+        }
+
+        int idx = line.indexOf('=');
+        if (idx < 1) {
+            return false;
+        }
+        QByteArray key = line.left(idx);
+        QByteArray value = line.mid(idx + 1, length - idx - 1);
+
+        map[currentGroup + '/' + key] = value;
+    }
+
+    return true;
+}
+
 void Shell::autostartClients()
 {
     QStringList files;
@@ -210,8 +243,10 @@ void Shell::autostartClients()
     outputDir.mkdir(dirName);
     outputDir.cd(dirName);
 
+    static QSettings::Format desktopFormat = QSettings::registerFormat(QStringLiteral("desktop"), readDesktopFile, nullptr);
+
     foreach (const QString &fi, files) {
-        QSettings settings(fi, QSettings::IniFormat);
+        QSettings settings(fi, desktopFormat);
         settings.beginGroup(QStringLiteral("Desktop Entry"));
         if (!shouldAutoStart(settings)) {
             continue;
