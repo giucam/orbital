@@ -48,7 +48,7 @@ Description=Orbital compositor
 
 [Service]
 ExecStartPre=/usr/bin/chvt %I
-ExecStart=/usr/local/bin/orbital-launch
+ExecStart=/usr/bin/dbus-launch --exit-with-session /usr/local/bin/orbital-launch
 User=giulio
 TTYPath=/dev/tty%I
 TTYReset=yes
