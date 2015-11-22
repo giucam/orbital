@@ -33,6 +33,7 @@ namespace Orbital {
 
 class Interface;
 class Compositor;
+class Authorizer;
 
 class Object : public QObject
 {
@@ -81,6 +82,20 @@ private:
     wl_global *m_global;
 };
 
+class RestrictedGlobal
+{
+public:
+    RestrictedGlobal(Compositor *c, const wl_interface *i, uint32_t version);
+    virtual ~RestrictedGlobal();
+
+protected:
+    virtual void bind(wl_client *client, uint32_t version, uint32_t id) = 0;
+
+private:
+    Authorizer *m_authorizer;
+    const wl_interface *m_interface;
+    wl_global *m_global;
+};
 
 template <class T>
 T *Object::findInterface() const

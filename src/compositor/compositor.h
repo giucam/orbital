@@ -27,6 +27,7 @@
 #include <QVector>
 
 #include "global.h"
+#include "interface.h"
 
 struct wl_display;
 struct wl_event_loop;
@@ -54,6 +55,7 @@ class KeyBinding;
 class AxisBinding;
 class HotSpotBinding;
 class Surface;
+class Authorizer;
 struct Listener;
 enum class PointerButton : unsigned char;
 enum class PointerAxis : unsigned char;
@@ -95,6 +97,8 @@ public:
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
     ChildProcess *launchProcess(const QString &path);
 
+    Authorizer *authorizer() const { return m_authorizer; }
+
     void kill(Surface *surface);
 
     ButtonBinding *createButtonBinding(PointerButton button, KeyboardModifiers modifiers);
@@ -134,8 +138,10 @@ private:
     QJsonObject m_config;
     QMultiHash<int, HotSpotBinding *> m_hotSpotBindings;
     Keymap m_defaultKeymap;
+    Authorizer *m_authorizer;
 
     friend class Global;
+    friend class RestrictedGlobal;
     friend class XWayland;
     friend class Pointer;
     friend DummySurface;

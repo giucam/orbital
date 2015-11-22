@@ -45,7 +45,6 @@
 #include "clipboard.h"
 #include "dashboard.h"
 #include "gammacontrol.h"
-#include "authorizer.h"
 #include "wlshell/wlshell.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
@@ -67,7 +66,6 @@ Shell::Shell(Compositor *c)
 {
     initEnvironment();
 
-    addInterface(new Authorizer(this));
     addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
@@ -604,49 +602,6 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
 
     double a = focus->alpha() + value / 200.;
     focus->setAlpha(qBound(0., a, 1.));
-}
-
-class Client
-{
-public:
-    ~Client() { wl_list_remove(&listener.listener.link); }
-    Shell *shell;
-    wl_client *client;
-    QString interface;
-    struct Listener {
-        wl_listener listener;
-        Client *parent;
-    };
-    Listener listener;
-};
-
-void Shell::addTrustedClient(const QString &interface, wl_client *c)
-{
-    Client *cl = new Client;
-    cl->shell = this;
-    cl->client = c;
-    cl->interface = interface;
-    cl->listener.parent = cl;
-    cl->listener.listener.notify = [](wl_listener *l, void *data)
-    {
-        Client *client = reinterpret_cast<Client::Listener *>(l)->parent;
-        client->shell->m_trustedClients[client->interface].removeOne(client);
-        delete client;
-    };
-    wl_client_add_destroy_listener(c, &cl->listener.listener);
-
-    m_trustedClients[interface] << cl;
-}
-
-bool Shell::isClientTrusted(const QString &interface, wl_client *c) const
-{
-    for (Client *cl: m_trustedClients.value(interface)) {
-        if (cl->client == c) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 }

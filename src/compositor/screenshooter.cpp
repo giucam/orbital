@@ -30,20 +30,13 @@ namespace Orbital {
 
 Screenshooter::Screenshooter(Shell *s)
              : Interface(s)
-             , Global(s->compositor(), &orbital_screenshooter_interface, 1)
-             , m_shell(s)
+             , RestrictedGlobal(s->compositor(), &orbital_screenshooter_interface, 1)
 {
 }
 
 void Screenshooter::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     wl_resource *resource = wl_resource_create(client, &orbital_screenshooter_interface, version, id);
-
-    if (!m_shell->isClientTrusted(QStringLiteral("orbital_screenshooter"), client)) {
-        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT, "permission to bind screenshooter denied");
-        wl_resource_destroy(resource);
-        return;
-    }
 
     static const struct orbital_screenshooter_interface implementation = {
         wrapInterface(&Screenshooter::shoot)

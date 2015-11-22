@@ -20,16 +20,79 @@
 #include <unistd.h>
 
 #include "authorizer.h"
-#include "shell.h"
+#include "compositor.h"
 #include "utils.h"
 #include "wayland-authorizer-server-protocol.h"
 
 namespace Orbital {
 
-Authorizer::Authorizer(Shell *shell)
-          : Interface(shell)
-          , Global(shell->compositor(), &orbital_authorizer_interface, 1)
+class TrustedClient
 {
+public:
+    ~TrustedClient() { wl_list_remove(&listener.listener.link); }
+    Authorizer *authorizer;
+    wl_client *client;
+    QByteArray interface;
+    struct Listener {
+        wl_listener listener;
+        TrustedClient *parent;
+    };
+    Listener listener;
+};
+
+
+Authorizer::Authorizer(Compositor *compositor)
+          : QObject(compositor)
+          , Global(compositor, &orbital_authorizer_interface, 1)
+{
+}
+
+Authorizer::~Authorizer()
+{
+    for (auto i = m_trustedClients.constBegin(); i != m_trustedClients.constEnd(); ++i) {
+        qDeleteAll(i.value());
+    }
+}
+
+void Authorizer::addRestrictedInterface(const QByteArray &interface)
+{
+    if (!m_restrictedIfaces.contains(interface)) {
+        m_restrictedIfaces << interface;
+    }
+}
+
+void Authorizer::removeRestrictedInterface(const QByteArray &interface)
+{
+    m_restrictedIfaces.removeOne(interface);
+}
+
+void Authorizer::addTrustedClient(const QByteArray &interface, wl_client *c)
+{
+    TrustedClient *cl = new TrustedClient;
+    cl->authorizer = this;
+    cl->client = c;
+    cl->interface = interface;
+    cl->listener.parent = cl;
+    cl->listener.listener.notify = [](wl_listener *l, void *data)
+    {
+        TrustedClient *client = reinterpret_cast<TrustedClient::Listener *>(l)->parent;
+        client->authorizer->m_trustedClients[client->interface].removeOne(client);
+        delete client;
+    };
+    wl_client_add_destroy_listener(c, &cl->listener.listener);
+
+    m_trustedClients[interface] << cl;
+}
+
+bool Authorizer::isClientTrusted(const QByteArray &interface, wl_client *c) const
+{
+    for (TrustedClient *cl: m_trustedClients.value(interface)) {
+        if (cl->client == c) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void Authorizer::bind(wl_client *client, uint32_t version, uint32_t id)
@@ -52,21 +115,25 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 {
     wl_resource *resource = wl_resource_create(client, &orbital_authorizer_feedback_interface, wl_resource_get_version(res), id);
 
+    if (!m_restrictedIfaces.contains(global)) {
+        qDebug("Authorization request for unknown interface '%s'. Granting...", global);
+        grant(resource);
+        return;
+    }
+
     pid_t pid;
     wl_client_get_credentials(client, &pid, nullptr, nullptr);
 
     char path[256], buf[256];
     int ret = snprintf(path, sizeof(path), "/proc/%d/exe", pid);
     if ((size_t)ret >= sizeof(path)) {
-        orbital_authorizer_feedback_send_denied(resource);
-        wl_resource_destroy(resource);
+        deny(resource);
         return;
     }
 
     ret = readlink(path, buf, sizeof(buf));
     if (ret == -1 || (size_t)ret == sizeof(buf)) {
-        orbital_authorizer_feedback_send_denied(resource);
-        wl_resource_destroy(resource);
+        deny(resource);
         return;
     }
     buf[ret] = '\0';
@@ -80,12 +147,24 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 
     if (granted) {
         qDebug("Authorization granted.");
-        orbital_authorizer_feedback_send_granted(resource);
-        static_cast<Shell *>(object())->addTrustedClient(global, client);
+        grant(resource);
+        addTrustedClient(global, client);
     } else {
-        orbital_authorizer_feedback_send_denied(resource);
-        wl_resource_destroy(resource);
+        qDebug("Authorization denied.");
+        deny(resource);
     }
+}
+
+void Authorizer::grant(wl_resource *res)
+{
+    orbital_authorizer_feedback_send_granted(res);
+    wl_resource_destroy(res);
+}
+
+void Authorizer::deny(wl_resource *res)
+{
+    orbital_authorizer_feedback_send_denied(res);
+    wl_resource_destroy(res);
 }
 
 }

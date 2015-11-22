@@ -21,6 +21,7 @@
 
 #include "interface.h"
 #include "compositor.h"
+#include "authorizer.h"
 
 namespace Orbital {
 
@@ -56,12 +57,39 @@ Global::Global(Compositor *c, const wl_interface *i, uint32_t v)
 {
     m_global = wl_global_create(c->m_display, i, v, this,
                                 [](wl_client *client, void *data, uint32_t version, uint32_t id) {
-                                    emit static_cast<Global *>(data)->bind(client, version, id);
+                                    static_cast<Global *>(data)->bind(client, version, id);
                                 });
 }
 
 Global::~Global()
 {
+    wl_global_destroy(m_global);
+}
+
+
+
+RestrictedGlobal::RestrictedGlobal(Compositor *c, const wl_interface *i, uint32_t v)
+                : m_authorizer(c->authorizer())
+                , m_interface(i)
+{
+    m_global = wl_global_create(c->m_display, i, v, this,
+                                [](wl_client *client, void *data, uint32_t version, uint32_t id) {
+                                    RestrictedGlobal *_this = static_cast<RestrictedGlobal *>(data);
+                                    if (_this->m_authorizer->isClientTrusted(_this->m_interface->name, client)) {
+                                        _this->bind(client, version, id);
+                                    } else {
+                                        wl_resource *resource = wl_resource_create(client, _this->m_interface, version, id);
+                                        wl_resource_post_error(resource, WL_DISPLAY_ERROR_INVALID_OBJECT,
+                                                               "permission to bind the global interface '%s' denied", _this->m_interface->name);
+                                        wl_resource_destroy(resource);
+                                    }
+                                });
+    m_authorizer->addRestrictedInterface(i->name);
+}
+
+RestrictedGlobal::~RestrictedGlobal()
+{
+    m_authorizer->removeRestrictedInterface(m_interface->name);
     wl_global_destroy(m_global);
 }
 

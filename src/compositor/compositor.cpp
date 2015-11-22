@@ -47,6 +47,7 @@
 #include "binding.h"
 #include "pager.h"
 #include "global.h"
+#include "authorizer.h"
 
 namespace Orbital {
 
@@ -86,6 +87,7 @@ Compositor::Compositor(Backend *backend)
           , m_backend(backend)
           , m_shell(nullptr)
           , m_bindingsCleanupHandler(new QObjectCleanupHandler)
+          , m_authorizer(nullptr)
 {
     connect(&m_fakeRepaintLoopTimer, &QTimer::timeout, this, &Compositor::fakeRepaint);
 
@@ -136,6 +138,7 @@ Compositor::Compositor(Backend *backend)
 
 Compositor::~Compositor()
 {
+    delete m_authorizer;
     delete m_shell;
     qDeleteAll(m_outputs);
     qDeleteAll(m_layers);
@@ -328,6 +331,7 @@ bool Compositor::init(const QString &socketName)
 
     weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
 
+    m_authorizer = new Authorizer(this);
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
     foreach (Output *o, m_outputs) {

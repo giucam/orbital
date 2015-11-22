@@ -28,7 +28,7 @@ namespace Orbital {
 
 class Shell;
 
-class Screenshooter : public Interface, public Global
+class Screenshooter : public Interface, public RestrictedGlobal
 {
 public:
     Screenshooter(Shell *s);
@@ -36,8 +36,6 @@ public:
 private:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
     void shoot(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *outputResource, wl_resource *bufferResource);
-
-    Shell *m_shell;
 };
 
 }

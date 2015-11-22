@@ -40,7 +40,6 @@ class AxisBinding;
 class Seat;
 class Pager;
 class Output;
-class Client;
 class FocusScope;
 class Surface;
 enum class PointerCursor: unsigned int;
@@ -82,9 +81,6 @@ public:
     void setGrabCursorSetter(GrabCursorSetter s);
     void setGrabCursorUnsetter(GrabCursorUnsetter s);
 
-    void addTrustedClient(const QString &interface, wl_client *c);
-    bool isClientTrusted(const QString &interface, wl_client *c) const;
-
 signals:
     void aboutToLock();
     void locked();
@@ -113,7 +109,6 @@ private:
     KeyBinding *m_prevWsBinding;
     AxisBinding *m_alphaBinding;
     Pager *m_pager;
-    QHash<QString, QList<Client *>> m_trustedClients;
     bool m_locked;
     FocusScope *m_lockScope;
     FocusScope *m_appsScope;
