@@ -142,7 +142,7 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 
     bool granted = false;
     if (strcmp(global, "orbital_screenshooter") == 0) {
-        granted = strcmp(buf, LIBEXEC_PATH "/orbital-screenshooter") == 0;
+        granted = strcmp(buf, BIN_PATH "/orbital-screenshooter") == 0;
     }
 
     if (granted) {

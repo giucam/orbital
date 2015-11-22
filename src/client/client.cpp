@@ -278,7 +278,7 @@ void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
 
 void Client::takeScreenshot()
 {
-    QProcess::startDetached(QStringLiteral(LIBEXEC_PATH "/orbital-screenshooter"));
+    QProcess::startDetached(QStringLiteral(BIN_PATH "/orbital-screenshooter"));
 }
 
 void Client::windowDestroyed(Window *w)

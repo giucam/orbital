@@ -30,6 +30,6 @@ qt5_use_modules(orbital-screenshooter Widgets Qml Quick)
 target_link_libraries(orbital-screenshooter wayland-client)
 set_target_properties(orbital-screenshooter PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
-install(TARGETS orbital-screenshooter DESTINATION libexec)
+install(TARGETS orbital-screenshooter DESTINATION bin)
 
 install(FILES imgur DESTINATION libexec)
