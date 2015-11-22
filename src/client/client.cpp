@@ -297,7 +297,7 @@ void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
 
 void Client::takeScreenshot()
 {
-    QProcess *proc = createTrustedClient(QStringLiteral("screenshooter"));
+    QProcess *proc = createTrustedClient(QStringLiteral("orbital_screenshooter"));
     proc->start(QStringLiteral(LIBEXEC_PATH "/orbital-screenshooter"));
     wl_display_flush(m_display); //Make sure the server receives the fd asap
     connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });

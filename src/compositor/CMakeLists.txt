@@ -36,6 +36,7 @@ set(SOURCES
     clipboard.cpp
     dashboard.cpp
     gammacontrol.cpp
+    authorizer.cpp
     effect.cpp
     effects/zoomeffect.cpp
     effects/desktopgrid.cpp
@@ -54,6 +55,7 @@ wayland_add_protocol_server(SOURCES ../../protocol/dropdown.xml dropdown)
 wayland_add_protocol_server(SOURCES ../../protocol/screenshooter.xml screenshooter)
 wayland_add_protocol_server(SOURCES ../../protocol/orbital-clipboard.xml clipboard)
 wayland_add_protocol_server(SOURCES ../../protocol/gamma-control.xml gammacontrol)
+wayland_add_protocol_server(SOURCES ../../protocol/orbital-authorizer.xml authorizer)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

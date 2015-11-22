@@ -18,6 +18,7 @@ endforeach(dir)
 set(SOURCES main.cpp)
 
 wayland_add_protocol_client(SOURCES ../../protocol/screenshooter.xml screenshooter)
+wayland_add_protocol_client(SOURCES ../../protocol/orbital-authorizer.xml authorizer)
 
 qt5_add_resources(RESOURCES resources.qrc)
 

@@ -37,7 +37,9 @@
 
 #include <wayland-client.h>
 
+#include "../client/utils.h"
 #include "wayland-screenshooter-client-protocol.h"
+#include "wayland-authorizer-client-protocol.h"
 
 static const QEvent::Type ScreenshotEventType = (QEvent::Type)QEvent::registerEventType();
 
@@ -135,11 +137,18 @@ public:
         : QObject()
         , m_shooter(nullptr)
         , m_shm(nullptr)
+        , m_authorized(false)
     {
         QPlatformNativeInterface *native = QGuiApplication::platformNativeInterface();
         m_display = static_cast<wl_display *>(native->nativeResourceForIntegration("display"));
         m_registry = wl_display_get_registry(m_display);
-        wl_registry_add_listener(m_registry, &s_registryListener, this);
+
+        static const wl_registry_listener listener = {
+            wrapInterface(&Screenshooter::global),
+            wrapInterface(&Screenshooter::globalRemove)
+        };
+
+        wl_registry_add_listener(m_registry, &listener, this);
         wl_display_dispatch(m_display);
         wl_display_roundtrip(m_display);
         if (!m_shooter || !m_shm) {
@@ -281,6 +290,50 @@ signals:
     void uploadOutput(const QString &output);
 
 private:
+    void global(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
+    {
+#define registry_bind(type, v) static_cast<type *>(wl_registry_bind(registry, id, &type ## _interface, qMin(version, v)))
+
+        if (strcmp(interface, "orbital_screenshooter") == 0) {
+            m_shooter = registry_bind(orbital_screenshooter, 1u);
+        } else if (strcmp(interface, "wl_shm") == 0) {
+            m_shm = registry_bind(wl_shm, 1u);
+        } else if (strcmp(interface, "orbital_authorizer") == 0) {
+            wl_event_queue *queue = wl_display_create_queue(m_display);
+
+            orbital_authorizer *auth = registry_bind(orbital_authorizer, 1u);
+            wl_proxy_set_queue((wl_proxy *)auth, queue);
+            orbital_authorizer_feedback *feedback = orbital_authorizer_authorize(auth, "orbital_screenshooter");
+
+            static const orbital_authorizer_feedback_listener listener = {
+                wrapInterface(&Screenshooter::authGranted),
+                wrapInterface(&Screenshooter::authDenied)
+            };
+            orbital_authorizer_feedback_add_listener(feedback, &listener, this);
+
+            int ret = 0;
+            while (!m_authorized && ret >= 0) {
+                ret = wl_display_dispatch_queue(m_display, queue);
+            }
+
+            orbital_authorizer_feedback_destroy(feedback);
+            orbital_authorizer_destroy(auth);
+            wl_event_queue_destroy(queue);
+        }
+    }
+    void globalRemove(wl_registry *registry, uint32_t id) {}
+
+    void authGranted(orbital_authorizer_feedback *feedback)
+    {
+        m_authorized = true;
+    }
+
+    void authDenied(orbital_authorizer_feedback *feedback)
+    {
+        qWarning("Fatal! Authorization to bind the orbital_screenshooter global interface denied.");
+        exit(1);
+    }
+
     wl_display *m_display;
     wl_registry *m_registry;
     orbital_screenshooter *m_shooter;
@@ -289,21 +342,7 @@ private:
     QList<Screenshot *> m_screenshots;
     QSet<Screenshot *> m_pendingScreenshots;
     ImageProvider *m_imageProvider;
-
-    static const wl_registry_listener s_registryListener;
-};
-
-const wl_registry_listener Screenshooter::s_registryListener = {
-    [](void *data, wl_registry *registry, uint32_t id, const char *interface, uint32_t version) {
-        Screenshooter *shooter = static_cast<Screenshooter *>(data);
-
-        if (strcmp(interface, "orbital_screenshooter") == 0) {
-            shooter->m_shooter = static_cast<orbital_screenshooter *>(wl_registry_bind(registry, id, &orbital_screenshooter_interface, version));
-        } else if (strcmp(interface, "wl_shm") == 0) {
-            shooter->m_shm = static_cast<wl_shm *>(wl_registry_bind(registry, id, &wl_shm_interface, version));
-        }
-    },
-    [](void *, wl_registry *registry, uint32_t id) {}
+    bool m_authorized;
 };
 
 const orbital_screenshot_listener Screenshot::s_listener = {
