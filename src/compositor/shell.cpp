@@ -195,6 +195,9 @@ static bool readDesktopFile(QIODevice &device, QSettings::SettingsMap &map)
         if (line.contains('\n')) {
             --length;
         }
+        if (length == 0) {
+            continue;
+        }
 
         if (line.indexOf('[') == 0) {
             int idx = line.indexOf(']');
