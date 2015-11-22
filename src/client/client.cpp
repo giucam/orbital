@@ -269,25 +269,6 @@ void Client::setInputRegion(QQuickWindow *w, const QRectF &r)
     wl_region_destroy(region);
 }
 
-QProcess *Client::createTrustedClient(const QString &interface)
-{
-    int sv[2];
-    socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv);
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    int fd = dup(sv[1]);
-    env.insert(QStringLiteral("WAYLAND_SOCKET"), QString::number(fd));
-    close(sv[1]);
-    QProcess *process = new QProcess;
-    process->setProcessChannelMode(QProcess::ForwardedChannels);
-    process->setProcessEnvironment(env);
-
-    desktop_shell_add_trusted_client(m_shell, sv[0], qPrintable(interface));
-    close(sv[0]);
-
-    connect(process, (void (QProcess::*)(int))&QProcess::finished, [fd](int) { close(fd); });
-    return process;
-}
-
 void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
 {
     wl_surface *surface = nativeSurface(window);
@@ -297,10 +278,7 @@ void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
 
 void Client::takeScreenshot()
 {
-    QProcess *proc = createTrustedClient(QStringLiteral("orbital_screenshooter"));
-    proc->start(QStringLiteral(LIBEXEC_PATH "/orbital-screenshooter"));
-    wl_display_flush(m_display); //Make sure the server receives the fd asap
-    connect(proc, (void (QProcess::*)(int))&QProcess::finished, [proc](int) { proc->deleteLater(); });
+    QProcess::startDetached(QStringLiteral(LIBEXEC_PATH "/orbital-screenshooter"));
 }
 
 void Client::windowDestroyed(Window *w)

@@ -118,7 +118,6 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
         wrapInterface(&DesktopShell::addWorkspace),
         wrapInterface(&DesktopShell::selectWorkspace),
         wrapInterface(&DesktopShell::quit),
-        wrapInterface(&DesktopShell::addTrustedClient),
         wrapInterface(&DesktopShell::pong),
         wrapInterface(&DesktopShell::outputLoaded),
         wrapInterface(&DesktopShell::createActiveRegion),
@@ -614,12 +613,6 @@ void DesktopShell::selectWorkspace(wl_resource *outputResource, wl_resource *wor
 void DesktopShell::quit()
 {
     m_shell->compositor()->quit();
-}
-
-void DesktopShell::addTrustedClient(int32_t fd, const char *interface)
-{
-    wl_client *c = wl_client_create(compositor()->display(), fd);
-    m_shell->addTrustedClient(interface, c);
 }
 
 void DesktopShell::pong(uint32_t serial)

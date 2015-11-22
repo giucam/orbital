@@ -77,11 +77,6 @@
 
         <request name="quit"/>
 
-        <request name="add_trusted_client">
-            <arg name="fd" type="fd"/>
-            <arg name="interface" type="string"/>
-        </request>
-
         <request name="pong">
             <arg name="serial" type="uint"/>
         </request>
