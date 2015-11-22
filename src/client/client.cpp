@@ -184,10 +184,28 @@ static const desktop_shell_binding_listener binding_listener = {
     }
 };
 
-Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
+enum BindingMods {
+    BindingModsNone = 0,
+    BindingModsCtrl = (1 << 0),
+    BindingModsAlt = (1 << 1),
+    BindingModsSuper = (1 << 2),
+    BindingModsShift = (1 << 3),
+};
+
+Binding *Client::addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers)
 {
+    int mods = BindingModsNone;
+    if (modifiers & Qt::ShiftModifier)
+        mods |= BindingModsShift;
+    if (modifiers & Qt::ControlModifier)
+        mods |= BindingModsCtrl;
+    if (modifiers & Qt::AltModifier)
+        mods |= BindingModsAlt;
+    if (modifiers & Qt::MetaModifier)
+        mods |= BindingModsSuper;
+
     Binding *binding = new Binding;
-    binding->bind = desktop_shell_add_key_binding(m_shell, key, modifiers);
+    binding->bind = desktop_shell_add_key_binding(m_shell, key, mods);
     desktop_shell_binding_add_listener(binding->bind, &binding_listener, binding);
 
     return binding;
@@ -195,9 +213,6 @@ Binding *Client::addKeyBinding(uint32_t key, uint32_t modifiers)
 
 void Client::create()
 {
-    // win + print_screen FIXME: make this configurable
-    connect(addKeyBinding(KEY_SYSRQ, 1 << 2), &Binding::triggered, this, &Client::takeScreenshot);
-
     connect(qGuiApp, &QGuiApplication::screenAdded, this, &Client::screenAdded);
     foreach(QScreen *s, qGuiApp->screens()) {
         screenAdded(s);
@@ -274,11 +289,6 @@ void Client::setLockScreen(QQuickWindow *window, QScreen *screen)
     wl_surface *surface = nativeSurface(window);
     wl_output *output = nativeOutput(screen);
     desktop_shell_set_lock_surface(m_shell, surface, output);
-}
-
-void Client::takeScreenshot()
-{
-    QProcess::startDetached(QStringLiteral(BIN_PATH "/orbital-screenshooter"));
 }
 
 void Client::windowDestroyed(Window *w)

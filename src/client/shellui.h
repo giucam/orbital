@@ -84,6 +84,7 @@ signals:
 private:
     void loadScreen(UiScreen *s);
     void reloadConfigFile();
+    void parseBinding(const QJsonObject &conf);
 
     Client *m_client;
     CompositorSettings *m_compositorSettings;

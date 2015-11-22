@@ -47,7 +47,14 @@ const char *defaultShell =
 "    \"properties\": {\n"
 "        \"numWorkspaces\": 4,\n"
 "        \"styleName\": \"chiaro\"\n"
-"    }\n"
+"    },\n"
+"    \"bindings\": [\n"
+"        {\n"
+"            \"exec\": \"" BIN_PATH "/orbital-screenshooter\",\n"
+"            \"modifiers\": \"super\",\n"
+"            \"key\": 99\n"
+"        }\n"
+"    ]\n"
 "}\n";
 
 const char *defaultScreen =
@@ -231,16 +238,7 @@ void ShellUI::reloadConfig()
 
     QJsonArray bindings = object[QStringLiteral("bindings")].toArray();
     for (auto i = bindings.begin(); i != bindings.end(); ++i) {
-        QJsonObject binding = (*i).toObject();
-        int key = binding[QStringLiteral("key")].toInt(-1);
-        QString exec = binding[QStringLiteral("exec")].toString();
-        if (key < 0 || exec.isEmpty()) {
-            qDebug() << "Cannot parse binding" << binding;
-            continue;
-        }
-        Binding *b = m_client->addKeyBinding(key, 0);
-        m_bindings << b;
-        connect(b, &Binding::triggered, [exec]() { QProcess::startDetached(exec); });
+        parseBinding((*i).toObject());
     }
 
     foreach (UiScreen *screen, m_screens) {
@@ -340,4 +338,36 @@ void ShellUI::loadScreen(UiScreen *screen)
     screens[screen->name()] = screenConfig;
 
     m_config[QStringLiteral("Screens")] = screens;
+}
+
+void ShellUI::parseBinding(const QJsonObject &binding)
+{
+    int key = binding[QStringLiteral("key")].toInt(-1);
+    QString exec = binding[QStringLiteral("exec")].toString();
+    if (key < 0 || exec.isEmpty()) {
+        qDebug() << "Cannot parse binding" << binding;
+        return;
+    }
+    Qt::KeyboardModifiers mods = 0;
+    QString modifiers = binding[QStringLiteral("modifiers")].toString();
+    if (!modifiers.isEmpty()) {
+        foreach (const QString &mod, modifiers.split('+')) {
+            if (mod == QStringLiteral("shift")) {
+                mods |= Qt::ShiftModifier;
+            } else if (mod == QStringLiteral("ctrl")) {
+                mods |= Qt::ControlModifier;
+            } else if (mod == QStringLiteral("alt")) {
+                mods |= Qt::AltModifier;
+            } else if (mod == QStringLiteral("super") || mod == QStringLiteral("meta")) {
+                mods |= Qt::MetaModifier;
+            } else {
+                qWarning("Error parsing binding: '%s'\n", qPrintable(modifiers));
+                return;
+            }
+        }
+    }
+
+    Binding *b = m_client->addKeyBinding(key, mods);
+    m_bindings << b;
+    connect(b, &Binding::triggered, [exec]() { qDebug()<<"executing"<<exec; QProcess::startDetached(exec); });
 }

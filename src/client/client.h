@@ -92,7 +92,7 @@ public:
     QQuickWindow *findWindow(wl_surface *surface) const;
     desktop_shell_surface *setPopup(QWindow *p, QWindow *parent);
 
-    Q_INVOKABLE Binding *addKeyBinding(uint32_t key, uint32_t modifiers);
+    Q_INVOKABLE Binding *addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers);
 
     Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
@@ -138,7 +138,6 @@ private slots:
     void windowDestroyed(Window *w);
     void setGrabCursor();
     void sendOutputLoaded(uint32_t serial);
-    void takeScreenshot();
     void loadOutput(QScreen *screen, const QString &name, uint32_t serial);
 
 private:
