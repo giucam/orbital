@@ -41,6 +41,10 @@ public:
     {
         m_client->setAutoRestart(true);
     }
+    ~Helper()
+    {
+        delete m_client;
+    }
 
     void bind(wl_client *client, uint32_t version, uint32_t id) override
     {
@@ -113,6 +117,7 @@ Authorizer::Authorizer(Compositor *compositor)
 
 Authorizer::~Authorizer()
 {
+    delete m_helper;
     for (auto i = m_trustedClients.constBegin(); i != m_trustedClients.constEnd(); ++i) {
         qDeleteAll(i.value());
     }
