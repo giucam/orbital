@@ -25,6 +25,7 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QDebug>
+#include <QStandardPaths>
 
 #include <wayland-client.h>
 
@@ -84,7 +85,8 @@ public:
 
     bool authorizeProcess(const char *global, const char *executable)
     {
-        Result res = readFile(QStringLiteral("/home/giulio/.config/orbital/restricted_interfaces.conf"), global, executable);
+        QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
+        Result res = readFile(path + QStringLiteral("/orbital/restricted_interfaces.conf"), global, executable);
         if (res == Result::Unknown) {
             res = readFile(QStringLiteral("/etc/orbital/restricted_interfaces.conf"), global, executable);
         }
