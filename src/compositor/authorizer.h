@@ -53,6 +53,7 @@ private:
     void grant(wl_resource *res);
     void deny(wl_resource *res);
     void addTrustedClient(const QByteArray &interface, wl_client *c);
+    bool authorizeProcess(const char *global, const char *executable, pid_t pid);
 
     QVector<QByteArray> m_restrictedIfaces;
     QHash<QByteArray, QVector<TrustedClient *>> m_trustedClients;

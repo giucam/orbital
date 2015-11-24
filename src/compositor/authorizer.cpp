@@ -19,6 +19,11 @@
 
 #include <unistd.h>
 
+#include <QSettings>
+#include <QDebug>
+#include <QJsonDocument>
+#include <QFile>
+
 #include "authorizer.h"
 #include "compositor.h"
 #include "utils.h"
@@ -140,12 +145,7 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 
     qDebug("Authorization for global '%s' requested by process '%s', pid %d.", global, buf, pid);
 
-    bool granted = false;
-    if (strcmp(global, "orbital_screenshooter") == 0) {
-        granted = strcmp(buf, BIN_PATH "/orbital-screenshooter") == 0;
-    }
-
-    if (granted) {
+    if (authorizeProcess(global, buf, pid)) {
         qDebug("Authorization granted.");
         grant(resource);
         addTrustedClient(global, client);
@@ -165,6 +165,36 @@ void Authorizer::deny(wl_resource *res)
 {
     orbital_authorizer_feedback_send_denied(res);
     wl_resource_destroy(res);
+}
+
+bool Authorizer::authorizeProcess(const char *global, const char *executable, pid_t pid)
+{
+    QFile file(QStringLiteral("/etc/orbital/restricted_interfaces.conf"));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning("Cannot open restricted_interfaces.conf");
+        return false;
+    }
+
+    QJsonParseError error;
+    QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &error);
+    if (error.error != QJsonParseError::NoError) {
+        qWarning("Error parsing restricted_interfaces.conf at offset %d: %s", error.offset, qPrintable(error.errorString()));
+        return false;
+    }
+
+    QJsonObject config = document.object();
+    file.close();
+
+    if (!config.contains(global)) {
+        return false;
+    }
+
+    config = config.value(global).toObject();
+    QJsonValue value = config.value(executable);
+    if (value != QJsonValue::Undefined) {
+        return value.toString(QStringLiteral("deny")) == QStringLiteral("allow");
+    }
+    return false;
 }
 
 }

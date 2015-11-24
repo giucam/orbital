@@ -1,0 +1,5 @@
+{
+    "orbital_screenshooter" : {
+        "@CMAKE_INSTALL_PREFIX@/bin/orbital-screenshooter": "allow"
+    }
+}
