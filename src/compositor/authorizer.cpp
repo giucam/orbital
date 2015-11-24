@@ -17,19 +17,77 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <unistd.h>
+#include <functional>
 
-#include <QSettings>
 #include <QDebug>
-#include <QJsonDocument>
-#include <QFile>
 
 #include "authorizer.h"
 #include "compositor.h"
 #include "utils.h"
 #include "wayland-authorizer-server-protocol.h"
+#include "wayland-authorizer-helper-server-protocol.h"
 
 namespace Orbital {
+
+
+class Helper: public Global
+{
+public:
+    Helper(Compositor *c, Authorizer *auth)
+        : Global(c, &orbital_authorizer_helper_interface, 1)
+        , m_auth(auth)
+        , m_client(c->launchProcess(QStringLiteral(LIBEXEC_PATH "/orbital-authorizer-helper")))
+        , m_resource(nullptr)
+    {
+        m_client->setAutoRestart(true);
+    }
+
+    void bind(wl_client *client, uint32_t version, uint32_t id) override
+    {
+        wl_resource *res = wl_resource_create(client, &orbital_authorizer_helper_interface, version, id);
+        if (client != m_client->client()) {
+            wl_resource_post_error(res, WL_DISPLAY_ERROR_INVALID_OBJECT, "permission to bind orbital_authorizer_feedback_interface denied");
+            wl_resource_destroy(res);
+            return;
+        }
+        m_resource = res;
+    }
+
+    void authRequested(const char *interface, pid_t pid, const std::function<void (int32_t)> &cb)
+    {
+        class Request {
+        public:
+            Request(wl_resource *r, const std::function<void (int32_t)> &cb)
+                : res(r)
+                , callback(cb)
+            {
+                static const struct orbital_authorizer_helper_result_interface impl = {
+                    wrapInterface(&Request::result)
+                };
+                wl_resource_set_implementation(res, &impl, this, nullptr);
+            }
+            void result(int32_t result)
+            {
+                callback(result);
+                wl_resource_destroy(res);
+                delete this;
+            }
+
+            wl_resource *res;
+            std::function<void (int32_t)> callback;
+        };
+
+        wl_resource *res = wl_resource_create(m_client->client(), &orbital_authorizer_helper_result_interface,
+                                            wl_resource_get_version(m_resource), 0);
+        orbital_authorizer_helper_send_authorization_requested(m_resource, res, interface, pid);
+        new Request(res, cb);
+    }
+
+    Authorizer *m_auth;
+    ChildProcess *m_client;
+    wl_resource *m_resource;
+};
+
 
 class TrustedClient
 {
@@ -49,6 +107,7 @@ public:
 Authorizer::Authorizer(Compositor *compositor)
           : QObject(compositor)
           , Global(compositor, &orbital_authorizer_interface, 1)
+          , m_helper(new Helper(compositor, this))
 {
 }
 
@@ -129,30 +188,19 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
     pid_t pid;
     wl_client_get_credentials(client, &pid, nullptr, nullptr);
 
-    char path[256], buf[256];
-    int ret = snprintf(path, sizeof(path), "/proc/%d/exe", pid);
-    if ((size_t)ret >= sizeof(path)) {
-        deny(resource);
-        return;
-    }
+    qDebug("Authorization for global '%s' requested by process %d.", global, pid);
 
-    ret = readlink(path, buf, sizeof(buf));
-    if (ret == -1 || (size_t)ret == sizeof(buf)) {
-        deny(resource);
-        return;
-    }
-    buf[ret] = '\0';
-
-    qDebug("Authorization for global '%s' requested by process '%s', pid %d.", global, buf, pid);
-
-    if (authorizeProcess(global, buf, pid)) {
-        qDebug("Authorization granted.");
-        grant(resource);
-        addTrustedClient(global, client);
-    } else {
-        qDebug("Authorization denied.");
-        deny(resource);
-    }
+    QByteArray iface = global; //take a copy or 'global' may become invalid when the callback runs
+    m_helper->authRequested(global, pid, [this, iface, client, resource](int32_t result) {
+        if (result == 1) {
+            qDebug("Authorization granted.");
+            grant(resource);
+            addTrustedClient(iface, client);
+        } else {
+            qDebug("Authorization denied.");
+            deny(resource);
+        }
+    });
 }
 
 void Authorizer::grant(wl_resource *res)
@@ -165,36 +213,6 @@ void Authorizer::deny(wl_resource *res)
 {
     orbital_authorizer_feedback_send_denied(res);
     wl_resource_destroy(res);
-}
-
-bool Authorizer::authorizeProcess(const char *global, const char *executable, pid_t pid)
-{
-    QFile file(QStringLiteral("/etc/orbital/restricted_interfaces.conf"));
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning("Cannot open restricted_interfaces.conf");
-        return false;
-    }
-
-    QJsonParseError error;
-    QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &error);
-    if (error.error != QJsonParseError::NoError) {
-        qWarning("Error parsing restricted_interfaces.conf at offset %d: %s", error.offset, qPrintable(error.errorString()));
-        return false;
-    }
-
-    QJsonObject config = document.object();
-    file.close();
-
-    if (!config.contains(global)) {
-        return false;
-    }
-
-    config = config.value(global).toObject();
-    QJsonValue value = config.value(executable);
-    if (value != QJsonValue::Undefined) {
-        return value.toString(QStringLiteral("deny")) == QStringLiteral("allow");
-    }
-    return false;
 }
 
 }

@@ -56,6 +56,7 @@ wayland_add_protocol_server(SOURCES ../../protocol/screenshooter.xml screenshoot
 wayland_add_protocol_server(SOURCES ../../protocol/orbital-clipboard.xml clipboard)
 wayland_add_protocol_server(SOURCES ../../protocol/gamma-control.xml gammacontrol)
 wayland_add_protocol_server(SOURCES ../../protocol/orbital-authorizer.xml authorizer)
+wayland_add_protocol_server(SOURCES ../../protocol/orbital-authorizer-helper.xml authorizer-helper)
 
 list(APPEND defines "LIBRARIES_PATH=\"${CMAKE_INSTALL_PREFIX}/lib/orbital\"")
 list(APPEND defines "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital\"")

@@ -1,0 +1,26 @@
+<protocol name="orbital_authorizer_helper">
+
+    <interface name="orbital_authorizer_helper" version="1">
+
+        <event name="authorization_requested">
+            <arg name="id" type="new_id" interface="orbital_authorizer_helper_result"/>
+            <arg name="interface" type="string"/>
+            <arg name="pid" type="int"/>
+        </event>
+
+    </interface>
+
+    <interface name="orbital_authorizer_helper_result" version="1">
+
+        <enum name="result_value">
+            <entry name="deny" value="0"/>
+            <entry name="allow" value="1"/>
+        </enum>
+
+        <request name="result" type="destructor">
+            <arg name="result" type="int"/>
+        </request>
+
+    </interface>
+
+</protocol>
