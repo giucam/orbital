@@ -19,15 +19,23 @@
 
 
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
+#include <QDebug>
 
 #include <wayland-client.h>
 
 #include "../client/utils.h"
 #include "wayland-authorizer-helper-client-protocol.h"
+
+enum class Result {
+    Deny = ORBITAL_AUTHORIZER_HELPER_RESULT_RESULT_VALUE_DENY,
+    Allow = ORBITAL_AUTHORIZER_HELPER_RESULT_RESULT_VALUE_ALLOW,
+    Unknown,
+};
 
 class Helper {
 public:
@@ -76,32 +84,62 @@ public:
 
     bool authorizeProcess(const char *global, const char *executable)
     {
-        QFile file(QStringLiteral("/etc/orbital/restricted_interfaces.conf"));
+        Result res = readFile(QStringLiteral("/home/giulio/.config/orbital/restricted_interfaces.conf"), global, executable);
+        if (res == Result::Unknown) {
+            res = readFile(QStringLiteral("/etc/orbital/restricted_interfaces.conf"), global, executable);
+        }
+        return res == Result::Allow;
+    }
+
+    Result readFile(const QString &path, const char *global, const char *executable)
+    {
+        struct stat st;
+        if (stat(qPrintable(path), &st) < 0) {
+            qWarning("Cannot stat %s\n", qPrintable(path));
+            return Result::Unknown;
+        }
+
+        if (st.st_uid != 0) {
+            qWarning("Cannot use %s. The file must be owned by root!", qPrintable(path));
+            return Result::Unknown;
+        }
+
+        if (st.st_mode & S_IWOTH || st.st_mode & S_IWGRP) {
+            qWarning("Cannot use %s. The file must not be writable by normal users!", qPrintable(path));
+            return Result::Unknown;
+        }
+
+        QFile file(path);
         if (!file.open(QIODevice::ReadOnly)) {
-            qWarning("Cannot open restricted_interfaces.conf");
-            return false;
+            qWarning("Cannot open %s", qPrintable(path));
+            return Result::Unknown;
         }
 
         QJsonParseError error;
         QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &error);
         if (error.error != QJsonParseError::NoError) {
-            qWarning("Error parsing restricted_interfaces.conf at offset %d: %s", error.offset, qPrintable(error.errorString()));
-            return false;
+            qWarning("Error parsing %s at offset %d: %s", qPrintable(path), error.offset, qPrintable(error.errorString()));
+            return Result::Unknown;
         }
 
         QJsonObject config = document.object();
         file.close();
 
         if (!config.contains(global)) {
-            return false;
+            return Result::Unknown;
         }
 
         config = config.value(global).toObject();
         QJsonValue value = config.value(executable);
         if (value != QJsonValue::Undefined) {
-            return value.toString(QStringLiteral("deny")) == QStringLiteral("allow");
+            QString v = value.toString();
+            if (v == QStringLiteral("deny")) {
+                return Result::Deny;
+            } else if (v == QStringLiteral("allow")) {
+                return Result::Allow;
+            }
         }
-        return false;
+        return Result::Unknown;
     }
 
     wl_display *display;
