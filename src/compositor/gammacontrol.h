@@ -29,7 +29,7 @@ namespace Orbital {
 class Shell;
 class Seat;
 
-class GammaControlManager : public Interface, public Global
+class GammaControlManager : public Interface, public RestrictedGlobal
 {
 public:
     GammaControlManager(Shell *shell);

@@ -29,7 +29,7 @@ namespace Orbital {
 
 GammaControlManager::GammaControlManager(Shell *shell)
                    : Interface(shell)
-                   , Global(shell->compositor(), &gamma_control_manager_interface, 1)
+                   , RestrictedGlobal(shell->compositor(), &gamma_control_manager_interface, 1)
 {
 
 }
