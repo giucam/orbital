@@ -154,6 +154,21 @@ Item {
             Binding { target: style.item; property: "state"; value: window.state }
         }
 
+        Image {
+            source: mpris.playbackStatus == Mpris.Playing ? "image://icon/media-playback-start" :
+                    (mpris.playbackStatus == Mpris.Paused ? "image://icon/media-playback-pause" :
+                    "image://icon/media-playback-stop")
+            visible: mpris.valid
+            width: 12
+            height: 12
+            sourceSize: Qt.size(16, 16)
+            opacity: 0.8
+
+            anchors.bottom: style.bottom
+            anchors.margins: 2
+            x: 2
+        }
+
         Rectangle {
             width: mpris.trackLength ? parent.width * mpris.trackPosition / mpris.trackLength : 0
             height: 10
