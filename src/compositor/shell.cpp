@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <linux/input.h>
+#include <sys/resource.h>
 
 #include <QDebug>
 #include <QDir>
@@ -263,7 +264,14 @@ void Shell::autostartClients()
         }
         qDebug("Autostarting '%s'", qPrintable(exec));
 
-        QProcess *proc = new QProcess(this);
+        class Process : public QProcess
+        {
+        public:
+            Process(QObject *p) : QProcess(p) {}
+            void setupChildProcess() override { setpriority(PRIO_PROCESS, getpid(), 0); }
+        };
+
+        QProcess *proc = new Process(this);
         QString bin = exec.split(' ').first();
         proc->setStandardOutputFile(outputDir.filePath(bin));
         proc->setStandardErrorFile(outputDir.filePath(bin));

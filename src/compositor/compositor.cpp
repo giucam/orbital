@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <linux/input.h>
 
 #include <QDebug>
@@ -593,6 +594,7 @@ void ChildProcess::start()
         {
             int fd = dup(socket);
             setenv("WAYLAND_SOCKET", qPrintable(QString::number(fd)), 1);
+            setpriority(PRIO_PROCESS, getpid(), 0);
         }
 
         int socket;
