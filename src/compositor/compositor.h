@@ -110,6 +110,9 @@ public:
 
     static Compositor *fromCompositor(weston_compositor *c);
 
+protected:
+    void timerEvent(QTimerEvent *event) override;
+
 signals:
     void outputCreated(Output *output);
     void outputRemoved(Output *output);

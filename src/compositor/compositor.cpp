@@ -52,6 +52,8 @@
 
 namespace Orbital {
 
+static const int WATCHDOG_TIMEOUT = 20;
+
 static int s_signalsFd[2];
 static int s_forceExit = 0;
 
@@ -99,7 +101,7 @@ Compositor::Compositor(Backend *backend)
     m_signalsNotifier = new QSocketNotifier(s_signalsFd[1], QSocketNotifier::Read, this);
     connect(m_signalsNotifier, &QSocketNotifier::activated, this, &Compositor::handleSignal);
 
-    struct sigaction sigint, sigterm;
+    struct sigaction sigint, sigterm, sigalrm;
 
     auto handler = [](int) {
         if (s_forceExit) {
@@ -120,8 +122,16 @@ Compositor::Compositor(Backend *backend)
     sigterm.sa_flags = 0;
     sigterm.sa_flags |= SA_RESTART;
 
+    sigalrm.sa_handler = [](int) {
+        abort();
+    };
+    sigemptyset(&sigalrm.sa_mask);
+    sigalrm.sa_flags = 0;
+    sigalrm.sa_flags |= SA_RESTART;
+
     sigaction(SIGINT, &sigint, 0);
     sigaction(SIGTERM, &sigterm, 0);
+    sigaction(SIGALRM, &sigalrm, 0);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + "/orbital/orbital.conf";
@@ -347,6 +357,9 @@ bool Compositor::init(const QString &socketName)
         }
     });
 
+    alarm(WATCHDOG_TIMEOUT);
+    startTimer(10000, Qt::VeryCoarseTimer);
+
     return true;
 }
 
@@ -533,6 +546,11 @@ void Compositor::handleSignal()
     ::read(s_signalsFd[1], &tmp, sizeof(tmp));
 
     quit();
+}
+
+void Compositor::timerEvent(QTimerEvent *e)
+{
+    alarm(WATCHDOG_TIMEOUT);
 }
 
 
