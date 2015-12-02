@@ -48,6 +48,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
             , m_previewView(nullptr)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
+            , m_currentGrab(nullptr)
             , m_type(Type::None)
             , m_nextType(Type::None)
             , m_popup({ 0, 0, nullptr })
@@ -65,7 +66,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
-    connect(surface, &QObject::destroyed, [this]() { m_views.clear(); delete this; });
+    connect(surface, &QObject::destroyed, [this]() { m_views.clear(); delete m_currentGrab; delete this; });
     connect(shell->pager(), &Pager::workspaceActivated, this, &ShellSurface::workspaceActivated);
 
     wl_client_get_credentials(surface->client(), &m_pid, NULL, NULL);
@@ -232,6 +233,7 @@ void ShellSurface::move(Seat *seat)
         }
         void ended() override
         {
+            shsurf->m_currentGrab = nullptr;
             delete this;
         }
 
@@ -249,6 +251,7 @@ void ShellSurface::move(Seat *seat)
     move->grabbedView = view;
 
     move->start(seat, PointerCursor::Move);
+    m_currentGrab = move;
 }
 
 void ShellSurface::resize(Seat *seat, Edges edges)
@@ -289,6 +292,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
         void ended() override
         {
             shsurf->m_resizeEdges = ShellSurface::Edges::None;
+            shsurf->m_currentGrab = nullptr;
             delete this;
         }
 
@@ -314,6 +318,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     grab->view = seat->pointer()->pickView()->mainView();
 
     grab->start(seat, (PointerCursor)e);
+    m_currentGrab = grab;
 }
 
 void ShellSurface::unmap()

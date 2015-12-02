@@ -44,6 +44,7 @@ class Output;
 class Seat;
 class Compositor;
 class Workspace;
+class PointerGrab;
 struct Listener;
 
 class ShellSurface : public Object, public Surface::RoleHandler
@@ -158,6 +159,7 @@ private:
     QString m_appId;
     bool m_forceMap;
     pid_t m_pid;
+    PointerGrab *m_currentGrab;
 
     Type m_type;
     Type m_nextType;
