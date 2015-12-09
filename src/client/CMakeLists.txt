@@ -60,6 +60,7 @@ set(SOURCES
     notification.cpp
     activeregion.cpp
     clipboard.cpp
+    keysequence.cpp
     compositorsettings.cpp)
 
 wayland_add_protocol_client(SOURCES

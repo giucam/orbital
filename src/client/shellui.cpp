@@ -41,6 +41,7 @@
 #include "uiscreen.h"
 #include "style.h"
 #include "compositorsettings.h"
+#include "keysequence.h"
 
 const char *defaultShell =
 "{\n"
@@ -51,8 +52,7 @@ const char *defaultShell =
 "    \"bindings\": [\n"
 "        {\n"
 "            \"exec\": \"" BIN_PATH "/orbital-screenshooter\",\n"
-"            \"modifiers\": \"super\",\n"
-"            \"key\": 99\n"
+"            \"keysequence\": \"super+printscreen\",\n"
 "        }\n"
 "    ]\n"
 "}\n";
@@ -238,7 +238,10 @@ void ShellUI::reloadConfig()
 
     QJsonArray bindings = object[QStringLiteral("bindings")].toArray();
     for (auto i = bindings.begin(); i != bindings.end(); ++i) {
-        parseBinding((*i).toObject());
+        const QJsonObject &binding = (*i).toObject();
+        if (!parseBinding(binding)) {
+            qDebug() << "Cannot parse binding" << binding;
+        }
     }
 
     foreach (UiScreen *screen, m_screens) {
@@ -340,34 +343,24 @@ void ShellUI::loadScreen(UiScreen *screen)
     m_config[QStringLiteral("Screens")] = screens;
 }
 
-void ShellUI::parseBinding(const QJsonObject &binding)
+bool ShellUI::parseBinding(const QJsonObject &binding)
 {
-    int key = binding[QStringLiteral("key")].toInt(-1);
-    QString exec = binding[QStringLiteral("exec")].toString();
-    if (key < 0 || exec.isEmpty()) {
-        qDebug() << "Cannot parse binding" << binding;
-        return;
+    QString seq = binding[QStringLiteral("keysequence")].toString();
+    if (seq.isEmpty()) {
+        return false;
     }
-    Qt::KeyboardModifiers mods = 0;
-    QString modifiers = binding[QStringLiteral("modifiers")].toString();
-    if (!modifiers.isEmpty()) {
-        foreach (const QString &mod, modifiers.split('+')) {
-            if (mod == QStringLiteral("shift")) {
-                mods |= Qt::ShiftModifier;
-            } else if (mod == QStringLiteral("ctrl")) {
-                mods |= Qt::ControlModifier;
-            } else if (mod == QStringLiteral("alt")) {
-                mods |= Qt::AltModifier;
-            } else if (mod == QStringLiteral("super") || mod == QStringLiteral("meta")) {
-                mods |= Qt::MetaModifier;
-            } else {
-                qWarning("Error parsing binding: '%s'\n", qPrintable(modifiers));
-                return;
-            }
-        }
+    KeySequence keyseq(seq);
+    if (!keyseq.isValid()) {
+        return false;
     }
 
-    Binding *b = m_client->addKeyBinding(key, mods);
+    QString exec = binding[QStringLiteral("exec")].toString();
+    if (exec.isEmpty()) {
+        return false;
+    }
+
+    Binding *b = m_client->addKeyBinding(keyseq.key(), keyseq.modifiers());
     m_bindings << b;
     connect(b, &Binding::triggered, [exec]() { qDebug()<<"executing"<<exec; QProcess::startDetached(exec); });
+    return true;
 }
