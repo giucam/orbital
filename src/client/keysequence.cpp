@@ -49,33 +49,8 @@ struct Key {
     int k;
 };
 
+// The table is ordered!
 static Key keymap[] = {
-    { QStringLiteral("a"), KEY_A },
-    { QStringLiteral("b"), KEY_B },
-    { QStringLiteral("c"), KEY_C },
-    { QStringLiteral("d"), KEY_D },
-    { QStringLiteral("e"), KEY_E },
-    { QStringLiteral("f"), KEY_F },
-    { QStringLiteral("g"), KEY_G },
-    { QStringLiteral("h"), KEY_H },
-    { QStringLiteral("i"), KEY_I },
-    { QStringLiteral("j"), KEY_J },
-    { QStringLiteral("k"), KEY_K },
-    { QStringLiteral("l"), KEY_L },
-    { QStringLiteral("m"), KEY_M },
-    { QStringLiteral("n"), KEY_N },
-    { QStringLiteral("o"), KEY_O },
-    { QStringLiteral("p"), KEY_P },
-    { QStringLiteral("q"), KEY_Q },
-    { QStringLiteral("r"), KEY_R },
-    { QStringLiteral("s"), KEY_S },
-    { QStringLiteral("t"), KEY_T },
-    { QStringLiteral("v"), KEY_V },
-    { QStringLiteral("u"), KEY_U },
-    { QStringLiteral("w"), KEY_W },
-    { QStringLiteral("x"), KEY_X },
-    { QStringLiteral("y"), KEY_Y },
-    { QStringLiteral("z"), KEY_X },
     { QStringLiteral("0"), KEY_0 },
     { QStringLiteral("1"), KEY_1 },
     { QStringLiteral("2"), KEY_2 },
@@ -86,6 +61,17 @@ static Key keymap[] = {
     { QStringLiteral("7"), KEY_7 },
     { QStringLiteral("8"), KEY_8 },
     { QStringLiteral("9"), KEY_9 },
+    { QStringLiteral("a"), KEY_A },
+    { QStringLiteral("b"), KEY_B },
+    { QStringLiteral("backspace"), KEY_BACKSPACE },
+    { QStringLiteral("brightnessdown"), KEY_BRIGHTNESSDOWN },
+    { QStringLiteral("brightnessup"), KEY_BRIGHTNESSUP },
+    { QStringLiteral("c"), KEY_C },
+    { QStringLiteral("d"), KEY_D },
+    { QStringLiteral("down"), KEY_DOWN },
+    { QStringLiteral("e"), KEY_E },
+    { QStringLiteral("esc"), KEY_ESC },
+    { QStringLiteral("f"), KEY_F },
     { QStringLiteral("f1"), KEY_F1 },
     { QStringLiteral("f2"), KEY_F2 },
     { QStringLiteral("f3"), KEY_F3 },
@@ -98,27 +84,53 @@ static Key keymap[] = {
     { QStringLiteral("f10"), KEY_F10 },
     { QStringLiteral("f11"), KEY_F11 },
     { QStringLiteral("f12"), KEY_F12 },
+    { QStringLiteral("g"), KEY_G },
+    { QStringLiteral("h"), KEY_H },
+    { QStringLiteral("i"), KEY_I },
+    { QStringLiteral("j"), KEY_J },
+    { QStringLiteral("k"), KEY_K },
+    { QStringLiteral("l"), KEY_L },
     { QStringLiteral("left"), KEY_LEFT },
-    { QStringLiteral("right"), KEY_RIGHT },
-    { QStringLiteral("up"), KEY_UP },
-    { QStringLiteral("down"), KEY_DOWN },
-    { QStringLiteral("pageup"), KEY_PAGEUP },
-    { QStringLiteral("pagedown"), KEY_PAGEDOWN },
-    { QStringLiteral("esc"), KEY_ESC },
+    { QStringLiteral("m"), KEY_M },
     { QStringLiteral("minus"), KEY_MINUS },
-    { QStringLiteral("space"), KEY_SPACE },
-    { QStringLiteral("backspace"), KEY_BACKSPACE },
-    { QStringLiteral("volumeup"), KEY_VOLUMEUP },
-    { QStringLiteral("volumedown"), KEY_VOLUMEDOWN },
+    { QStringLiteral("n"), KEY_N },
+    { QStringLiteral("o"), KEY_O },
+    { QStringLiteral("p"), KEY_P },
+    { QStringLiteral("pagedown"), KEY_PAGEDOWN },
+    { QStringLiteral("pageup"), KEY_PAGEUP },
     { QStringLiteral("printscreen"), KEY_SYSRQ },
-    { QStringLiteral("brightnessup"), KEY_BRIGHTNESSUP },
-    { QStringLiteral("brightnessdown"), KEY_BRIGHTNESSDOWN },
+    { QStringLiteral("q"), KEY_Q },
+    { QStringLiteral("r"), KEY_R },
+    { QStringLiteral("right"), KEY_RIGHT },
+    { QStringLiteral("s"), KEY_S },
+    { QStringLiteral("space"), KEY_SPACE },
+    { QStringLiteral("t"), KEY_T },
+    { QStringLiteral("v"), KEY_V },
+    { QStringLiteral("volumedown"), KEY_VOLUMEDOWN },
+    { QStringLiteral("volumeup"), KEY_VOLUMEUP },
+    { QStringLiteral("u"), KEY_U },
+    { QStringLiteral("up"), KEY_UP },
+    { QStringLiteral("w"), KEY_W },
+    { QStringLiteral("x"), KEY_X },
+    { QStringLiteral("y"), KEY_Y },
+    { QStringLiteral("z"), KEY_X },
 };
 
 static bool keyFromString(const QString &t, int *key)
 {
-    for (const Key &k: keymap) {
-        if (k.c == t) {
+    int numkeys = sizeof(keymap) / sizeof(Key);
+    int begin = 0, end = numkeys - 1;
+
+    while (begin <= end) {
+        int mid = (begin + end) / 2;
+        const Key &k = keymap[mid];
+        int c = QString::compare(t, k.c);
+
+        if (c < 0) {
+            end = mid - 1;
+        } else if (c > 0) {
+            begin = mid + 1;
+        } else {
             *key = k.k;
             return true;
         }
