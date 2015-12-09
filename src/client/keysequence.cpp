@@ -111,6 +111,8 @@ static Key keymap[] = {
     { QStringLiteral("volumeup"), KEY_VOLUMEUP },
     { QStringLiteral("volumedown"), KEY_VOLUMEDOWN },
     { QStringLiteral("printscreen"), KEY_SYSRQ },
+    { QStringLiteral("brightnessup"), KEY_BRIGHTNESSUP },
+    { QStringLiteral("brightnessdown"), KEY_BRIGHTNESSDOWN },
 };
 
 static bool keyFromString(const QString &t, int *key)
