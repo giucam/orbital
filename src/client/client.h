@@ -20,6 +20,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <functional>
+
 #include <QObject>
 #include <QElapsedTimer>
 
@@ -116,6 +118,9 @@ public:
 
     bool event(QEvent *e) override;
 
+    void addAction(const QByteArray &name, const std::function<void ()> &action);
+    std::function<void ()> *action(const QByteArray &name);
+
 public slots:
     void minimizeWindows();
     void restoreWindows();
@@ -175,6 +180,7 @@ private:
 
     QList<Window *> m_windows;
     QList<Workspace *> m_workspaces;
+    QHash<QByteArray, std::function<void ()>> m_actions;
 
     uint32_t m_pendingGrabCursor;
 

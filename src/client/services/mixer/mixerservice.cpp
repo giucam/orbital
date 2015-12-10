@@ -58,21 +58,14 @@ Mixer::Mixer(QObject *p)
     m_backend->getBoundaries(&m_min, &m_max);
     m_step = (m_max - m_min) / 50;
 
-    m_upBinding = Client::client()->addKeyBinding(KEY_VOLUMEUP, 0);
-    m_downBinding = Client::client()->addKeyBinding(KEY_VOLUMEDOWN, 0);
-    m_muteBinding = Client::client()->addKeyBinding(KEY_MUTE, 0);
-
-    connect(m_upBinding, &Binding::triggered, [this]() { increaseMaster(); emit bindingTriggered(); });
-    connect(m_downBinding, &Binding::triggered, [this]() { decreaseMaster(); emit bindingTriggered(); });
-    connect(m_muteBinding, &Binding::triggered, [this]() { toggleMuted(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.increaseVolume", [this]() { increaseMaster(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.decreaseVolume", [this]() { decreaseMaster(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.toggleMuted", [this]() { toggleMuted(); emit bindingTriggered(); });
 }
 
 Mixer::~Mixer()
 {
     delete m_backend;
-    delete m_upBinding;
-    delete m_downBinding;
-    delete m_muteBinding;
 }
 
 void Mixer::changeMaster(int change)

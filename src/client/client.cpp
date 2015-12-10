@@ -710,6 +710,27 @@ bool Client::event(QEvent *e)
     return QObject::event(e);
 }
 
+void Client::addAction(const QByteArray &name, const std::function<void ()> &action)
+{
+    if (m_actions.contains(name)) {
+        qWarning("Action '%s' already exists.", name.constData());
+        return;
+    }
+
+    m_actions.insert(name, action);
+}
+
+std::function<void ()> *Client::action(const QByteArray &name)
+{
+    if (!m_actions.contains(name)) {
+        qWarning("Action '%s' not found. Available actions are:", name.constData());
+        qWarning() << m_actions.keys();
+        return nullptr;
+    }
+
+    return &m_actions[name];
+}
+
 wl_output *Client::nativeOutput(QScreen *screen)
 {
     return static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));

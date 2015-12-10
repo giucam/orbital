@@ -22,8 +22,6 @@
 
 #include <QQmlExtensionPlugin>
 
-class Binding;
-
 class MixerPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
@@ -75,9 +73,6 @@ private:
     int m_step;
 
     Backend *m_backend;
-    Binding *m_upBinding;
-    Binding *m_downBinding;
-    Binding *m_muteBinding;
 };
 
 #endif

@@ -52,7 +52,19 @@ const char *defaultShell =
 "    \"bindings\": [\n"
 "        {\n"
 "            \"exec\": \"" BIN_PATH "/orbital-screenshooter\",\n"
-"            \"keysequence\": \"super+printscreen\",\n"
+"            \"keysequence\": \"super+printscreen\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"volumeup\",\n"
+"            \"action\": \"Mixer.increaseVolume\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"volumedown\",\n"
+"            \"action\": \"Mixer.decreaseVolume\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"volumemute\",\n"
+"            \"action\": \"Mixer.toggleMuted\"\n"
 "        }\n"
 "    ]\n"
 "}\n";
@@ -227,7 +239,11 @@ void ShellUI::reloadConfig()
     if (m_config.contains(QStringLiteral("Shell"))) {
         object = m_config[QStringLiteral("Shell")].toObject();
     } else {
-        QJsonDocument doc = QJsonDocument::fromJson(defaultShell);
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(defaultShell, &err);
+        if (err.error != QJsonParseError::NoError) {
+            qDebug() << "Cannot parse the default shell config" << err.errorString();
+        }
         object = doc.object();
     }
     QJsonObject properties = object[QStringLiteral("properties")].toObject();
@@ -349,18 +365,38 @@ bool ShellUI::parseBinding(const QJsonObject &binding)
     if (seq.isEmpty()) {
         return false;
     }
+
     KeySequence keyseq(seq);
     if (!keyseq.isValid()) {
         return false;
     }
 
+    QString action = binding[QStringLiteral("action")].toString();
     QString exec = binding[QStringLiteral("exec")].toString();
-    if (exec.isEmpty()) {
+    if (exec.isEmpty() && action.isEmpty()) {
+        return false;
+    }
+    if (!exec.isEmpty() && !action.isEmpty()) {
+        qWarning("Binding has both an exec and an action entry.");
         return false;
     }
 
     Binding *b = m_client->addKeyBinding(keyseq.key(), keyseq.modifiers());
+    if (exec.isEmpty()) {
+        std::function<void ()> *act = nullptr;
+        connect(b, &Binding::triggered, [this, action, act]() mutable {
+            qDebug()<<"executing action"<<action;
+            if (!act) {
+                act = m_client->action(action.toUtf8());
+                if (!act) {
+                    return;
+                }
+            }
+            (*act)();
+        });
+    } else {
+        connect(b, &Binding::triggered, [exec]() { qDebug()<<"executing"<<exec; QProcess::startDetached(exec); });
+    }
     m_bindings << b;
-    connect(b, &Binding::triggered, [exec]() { qDebug()<<"executing"<<exec; QProcess::startDetached(exec); });
     return true;
 }
