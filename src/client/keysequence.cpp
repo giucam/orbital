@@ -19,11 +19,11 @@
 
 #include <linux/input.h>
 
-#include <QStringList>
+#include <QVector>
 
 #include "keysequence.h"
 
-static bool modFromString(const QString &t, Qt::KeyboardModifiers *mod)
+static bool modFromString(const QStringRef &t, Qt::KeyboardModifiers *mod)
 {
     if (t == QStringLiteral("ctrl")) {
         *mod = Qt::ControlModifier;
@@ -116,7 +116,7 @@ static Key keymap[] = {
     { QStringLiteral("z"), KEY_X },
 };
 
-static bool keyFromString(const QString &t, int *key)
+static bool keyFromString(const QStringRef &t, int *key)
 {
     int numkeys = sizeof(keymap) / sizeof(Key);
     int begin = 0, end = numkeys - 1;
@@ -124,7 +124,7 @@ static bool keyFromString(const QString &t, int *key)
     while (begin <= end) {
         int mid = (begin + end) / 2;
         const Key &k = keymap[mid];
-        int c = QString::compare(t, k.c);
+        int c = t.compare(k.c);
 
         if (c < 0) {
             end = mid - 1;
@@ -145,13 +145,14 @@ KeySequence::KeySequence(const QString &sequence)
            , m_mods(0)
            , m_key(0)
 {
-    const QStringList &parts = sequence.toLower().split('+');
-    for (const QString &part: parts) {
+    const QString &lower = sequence.toLower();
+    const QVector<QStringRef> &parts = lower.splitRef('+');
+    for (const QStringRef &part: parts) {
         Qt::KeyboardModifiers m;
         if (modFromString(part, &m)) {
             m_mods |= m;
         } else if (!keyFromString(part, &m_key)) {
-            qWarning("Failed to parse key sequence '%s'. Unknown token: '%s'.", qPrintable(sequence), qPrintable(part));
+            qWarning("Failed to parse key sequence '%s'. Unknown token: '%s'.", qPrintable(sequence), qPrintable(part.toString()));
             m_valid = false;
             return;
         }
