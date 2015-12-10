@@ -73,6 +73,9 @@ static Key keymap[] = {
     { QStringLiteral("esc"), KEY_ESC },
     { QStringLiteral("f"), KEY_F },
     { QStringLiteral("f1"), KEY_F1 },
+    { QStringLiteral("f10"), KEY_F10 },
+    { QStringLiteral("f11"), KEY_F11 },
+    { QStringLiteral("f12"), KEY_F12 },
     { QStringLiteral("f2"), KEY_F2 },
     { QStringLiteral("f3"), KEY_F3 },
     { QStringLiteral("f4"), KEY_F4 },
@@ -81,9 +84,6 @@ static Key keymap[] = {
     { QStringLiteral("f7"), KEY_F7 },
     { QStringLiteral("f8"), KEY_F8 },
     { QStringLiteral("f9"), KEY_F9 },
-    { QStringLiteral("f10"), KEY_F10 },
-    { QStringLiteral("f11"), KEY_F11 },
-    { QStringLiteral("f12"), KEY_F12 },
     { QStringLiteral("g"), KEY_G },
     { QStringLiteral("h"), KEY_H },
     { QStringLiteral("i"), KEY_I },
@@ -105,11 +105,12 @@ static Key keymap[] = {
     { QStringLiteral("s"), KEY_S },
     { QStringLiteral("space"), KEY_SPACE },
     { QStringLiteral("t"), KEY_T },
-    { QStringLiteral("v"), KEY_V },
-    { QStringLiteral("volumedown"), KEY_VOLUMEDOWN },
-    { QStringLiteral("volumeup"), KEY_VOLUMEUP },
     { QStringLiteral("u"), KEY_U },
     { QStringLiteral("up"), KEY_UP },
+    { QStringLiteral("v"), KEY_V },
+    { QStringLiteral("volumedown"), KEY_VOLUMEDOWN },
+    { QStringLiteral("volumemute"), KEY_MUTE },
+    { QStringLiteral("volumeup"), KEY_VOLUMEUP },
     { QStringLiteral("w"), KEY_W },
     { QStringLiteral("x"), KEY_X },
     { QStringLiteral("y"), KEY_Y },
@@ -139,12 +140,26 @@ static bool keyFromString(const QStringRef &t, int *key)
     return false;
 }
 
+static bool checkKeyTableOrder()
+{
+    for (auto i = 1ul; i < sizeof(keymap) / sizeof(Key); ++i) {
+        int c = keymap[i - 1].c.compare(keymap[i].c);
+        if (c >= 0) {
+            qWarning("keys table is not ordered! item %s, %lu", qPrintable(keymap[i].c), i);
+            return false;
+        }
+    }
+    return true;
+}
 
 KeySequence::KeySequence(const QString &sequence)
            : m_valid(true)
            , m_mods(0)
            , m_key(0)
 {
+    static bool checked = checkKeyTableOrder();
+    Q_UNUSED(checked);
+
     const QString &lower = sequence.toLower();
     const QVector<QStringRef> &parts = lower.splitRef('+');
     for (const QStringRef &part: parts) {
