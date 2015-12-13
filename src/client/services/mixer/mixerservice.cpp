@@ -58,9 +58,9 @@ Mixer::Mixer(QObject *p)
     m_backend->getBoundaries(&m_min, &m_max);
     m_step = (m_max - m_min) / 50;
 
-    Client::client()->addAction("Mixer.increaseVolume", [this]() { increaseMaster(); emit bindingTriggered(); });
-    Client::client()->addAction("Mixer.decreaseVolume", [this]() { decreaseMaster(); emit bindingTriggered(); });
-    Client::client()->addAction("Mixer.toggleMuted", [this]() { toggleMuted(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.increaseVolume", [this](wl_seat *) { increaseMaster(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.decreaseVolume", [this](wl_seat *) { decreaseMaster(); emit bindingTriggered(); });
+    Client::client()->addAction("Mixer.toggleMuted", [this](wl_seat *) { toggleMuted(); emit bindingTriggered(); });
 }
 
 Mixer::~Mixer()

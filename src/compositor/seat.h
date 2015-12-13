@@ -71,6 +71,8 @@ public:
     void grabPopup(ShellSurface *surf);
     void ungrabPopup(ShellSurface *surf);
 
+    wl_resource *resource(wl_client *client) const;
+
     static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
 

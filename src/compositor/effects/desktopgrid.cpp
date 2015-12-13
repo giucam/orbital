@@ -154,8 +154,7 @@ DesktopGrid::DesktopGrid(Shell *shell)
            : Effect(shell)
            , m_shell(shell)
 {
-    m_binding = shell->compositor()->createKeyBinding(KEY_G, KeyboardModifiers::Super);
-    connect(m_binding, &KeyBinding::triggered, this, &DesktopGrid::runKey);
+    shell->addAction("Effects.ToggleDesktopGrid", [this](Seat *s) { run(s); });
     m_hsBinding = shell->compositor()->createHotSpotBinding(PointerHotSpot::TopRightCorner);
     connect(m_hsBinding, &HotSpotBinding::triggered, this, &DesktopGrid::runHotSpot);
 

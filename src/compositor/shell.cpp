@@ -615,4 +615,37 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
     focus->setAlpha(qBound(0., a, 1.));
 }
 
+void Shell::addAction(const QByteArray &name, const Action &action)
+{
+    m_actions.append({ name, action });
+    emit actionAdded(name, &m_actions.last().second);
+}
+
+
+Shell::ActionList::ActionList(Shell *s)
+                 : shell(s)
+{
+}
+
+Shell::ActionList::iterator Shell::ActionList::begin()
+{
+    return iterator(0, shell);
+}
+
+Shell::ActionList::iterator Shell::ActionList::end()
+{
+    int n = shell->m_actions.size();
+    return iterator(n, shell);
+}
+
+QByteArray Shell::ActionList::iterator::name()
+{
+    return shell->m_actions.at(id).first;
+}
+
+Shell::Action *Shell::ActionList::iterator::action()
+{
+    return &shell->m_actions[id].second;
+}
+
 }

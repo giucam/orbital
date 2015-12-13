@@ -265,6 +265,17 @@ void Seat::ungrabPopup(ShellSurface *shsurf)
     }
 }
 
+wl_resource *Seat::resource(wl_client *client) const
+{
+    wl_resource *res;
+    wl_resource_for_each(res, &m_seat->base_resource_list) {
+        if (wl_resource_get_client(res) == client) {
+            return res;
+        }
+    }
+    return nullptr;
+}
+
 Seat *Seat::fromSeat(weston_seat *s)
 {
     wl_listener *listener = wl_signal_get(&s->destroy_signal, seatDestroyed);

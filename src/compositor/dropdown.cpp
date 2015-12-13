@@ -62,8 +62,6 @@ public:
         updateGeometry();
 
         Compositor *c = dd->m_shell->compositor();
-        m_toggleBinding = c->createKeyBinding(KEY_F12, KeyboardModifiers::None);
-        connect(m_toggleBinding, &KeyBinding::triggered, this, &DropdownSurface::toggle);
         connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
         connect(c, &Compositor::outputRemoved, this, &DropdownSurface::outputRemoved);
         connect(s, &QObject::destroyed, [this]() { delete this; });
@@ -72,7 +70,6 @@ public:
     {
         dropdown->m_surface = nullptr;
         wl_resource_set_destructor(resource, nullptr);
-        delete m_toggleBinding;
     }
     void configure(int x, int y) override
     {
@@ -223,7 +220,6 @@ public:
     View *view;
     Shell *shell;
     wl_resource *resource;
-    KeyBinding *m_toggleBinding;
     Animation m_animation;
     bool m_visible;
     Output *m_output;
@@ -242,6 +238,11 @@ Dropdown::Dropdown(Shell *shell)
         , m_layer(new Layer(shell->compositor()->layer(Compositor::Layer::Sticky)))
         , m_surface(nullptr)
 {
+    shell->addAction("ToggleDropdown", [this](Seat *s) {
+        if (m_surface) {
+            m_surface->toggle(s);
+        }
+    });
 }
 
 Dropdown::~Dropdown()

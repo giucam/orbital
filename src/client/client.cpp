@@ -115,7 +115,6 @@ Client::Client()
 
     wl_registry_add_listener(m_registry, &s_registryListener, this);
 
-    qmlRegisterType<Binding>();
     qmlRegisterType<Grab>();
     qmlRegisterType<Style>("Orbital", 1, 0, "Style");
     qmlRegisterType<NotificationWindow>("Orbital", 1, 0, "NotificationWindow");
@@ -177,13 +176,6 @@ Client::~Client()
     Style::cleanupStylesList();
 }
 
-static const desktop_shell_binding_listener binding_listener = {
-    [](void *data, desktop_shell_binding *bind) {
-        Binding *b = static_cast<Binding *>(data);
-        emit b->triggered();
-    }
-};
-
 enum BindingMods {
     BindingModsNone = 0,
     BindingModsCtrl = (1 << 0),
@@ -192,7 +184,7 @@ enum BindingMods {
     BindingModsShift = (1 << 3),
 };
 
-Binding *Client::addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers)
+Binding *Client::addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers, const std::function<void (wl_seat *)> &cb)
 {
     int mods = BindingModsNone;
     if (modifiers & Qt::ShiftModifier)
@@ -204,8 +196,16 @@ Binding *Client::addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers)
     if (modifiers & Qt::MetaModifier)
         mods |= BindingModsSuper;
 
+    static const desktop_shell_binding_listener binding_listener = {
+        [](void *data, desktop_shell_binding *bind, wl_seat *seat) {
+            Binding *b = static_cast<Binding *>(data);
+            b->callback(seat);
+        }
+    };
+
     Binding *binding = new Binding;
     binding->bind = desktop_shell_add_key_binding(m_shell, key, mods);
+    binding->callback = cb;
     desktop_shell_binding_add_listener(binding->bind, &binding_listener, binding);
 
     return binding;
@@ -603,6 +603,11 @@ void Client::handleLocked(desktop_shell *desktop_shell)
     emit locked();
 }
 
+void Client::handleCompositorAction(desktop_shell *, orbital_compositor_action *act, const char *name)
+{
+    addAction(QByteArray("Compositor.") + name, [act, this](wl_seat *seat) { orbital_compositor_action_run(act, seat); wl_display_flush(m_display); });
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
@@ -612,7 +617,8 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleWindowAdded),
     wrapInterface(&Client::handleWorkspaceAdded),
     wrapInterface(&Client::handleDesktopRect),
-    wrapInterface(&Client::handleLocked)
+    wrapInterface(&Client::handleLocked),
+    wrapInterface(&Client::handleCompositorAction),
 };
 
 Grab *Client::createGrab()
@@ -710,7 +716,7 @@ bool Client::event(QEvent *e)
     return QObject::event(e);
 }
 
-void Client::addAction(const QByteArray &name, const std::function<void ()> &action)
+void Client::addAction(const QByteArray &name, const std::function<void (wl_seat *)> &action)
 {
     if (m_actions.contains(name)) {
         qWarning("Action '%s' already exists.", name.constData());
@@ -720,7 +726,7 @@ void Client::addAction(const QByteArray &name, const std::function<void ()> &act
     m_actions.insert(name, action);
 }
 
-std::function<void ()> *Client::action(const QByteArray &name)
+std::function<void (wl_seat *)> *Client::action(const QByteArray &name)
 {
     if (!m_actions.contains(name)) {
         qWarning("Action '%s' not found. Available actions are:", name.constData());

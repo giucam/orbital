@@ -22,7 +22,8 @@
 
 #include <functional>
 
-#include <QHash>
+#include <QByteArray>
+#include <QPair>
 
 #include "interface.h"
 
@@ -52,6 +53,7 @@ public:
     typedef std::function<void (Pointer *, PointerCursor)> GrabCursorSetter;
     typedef std::function<void (Pointer *)> GrabCursorUnsetter;
     typedef std::function<void ()> LockCallback;
+    typedef std::function<void (Seat *)> Action;
 
     explicit Shell(Compositor *c);
     ~Shell();
@@ -81,9 +83,39 @@ public:
     void setGrabCursorSetter(GrabCursorSetter s);
     void setGrabCursorUnsetter(GrabCursorUnsetter s);
 
+    void addAction(const QByteArray &name, const Action &action);
+
+    class ActionList {
+    public:
+        class iterator {
+        public:
+            QByteArray name();
+            Action *action();
+
+            iterator &operator++() { ++id; return *this; }
+            bool operator!=(const iterator &o) const { return id != o.id || shell != o.shell; }
+
+        private:
+            iterator(int i, Shell *s) : id(i), shell(s) {}
+            int id;
+            Shell *shell;
+            friend ActionList;
+        };
+
+        iterator begin();
+        iterator end();
+
+    private:
+        ActionList(Shell *shell);
+        Shell *shell;
+        friend Shell;
+    };
+    ActionList actions() { return ActionList(this); }
+
 signals:
     void aboutToLock();
     void locked();
+    void actionAdded(const QByteArray &name, Action *action);
 
 private:
     void giveFocus(Seat *s);
@@ -112,6 +144,7 @@ private:
     bool m_locked;
     FocusScope *m_lockScope;
     FocusScope *m_appsScope;
+    QVector<QPair<QByteArray, Action>> m_actions;
 };
 
 }

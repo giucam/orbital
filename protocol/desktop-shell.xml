@@ -186,10 +186,17 @@
 
         <event name="locked"/>
 
+        <event name="compositor_action">
+            <arg name="id" type="new_id" interface="orbital_compositor_action"/>
+            <arg name="name" type="string"/>
+        </event>
+
     </interface>
 
     <interface name="desktop_shell_binding" version="1">
-        <event name="triggered"/>
+        <event name="triggered">
+            <arg name="seat" type="object" interface="wl_seat"/>
+        </event>
     </interface>
 
     <interface name="screensaver" version="1">
@@ -356,6 +363,13 @@
         <request name="destroy" type="destructor"/>
         <request name="set_keymap">
             <arg name="layout" type="string"/>
+        </request>
+    </interface>
+
+    <interface name="orbital_compositor_action" version="1">
+        <request name="destroy" type="destructor"/>
+        <request name="run">
+            <arg name="seat" type="object" interface="wl_seat"/>
         </request>
     </interface>
 

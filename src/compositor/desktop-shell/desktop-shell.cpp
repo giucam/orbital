@@ -76,6 +76,8 @@ DesktopShell::DesktopShell(Shell *shell)
     connect(b, &KeyBinding::triggered, [this]() {
         m_client->restart();
     });
+
+    connect(shell, &Shell::actionAdded, this, &DesktopShell::sendNewAction);
 }
 
 DesktopShell::~DesktopShell()
@@ -144,6 +146,11 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     }
     if (m_shell->isLocked() && m_lockRequested) {
         desktop_shell_send_locked(resource);
+    }
+
+    auto actions = m_shell->actions();
+    for (auto i = actions.begin(); i != actions.end(); ++i) {
+        sendNewAction(i.name(), i.action());
     }
 
     desktop_shell_send_load(resource);
@@ -465,7 +472,7 @@ void DesktopShell::addKeyBinding(uint32_t id, uint32_t key, uint32_t modifiers)
 
         void triggered(Seat *seat, uint32_t time, uint32_t key)
         {
-            desktop_shell_binding_send_triggered(resource);
+            desktop_shell_binding_send_triggered(resource, seat->resource(wl_resource_get_client(resource)));
         }
 
         wl_resource *resource;
@@ -705,6 +712,24 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
     };
 
     new ActiveRegion(m_shell->compositor(), res, Surface::fromResource(parentResource), x, y, width, height);
+}
+
+void DesktopShell::sendNewAction(const QByteArray &name, Shell::Action *action)
+{
+    if (!m_resource) {
+        return;
+    }
+
+    wl_resource *res = wl_resource_create(m_client->client(), &orbital_compositor_action_interface, 1, 0);
+    static const struct orbital_compositor_action_interface impl = {
+        [](wl_client *, wl_resource *r) { wl_resource_destroy(r); },
+        [](wl_client *, wl_resource *r, wl_resource *seat) {
+            (*static_cast<Shell::Action *>(wl_resource_get_user_data(r)))(Seat::fromResource(seat));
+        }
+    };
+    wl_resource_set_implementation(res, &impl, action, nullptr);
+
+    desktop_shell_send_compositor_action(m_resource, res, name.constData());
 }
 
 }

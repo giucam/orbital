@@ -159,8 +159,7 @@ DesktopShellLauncher::DesktopShellLauncher(Shell *shell)
                     , Global(shell->compositor(), &orbital_launcher_interface, 1)
                     , m_shell(shell)
 {
-    m_toggleBinding = shell->compositor()->createKeyBinding(KEY_F2, KeyboardModifiers::Super);
-    connect(m_toggleBinding, &KeyBinding::triggered, this, &DesktopShellLauncher::toggle);
+    shell->addAction("ToggleLauncher", [this](Seat *s) { toggle(s); });
 }
 
 void DesktopShellLauncher::bind(wl_client *client, uint32_t version, uint32_t id)

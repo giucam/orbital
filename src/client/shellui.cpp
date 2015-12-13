@@ -65,6 +65,18 @@ const char *defaultShell =
 "        {\n"
 "            \"keysequence\": \"volumemute\",\n"
 "            \"action\": \"Mixer.toggleMuted\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"ctrl+space\",\n"
+"            \"action\": \"Compositor.ToggleLauncher\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"f12\",\n"
+"            \"action\": \"Compositor.ToggleDropdown\"\n"
+"        },\n"
+"        {\n"
+"            \"keysequence\": \"super+g\",\n"
+"            \"action\": \"Compositor.Effects.ToggleDesktopGrid\"\n"
 "        }\n"
 "    ]\n"
 "}\n";
@@ -381,10 +393,10 @@ bool ShellUI::parseBinding(const QJsonObject &binding)
         return false;
     }
 
-    Binding *b = m_client->addKeyBinding(keyseq.key(), keyseq.modifiers());
+    Binding *b;
     if (exec.isEmpty()) {
-        std::function<void ()> *act = nullptr;
-        connect(b, &Binding::triggered, [this, action, act]() mutable {
+        std::function<void (wl_seat *)> *act = nullptr;
+        b = m_client->addKeyBinding(keyseq.key(), keyseq.modifiers(), [this, action, act](wl_seat *seat) mutable {
             qDebug()<<"executing action"<<action;
             if (!act) {
                 act = m_client->action(action.toUtf8());
@@ -392,10 +404,12 @@ bool ShellUI::parseBinding(const QJsonObject &binding)
                     return;
                 }
             }
-            (*act)();
+            (*act)(seat);
         });
     } else {
-        connect(b, &Binding::triggered, [exec]() { qDebug()<<"executing"<<exec; QProcess::startDetached(exec); });
+        b = m_client->addKeyBinding(keyseq.key(), keyseq.modifiers(), [exec](wl_seat *) {
+            qDebug()<<"executing"<<exec; QProcess::startDetached(exec);
+        });
     }
     m_bindings << b;
     return true;

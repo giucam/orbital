@@ -39,6 +39,7 @@ struct wl_registry_listener;
 struct wl_output;
 struct wl_subcompositor;
 struct wl_subsurface;
+struct wl_seat;
 
 struct desktop_shell;
 struct desktop_shell_listener;
@@ -50,6 +51,7 @@ struct desktop_shell_panel;
 struct notifications_manager;
 struct notification_surface;
 struct active_region;
+struct orbital_compositor_action;
 
 class Window;
 class ShellUI;
@@ -61,17 +63,14 @@ class Element;
 class CompositorSettings;
 class UiScreen;
 
-class Binding : public QObject
+class Binding
 {
-    Q_OBJECT
 public:
     ~Binding();
 
-signals:
-    void triggered();
-
 private:
     desktop_shell_binding *bind;
+    std::function<void (wl_seat *)> callback;
     friend class Client;
 };
 
@@ -94,7 +93,7 @@ public:
     QQuickWindow *findWindow(wl_surface *surface) const;
     desktop_shell_surface *setPopup(QWindow *p, QWindow *parent);
 
-    Q_INVOKABLE Binding *addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers);
+    Binding *addKeyBinding(uint32_t key, Qt::KeyboardModifiers modifiers, const std::function<void (wl_seat *)> &cb);
 
     Q_INVOKABLE static Grab *createGrab();
     static QQuickWindow *createUiWindow();
@@ -118,8 +117,8 @@ public:
 
     bool event(QEvent *e) override;
 
-    void addAction(const QByteArray &name, const std::function<void ()> &action);
-    std::function<void ()> *action(const QByteArray &name);
+    void addAction(const QByteArray &name, const std::function<void (wl_seat *)> &action);
+    std::function<void (wl_seat *)> *action(const QByteArray &name);
 
 public slots:
     void minimizeWindows();
@@ -157,6 +156,7 @@ private:
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
     void handleLocked(desktop_shell *desktop_shell);
     void handleUnlocked(desktop_shell *desktop_shell);
+    void handleCompositorAction(desktop_shell *shell, orbital_compositor_action *act, const char *name);
     void addUiWindow(QQuickWindow *w);
     void setGrabSurface();
     void screenAdded(QScreen *s);
@@ -180,7 +180,7 @@ private:
 
     QList<Window *> m_windows;
     QList<Workspace *> m_workspaces;
-    QHash<QByteArray, std::function<void ()>> m_actions;
+    QHash<QByteArray, std::function<void (wl_seat *)>> m_actions;
 
     uint32_t m_pendingGrabCursor;
 
