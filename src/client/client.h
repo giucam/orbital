@@ -50,6 +50,7 @@ struct desktop_shell_panel;
 struct notifications_manager;
 struct notification_surface;
 struct active_region;
+struct orbital_compositor_action;
 
 class Window;
 class ShellUI;
@@ -157,6 +158,7 @@ private:
     void handleDesktopRect(desktop_shell *desktop_shell, wl_output *output, int32_t x, int32_t y, int32_t width, int32_t height);
     void handleLocked(desktop_shell *desktop_shell);
     void handleUnlocked(desktop_shell *desktop_shell);
+    void handleCompositorAction(desktop_shell *shell, orbital_compositor_action *act, const char *name);
     void addUiWindow(QQuickWindow *w);
     void setGrabSurface();
     void screenAdded(QScreen *s);

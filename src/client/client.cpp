@@ -603,6 +603,11 @@ void Client::handleLocked(desktop_shell *desktop_shell)
     emit locked();
 }
 
+void Client::handleCompositorAction(desktop_shell *, orbital_compositor_action *act, const char *name)
+{
+    addAction(QByteArray("Compositor.") + name, [act]() { orbital_compositor_action_run(act); });
+}
+
 const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handlePing),
     wrapInterface(&Client::handleLoad),
@@ -612,7 +617,8 @@ const desktop_shell_listener Client::s_shellListener = {
     wrapInterface(&Client::handleWindowAdded),
     wrapInterface(&Client::handleWorkspaceAdded),
     wrapInterface(&Client::handleDesktopRect),
-    wrapInterface(&Client::handleLocked)
+    wrapInterface(&Client::handleLocked),
+    wrapInterface(&Client::handleCompositorAction),
 };
 
 Grab *Client::createGrab()

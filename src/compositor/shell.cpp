@@ -615,4 +615,18 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
     focus->setAlpha(qBound(0., a, 1.));
 }
 
+void Shell::addAction(const QByteArray &name, const std::functional<void ()> &action)
+{
+    m_actions.insert(name, action);
+}
+
+std::functional<void ()> *Shell::action(const QByteArray &name)
+{
+    if (!m_actions.contains(name)) {
+        return nullptr;
+    }
+
+    return &m_actions[name];
+}
+
 }

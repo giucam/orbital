@@ -78,6 +78,9 @@ public:
     void configure(ShellSurface *shsurf);
     bool isSurfaceActive(ShellSurface *shsurf) const;
 
+    void addAction(const QByteArray &name, const std::functional<void ()> &action);
+    std::functional<void ()> *action(const QByteArray &name);
+
     void setGrabCursorSetter(GrabCursorSetter s);
     void setGrabCursorUnsetter(GrabCursorUnsetter s);
 
@@ -112,6 +115,7 @@ private:
     bool m_locked;
     FocusScope *m_lockScope;
     FocusScope *m_appsScope;
+    QHash<QByteArray, std::function<void ()>> m_actions;
 };
 
 }
