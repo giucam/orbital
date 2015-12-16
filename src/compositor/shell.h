@@ -137,8 +137,6 @@ private:
     ButtonBinding *m_raiseBinding;
     ButtonBinding *m_moveBinding;
     KeyBinding *m_killBinding;
-    KeyBinding *m_nextWsBinding;
-    KeyBinding *m_prevWsBinding;
     AxisBinding *m_alphaBinding;
     Pager *m_pager;
     bool m_locked;

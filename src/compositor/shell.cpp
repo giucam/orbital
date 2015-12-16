@@ -87,15 +87,13 @@ Shell::Shell(Compositor *c)
     m_raiseBinding = c->createButtonBinding(PointerButton::Task, KeyboardModifiers::None);
     m_moveBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::Super);
     m_killBinding = c->createKeyBinding(KEY_ESC, KeyboardModifiers::Super | KeyboardModifiers::Ctrl);
-    m_nextWsBinding = c->createKeyBinding(KEY_RIGHT, KeyboardModifiers::Ctrl);
-    m_prevWsBinding = c->createKeyBinding(KEY_LEFT, KeyboardModifiers::Ctrl);
+    addAction("ActivateNextWorkspace", [this](Seat *s) { nextWs(s); });
+    addAction("ActivatePreviousWorkspace", [this](Seat *s) { prevWs(s); });
     m_alphaBinding = c->createAxisBinding(PointerAxis::Vertical, KeyboardModifiers::Ctrl);
     connect(m_focusBinding, &ButtonBinding::triggered, this, &Shell::giveFocus);
     connect(m_raiseBinding, &ButtonBinding::triggered, this, &Shell::raise);
     connect(m_moveBinding, &ButtonBinding::triggered, this, &Shell::moveSurface);
     connect(m_killBinding, &KeyBinding::triggered, this, &Shell::killSurface);
-    connect(m_nextWsBinding, &KeyBinding::triggered, this, &Shell::nextWs);
-    connect(m_prevWsBinding, &KeyBinding::triggered, this, &Shell::prevWs);
     connect(m_alphaBinding, &AxisBinding::triggered, this, &Shell::setAlpha);
 
     autostartClients();
