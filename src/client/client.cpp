@@ -128,7 +128,7 @@ Client::Client()
 
     qRegisterMetaType<QScreen *>();
 
-#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QStringLiteral(":/qml/") + QStringLiteral(type) + ".qml"), "Orbital", 1, 0, type)
+#define REGISTER_QMLFILE(type) qmlRegisterType(QUrl::fromLocalFile(QStringLiteral(":/qml/" type ".qml")), "Orbital", 1, 0, type)
     REGISTER_QMLFILE("Icon");
     REGISTER_QMLFILE("ElementConfiguration");
     REGISTER_QMLFILE("ElementsChooser");
