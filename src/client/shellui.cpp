@@ -265,6 +265,7 @@ void ShellUI::reloadConfig()
             qDebug() << "Cannot parse the default shell config" << err.errorString();
         }
         object = doc.object();
+        m_config[QStringLiteral("Shell")] = object;
     }
     QJsonObject properties = object[QStringLiteral("properties")].toObject();
     for (auto i = properties.constBegin(); i != properties.constEnd(); ++i) {
