@@ -40,7 +40,6 @@
 #include "element.h"
 #include "uiscreen.h"
 #include "style.h"
-#include "compositorsettings.h"
 #include "keysequence.h"
 
 const char *defaultShell =
@@ -124,10 +123,9 @@ const char *defaultScreen =
 "    ]\n"
 "}\n";
 
-ShellUI::ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, const QString &configFile)
+ShellUI::ShellUI(Client *client, QQmlEngine *engine, const QString &configFile)
        : QObject(client)
        , m_client(client)
-       , m_compositorSettings(s)
        , m_configFile(configFile)
        , m_configMode(false)
        , m_cursorShape(-1)

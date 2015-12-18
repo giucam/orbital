@@ -60,7 +60,6 @@ class Workspace;
 class ElementInfo;
 class StyleInfo;
 class Element;
-class CompositorSettings;
 class UiScreen;
 
 class Binding
@@ -170,7 +169,6 @@ private:
     desktop_shell *m_shell;
     notifications_manager *m_notifications;
     wl_subcompositor *m_subcompositor;
-    CompositorSettings *m_settings;
     QQmlEngine *m_engine;
     QWindow *m_grabWindow;
     QList<Binding *> m_bindings;

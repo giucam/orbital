@@ -35,7 +35,6 @@ class Element;
 class Client;
 class UiScreen;
 class Style;
-class CompositorSettings;
 class Binding;
 
 class ShellUI : public QObject
@@ -46,7 +45,7 @@ class ShellUI : public QObject
     Q_PROPERTY(bool configMode READ configMode WRITE setConfigMode NOTIFY configModeChanged)
     Q_PROPERTY(QString styleName READ styleName WRITE setStyleName)
 public:
-    ShellUI(Client *client, CompositorSettings *s, QQmlEngine *engine, const QString &configFile);
+    ShellUI(Client *client, QQmlEngine *engine, const QString &configFile);
     ~ShellUI();
 
     UiScreen *loadScreen(QScreen *screen, const QString &name);
@@ -87,7 +86,6 @@ private:
     bool parseBinding(const QJsonObject &conf);
 
     Client *m_client;
-    CompositorSettings *m_compositorSettings;
     QString m_configFile;
     QJsonObject m_rootConfig;
     QJsonObject m_config;

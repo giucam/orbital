@@ -53,7 +53,6 @@
 #include "uiscreen.h"
 #include "style.h"
 #include "notification.h"
-#include "compositorsettings.h"
 #include "activeregion.h"
 #include "clipboard.h"
 
@@ -96,7 +95,6 @@ Binding::~Binding()
 Client::Client()
       : QObject()
       , m_notifications(nullptr)
-      , m_settings(nullptr)
       , m_ui(nullptr)
       , d_ptr(new ClientPrivate(this))
 {
@@ -169,7 +167,6 @@ Client::~Client()
 {
     delete m_grabWindow;
     delete m_ui;
-    delete m_settings;
     qDeleteAll(m_workspaces);
 
     Element::cleanupElementsList();
@@ -232,8 +229,8 @@ void Client::loadOutput(QScreen *s, const QString &name, uint32_t serial)
     m_elapsedTimer.start();
     if (!m_ui) {
         QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-        QString configFile = path + "/orbital/orbital.conf";
-        m_ui = new ShellUI(this, m_settings, m_engine, configFile);
+        QString configFile = path + QStringLiteral("/orbital/orbital.conf");
+        m_ui = new ShellUI(this, m_engine, configFile);
     }
     UiScreen *screen = m_ui->loadScreen(s, name);
     qDebug() << "Elements for screen" << name << "loaded after" << m_elapsedTimer.elapsed() << "ms";
@@ -472,9 +469,6 @@ void Client::handleGlobal(wl_registry *registry, uint32_t id, const char *interf
         // Bind interface and register listener
         m_shell = static_cast<desktop_shell *>(wl_registry_bind(registry, id, &desktop_shell_interface, version));
         desktop_shell_add_listener(m_shell, &s_shellListener, this);
-    } else if (strcmp(interface, "nuclear_settings") == 0) {
-        m_settings = new CompositorSettings(static_cast<nuclear_settings *>(wl_registry_bind(registry, id, &nuclear_settings_interface, version)));
-        m_settings->moveToThread(QCoreApplication::instance()->thread());
     } else if (strcmp(interface, "notifications_manager") == 0) {
         m_notifications = static_cast<notifications_manager *>(wl_registry_bind(registry, id, &notifications_manager_interface, 1));
     } else if (strcmp(interface, "wl_subcompositor") == 0) {

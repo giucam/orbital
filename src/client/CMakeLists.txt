@@ -60,16 +60,11 @@ set(SOURCES
     notification.cpp
     activeregion.cpp
     clipboard.cpp
-    keysequence.cpp
-    compositorsettings.cpp)
+    keysequence.cpp)
 
 wayland_add_protocol_client(SOURCES
     ../../protocol/desktop-shell.xml
     desktop-shell
-)
-wayland_add_protocol_client(SOURCES
-    ../../protocol/settings.xml
-    settings
 )
 wayland_add_protocol_client(SOURCES ../../protocol/orbital-clipboard.xml clipboard)
 
