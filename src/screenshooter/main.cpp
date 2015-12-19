@@ -255,7 +255,7 @@ public slots:
         QString p = path;
         p.remove(0, 7); // Remove the "file://"
         if (!m_imageProvider->m_image.save(p)) {
-            m_imageProvider->m_image.save(p + ".jpg");
+            m_imageProvider->m_image.save(p + QLatin1String(".jpg"));
         }
     }
     void upload()
@@ -273,8 +273,8 @@ public slots:
         proc->setProcessEnvironment(env);
         proc->start(QStringLiteral("sh " LIBEXEC_PATH "/imgur %1").arg(file->fileName()));
         connect(proc, (void (QProcess::*)(int))&QProcess::finished, [this, proc, file]() {
-            QString stdout(proc->readAllStandardOutput());
-            QString stderr(proc->readAllStandardError());
+            QString stdout(QString::fromUtf8(proc->readAllStandardOutput()));
+            QString stderr(QString::fromUtf8(proc->readAllStandardError()));
 
             QClipboard *cb = QGuiApplication::clipboard();
             cb->setText(stdout);

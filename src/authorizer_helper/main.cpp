@@ -86,7 +86,7 @@ public:
     bool authorizeProcess(const char *global, const char *executable)
     {
         QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-        Result res = readFile(path + QStringLiteral("/orbital/restricted_interfaces.conf"), global, executable);
+        Result res = readFile(path + QLatin1String("/orbital/restricted_interfaces.conf"), global, executable);
         if (res == Result::Unknown) {
             res = readFile(QStringLiteral("/etc/orbital/restricted_interfaces.conf"), global, executable);
         }
@@ -127,12 +127,12 @@ public:
         QJsonObject config = document.object();
         file.close();
 
-        if (!config.contains(global)) {
+        if (!config.contains(QLatin1String(global))) {
             return Result::Unknown;
         }
 
-        config = config.value(global).toObject();
-        QJsonValue value = config.value(executable);
+        config = config.value(QLatin1String(global)).toObject();
+        QJsonValue value = config.value(QString::fromUtf8(executable));
         if (value != QJsonValue::Undefined) {
             QString v = value.toString();
             if (v == QStringLiteral("deny")) {

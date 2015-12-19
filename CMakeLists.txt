@@ -7,6 +7,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(Wayland)
 find_package(PkgConfig "0.22" REQUIRED)
 
+add_definitions(-DQT_NO_CAST_FROM_ASCII
+                -DQT_NO_CAST_TO_ASCII
+                -DQT_NO_CAST_FROM_BYTEARRAY
+                -DQT_NO_URL_CAST_FROM_STRING
+                -DQT_USE_QSTRINGBUILDER)
+
 add_subdirectory(src)
 
 # uninstall target

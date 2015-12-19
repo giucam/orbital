@@ -55,7 +55,7 @@ StatusNotifierManager::~StatusNotifierManager()
 
 static bool checkSanity(const QString &service)
 {
-    if (service.contains('/')) {
+    if (service.contains(QLatin1Char('/'))) {
         return false;
     }
     return true;
@@ -73,7 +73,7 @@ void StatusNotifierManager::newItem(const QString &service)
     emit itemsChanged();
 }
 
-StatusNotifierItem *StatusNotifierManager::item(const QString &service) const
+StatusNotifierItem *StatusNotifierManager::item(const QStringRef &service) const
 {
     foreach (StatusNotifierItem *item, m_items) {
         if (item->service() == service) {

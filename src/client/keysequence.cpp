@@ -161,7 +161,7 @@ KeySequence::KeySequence(const QString &sequence)
     Q_UNUSED(checked);
 
     const QString &lower = sequence.toLower();
-    const QVector<QStringRef> &parts = lower.splitRef('+');
+    const QVector<QStringRef> &parts = lower.splitRef(QLatin1Char('+'));
     for (const QStringRef &part: parts) {
         Qt::KeyboardModifiers m;
         if (modFromString(part, &m)) {

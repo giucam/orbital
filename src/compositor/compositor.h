@@ -82,7 +82,7 @@ public:
     explicit Compositor(Backend *backend);
     ~Compositor();
 
-    bool init(const QString &socket);
+    bool init(const QByteArray &socket);
     void quit();
 
     inline wl_display *display() const { return m_display; }

@@ -65,7 +65,7 @@ int main(int argc, char **argv)
     }
 
     Orbital::Compositor compositor(backend);
-    if (!compositor.init(QString())) {
+    if (!compositor.init(QByteArray())) {
         return 1;
     }
 

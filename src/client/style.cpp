@@ -55,7 +55,7 @@ Style *Style::loadStyle(const QString &name, QQmlEngine *engine)
     StyleInfo *info = s_styles.value(name);
 
     QQmlComponent c(engine);
-    c.loadUrl(info->m_qml);
+    c.loadUrl(QUrl(info->m_qml));
     if (!c.isReady()) {
         qWarning() << "Could not load the style" << name;
         qWarning() << qPrintable(c.errorString());
@@ -100,7 +100,7 @@ void Style::cleanupStylesList()
 
 void Style::loadStyleInfo(const QString &name, const QString &path)
 {
-    QString filePath(path + "/style");
+    QString filePath(path + QLatin1String("/style"));
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << QStringLiteral("Failed to load the style '%1'. Could not open %1 for reading.").arg(filePath);
@@ -128,7 +128,7 @@ void Style::loadStyleInfo(const QString &name, const QString &path)
         info->m_prettyName = json.value(QStringLiteral("prettyName")).toString();
     }
     if (json.contains(QStringLiteral("qmlFile"))) {
-        info->m_qml = path + "/" + json.value(QStringLiteral("qmlFile")).toString();
+        info->m_qml = path + QLatin1Char('/') + json.value(QStringLiteral("qmlFile")).toString();
     }
 
     if (info->m_qml.isEmpty()) {

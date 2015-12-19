@@ -199,10 +199,10 @@ void StatusNotifierItem::scroll(const QPoint &delta)
 {
     QString method = QStringLiteral("Scroll");
     if (delta.y() != 0) {
-        m_interface.asyncCall(method, delta.y(), "vertical");
+        m_interface.asyncCall(method, delta.y(), QLatin1String("vertical"));
     }
     if (delta.x() != 0) {
-        m_interface.asyncCall(method, delta.x(), "horizontal");
+        m_interface.asyncCall(method, delta.x(), QLatin1String("horizontal"));
     }
 }
 

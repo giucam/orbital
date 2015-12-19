@@ -353,7 +353,7 @@ View *Output::rootView() const
 
 QString Output::name() const
 {
-    return QString(m_output->name);
+    return QString::fromUtf8(m_output->name);
 }
 
 bool Output::contains(double x, double y) const

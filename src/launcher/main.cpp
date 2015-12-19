@@ -147,8 +147,8 @@ private slots:
     void run(const QString &exec, const QString &fullLine)
     {
         orbital_launcher_surface_done(m_surface);
-        QStringList args = fullLine.split(' ');
-        if (fullLine.startsWith(':')) {
+        QStringList args = fullLine.split(QLatin1Char(' '));
+        if (fullLine.startsWith(QLatin1Char(':'))) {
             if (args.count() < 2) {
                 return;
             }

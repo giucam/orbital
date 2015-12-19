@@ -84,8 +84,8 @@ static bool parseModeline(const QString &s, drmModeModeInfo *mode)
 
 static void output_data(const char *name, struct drm_output_parameters *data)
 {
-    if (outputs.contains(name)) {
-        QString mode = outputs[name].toObject()[QStringLiteral("mode")].toString();
+    if (outputs.contains(QLatin1String(name))) {
+        QString mode = outputs[QLatin1String(name)].toObject()[QStringLiteral("mode")].toString();
         if (mode == QStringLiteral("off")) {
             data->mode.config = DRM_OUTPUT_CONFIG_OFF;
         } else if (mode == QStringLiteral("preferred")) {
@@ -135,7 +135,7 @@ bool DrmBackend::init(weston_compositor *c)
     memset(&param, 0, sizeof param);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QString configFile = path + "/orbital/orbital.conf";
+    QString configFile = path + QLatin1String("/orbital/orbital.conf");
 
     QFile file(configFile);
     QByteArray data;

@@ -30,9 +30,9 @@ StatusNotifierIconProvider::StatusNotifierIconProvider(StatusNotifierManager *se
 {
 }
 
-static QPixmap getPixmap(StatusNotifierItem *item, const QSize &s, const QString &type)
+static QPixmap getPixmap(StatusNotifierItem *item, const QSize &s, const QStringRef &type)
 {
-    if (type == QStringLiteral("attentionIcon")) {
+    if (type == QLatin1String("attentionIcon")) {
         QPixmap pix = item->attentionIconPixmap(s);
         if (pix.isNull()) {
             QString name = item->attentionIconName();
@@ -67,13 +67,13 @@ QPixmap StatusNotifierIconProvider::requestPixmap(const QString &id, QSize *real
     qWarning("StatusNotifierIconProvider: cannot load icon \"%s\".", qPrintable(id)); \
     return QIcon::fromTheme(QStringLiteral("image-missing")).pixmap(size);
 
-    QStringList l = id.split('/');
+    const auto &l = id.splitRef(QLatin1Char('/'));
     if (l.size() != 2) {
         FAIL
     }
 
-    QString service = l.first();
-    QString name = l.at(1);
+    QStringRef service = l.first();
+    QStringRef name = l.at(1);
 
     StatusNotifierItem *item = m_service->item(service);
     if (item) {

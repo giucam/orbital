@@ -682,7 +682,7 @@ void Client::screenAdded(QScreen *s)
 
         void load(desktop_shell_output_feedback *, const char *name, uint32_t serial)
         {
-            QMetaObject::invokeMethod(client, "loadOutput", Q_ARG(QScreen *, screen), Q_ARG(QString, QString(name)), Q_ARG(uint32_t, serial));
+            QMetaObject::invokeMethod(client, "loadOutput", Q_ARG(QScreen *, screen), Q_ARG(QString, QString::fromUtf8(name)), Q_ARG(uint32_t, serial));
 
             desktop_shell_output_feedback_destroy(feedback);
             delete this;

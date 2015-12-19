@@ -49,12 +49,12 @@ static int32_t state2WlState(Window::States state)
 
 void Window::handleTitle(desktop_shell_window *window, const char *title)
 {
-    setTitle(title);
+    setTitle(QString::fromUtf8(title));
 }
 
 void Window::handleIcon(desktop_shell_window *window, const char *name)
 {
-    m_icon = name;
+    m_icon = QString::fromUtf8(name);
     emit iconChanged();
 }
 

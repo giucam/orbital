@@ -37,7 +37,7 @@
 namespace Orbital {
 
 
-Keymap::Keymap(const Maybe<QString> &layout, const Maybe<QString> &options)
+Keymap::Keymap(const Maybe<QByteArray> &layout, const Maybe<QByteArray> &options)
       : m_layout(layout)
       , m_options(options)
 {
@@ -162,19 +162,14 @@ void Seat::setKeymap(const Keymap &keymap)
     km.fill(m_compositor->defaultKeymap());
 
     xkb_rule_names names = { nullptr, nullptr,
-                             km.layout() ? strdup(qPrintable(km.layout().value())) : nullptr,
+                             km.layout() ? km.layout().value().constData() : nullptr,
                              nullptr,
-                             km.options() ? strdup(qPrintable(km.options().value())) : nullptr };
+                             km.options() ? km.options().value().constData() : nullptr };
 
     xkb_keymap *xkb = xkb_keymap_new_from_names(m_seat->compositor->xkb_context, &names, (xkb_keymap_compile_flags)0);
     if (xkb) {
         weston_seat_update_keymap(m_seat, xkb);
     }
-    free((char *)names.layout);
-    free((char *)names.options);
-    free((char *)names.rules),
-    free((char *)names.model);
-    free((char *)names.variant);
 }
 
 void Seat::capsUpdated()

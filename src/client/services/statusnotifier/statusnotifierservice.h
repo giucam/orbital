@@ -42,7 +42,7 @@ public:
     StatusNotifierManager(QObject *p = nullptr);
     ~StatusNotifierManager();
 
-    StatusNotifierItem *item(const QString &service) const;
+    StatusNotifierItem *item(const QStringRef &service) const;
     QQmlListProperty<StatusNotifierItem> items();
 
 signals:

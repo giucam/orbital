@@ -174,7 +174,9 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.set_xwayland = [](shell_surface *shsurf, int x, int y, uint32_t flags) {
         _this->setXWayland(x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
     };
-    compositor->shell_interface.set_title = [](shell_surface *shsurf, const char *t) { _this->setTitle(t); };
+    compositor->shell_interface.set_title = [](shell_surface *shsurf, const char *t) {
+        _this->setTitle(QString::fromUtf8(t));
+    };
     compositor->shell_interface.set_window_geometry = [](shell_surface *shsurf, int32_t x, int32_t y, int32_t w, int32_t h) {
         _this->setGeometry(x, y, w, h);
     };

@@ -31,8 +31,8 @@ MatcherModel::MatcherModel()
             : QAbstractListModel()
             , m_watcher(new QFileSystemWatcher(this))
 {
-    QString path = qgetenv("PATH");
-    foreach (const QString &p, path.split(':')) {
+    QString path = QString::fromUtf8(qgetenv("PATH"));
+    foreach (const QString &p, path.split(QLatin1Char(':'))) {
         m_watcher->addPath(p);
     }
 
@@ -66,7 +66,7 @@ QString MatcherModel::expression() const
 
 void MatcherModel::setExpression(const QString &expr)
 {
-    QString e = expr.split(' ').first();
+    QString e = expr.split(QLatin1Char(' ')).first();
     if (m_expression == e) {
         return;
     }

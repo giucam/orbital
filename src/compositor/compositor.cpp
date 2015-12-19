@@ -134,7 +134,7 @@ Compositor::Compositor(Backend *backend)
     sigaction(SIGALRM, &sigalrm, 0);
 
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
-    QString configFile = path + "/orbital/orbital.conf";
+    QString configFile = path + QLatin1String("/orbital/orbital.conf");
 
     QFile file(configFile);
     QByteArray data;
@@ -225,7 +225,7 @@ static const weston_pointer_grab_interface defaultPointerGrab = {
     [](weston_pointer_grab *grab) {}
 };
 
-bool Compositor::init(const QString &socketName)
+bool Compositor::init(const QByteArray &socketName)
 {
     weston_log_set_handler(log, log);
 
@@ -241,8 +241,8 @@ bool Compositor::init(const QString &socketName)
     QString keylayout = kbdConfig[QStringLiteral("Layout")].toString();
     QString keyoptions = kbdConfig[QStringLiteral("Options")].toString();
 
-    m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<QString>() : keylayout,
-                             keyoptions.isEmpty() ? Maybe<QString>() : keyoptions);
+    m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<QByteArray>() : keylayout.toUtf8(),
+                             keyoptions.isEmpty() ? Maybe<QByteArray>() : keyoptions.toUtf8());
 
     xkb_rule_names xkb = { nullptr, nullptr,
                            keylayout.isEmpty() ? nullptr : strdup(qPrintable(keylayout)),
@@ -308,9 +308,9 @@ bool Compositor::init(const QString &socketName)
         }
     }
 
-    const char *socket = qPrintable(socketName);
+    const char *socket = socketName.constData();
     if (!socketName.isNull()) {
-        if (wl_display_add_socket(m_display, qPrintable(socket))) {
+        if (wl_display_add_socket(m_display, socket)) {
             weston_log("fatal: failed to add socket: %m\n");
             return false;
         }
@@ -366,7 +366,7 @@ bool Compositor::init(const QString &socketName)
 void Compositor::newOutput(weston_output *output)
 {
     QJsonObject outputs = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
-    QJsonObject cfg = outputs[output->name].toObject();
+    QJsonObject cfg = outputs[QString::fromUtf8(output->name)].toObject();
     int x = output->x;
     int y = output->y;
     if (cfg.contains(QStringLiteral("x"))) {

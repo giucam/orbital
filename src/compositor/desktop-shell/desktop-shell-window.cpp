@@ -144,15 +144,15 @@ void DesktopShellWindow::create()
     }
     QString icon;
     if (!shsurf()->appId().isEmpty()) {
-        QString appId = shsurf()->appId().replace('-', '/').remove(QStringLiteral(".desktop"));
+        QString appId = shsurf()->appId().replace(QLatin1Char('-'), QLatin1Char('/')).remove(QLatin1String(".desktop"));
         static QString xdgDataDir = []() {
-            QString s = qgetenv("XDG_DATA_DIRS");
+            QString s = QString::fromUtf8(qgetenv("XDG_DATA_DIRS"));
             if (s.isEmpty()) {
                 s = QStringLiteral("/usr/share");
             }
             return s;
         }();
-        foreach (const QString &d, xdgDataDir.split(':')) {
+        foreach (const QString &d, xdgDataDir.split(QLatin1Char(':'))) {
             QString path = QStringLiteral("%1/applications/%2.desktop").arg(d, appId);
             if (QFile::exists(path)) {
                 QSettings settings(path, QSettings::IniFormat);

@@ -198,7 +198,7 @@ void Element::configure()
 
         m_settingsWindow->setWidth(m_settingsItem->width());
         m_settingsWindow->setHeight(m_settingsItem->height());
-        m_settingsWindow->setTitle(m_typeName + " Settings");
+        m_settingsWindow->setTitle(m_typeName + QLatin1String(" Settings"));
 
         connect(m_settingsWindow, &QWindow::visibleChanged, this, &Element::settingsVisibleChanged);
         connect(m_settingsWindow, &QWindow::widthChanged, [this](int w) { m_settingsItem->setWidth(w); });
@@ -392,7 +392,7 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
 
     ElementInfo *info = s_elements.value(name);
     QQmlComponent c(engine);
-    c.loadUrl(info->m_qml);
+    c.loadUrl(QUrl(info->m_qml));
     if (!c.isReady()) {
         qWarning() << "Could not load the element" << name;
         qWarning() << qPrintable(c.errorString());
@@ -452,7 +452,7 @@ void Element::cleanupElementsList()
 
 void Element::loadElementInfo(const QString &name, const QString &path)
 {
-    QString filePath(path + "/element");
+    QString filePath(path + QLatin1String("/element"));
     QFile file(filePath);
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << QStringLiteral("Failed to load the element '%1'. Could not open %1 for reading.").arg(filePath);
@@ -479,7 +479,7 @@ void Element::loadElementInfo(const QString &name, const QString &path)
 
     info->m_prettyName = json.value(QStringLiteral("prettyName")).toString();
     if (json.contains(QStringLiteral("qmlFile"))) {
-        info->m_qml = path + "/" + json.value(QStringLiteral("qmlFile")).toString();
+        info->m_qml = path + QLatin1Char('/') + json.value(QStringLiteral("qmlFile")).toString();
     }
     if (json.contains(QStringLiteral("type"))) {
         QString value = json.value(QStringLiteral("type")).toString();

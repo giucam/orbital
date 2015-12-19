@@ -57,16 +57,16 @@ class Keymap
 {
 public:
     Keymap() {}
-    Keymap(const Maybe<QString> &layout, const Maybe<QString> &options);
+    Keymap(const Maybe<QByteArray> &layout, const Maybe<QByteArray> &options);
 
-    const Maybe<QString> &layout() const { return m_layout; }
-    const Maybe<QString> &options() const { return m_options; }
+    const Maybe<QByteArray> &layout() const { return m_layout; }
+    const Maybe<QByteArray> &options() const { return m_options; }
 
     void fill(const Keymap &other);
 
 private:
-    Maybe<QString> m_layout;
-    Maybe<QString> m_options;
+    Maybe<QByteArray> m_layout;
+    Maybe<QByteArray> m_options;
 };
 
 

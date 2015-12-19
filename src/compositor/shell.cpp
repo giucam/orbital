@@ -141,15 +141,15 @@ static bool shouldAutoStart(const QSettings &settings)
     }
     if (settings.contains(QStringLiteral("OnlyShowIn"))) {
         QString onlyShowIn = settings.value(QStringLiteral("OnlyShowIn")).toString();
-        foreach (const QString &s, onlyShowIn.split(';')) {
-            if (s == QStringLiteral("Orbital")) {
+        foreach (const QStringRef &s, onlyShowIn.splitRef(QLatin1Char(';'))) {
+            if (s == QLatin1String("Orbital")) {
                 return true;
             }
         }
         return false;
     } else if (settings.contains(QStringLiteral("NotShowIn"))) {
         QString notShowIn = settings.value(QStringLiteral("NotShowIn")).toString();
-        foreach (const QString &s, notShowIn.split(';')) {
+        foreach (const QStringRef &s, notShowIn.splitRef(QLatin1Char(';'))) {
             if (s == QStringLiteral("Orbital")) {
                 return false;
             }
@@ -214,7 +214,7 @@ static bool readDesktopFile(QIODevice &device, QSettings::SettingsMap &map)
         QByteArray key = line.left(idx);
         QByteArray value = line.mid(idx + 1, length - idx - 1);
 
-        map[currentGroup + '/' + key] = value;
+        map[QString::fromUtf8(currentGroup + '/' + key)] = value;
     }
 
     return true;
@@ -224,16 +224,17 @@ void Shell::autostartClients()
 {
     QStringList files;
 
-    QString xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
+    QByteArray xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
     if (!xdgConfigHome.isEmpty()) {
-        populateAutostartList(files, QStringLiteral("%1/autostart").arg(xdgConfigHome));
+        populateAutostartList(files, QStringLiteral("%1/autostart").arg(QString::fromUtf8(xdgConfigHome)));
     } else {
         populateAutostartList(files, QStringLiteral("%1/.config/autostart").arg(QDir::homePath()));
     }
 
-    QString xdgConfigDirs = qgetenv("XDG_CONFIG_DIRS");
+    QByteArray xdgConfigDirs = qgetenv("XDG_CONFIG_DIRS");
     if (!xdgConfigDirs.isEmpty()) {
-        foreach (const QString &d, xdgConfigDirs.split(';')) {
+        // meh, no QStringRef overload for QString::arg()
+        foreach (const QString &d, QString::fromUtf8(xdgConfigDirs).split(QLatin1Char(';'))) {
             populateAutostartList(files, QStringLiteral("%1/autostart").arg(d));
         }
     } else {
@@ -270,7 +271,7 @@ void Shell::autostartClients()
         };
 
         QProcess *proc = new Process(this);
-        QString bin = exec.split(' ').first();
+        QString bin = exec.split(QLatin1Char(' ')).first(); // no QStringRef for QDir::filePath() either
         proc->setStandardOutputFile(outputDir.filePath(bin));
         proc->setStandardErrorFile(outputDir.filePath(bin));
         proc->start(exec);

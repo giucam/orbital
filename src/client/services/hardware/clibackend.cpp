@@ -24,7 +24,7 @@
 
 //TODO: signal new and removed devices and signal a device has been (u)mounted
 
-static int run(const QString &cmd, QString *out = nullptr)
+static int run(const QString &cmd, QByteArray *out = nullptr)
 {
     QProcess proc;
     QString c = cmd;
@@ -94,7 +94,7 @@ bool CliDevice::isMounted() const
         return false;
     }
 
-    QString out;
+    QByteArray out;
     run(QStringLiteral("findmnt %1").arg(udi()), &out);
     return !out.isEmpty();
 }
@@ -113,9 +113,9 @@ CliBackend *CliBackend::create(HardwareManager *hw)
         return nullptr;
     }
 
-    QString out;
+    QByteArray out;
     run(QStringLiteral("lsblk -pPo NAME,FSTYPE | grep -iE 'FSTYPE=\".+\"' | grep  -Po '(?<=NAME=\").+?(?=\")'"), &out);
-    QStringList list = out.split('\n');
+    QStringList list = QString::fromUtf8(out).split(QLatin1Char('\n'));
     list.removeLast();
     foreach (const QString &c, list) {
         bool isSwap = run(QStringLiteral("lsblk -o FSTYPE %1 | grep swap").arg(c)) == 0;
@@ -130,9 +130,9 @@ CliBackend *CliBackend::create(HardwareManager *hw)
                 d->setIconName(isRemovable ? QStringLiteral("drive-removable-media") : QStringLiteral("drive-harddisk"));
             }
 
-            QString label;
+            QByteArray label;
             run(QStringLiteral("lsblk -no LABEL %1 | awk 1 ORS=''").arg(c), &label);
-            label.isEmpty() ? d->setName(c) : d->setName(label);
+            label.isEmpty() ? d->setName(c) : d->setName(QString::fromUtf8(label));
         }
         cli->deviceAdded(d);
     }
