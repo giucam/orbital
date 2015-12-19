@@ -39,7 +39,6 @@
 #include <wayland-client.h>
 
 #include "wayland-desktop-shell-client-protocol.h"
-#include "wayland-settings-client-protocol.h"
 #include "wayland-clipboard-client-protocol.h"
 
 #include "client.h"
