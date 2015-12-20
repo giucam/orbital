@@ -19,8 +19,6 @@
 
 #include <QDebug>
 
-#include <compositor.h>
-
 #include "surface.h"
 #include "view.h"
 

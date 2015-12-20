@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <compositor-x11.h>
+#include <weston-1/compositor-x11.h>
 
 #include "x11-backend.h"
 

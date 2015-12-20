@@ -20,7 +20,7 @@
 #ifndef ORBITAL_UTILS_H
 #define ORBITAL_UTILS_H
 
-#include <compositor.h>
+#include <weston-1/compositor.h>
 
 namespace Orbital {
 

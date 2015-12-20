@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <matrix.h>
+#include <weston-1/matrix.h>
 
 #include "transform.h"
 

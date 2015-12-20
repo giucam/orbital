@@ -24,7 +24,7 @@
 
 #include <QSize>
 
-#include <compositor.h>
+#include <weston-1/compositor.h>
 
 #include "interface.h"
 

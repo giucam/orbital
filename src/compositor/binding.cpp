@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <compositor.h>
+#include <weston-1/compositor.h>
 
 #include "binding.h"
 #include "seat.h"
