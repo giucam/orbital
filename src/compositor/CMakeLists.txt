@@ -38,6 +38,7 @@ set(SOURCES
     dashboard.cpp
     gammacontrol.cpp
     authorizer.cpp
+    stringview.cpp
     effect.cpp
     effects/zoomeffect.cpp
     effects/desktopgrid.cpp
