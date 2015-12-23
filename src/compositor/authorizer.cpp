@@ -99,7 +99,8 @@ public:
     ~TrustedClient() { wl_list_remove(&listener.listener.link); }
     Authorizer *authorizer;
     wl_client *client;
-    QByteArray interface;
+    std::list<TrustedClient>::iterator iterator;
+    std::list<TrustedClient> *list;
     struct Listener {
         wl_listener listener;
         TrustedClient *parent;
@@ -118,45 +119,54 @@ Authorizer::Authorizer(Compositor *compositor)
 Authorizer::~Authorizer()
 {
     delete m_helper;
-    for (auto i = m_trustedClients.constBegin(); i != m_trustedClients.constEnd(); ++i) {
-        qDeleteAll(i.value());
+}
+
+void Authorizer::addRestrictedInterface(StringView interface)
+{
+    if (std::find(m_restrictedIfaces.begin(), m_restrictedIfaces.end(), interface) != std::end(m_restrictedIfaces)) {
+        return;
+    }
+    m_restrictedIfaces.push_back(interface.toStdString());
+}
+
+void Authorizer::removeRestrictedInterface(StringView interface)
+{
+    for (auto i = m_restrictedIfaces.begin(); i != m_restrictedIfaces.end(); ++i) {
+        if (*i == interface) {
+            m_restrictedIfaces.erase(i);
+            return;
+        }
     }
 }
 
-void Authorizer::addRestrictedInterface(const QByteArray &interface)
+void Authorizer::addTrustedClient(StringView interface, wl_client *c)
 {
-    if (!m_restrictedIfaces.contains(interface)) {
-        m_restrictedIfaces << interface;
-    }
-}
+    auto &clients = m_trustedClients[interface.toStdString()];
+    clients.emplace_front();
+    TrustedClient &cl = clients.front();
 
-void Authorizer::removeRestrictedInterface(const QByteArray &interface)
-{
-    m_restrictedIfaces.removeOne(interface);
-}
-
-void Authorizer::addTrustedClient(const QByteArray &interface, wl_client *c)
-{
-    TrustedClient *cl = new TrustedClient;
-    cl->authorizer = this;
-    cl->client = c;
-    cl->interface = interface;
-    cl->listener.parent = cl;
-    cl->listener.listener.notify = [](wl_listener *l, void *data)
+    cl.iterator = clients.begin();
+    cl.authorizer = this;
+    cl.client = c;
+    cl.list = &clients;
+    cl.listener.parent = &cl;
+    cl.listener.listener.notify = [](wl_listener *l, void *data)
     {
         TrustedClient *client = reinterpret_cast<TrustedClient::Listener *>(l)->parent;
-        client->authorizer->m_trustedClients[client->interface].removeOne(client);
-        delete client;
+        client->list->erase(client->iterator);
     };
-    wl_client_add_destroy_listener(c, &cl->listener.listener);
-
-    m_trustedClients[interface] << cl;
+    wl_client_add_destroy_listener(c, &cl.listener.listener);
 }
 
-bool Authorizer::isClientTrusted(const QByteArray &interface, wl_client *c) const
+bool Authorizer::isClientTrusted(StringView interface, wl_client *c) const
 {
-    for (TrustedClient *cl: m_trustedClients.value(interface)) {
-        if (cl->client == c) {
+    auto it = m_trustedClients.find(interface.toStdString());
+    if (it == m_trustedClients.end()) {
+        return false;
+    }
+
+    for (const TrustedClient &cl: it->second) {
+        if (cl.client == c) {
             return true;
         }
     }
@@ -184,7 +194,7 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 {
     wl_resource *resource = wl_resource_create(client, &orbital_authorizer_feedback_interface, wl_resource_get_version(res), id);
 
-    if (!m_restrictedIfaces.contains(global)) {
+    if (std::find(m_restrictedIfaces.begin(), m_restrictedIfaces.end(), global) == std::end(m_restrictedIfaces)) {
         qDebug("Authorization request for unknown interface '%s'. Granting...", global);
         grant(resource);
         return;
@@ -195,7 +205,7 @@ void Authorizer::authorize(wl_client *client, wl_resource *res, uint32_t id, con
 
     qDebug("Authorization for global '%s' requested by process %d.", global, pid);
 
-    QByteArray iface = global; //take a copy or 'global' may become invalid when the callback runs
+    std::string iface = global; //take a copy or 'global' may become invalid when the callback runs
     m_helper->authRequested(global, pid, [this, iface, client, resource](int32_t result) {
         if (result == 1) {
             qDebug("Authorization granted.");

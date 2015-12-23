@@ -21,10 +21,14 @@
 #define ORBITAL_AUTHORIZER_H
 
 #include <QObject>
-#include <QVector>
-#include <QHash>
+
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <list>
 
 #include "interface.h"
+#include "stringview.h"
 
 struct wl_resource;
 
@@ -40,10 +44,10 @@ public:
     explicit Authorizer(Compositor *compositor);
     ~Authorizer();
 
-    void addRestrictedInterface(const QByteArray &interface);
-    void removeRestrictedInterface(const QByteArray &interface);
+    void addRestrictedInterface(StringView interface);
+    void removeRestrictedInterface(StringView interface);
 
-    bool isClientTrusted(const QByteArray &interface, wl_client *c) const;
+    bool isClientTrusted(StringView interface, wl_client *c) const;
 
 protected:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
@@ -53,10 +57,10 @@ private:
     void authorize(wl_client *client, wl_resource *res, uint32_t id, const char *global);
     void grant(wl_resource *res);
     void deny(wl_resource *res);
-    void addTrustedClient(const QByteArray &interface, wl_client *c);
+    void addTrustedClient(StringView interface, wl_client *c);
 
-    QVector<QByteArray> m_restrictedIfaces;
-    QHash<QByteArray, QVector<TrustedClient *>> m_trustedClients;
+    std::vector<std::string> m_restrictedIfaces;
+    std::unordered_map<std::string, std::list<TrustedClient>> m_trustedClients;
     Helper *m_helper;
 };
 
