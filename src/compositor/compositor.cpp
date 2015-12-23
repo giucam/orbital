@@ -57,6 +57,8 @@ static const int WATCHDOG_TIMEOUT = 20;
 static int s_signalsFd[2];
 static int s_forceExit = 0;
 
+volatile sig_atomic_t alarmFired = 0;
+
 static int log(const char *fmt, va_list ap)
 {
     return vprintf(fmt, ap);
@@ -123,7 +125,10 @@ Compositor::Compositor(Backend *backend)
     sigterm.sa_flags |= SA_RESTART;
 
     sigalrm.sa_handler = [](int) {
-        abort();
+        if (++alarmFired > 1) {
+            abort();
+        }
+        alarm(WATCHDOG_TIMEOUT);
     };
     sigemptyset(&sigalrm.sa_mask);
     sigalrm.sa_flags = 0;
@@ -551,6 +556,7 @@ void Compositor::handleSignal()
 void Compositor::timerEvent(QTimerEvent *e)
 {
     alarm(WATCHDOG_TIMEOUT);
+    alarmFired = 0;
 }
 
 
