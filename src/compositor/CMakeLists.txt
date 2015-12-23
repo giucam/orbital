@@ -9,6 +9,7 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${Weston_INCLUDE_DIRS}
 ${CMAKE_CURRENT_BINARY_DIR})
+link_directories(${Weston_LIBRARY_DIRS} ${WaylandServer_LIBRARY_DIRS})
 
 set(SOURCES
     main.cpp
