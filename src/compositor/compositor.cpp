@@ -49,6 +49,7 @@
 #include "pager.h"
 #include "global.h"
 #include "authorizer.h"
+#include "format.h"
 
 namespace Orbital {
 
@@ -230,7 +231,7 @@ static const weston_pointer_grab_interface defaultPointerGrab = {
     [](weston_pointer_grab *grab) {}
 };
 
-bool Compositor::init(const QByteArray &socketName)
+bool Compositor::init(StringView socketName)
 {
     weston_log_set_handler(log, log);
 
@@ -313,8 +314,12 @@ bool Compositor::init(const QByteArray &socketName)
         }
     }
 
-    const char *socket = socketName.constData();
-    if (!socketName.isNull()) {
+    const char *socket = nullptr;
+    std::string socketStr;
+    if (!socketName.isEmpty()) {
+        socketStr = socketName.toStdString();
+        socket = socketStr.data();
+
         if (wl_display_add_socket(m_display, socket)) {
             weston_log("fatal: failed to add socket: %m\n");
             return false;
@@ -474,9 +479,9 @@ View *Compositor::pickView(double x, double y, double *vx, double *vy) const
     return View::fromView(v);
 }
 
-ChildProcess *Compositor::launchProcess(const QString &path)
+ChildProcess *Compositor::launchProcess(StringView path)
 {
-    qDebug("Launching '%s'...", qPrintable(path));
+    fmt::print("Launching '{}'...\n", path);
     ChildProcess *p = new ChildProcess(m_compositor->wl_display, path);
     p->start();
     return p;
@@ -569,10 +574,10 @@ struct ChildProcess::Listener
     ChildProcess *parent;
 };
 
-ChildProcess::ChildProcess(wl_display *dpy, const QString &program)
+ChildProcess::ChildProcess(wl_display *dpy, StringView program)
             : QObject()
             , m_display(dpy)
-            , m_program(program)
+            , m_program(program.toStdString())
             , m_client(nullptr)
             , m_autoRestart(false)
             , m_listener(new Listener)
@@ -626,17 +631,17 @@ void ChildProcess::start()
 
     Process *process = new Process(sv[1]);
     connect(process, (void (QProcess::*)(QProcess::ProcessError))&QProcess::error, [this](QProcess::ProcessError err) {
-        qDebug("%s: error %d\n", qPrintable(m_program), (int)err);
+        fmt::print("{}: error {}", m_program, (int)err);
     });
     process->setProcessChannelMode(QProcess::ForwardedChannels);
-    process->start(m_program);
+    process->start(QString::fromStdString(m_program));
     connect(process, &QProcess::started, [sv]() { close(sv[1]); });
     connect(process, (void (QProcess::*)(int))&QProcess::finished, process, &QObject::deleteLater);
 
     m_client = wl_client_create(m_display, sv[0]);
     if (!m_client) {
         close(sv[0]);
-        qDebug("wl_client_create failed while launching '%s'.", qPrintable(m_program));
+        fmt::print("wl_client_create failed while launching '{}'.\n", m_program);
         return;
     }
 
@@ -677,15 +682,15 @@ void ChildProcess::finished()
         }
 
         if (m_deathCount > 4) {
-            qDebug("%s exited too often too fast. Giving up.", qPrintable(m_program));
+            fmt::print("{} exited too often too fast. Giving up.\n", m_program);
             m_deathCount = 0;
             emit givingUp();
         } else {
-            qDebug("%s exited. Restarting it...", qPrintable(m_program));
+            fmt::print("{} exited. Restarting it...\n", m_program);
             start();
         }
     } else {
-        qDebug("%s exited.", qPrintable(m_program));
+        fmt::print("{} exited.\n", m_program);
     }
 }
 

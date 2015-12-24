@@ -65,7 +65,7 @@ DesktopShell::DesktopShell(Shell *shell)
     m_shell->addInterface(new DesktopShellSettings(shell));
     m_shell->addInterface(m_splash);
 
-    m_client = shell->compositor()->launchProcess(QStringLiteral(LIBEXEC_PATH "/startorbital"));
+    m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/startorbital");
     m_client->setAutoRestart(true);
     connect(m_client, &ChildProcess::givingUp, this, &DesktopShell::givingUp);
 

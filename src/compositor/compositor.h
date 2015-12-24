@@ -28,6 +28,7 @@
 
 #include "global.h"
 #include "interface.h"
+#include "stringview.h"
 
 struct wl_display;
 struct wl_event_loop;
@@ -82,7 +83,7 @@ public:
     explicit Compositor(Backend *backend);
     ~Compositor();
 
-    bool init(const QByteArray &socket);
+    bool init(StringView socket);
     void quit();
 
     inline wl_display *display() const { return m_display; }
@@ -95,7 +96,7 @@ public:
     uint32_t nextSerial() const;
 
     View *pickView(double x, double y, double *vx = nullptr, double *vy = nullptr) const;
-    ChildProcess *launchProcess(const QString &path);
+    ChildProcess *launchProcess(StringView path);
 
     Authorizer *authorizer() const { return m_authorizer; }
 
@@ -166,12 +167,12 @@ signals:
 private:
     struct Listener;
 
-    ChildProcess(wl_display *display, const QString &program);
+    ChildProcess(wl_display *display, StringView program);
     void start();
     void finished();
 
     wl_display *m_display;
-    QString m_program;
+    std::string m_program;
     wl_client *m_client;
     bool m_autoRestart;
     Listener *m_listener;

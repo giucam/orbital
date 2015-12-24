@@ -36,7 +36,7 @@ public:
     Helper(Compositor *c, Authorizer *auth)
         : Global(c, &orbital_authorizer_helper_interface, 1)
         , m_auth(auth)
-        , m_client(c->launchProcess(QStringLiteral(LIBEXEC_PATH "/orbital-authorizer-helper")))
+        , m_client(c->launchProcess(LIBEXEC_PATH "/orbital-authorizer-helper"))
         , m_resource(nullptr)
     {
         m_client->setAutoRestart(true);

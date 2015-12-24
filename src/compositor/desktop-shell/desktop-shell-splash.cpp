@@ -93,7 +93,7 @@ DesktopShellSplash::DesktopShellSplash(Shell *shell)
                   , Global(shell->compositor(), &desktop_shell_splash_interface, 1)
                   , m_shell(shell)
 {
-    m_client = shell->compositor()->launchProcess(QStringLiteral(LIBEXEC_PATH "/orbital-splash"));
+    m_client = shell->compositor()->launchProcess(LIBEXEC_PATH "/orbital-splash");
 }
 
 DesktopShellSplash::~DesktopShellSplash()
