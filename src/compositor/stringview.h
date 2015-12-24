@@ -36,9 +36,12 @@ public:
     StringView(const std::string &str);
     StringView(const QByteArray &str);
 
+    inline bool isNull() const { return string == nullptr; }
+    inline bool isEmpty() const { return string && size() == 0; }
     inline size_t size() const { return end - string; }
 
     std::string toStdString() const;
+    QString toQString() const;
 
     bool operator==(StringView v) const;
 
@@ -47,6 +50,10 @@ private:
     const char *end;
 
     friend QDebug operator<<(QDebug dbg, StringView v);
+    friend std::ostream &operator<<(std::ostream &os, StringView v) {
+        os.write(v.string, v.size());
+        return os;
+    }
 };
 
 inline bool operator==(const std::string &str, StringView v) { return StringView(str) == v; }

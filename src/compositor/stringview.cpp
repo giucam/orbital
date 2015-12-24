@@ -34,7 +34,7 @@ StringView::StringView(const char *str, size_t l)
 }
 
 StringView::StringView(const char *str)
-          : StringView(str, strlen(str))
+          : StringView(str, str ? strlen(str) : 0)
 {
 }
 
@@ -51,6 +51,11 @@ StringView::StringView(const QByteArray &str)
 std::string StringView::toStdString() const
 {
     return std::string(string, size());
+}
+
+QString StringView::toQString() const
+{
+    return QString::fromUtf8(string, size());
 }
 
 bool StringView::operator==(StringView v) const
