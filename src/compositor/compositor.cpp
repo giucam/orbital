@@ -155,8 +155,8 @@ Compositor::Compositor(Backend *backend)
 
 Compositor::~Compositor()
 {
-    delete m_authorizer;
     delete m_shell;
+    delete m_authorizer;
     qDeleteAll(m_outputs);
     qDeleteAll(m_layers);
     delete m_bindingsCleanupHandler;
