@@ -51,7 +51,7 @@ Surface::Surface(weston_surface *surface, QObject *p)
 
     weston_surface_set_label_func(surface, [](weston_surface *surf, char *buf, size_t len) {
         Surface *s = Surface::fromSurface(surf);
-        return snprintf(buf, len, "%s", qPrintable(s->m_label));
+        return snprintf(buf, len, "%s", s->m_label.data());
     });
 }
 
@@ -144,9 +144,9 @@ void Surface::setActivable(bool activable)
     m_activable = activable;
 }
 
-void Surface::setLabel(const QString &label)
+void Surface::setLabel(StringView label)
 {
-    m_label = label;
+    m_label = label.toStdString();
 }
 
 void Surface::ref()

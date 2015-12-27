@@ -47,15 +47,17 @@ int main(int argc, char **argv)
 
     parser.process(app);
 
-    QString backendKey;
+    Orbital::StringView backendKey;
+    QByteArray opt;
     if (parser.isSet(backendOption)) {
-        backendKey = parser.value(backendOption);
+        opt = parser.value(backendOption).toUtf8();
+        backendKey = opt;
     } else if (getenv("WAYLAND_DISPLAY")) {
-        backendKey = QStringLiteral("wayland-backend");
+        backendKey = "wayland-backend";
     } else if (getenv("DISPLAY")) {
-        backendKey = QStringLiteral("x11-backend");
+        backendKey = "x11-backend";
     } else {
-        backendKey = QStringLiteral("drm-backend");
+        backendKey = "drm-backend";
     }
 
     Orbital::BackendFactory::searchPlugins();

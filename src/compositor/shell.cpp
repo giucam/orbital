@@ -614,9 +614,9 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
     focus->setAlpha(qBound(0., a, 1.));
 }
 
-void Shell::addAction(const QByteArray &name, const Action &action)
+void Shell::addAction(StringView name, const Action &action)
 {
-    m_actions.append({ name, action });
+    m_actions.append({ name.toStdString(), action });
     emit actionAdded(name, &m_actions.last().second);
 }
 
@@ -637,7 +637,7 @@ Shell::ActionList::iterator Shell::ActionList::end()
     return iterator(n, shell);
 }
 
-QByteArray Shell::ActionList::iterator::name()
+StringView Shell::ActionList::iterator::name()
 {
     return shell->m_actions.at(id).first;
 }

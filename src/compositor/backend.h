@@ -20,8 +20,12 @@
 #ifndef ORBITAL_BACKEND_H
 #define ORBITAL_BACKEND_H
 
+#include <unordered_map>
+
 #include <QObject>
 #include <QHash>
+
+#include "stringview.h"
 
 class QPluginLoader;
 
@@ -44,10 +48,10 @@ public:
     static void searchPlugins();
     static void cleanupPlugins();
 
-    static Backend *createBackend(const QString &name);
+    static Backend *createBackend(StringView name);
 
 private:
-    QHash<QString, QPluginLoader *> m_factories;
+    std::unordered_map<std::string, QPluginLoader *> m_factories;
 };
 
 }

@@ -42,7 +42,7 @@ void BackendFactory::searchPlugins()
         if (metaData.value(QStringLiteral("IID")).toString() == QStringLiteral("Orbital.Compositor.Backend")) {
             const QStringList keys = metaData.value(QStringLiteral("MetaData")).toObject().toVariantMap().value(QStringLiteral("Keys")).toStringList();
             for (QString key: keys) {
-                s_factory->m_factories.insert(key, pluginLoader);
+                s_factory->m_factories[key.toStdString()] = pluginLoader;
             }
         } else {
             delete pluginLoader;
@@ -52,17 +52,21 @@ void BackendFactory::searchPlugins()
 
 void BackendFactory::cleanupPlugins()
 {
-    qDeleteAll(s_factory->m_factories);
+    std::for_each(s_factory->m_factories.begin(), s_factory->m_factories.end(),
+                  [](const std::pair<std::string, QPluginLoader *> &pair) {
+                      delete pair.second;
+                  });
 }
 
-Backend *BackendFactory::createBackend(const QString &name)
+Backend *BackendFactory::createBackend(StringView name)
 {
-    if (!s_factory->m_factories.contains(name)) {
+    auto it = s_factory->m_factories.find(name.toStdString());
+    if (it == std::end(s_factory->m_factories)) {
         qWarning() << "Cannot find the plugin" << name;
         return nullptr;
     }
 
-    QPluginLoader *loader = s_factory->m_factories.value(name);
+    QPluginLoader *loader = it->second;
     QObject *obj = loader->instance();
     if (!obj) {
         qWarning() << "Could not load the plugin" << name;

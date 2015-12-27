@@ -34,6 +34,7 @@
 #include "../output.h"
 #include "../pager.h"
 #include "../focusscope.h"
+#include "../format.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -137,36 +138,43 @@ void DesktopShellWindow::create()
         win->m_resource = nullptr;
     });
 
-    QString title = shsurf()->title();
-    if (title.isEmpty()) {
+    std::string title = shsurf()->title().toStdString();
+    if (title.empty()) {
         QFileInfo exe(QStringLiteral("/proc/%1/exe").arg(shsurf()->pid()));
-        title = QFileInfo(exe.symLinkTarget()).fileName();
+        title = QFileInfo(exe.symLinkTarget()).fileName().toUtf8().constData();
     }
-    QString icon;
+    std::string icon;
     if (!shsurf()->appId().isEmpty()) {
-        QString appId = shsurf()->appId().replace(QLatin1Char('-'), QLatin1Char('/')).remove(QLatin1String(".desktop"));
-        static QString xdgDataDir = []() {
-            QString s = QString::fromUtf8(qgetenv("XDG_DATA_DIRS"));
-            if (s.isEmpty()) {
-                s = QStringLiteral("/usr/share");
+        std::string appId = shsurf()->appId().toStdString();
+        std::replace(appId.begin(), appId.end(), '-', '/');
+        auto pos = appId.rfind(".desktop");
+        if (pos != std::string::npos) {
+            appId.erase(pos);
+        }
+        static std::string xdgDataDir = []() {
+            const char *xdg = getenv("XDG_DATA_DIRS");
+            std::string s = xdg ? xdg : "";
+            if (s.empty()) {
+                s = "/usr/share";
             }
             return s;
         }();
-        foreach (const QString &d, xdgDataDir.split(QLatin1Char(':'))) {
-            QString path = QStringLiteral("%1/applications/%2.desktop").arg(d, appId);
-            if (QFile::exists(path)) {
-                QSettings settings(path, QSettings::IniFormat);
+        StringView(xdgDataDir).split(':', [&icon, appId](StringView d) {
+            std::string path = fmt::format("{}/applications/{}.desktop", d, appId);
+            if (QFile::exists(QLatin1String(path.data()))) {
+                QSettings settings(QLatin1String(path.data()), QSettings::IniFormat);
                 settings.beginGroup(QStringLiteral("Desktop Entry"));
-                icon = settings.value(QStringLiteral("Icon")).toString();
+                icon = settings.value(QStringLiteral("Icon")).toString().toStdString();
                 settings.endGroup();
-                break;
+                return true;
             }
-        }
+            return false;
+        });
     }
 
     desktop_shell_send_window_added(m_desktopShell->resource(), m_resource, shsurf()->pid());
-    desktop_shell_window_send_title(m_resource, qPrintable(title));
-    desktop_shell_window_send_icon(m_resource, qPrintable(icon));
+    desktop_shell_window_send_title(m_resource, title.data());
+    desktop_shell_window_send_icon(m_resource, icon.data());
     desktop_shell_window_send_state(m_resource, m_state);
 }
 
@@ -189,7 +197,7 @@ void DesktopShellWindow::sendState()
 void DesktopShellWindow::sendTitle()
 {
     if (m_resource) {
-        desktop_shell_window_send_title(m_resource, qPrintable(shsurf()->title()));
+        desktop_shell_window_send_title(m_resource, shsurf()->title().toStdString().data());
     }
 }
 

@@ -38,6 +38,7 @@
 #include "../pager.h"
 #include "../dummysurface.h"
 #include "../focusscope.h"
+#include "../format.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"
@@ -214,7 +215,7 @@ void DesktopShell::setBackground(wl_resource *outputResource, wl_resource *surfa
 
     if (surface->setRole("desktop_shell_background_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setBackground(surface);
-        surface->setLabel(QStringLiteral("background"));
+        surface->setLabel("background");
     }
 }
 
@@ -227,7 +228,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
         return;
     }
 
-    surface->setLabel(QStringLiteral("panel"));
+    surface->setLabel("panel");
 
     class Panel {
     public:
@@ -288,7 +289,7 @@ void DesktopShell::setLockSurface(wl_resource *surfaceResource, wl_resource *out
 
     Output *output = Output::fromResource(outputResource);
     output->setLockSurface(surface);
-    surface->setLabel(QStringLiteral("lock"));
+    surface->setLabel("lock");
     m_shell->lockFocusScope()->activate(surface);
 }
 
@@ -301,7 +302,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         return;
     }
 
-    surface->setLabel(QStringLiteral("popup"));
+    surface->setLabel("popup");
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
     class Popup : public Surface::RoleHandler
@@ -497,7 +498,7 @@ void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceR
 
     if (surface->setRole("desktop_shell_overlay_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         output->setOverlay(surface);
-        surface->setLabel(QStringLiteral("overlay"));
+        surface->setLabel("overlay");
     }
 }
 
@@ -715,7 +716,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
     new ActiveRegion(m_shell->compositor(), res, Surface::fromResource(parentResource), x, y, width, height);
 }
 
-void DesktopShell::sendNewAction(const QByteArray &name, Shell::Action *action)
+void DesktopShell::sendNewAction(StringView name, Shell::Action *action)
 {
     if (!m_resource) {
         return;
@@ -730,7 +731,7 @@ void DesktopShell::sendNewAction(const QByteArray &name, Shell::Action *action)
     };
     wl_resource_set_implementation(res, &impl, action, nullptr);
 
-    desktop_shell_send_compositor_action(m_resource, res, name.constData());
+    desktop_shell_send_compositor_action(m_resource, res, name.toStdString().data());
 }
 
 }

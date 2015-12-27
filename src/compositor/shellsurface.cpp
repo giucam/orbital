@@ -33,11 +33,12 @@
 #include "seat.h"
 #include "pager.h"
 #include "layer.h"
+#include "format.h"
 
 namespace Orbital
 {
 
-QHash<QString, QPoint> ShellSurface::s_posCache;
+std::unordered_map<std::string, QPoint> ShellSurface::s_posCache;
 
 ShellSurface::ShellSurface(Shell *shell, Surface *surface)
             : Object()
@@ -391,19 +392,19 @@ void ShellSurface::moveViews(double x, double y)
     }
 }
 
-void ShellSurface::setTitle(const QString &t)
+void ShellSurface::setTitle(StringView t)
 {
     if (m_title != t) {
-        m_title = t;
+        m_title = t.toStdString();
         emit titleChanged();
         m_surface->setLabel(t);
     }
 }
 
-void ShellSurface::setAppId(const QString &id)
+void ShellSurface::setAppId(StringView id)
 {
     if (m_appId != id) {
-        m_appId = id;
+        m_appId = id.toStdString();
         emit appIdChanged();
     }
 }
@@ -436,25 +437,26 @@ QRect ShellSurface::geometry() const
     return surfaceTreeBoundingBox();
 }
 
-QString ShellSurface::title() const
+StringView ShellSurface::title() const
 {
     return m_title;
 }
 
-QString ShellSurface::appId() const
+StringView ShellSurface::appId() const
 {
     return m_appId;
 }
 
-inline QString ShellSurface::cacheId() const
+inline std::string ShellSurface::cacheId() const
 {
-    return QStringLiteral("%1+%2").arg(m_appId, m_title);
+    return fmt::format("{}+{}", m_appId, m_title);
 }
 
 Maybe<QPoint> ShellSurface::cachedPos() const
 {
-    QString id = cacheId();
-    return s_posCache.contains(id) ? Maybe<QPoint>(s_posCache.value(id)) : Maybe<QPoint>();
+    std::string id = cacheId();
+    auto it = s_posCache.find(id);
+    return it != s_posCache.end() ? Maybe<QPoint>(it->second) : Maybe<QPoint>();
 }
 
 void ShellSurface::parentSurfaceDestroyed()

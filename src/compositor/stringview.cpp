@@ -58,6 +58,29 @@ QString StringView::toQString() const
     return QString::fromUtf8(string, size());
 }
 
+void StringView::split(char c, const std::function<bool (StringView substr)> &func) const
+{
+    if (!string || string == end) {
+        return;
+    }
+
+    const char *substr = string;
+    const char *p = string;
+    do {
+        if (*p == c || p == end) {
+            if (p == end && substr == string) { //there was no 'c' in the string, bail out
+                break;
+            }
+            int l = p - substr;
+            if (l && func(StringView(substr, l))) {
+                break;
+            }
+            substr = p + 1;
+        }
+        p++;
+    } while (substr <= end);
+}
+
 bool StringView::operator==(StringView v) const
 {
     return size() == v.size() && memcmp(string, v.string, size()) == 0;

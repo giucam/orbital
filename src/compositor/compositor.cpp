@@ -244,16 +244,16 @@ bool Compositor::init(StringView socketName)
     m_compositor->idle_time = 300;
 
     QJsonObject kbdConfig = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Keyboard")].toObject();
-    QString keylayout = kbdConfig[QStringLiteral("Layout")].toString();
-    QString keyoptions = kbdConfig[QStringLiteral("Options")].toString();
+    const QByteArray keylayout = kbdConfig[QStringLiteral("Layout")].toString().toUtf8();
+    const QByteArray keyoptions = kbdConfig[QStringLiteral("Options")].toString().toUtf8();
 
-    m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<QByteArray>() : keylayout.toUtf8(),
-                             keyoptions.isEmpty() ? Maybe<QByteArray>() : keyoptions.toUtf8());
+    m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<StringView>() : StringView(keylayout),
+                             keyoptions.isEmpty() ? Maybe<StringView>() : StringView(keyoptions));
 
     xkb_rule_names xkb = { nullptr, nullptr,
-                           keylayout.isEmpty() ? nullptr : strdup(qPrintable(keylayout)),
+                           keylayout.isEmpty() ? nullptr : strdup(keylayout.data()),
                            nullptr,
-                           keyoptions.isEmpty() ? nullptr : strdup(qPrintable(keyoptions)) };
+                           keyoptions.isEmpty() ? nullptr : strdup(keyoptions.data()) };
 
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;

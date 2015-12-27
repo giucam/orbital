@@ -21,6 +21,7 @@
 #define ORBITAL_SHELLSURFACE_H
 
 #include <functional>
+#include <unordered_map>
 
 #include <QHash>
 #include <QObject>
@@ -29,6 +30,7 @@
 #include "interface.h"
 #include "utils.h"
 #include "surface.h"
+#include "stringview.h"
 
 struct wl_client;
 struct weston_surface;
@@ -100,8 +102,8 @@ public:
 
     void moveViews(double x, double y);
 
-    void setTitle(const QString &title);
-    void setAppId(const QString &appid);
+    void setTitle(StringView title);
+    void setAppId(StringView appid);
     void setGeometry(int x, int y, int w, int h);
     void setPid(pid_t pid);
 
@@ -109,8 +111,8 @@ public:
     bool isFullscreen() const;
     bool isInactive() const;
     QRect geometry() const;
-    QString title() const;
-    QString appId() const;
+    StringView title() const;
+    StringView appId() const;
     Maybe<QPoint> cachedPos() const;
     pid_t pid() const { return m_pid; }
 
@@ -139,7 +141,7 @@ private:
     void outputRemoved(Output *output);
     void connectParent();
     void disconnectParent();
-    inline QString cacheId() const;
+    inline std::string cacheId() const;
     void availableGeometryChanged();
     void workspaceActivated(Workspace *w, Output *o);
 
@@ -155,8 +157,8 @@ private:
     int m_height, m_width;
     QRect m_geometry;
     QRect m_nextGeometry;
-    QString m_title;
-    QString m_appId;
+    std::string m_title;
+    std::string m_appId;
     bool m_forceMap;
     pid_t m_pid;
     PointerGrab *m_currentGrab;
@@ -188,7 +190,7 @@ private:
         bool fullscreen;
     } m_state;
 
-    static QHash<QString, QPoint> s_posCache;
+    static std::unordered_map<std::string, QPoint> s_posCache;
 
     friend class XWayland;
 };

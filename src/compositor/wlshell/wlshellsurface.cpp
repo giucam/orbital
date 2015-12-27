@@ -142,12 +142,12 @@ void WlShellSurface::setMaximized(wl_resource *outputResource)
 
 void WlShellSurface::setTitle(const char *title)
 {
-    shellSurface()->setTitle(QString::fromUtf8(title));
+    shellSurface()->setTitle(title);
 }
 
 void WlShellSurface::setClass(const char *className)
 {
-    shellSurface()->setAppId(QString::fromUtf8(className));
+    shellSurface()->setAppId(className);
 }
 
 void WlShellSurface::popupDone()

@@ -27,6 +27,7 @@
 #include <weston-1/compositor.h>
 
 #include "interface.h"
+#include "stringview.h"
 
 struct wl_resource;
 struct weston_surface;
@@ -86,7 +87,7 @@ public:
     void setActivable(bool activable);
     inline bool isActivable() const { return m_activable; }
 
-    void setLabel(const QString &label);
+    void setLabel(StringView label);
 
     void ref();
     void deref();
@@ -114,7 +115,7 @@ private:
     bool m_activable;
     QList<View *> m_views;
     int m_workspaceMask;
-    QString m_label;
+    std::string m_label;
     FocusScope *m_focusScope;
 
     friend View;

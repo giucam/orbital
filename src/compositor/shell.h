@@ -26,7 +26,7 @@
 #include <QPair>
 
 #include "interface.h"
-
+#include "stringview.h"
 
 namespace Orbital {
 
@@ -83,13 +83,13 @@ public:
     void setGrabCursorSetter(GrabCursorSetter s);
     void setGrabCursorUnsetter(GrabCursorUnsetter s);
 
-    void addAction(const QByteArray &name, const Action &action);
+    void addAction(StringView name, const Action &action);
 
     class ActionList {
     public:
         class iterator {
         public:
-            QByteArray name();
+            StringView name();
             Action *action();
 
             iterator &operator++() { ++id; return *this; }
@@ -115,7 +115,7 @@ public:
 signals:
     void aboutToLock();
     void locked();
-    void actionAdded(const QByteArray &name, Action *action);
+    void actionAdded(StringView name, Action *action);
 
 private:
     void giveFocus(Seat *s);
@@ -142,7 +142,7 @@ private:
     bool m_locked;
     FocusScope *m_lockScope;
     FocusScope *m_appsScope;
-    QVector<QPair<QByteArray, Action>> m_actions;
+    QVector<QPair<std::string, Action>> m_actions;
 };
 
 }
