@@ -15,6 +15,10 @@ add_definitions(-DQT_NO_CAST_FROM_ASCII
 
 add_subdirectory(src)
 
+enable_testing()
+add_custom_target(check ${CMAKE_CTEST_COMMAND} -V)
+add_subdirectory(test EXCLUDE_FROM_ALL)
+
 # uninstall target
 configure_file(
     "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"

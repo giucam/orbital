@@ -1,0 +1,12 @@
+
+find_package(Qt5Core)
+find_package(Qt5Test)
+
+set(CMAKE_AUTOMOC ON)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ../../src/compositor)
+
+add_executable(tst_stringview tst_stringview.cpp ../../src/compositor/stringview.cpp)
+add_test(tst_stringview tst_stringview)
+add_dependencies(check tst_stringview)
+qt5_use_modules(tst_stringview Core Test)
