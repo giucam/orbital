@@ -21,7 +21,6 @@
 #define ORBITAL_COMPOSITOR_H
 
 #include <QObject>
-#include <QTimer>
 #include <QJsonObject>
 #include <QMultiHash>
 #include <QVector>
@@ -29,6 +28,7 @@
 #include "global.h"
 #include "interface.h"
 #include "stringview.h"
+#include "timer.h"
 
 struct wl_display;
 struct wl_event_loop;
@@ -39,7 +39,6 @@ struct weston_output;
 
 class QProcess;
 class QObjectCleanupHandler;
-class QSocketNotifier;
 
 namespace Orbital {
 
@@ -111,9 +110,6 @@ public:
 
     static Compositor *fromCompositor(weston_compositor *c);
 
-protected:
-    void timerEvent(QTimerEvent *event) override;
-
 signals:
     void outputCreated(Output *output);
     void outputRemoved(Output *output);
@@ -121,10 +117,7 @@ signals:
     void seatCreated(Seat *seat);
 
 private:
-    void processEvents();
-    void processIdle();
     void outputDestroyed();
-    void handleSignal();
     void newOutput(weston_output *o);
     void fakeRepaint();
 
@@ -136,9 +129,9 @@ private:
     Shell *m_shell;
     QVector<Orbital::Layer *> m_layers;
     QList<Output *> m_outputs;
-    QTimer m_fakeRepaintLoopTimer;
+    Timer m_fakeRepaintLoopTimer;
+    Timer m_watchdogTimer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
-    QSocketNotifier *m_signalsNotifier;
     QJsonObject m_config;
     QMultiHash<int, HotSpotBinding *> m_hotSpotBindings;
     Keymap m_defaultKeymap;

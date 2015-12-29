@@ -71,5 +71,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    return app.exec();
+    wl_display_run(compositor.display());
+    return 0;
 }

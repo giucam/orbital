@@ -25,9 +25,6 @@
 #include <linux/input.h>
 
 #include <QDebug>
-#include <QSocketNotifier>
-#include <QCoreApplication>
-#include <QAbstractEventDispatcher>
 #include <QProcess>
 #include <QObjectCleanupHandler>
 #include <QJsonDocument>
@@ -59,6 +56,121 @@ static int s_signalsFd[2];
 static int s_forceExit = 0;
 
 volatile sig_atomic_t alarmFired = 0;
+
+static wl_event_loop *s_event_loop;
+
+Timer::Timer()
+     : m_func(nullptr)
+     , m_timerSource(nullptr)
+     , m_idleSource(nullptr)
+     , m_interval(-1)
+     , m_repeat(true)
+{
+}
+
+Timer::~Timer()
+{
+    if (m_timerSource) {
+        wl_event_source_remove(m_timerSource);
+    }
+    if (m_idleSource) {
+        wl_event_source_remove(m_idleSource);
+    }
+}
+
+void Timer::setRepeat(bool repeat)
+{
+    m_repeat = repeat;
+}
+
+void Timer::setTimeoutHandler(const std::function<void ()> &func)
+{
+    m_func = func;
+}
+
+void Timer::start(int msecs, const std::function<void ()> &func)
+{
+    m_func = func;
+    start(msecs);
+}
+
+void Timer::start(int msecs)
+{
+    m_interval = msecs;
+
+    if (!m_timerSource) {
+        m_timerSource = wl_event_loop_add_timer(s_event_loop, [](void *data) {
+            Timer *t = static_cast<Timer *>(data);
+            t->timeout();
+            return 0;
+        }, this);
+    }
+    rearm();
+}
+
+void Timer::stop()
+{
+    m_interval = -1;
+    rearm();
+}
+
+void Timer::timeout()
+{
+    m_func();
+    if (m_repeat) {
+        rearm();
+    }
+}
+
+void Timer::rearm()
+{
+    if (m_interval == 0 && !m_idleSource) {
+        m_idleSource = wl_event_loop_add_idle(s_event_loop, [](void *data) {
+            Timer *t = static_cast<Timer *>(data);
+            t->m_idleSource = nullptr;
+            t->timeout();
+        }, this);
+    } else if (m_interval != 0 && m_idleSource) {
+        wl_event_source_remove(m_idleSource);
+        m_idleSource = nullptr;
+    }
+
+    wl_event_source_timer_update(m_timerSource, m_interval < 0 ? 0 : m_interval);
+}
+
+void Timer::singleShot(int msecs, const std::function<void ()> &func)
+{
+    if (msecs < 0) {
+        return;
+    }
+
+    struct SingleShot {
+        std::function<void ()> func;
+        wl_event_source *source;
+    };
+
+    SingleShot *ss = new SingleShot{ func, nullptr };
+
+    if (msecs == 0) {
+        wl_event_loop_add_idle(s_event_loop, [](void *data) {
+            auto *ss = static_cast<SingleShot *>(data);
+            ss->func();
+            delete ss;
+        }, ss);
+    } else {
+        ss->source = wl_event_loop_add_timer(s_event_loop, [](void *data) {
+            auto *ss = static_cast<SingleShot *>(data);
+            ss->func();
+            wl_event_source_remove(ss->source);
+            delete ss;
+            return 0;
+        }, ss);
+        wl_event_source_timer_update(ss->source, msecs);
+    }
+}
+
+
+
 
 static int log(const char *fmt, va_list ap)
 {
@@ -95,14 +207,22 @@ Compositor::Compositor(Backend *backend)
           , m_bindingsCleanupHandler(new QObjectCleanupHandler)
           , m_authorizer(nullptr)
 {
-    connect(&m_fakeRepaintLoopTimer, &QTimer::timeout, this, &Compositor::fakeRepaint);
+    m_fakeRepaintLoopTimer.setTimeoutHandler([this]() {
+        fakeRepaint();
+    });
 
     if (::socketpair(AF_UNIX, SOCK_STREAM, 0, s_signalsFd)) {
         qFatal("Couldn't create signals socketpair");
     }
 
-    m_signalsNotifier = new QSocketNotifier(s_signalsFd[1], QSocketNotifier::Read, this);
-    connect(m_signalsNotifier, &QSocketNotifier::activated, this, &Compositor::handleSignal);
+    s_event_loop = wl_display_get_event_loop(m_display);
+    wl_event_loop_add_fd(s_event_loop, s_signalsFd[1], WL_EVENT_READABLE, [](int fd, uint32_t mask, void *data) {
+        char tmp;
+        ::read(fd, &tmp, sizeof(tmp));
+
+        static_cast<Compositor *>(data)->quit();
+        return 0;
+    }, this);
 
     struct sigaction sigint, sigterm, sigalrm;
 
@@ -337,14 +457,6 @@ bool Compositor::init(StringView socketName)
 
     weston_compositor_wake(m_compositor);
 
-    m_loop = wl_display_get_event_loop(m_display);
-    int fd = wl_event_loop_get_fd(m_loop);
-
-    QSocketNotifier *sockNot = new QSocketNotifier(fd, QSocketNotifier::Read, this);
-    connect(sockNot, &QSocketNotifier::activated, this, &Compositor::processEvents);
-    QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
-    connect(dispatcher, &QAbstractEventDispatcher::awake, this, &Compositor::processIdle);
-
     weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
                           terminate_binding, this);
@@ -368,7 +480,10 @@ bool Compositor::init(StringView socketName)
     });
 
     alarm(WATCHDOG_TIMEOUT);
-    startTimer(10000, Qt::VeryCoarseTimer);
+    m_watchdogTimer.start(10000, [this]() {
+        alarm(WATCHDOG_TIMEOUT);
+        alarmFired = 0;
+    });
 
     return true;
 }
@@ -420,18 +535,7 @@ void Compositor::fakeRepaint()
 void Compositor::quit()
 {
     qDebug() << "Orbital exiting...";
-    QCoreApplication::quit();
-}
-
-void Compositor::processEvents()
-{
-    wl_event_loop_dispatch(m_loop, 0);
-    wl_display_flush_clients(m_display);
-}
-
-void Compositor::processIdle()
-{
-    wl_event_loop_dispatch_idle(m_loop);
+    wl_display_terminate(m_display);
 }
 
 Shell *Compositor::shell() const
@@ -550,19 +654,6 @@ void Compositor::outputDestroyed()
     emit outputRemoved(o);
 }
 
-void Compositor::handleSignal()
-{
-    char tmp;
-    ::read(s_signalsFd[1], &tmp, sizeof(tmp));
-
-    quit();
-}
-
-void Compositor::timerEvent(QTimerEvent *e)
-{
-    alarm(WATCHDOG_TIMEOUT);
-    alarmFired = 0;
-}
 
 
 
