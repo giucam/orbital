@@ -21,6 +21,7 @@
 #ifndef ORBITAL_INTERFACE_H
 #define ORBITAL_INTERFACE_H
 
+#include <vector>
 #include <type_traits>
 
 #include <QObject>
@@ -48,7 +49,7 @@ public:
     T *findInterface() const;
 
 private:
-    QList<Interface *> m_ifaces;
+    std::vector<Interface *> m_ifaces;
 };
 
 class Interface : public QObject

@@ -20,7 +20,8 @@
 #ifndef ORBITAL_WORKSPACE_H
 #define ORBITAL_WORKSPACE_H
 
-#include <QHash>
+#include <unordered_map>
+
 #include <QRect>
 
 #include "interface.h"
@@ -162,7 +163,7 @@ private:
     int m_id;
     int m_x;
     int m_y;
-    QHash<int, View *> m_views;
+    std::unordered_map<int, View *> m_views;
 
     friend Pager;
 };

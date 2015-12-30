@@ -23,7 +23,6 @@
 #include <functional>
 #include <unordered_map>
 
-#include <QHash>
 #include <QObject>
 #include <QRect>
 
@@ -149,8 +148,8 @@ private:
     Surface *m_surface;
     ConfigureSender m_configureSender;
     AbstractWorkspace *m_workspace;
-    QHash<int, ShellView *> m_views;
-    QList<ShellView *> m_extraViews;
+    std::unordered_map<int, ShellView *> m_views;
+    std::vector<ShellView *> m_extraViews;
     ShellView *m_previewView;
     Edges m_resizeEdges;
     bool m_resizing;
@@ -167,7 +166,7 @@ private:
     Type m_nextType;
 
     Surface *m_parent;
-    QList<QMetaObject::Connection> m_parentConnections;
+    std::vector<QMetaObject::Connection> m_parentConnections;
     struct {
         int x;
         int y;

@@ -21,9 +21,9 @@
 #ifndef ORBITAL_FOCUSSCOPE_H
 #define ORBITAL_FOCUSSCOPE_H
 
+#include <list>
+
 #include <QObject>
-#include <QVector>
-#include <QLinkedList>
 
 namespace Orbital {
 
@@ -48,8 +48,8 @@ private:
     void deactivated(Seat *seat);
 
     Shell *m_shell;
-    QVector<Seat *> m_activeSeats;
-    QLinkedList<Surface *> m_activeSurfaces;
+    std::list<Seat *> m_activeSeats;
+    std::list<Surface *> m_activeSurfaces;
     Surface *m_activeSurface;
 
     friend Seat;

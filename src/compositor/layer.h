@@ -20,6 +20,8 @@
 #ifndef ORBITAL_LAYER_H
 #define ORBITAL_LAYER_H
 
+#include <vector>
+
 #include <QObject>
 
 struct weston_layer;
@@ -54,7 +56,7 @@ private:
 
     Wrapper *m_layer;
     Layer *m_parent;
-    QList<Layer *> m_children;
+    std::vector<Layer *> m_children;
     bool m_acceptInput;
 };
 

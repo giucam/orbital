@@ -21,6 +21,7 @@
 #define ORBITAL_OUTPUT_H
 
 #include <functional>
+#include <vector>
 
 #include <QObject>
 #include <QRect>
@@ -98,14 +99,14 @@ private:
     Layer *m_lockLayer;
     Root *m_transformRoot;
     View *m_background;
-    QList<View *> m_panels;
-    QList<View *> m_overlays;
+    std::vector<View *> m_panels;
+    std::vector<View *> m_overlays;
     Workspace *m_currentWs;
     Surface *m_backgroundSurface;
     LockSurface *m_lockBackgroundSurface;
     View *m_lockSurfaceView;
     bool m_locked;
-    QList<std::function<void ()>> m_callbacks;
+    std::vector<std::function<void ()>> m_callbacks;
 
     friend View;
     friend Animation;

@@ -59,10 +59,10 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
 {
     surface->setRoleHandler(this);
 
-    foreach (Output *o, shell->compositor()->outputs()) {
+    for (Output *o: shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this);
         view->setDesignedOutput(o);
-        m_views.insert(o->id(), view);
+        m_views[o->id()] = view;
         connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
@@ -78,12 +78,14 @@ ShellSurface::~ShellSurface()
     if (m_popup.seat) {
         m_popup.seat->ungrabPopup(this);
     }
-    qDeleteAll(m_views);
+    for (auto &i: m_views) {
+        delete i.second;
+    }
 }
 
 ShellView *ShellSurface::viewForOutput(Output *o)
 {
-    return m_views.value(o->id());
+    return m_views[o->id()];
 }
 
 void ShellSurface::setWorkspace(AbstractWorkspace *ws)
@@ -125,7 +127,7 @@ void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
     m_transient.inactive = inactive;
 
     disconnectParent();
-    m_parentConnections << connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
+    m_parentConnections.push_back(connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed));
     m_nextType = Type::Transient;
 }
 
@@ -143,14 +145,14 @@ void ShellSurface::setPopup(Surface *parent, Seat *seat, int x, int y)
 void ShellSurface::connectParent()
 {
     disconnectParent();
-    m_parentConnections << connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed);
-    m_parentConnections << connect(m_surface, &Surface::activated, m_parent, &Surface::activated);
-    m_parentConnections << connect(m_surface, &Surface::deactivated, m_parent, &Surface::deactivated);
+    m_parentConnections.push_back(connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed));
+    m_parentConnections.push_back(connect(m_surface, &Surface::activated, m_parent, &Surface::activated));
+    m_parentConnections.push_back(connect(m_surface, &Surface::deactivated, m_parent, &Surface::deactivated));
 }
 
 void ShellSurface::disconnectParent()
 {
-    foreach (auto &c, m_parentConnections) {
+    for (auto &c: m_parentConnections) {
         disconnect(c);
     }
     m_parentConnections.clear();
@@ -324,8 +326,8 @@ void ShellSurface::resize(Seat *seat, Edges edges)
 
 void ShellSurface::unmap()
 {
-    foreach (ShellView *v, m_views) {
-        v->cleanupAndUnmap();
+    for (auto &i: m_views) {
+        i.second->cleanupAndUnmap();
     }
     emit m_surface->unmapped();
 }
@@ -387,8 +389,8 @@ void ShellSurface::endPreview(Output *output)
 void ShellSurface::moveViews(double x, double y)
 {
     s_posCache[cacheId()] = QPoint(x, y);
-    foreach (ShellView *view, m_views) {
-        view->move(QPointF(x, y));
+    for (auto &i: m_views) {
+        i.second->move(QPointF(x, y));
     }
 }
 
@@ -548,20 +550,20 @@ void ShellSurface::configure(int x, int y)
         m_state.maximized = m_toplevel.maximized;
         m_state.fullscreen = m_toplevel.fullscreen;
 
-        foreach (ShellView *view, m_views) {
-            view->configureToplevel(map || !view->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
+        for (auto &i: m_views) {
+            i.second->configureToplevel(map || !i.second->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
     } else if (m_type == Type::Popup && typeChanged) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
-            foreach (View *view, m_parent->views()) {
+            for (View *view: m_parent->views()) {
                 ShellView *v = new ShellView(this);
                 v->setDesignedOutput(view->output());
                 v->configurePopup(view, m_popup.x, m_popup.y);
-                m_extraViews << v;
+                m_extraViews.push_back(v);
             }
         } else {
-            foreach (Output *o, m_shell->compositor()->outputs()) {
+            for (Output *o: m_shell->compositor()->outputs()) {
                 ShellView *view = viewForOutput(o);
                 ShellView *parentView = parent->viewForOutput(o);
 
@@ -576,7 +578,7 @@ void ShellSurface::configure(int x, int y)
             ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
         } else {
-            foreach (Output *o, m_shell->compositor()->outputs()) {
+            for (Output *o: m_shell->compositor()->outputs()) {
                 ShellView *view = viewForOutput(o);
                 ShellView *parentView = parent->viewForOutput(o);
 
@@ -584,8 +586,8 @@ void ShellSurface::configure(int x, int y)
             }
         }
     } else if (m_type == Type::XWayland) {
-        foreach (ShellView *view, m_views) {
-            view->configureXWayland(m_transient.x, m_transient.y);
+        for (auto &i: m_views) {
+            i.second->configureXWayland(m_transient.x, m_transient.y);
         }
     }
     m_surface->damage();
@@ -614,29 +616,27 @@ Output *ShellSurface::selectOutput()
         Output *output;
         int vote;
     };
-    QList<Out> candidates;
-    foreach (Output *o, m_shell->compositor()->outputs()) {
-        candidates.append({ o, m_shell->pager()->isWorkspaceActive(m_workspace, o) ? 10 : 0 });
+    std::vector<Out> candidates;
+    for (Output *o: m_shell->compositor()->outputs()) {
+        candidates.push_back({ o, m_shell->pager()->isWorkspaceActive(m_workspace, o) ? 10 : 0 });
     }
 
     Output *output = nullptr;
-    if (candidates.isEmpty()) {
+    if (candidates.empty()) {
         return nullptr;
     } else if (candidates.size() == 1) {
-        output = candidates.first().output;
+        output = candidates.front().output;
     } else {
-        QList<Seat *> seats = m_shell->compositor()->seats();
-        for (int i = 0; i < candidates.count(); ++i) {
-            Out &o = candidates[i];
-            foreach (Seat *s, seats) {
+        std::vector<Seat *> seats = m_shell->compositor()->seats();
+        for (Out &o: candidates) {
+            for (Seat *s: seats) {
                 if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
                     o.vote++;
                 }
             }
         }
         Out *out = nullptr;
-        for (int i = 0; i < candidates.count(); ++i) {
-            Out &o = candidates[i];
+        for (Out &o: candidates) {
             if (!out || out->vote < o.vote) {
                 out = &o;
             }
@@ -652,11 +652,11 @@ void ShellSurface::outputCreated(Output *o)
     view->setDesignedOutput(o);
     connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
 
-    if (View *v = *m_views.begin()) {
+    if (View *v = m_views.begin()->second) {
         view->setInitialPos(v->pos());
     }
 
-    m_views.insert(o->id(), view);
+    m_views[o->id()] = view;
     m_forceMap = true;
     configure(0, 0);
 }
@@ -664,7 +664,7 @@ void ShellSurface::outputCreated(Output *o)
 void ShellSurface::outputRemoved(Output *o)
 {
     View *v = viewForOutput(o);
-    m_views.remove(o->id());
+    m_views.erase(o->id());
     delete v;
 
     if (m_nextType == Type::Toplevel && m_toplevel.maximized && m_toplevel.output == o) {

@@ -125,15 +125,15 @@ Workspace::Workspace(Shell *shell, int id)
     connect(shell->compositor(), &Compositor::outputRemoved, this, &Workspace::outputRemoved);
     connect(shell->compositor(), &Compositor::outputCreated, this, &Workspace::newOutput);
 
-    foreach (Output *o, shell->compositor()->outputs()) {
+    for (Output *o: shell->compositor()->outputs()) {
         newOutput(o);
     }
 }
 
 Workspace::~Workspace()
 {
-    foreach (View *wsv, m_views) {
-        delete wsv;
+    for (auto &i: m_views) {
+        delete i.second;
     }
 }
 
@@ -155,15 +155,15 @@ void Workspace::newOutput(Output *o)
 
 AbstractWorkspace::View *Workspace::viewForOutput(Output *o)
 {
-    if (!m_views.contains(o->id())) {
+    if (m_views.count(o->id()) == 0) {
         View *view = new View(this, o);
-        m_views.insert(o->id(), view);
+        m_views[o->id()] = view;
         view->setTransformParent(o->rootView());
         view->setPos(m_x * o->width(), m_y * o->height());
         return view;
     }
 
-    return m_views.value(o->id());
+    return m_views[o->id()];
 }
 
 void Workspace::activate(Output *o)
@@ -173,7 +173,7 @@ void Workspace::activate(Output *o)
 
 Orbital::View *Workspace::topView() const
 {
-    View *view = *m_views.begin();
+    View *view = m_views.begin()->second;
     return view->m_layer->topView();
 }
 
@@ -191,7 +191,8 @@ void Workspace::setPos(int x, int y)
     m_x = x;
     m_y = y;
 
-    foreach (View *v, m_views) {
+    for (auto &i: m_views) {
+        View *v = i.second;
         v->setPos(x * v->m_output->width(), y * v->m_output->height());
     }
     emit positionChanged(x, y);
@@ -209,7 +210,8 @@ int Workspace::y() const
 
 void Workspace::outputRemoved(Output *o)
 {
-    delete m_views.take(o->id());
+    delete m_views[o->id()];
+    m_views.erase(o->id());
 }
 
 

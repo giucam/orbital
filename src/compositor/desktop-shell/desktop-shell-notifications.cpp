@@ -49,8 +49,8 @@ public:
         }
         ~NSView()
         {
-            parent->m_views.removeOne(this);
-            if (parent->m_views.isEmpty()) {
+            parent->m_views.erase(std::find(parent->m_views.begin(), parent->m_views.end(), this));
+            if (parent->m_views.empty()) {
                 delete parent;
             }
         }
@@ -94,9 +94,9 @@ public:
         , m_compositor(c)
         , initialMove(false)
     {
-        foreach (Output *o, c->outputs()) {
+        for (Output *o: c->outputs()) {
             NSView *v = new NSView(o, this, s);
-            m_views << v;
+            m_views.push_back(v);
             v->setTransformParent(o->rootView());
             connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
             connect(&v->moveAnim, &Animation::update, v, &NSView::move);
@@ -109,11 +109,11 @@ public:
     }
     ~NotificationSurface()
     {
-        manager->m_notifications.removeOne(this);
+        manager->m_notifications.remove(this);
     }
     void moveTo(int x, int y)
     {
-        foreach (NSView *view, m_views) {
+        for (NSView *view: m_views) {
             view->endPos = QPointF(x + view->output->width() - m_surface->width() - 20, y + 20);
             if (initialMove) {
                 view->startPos = view->pos();
@@ -129,7 +129,7 @@ public:
     void outputCreated(Output *o)
     {
         NSView *v = new NSView(o, this, m_surface);
-        m_views << v;
+        m_views.push_back(v);
         v->setTransformParent(o->rootView());
         connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
         connect(&v->moveAnim, &Animation::update, v, &NSView::move);
@@ -138,7 +138,7 @@ public:
     }
     void outputRemoved(Output *o)
     {
-        foreach (NSView *v, m_views) {
+        for (NSView *v: m_views) {
             if (v->output == o) {
                 delete v;
                 break;
@@ -154,11 +154,12 @@ public:
         // not be sent, blocking the client.
         // To solve it manually redraw all the outputs, this way we're sure the surface gets
         // repainted and the frame callbacks sent.
-        foreach (Output *o, m_compositor->outputs()) {
+        for (Output *o: m_compositor->outputs()) {
             o->repaint();
         }
-        if (!manager->m_notifications.contains(this)) {
-            manager->m_notifications.prepend(this);
+        if (std::find(manager->m_notifications.begin(), manager->m_notifications.end(), this) ==
+            manager->m_notifications.end()) {
+            manager->m_notifications.push_front(this);
             manager->relayout();
         }
     }
@@ -167,7 +168,7 @@ public:
     wl_resource *resource;
     Surface *m_surface;
     Compositor *m_compositor;
-    QList<NSView *> m_views;
+    std::vector<NSView *> m_views;
     bool inactive;
     bool initialMove;
     DesktopShellNotifications *manager;
@@ -218,7 +219,7 @@ void DesktopShellNotifications::relayout()
     int x = 0;
     int y = 0;
     int margin = 10;
-    foreach (NotificationSurface *notification, m_notifications) {
+    for (NotificationSurface *notification: m_notifications) {
         notification->moveTo(x, y);
         y += notification->m_surface->height() + margin;
     }

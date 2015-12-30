@@ -133,14 +133,14 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     });
     m_resource = resource;
 
-    foreach (Workspace *ws, m_shell->workspaces()) {
+    for (Workspace *ws: m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
         dws->init(m_client->client(), 0);
         desktop_shell_send_workspace_added(m_resource, dws->resource());
         dws->sendActivatedState();
         dws->sendPosition();
     }
-    foreach (ShellSurface *shsurf, m_shell->surfaces()) {
+    for (ShellSurface *shsurf: m_shell->surfaces()) {
         DesktopShellWindow *w = shsurf->findInterface<DesktopShellWindow>();
         if (w) {
             w->create();
@@ -190,7 +190,7 @@ void DesktopShell::setGrabCursor(Pointer *p, PointerCursor c)
 
 void DesktopShell::unsetGrabCursor(Pointer *p)
 {
-    m_grabCursor.remove(p);
+    m_grabCursor.erase(p);
 }
 
 void DesktopShell::outputBound(uint32_t id, wl_resource *res)
@@ -201,7 +201,7 @@ void DesktopShell::outputBound(uint32_t id, wl_resource *res)
     desktop_shell_output_feedback_send_load(r, qPrintable(o->name()), m_loadSerial);
     wl_resource_destroy(r);
 
-    foreach (Workspace *ws, m_shell->workspaces()) {
+    for (Workspace *ws: m_shell->workspaces()) {
         DesktopShellWorkspace *dws = ws->findInterface<DesktopShellWorkspace>();
         dws->sendActivatedState();
         dws->sendPosition();
@@ -327,8 +327,8 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
                 return;
             }
 
-            if (surface->views().isEmpty()) {
-                foreach (View *view, parent->views()) {
+            if (surface->views().empty()) {
+                for (View *view: parent->views()) {
                     View *v = new View(surface);
                     v->setTransformParent(view);
                     view->layer()->addView(v);
@@ -338,7 +338,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
                     connect(view, &QObject::destroyed, v, &QObject::deleteLater);
                 }
             } else {
-                foreach (View *view, surface->views()) {
+                for (View *view: surface->views()) {
                     configureView(view);
                 }
             }
@@ -378,7 +378,8 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
             double sx, sy;
             View *v = pointer()->pickView(&sx, &sy);
 
-            inside = popup->surface->views().contains(v);
+            const auto &views = popup->surface->views();
+            inside = std::find(views.cbegin(), views.cend(), v) != views.cend();
             if (inside) {
                 if (pointer()->focus() != v) {
                     pointer()->setFocus(v, sx, sy);
@@ -418,7 +419,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         delete static_cast<Popup *>(wl_resource_get_user_data(r));
     });
 
-    Seat *seat = m_shell->compositor()->seats().first();
+    Seat *seat = m_shell->compositor()->seats().front();
     PopupGrab *grab = new PopupGrab;
     popup->grab = grab;
     grab->popup = popup;
@@ -584,7 +585,7 @@ void DesktopShell::createGrab(uint32_t id)
         delete static_cast<ClientGrab *>(wl_resource_get_user_data(res));
     });
 
-    Seat *seat = m_shell->compositor()->seats().first();
+    Seat *seat = m_shell->compositor()->seats().front();
     grab->resource = res;
     grab->pressed = seat->pointer()->buttonCount() > 0;
 
@@ -636,8 +637,8 @@ void DesktopShell::outputLoaded(uint32_t serial)
         m_loadedOnce = true;
         m_loadSerial = 0;
 
-        for (auto i = m_grabCursor.begin(); i != m_grabCursor.end(); ++i) {
-            setGrabCursor(i.key(), i.value());
+        for (auto &i: m_grabCursor) {
+            setGrabCursor(i.first, i.second);
         }
     }
 }
@@ -673,7 +674,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
             , m_resource(resource)
             , m_parent(parent)
         {
-            foreach (View *view, parent->views()) {
+            for (View *view: parent->views()) {
                 ActiveView *v = new ActiveView(this, view);
                 v->setAlpha(0.);
                 v->setTransformParent(view);
@@ -700,7 +701,7 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
         void setGeometry(int32_t x, int32_t y, int32_t w, int32_t h)
         {
             setSize(w, h);
-            foreach (View *v, views()) {
+            for (View *v: views()) {
                 v->setPos(x, y);
             }
         }

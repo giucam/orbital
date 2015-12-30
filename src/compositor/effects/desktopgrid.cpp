@@ -45,7 +45,7 @@ public:
     Grab() : moving(nullptr), moved(false) {}
     Workspace::View *workspace(Output *out, double x, double y)
     {
-        foreach (Workspace *ws, shell->workspaces()) {
+        for (Workspace *ws: shell->workspaces()) {
             Workspace::View *wsv = workspaceViewForOutput(ws, out);
             if (wsv->mask().contains(x, y)) {
                 return wsv;
@@ -55,7 +55,7 @@ public:
     }
     void focus() override
     {
-        foreach (Output *out, desktopgrid->m_activeOutputs) {
+        for (Output *out: desktopgrid->m_activeOutputs) {
             if (out->contains(pointer()->x(), pointer()->y())) {
                 return;
             }
@@ -161,7 +161,7 @@ DesktopGrid::DesktopGrid(Shell *shell)
     Compositor *c = m_shell->compositor();
     connect(c, &Compositor::outputCreated, this, &DesktopGrid::outputCreated);
     connect(c, &Compositor::outputRemoved, this, &DesktopGrid::outputRemoved);
-    foreach (Output *out, c->outputs()) {
+    for (Output *out: c->outputs()) {
         connect(out, &Output::pointerEnter, this, &DesktopGrid::pointerEnter);
     }
     connect(m_shell->pager(), &Pager::workspaceActivated, this, &DesktopGrid::workspaceActivated);
@@ -194,7 +194,7 @@ void DesktopGrid::run(Seat *seat)
 {
     Output *out = m_shell->selectPrimaryOutput(seat);
 
-    int numWs = m_shell->workspaces().count();
+    int numWs = m_shell->workspaces().size();
 
     if (m_activeOutputs.contains(out)) {
         terminate(out, nullptr);
@@ -205,7 +205,7 @@ void DesktopGrid::run(Seat *seat)
         const int margin_h = out->height() / 20;
 
         QRect fullRect;
-        foreach (Workspace *w, m_shell->workspaces()) {
+        for (Workspace *w: m_shell->workspaces()) {
             Workspace::View *wsv = workspaceViewForOutput(w, out);
             QPoint p = wsv->logicalPos();
             p.rx() = (p.x() + 2) * margin_w + p.x() * out->geometry().width();

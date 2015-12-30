@@ -18,6 +18,8 @@
 #ifndef ORBITAL_DASHBOARD_H
 #define ORBITAL_DASHBOARD_H
 
+#include <unordered_map>
+
 #include <QObject>
 
 #include "workspace.h"
@@ -44,7 +46,7 @@ private:
     void toggle(Seat *seat);
 
     Shell *m_shell;
-    QHash<int, View *> m_views;
+    std::unordered_map<int, View *> m_views;
     bool m_visible;
     ButtonBinding *m_toggleSurfaceBinding;
     HotSpotBinding *m_toggleBinding;

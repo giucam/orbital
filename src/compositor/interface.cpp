@@ -32,7 +32,7 @@ Object::Object(QObject *p)
 
 Object::~Object()
 {
-    qDeleteAll(m_ifaces);
+    std::for_each(m_ifaces.begin(), m_ifaces.end(), [](Interface *i) { delete i; });
 }
 
 void Object::addInterface(Interface *iface)
@@ -41,7 +41,9 @@ void Object::addInterface(Interface *iface)
     iface->m_obj = this;
     iface->added();
 
-    connect(iface, &QObject::destroyed, [this](QObject *o) { m_ifaces.removeOne(static_cast<Interface *>(o)); });
+    connect(iface, &QObject::destroyed, [this](QObject *o) {
+        m_ifaces.erase(std::find(m_ifaces.begin(), m_ifaces.end(), static_cast<Interface *>(o)));
+    });
 }
 
 

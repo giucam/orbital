@@ -229,7 +229,7 @@ public:
     }
     void ended() override
     {
-        foreach (ShellSurface *shsurf, surfaces) {
+        for (ShellSurface *shsurf: surfaces) {
             shsurf->sendPopupDone();
         }
         seat->m_popupGrab = nullptr;
@@ -307,7 +307,7 @@ Pointer::Pointer(Seat *seat, weston_pointer *p)
     m_hotSpotState.enterHotZone = 0;
 
     QObject::connect(m_seat->compositor(), &Compositor::outputRemoved, [this](Output *o) {
-        m_defaultGrab.outputs.remove(o);
+        m_defaultGrab.outputs.erase(o);
     });
 
     m_listener->pointer = this;
@@ -411,7 +411,7 @@ void Pointer::move(double x, double y)
     double oldX = this->x();
     double oldY = this->y();
     m_currentOutput = nullptr;
-    foreach (Output *o, m_seat->compositor()->outputs()) {
+    for (Output *o: m_seat->compositor()->outputs()) {
         if (!m_currentOutput || o->contains(oldX, oldY)) {
             m_currentOutput = o;
         }
@@ -539,16 +539,16 @@ void Pointer::defaultGrabFocus()
     }
 
     QPoint p(x(), y());
-    foreach (Output *out, m_defaultGrab.outputs) {
+    for (Output *out: m_defaultGrab.outputs) {
         if (!out->geometry().contains(p)) {
             emit out->pointerLeave(this);
-            m_defaultGrab.outputs.remove(out);
+            m_defaultGrab.outputs.erase(out);
         }
     }
-    foreach (Output *out, m_seat->compositor()->outputs()) {
-        if (!m_defaultGrab.outputs.contains(out) && out->geometry().contains(p)) {
+    for (Output *out: m_seat->compositor()->outputs()) {
+        if (m_defaultGrab.outputs.count(out) == 0 && out->geometry().contains(p)) {
             emit out->pointerEnter(this);
-            m_defaultGrab.outputs << out;
+            m_defaultGrab.outputs.insert(out);
         }
     }
 

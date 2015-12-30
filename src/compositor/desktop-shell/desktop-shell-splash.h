@@ -20,7 +20,7 @@
 #ifndef ORBITAL_DESKTOP_SHELL_SPLASH
 #define ORBITAL_DESKTOP_SHELL_SPLASH
 
-#include <QSet>
+#include <list>
 
 #include "../interface.h"
 
@@ -50,7 +50,7 @@ private:
     Shell *m_shell;
     ChildProcess *m_client;
     wl_resource *m_resource;
-    QSet<Splash *> m_splashes;
+    std::list<Splash *> m_splashes;
 
     friend Splash;
 };

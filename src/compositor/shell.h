@@ -21,9 +21,7 @@
 #define ORBITAL_SHELL_H
 
 #include <functional>
-
-#include <QByteArray>
-#include <QPair>
+#include <vector>
 
 #include "interface.h"
 #include "stringview.h"
@@ -62,8 +60,8 @@ public:
     Pager *pager() const;
     Workspace *createWorkspace();
     ShellSurface *createShellSurface(Surface *surface);
-    QList<Workspace *> workspaces() const;
-    QList<ShellSurface *> surfaces() const;
+    const std::vector<Workspace *> &workspaces() const;
+    const std::vector<ShellSurface *> &surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
 
     FocusScope *lockFocusScope() const { return m_lockScope; }
@@ -129,8 +127,8 @@ private:
     void autostartClients();
 
     Compositor *m_compositor;
-    QList<Workspace *> m_workspaces;
-    QList<ShellSurface *> m_surfaces;
+    std::vector<Workspace *> m_workspaces;
+    std::vector<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;
     GrabCursorUnsetter m_grabCursorUnsetter;
     ButtonBinding *m_focusBinding;
@@ -142,7 +140,7 @@ private:
     bool m_locked;
     FocusScope *m_lockScope;
     FocusScope *m_appsScope;
-    QVector<QPair<std::string, Action>> m_actions;
+    std::vector<std::pair<std::string, Action>> m_actions;
 };
 
 }

@@ -69,7 +69,7 @@ void DesktopShellSettings::destroy(wl_client *client, wl_resource *resource)
 
 void DesktopShellSettings::setKeymap(const char *layout)
 {
-    foreach (Seat *seat, m_shell->compositor()->seats()) {
+    for (Seat *seat: m_shell->compositor()->seats()) {
         seat->setKeymap(Keymap(StringView(layout), Maybe<StringView>()));
     }
 }

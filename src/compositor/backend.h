@@ -23,7 +23,6 @@
 #include <unordered_map>
 
 #include <QObject>
-#include <QHash>
 
 #include "stringview.h"
 

@@ -20,10 +20,11 @@
 #ifndef ORBITAL_COMPOSITOR_H
 #define ORBITAL_COMPOSITOR_H
 
+#include <vector>
+#include <unordered_map>
+
 #include <QObject>
 #include <QJsonObject>
-#include <QMultiHash>
-#include <QVector>
 
 #include "global.h"
 #include "interface.h"
@@ -88,8 +89,8 @@ public:
     inline wl_display *display() const { return m_display; }
     Shell *shell() const;
     Orbital::Layer *layer(Layer l) const;
-    QList<Output *> outputs() const;
-    QList<Seat *> seats() const;
+    const std::vector<Output *> &outputs() const;
+    std::vector<Seat *> seats() const;
     const Keymap &defaultKeymap() const { return m_defaultKeymap; }
 
     uint32_t nextSerial() const;
@@ -127,13 +128,13 @@ private:
     Listener *m_listener;
     Backend *m_backend;
     Shell *m_shell;
-    QVector<Orbital::Layer *> m_layers;
-    QList<Output *> m_outputs;
+    std::vector<Orbital::Layer *> m_layers;
+    std::vector<Output *> m_outputs;
     Timer m_fakeRepaintLoopTimer;
     Timer m_watchdogTimer;
     QObjectCleanupHandler *m_bindingsCleanupHandler;
     QJsonObject m_config;
-    QMultiHash<int, HotSpotBinding *> m_hotSpotBindings;
+    std::unordered_multimap<int, HotSpotBinding *> m_hotSpotBindings;
     Keymap m_defaultKeymap;
     Authorizer *m_authorizer;
 

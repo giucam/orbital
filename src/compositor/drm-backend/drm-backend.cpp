@@ -21,7 +21,6 @@
 #include <gbm.h>
 
 #include <QDebug>
-#include <QHash>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>

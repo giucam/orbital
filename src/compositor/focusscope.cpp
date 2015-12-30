@@ -38,7 +38,7 @@ FocusScope::FocusScope(Shell *shell)
 FocusScope::~FocusScope()
 {
     if (m_activeSurface) {
-        foreach (Seat *seat, m_activeSeats) {
+        for (Seat *seat: m_activeSeats) {
             emit m_activeSurface->deactivated(seat);
         }
     }
@@ -64,25 +64,25 @@ Surface *FocusScope::activate(Surface *surface)
     }
 
     if (surface || isNull) {
-        foreach (Seat *seat, m_activeSeats) {
+        for (Seat *seat: m_activeSeats) {
             weston_surface_activate(surface ? surface->surface() : nullptr, seat->m_seat);
         }
     }
 
     if (m_activeSurface) {
-        foreach (Seat *seat, m_activeSeats) {
+        for (Seat *seat: m_activeSeats) {
             emit m_activeSurface->deactivated(seat);
         }
     }
     m_activeSurface = surface;
     if (m_activeSurface) {
-        foreach (Seat *seat, m_activeSeats) {
+        for (Seat *seat: m_activeSeats) {
             emit m_activeSurface->activated(seat);
         }
         connect(m_activeSurface, &Surface::unmapped, this, &FocusScope::deactivateSurface);
 
-        m_activeSurfaces.removeOne(surface);
-        m_activeSurfaces.prepend(surface);
+        m_activeSurfaces.remove(surface);
+        m_activeSurfaces.push_front(surface);
     }
     return m_activeSurface;
 }
@@ -103,19 +103,19 @@ void FocusScope::deactivateSurface()
 {
     Surface *surface = static_cast<Surface *>(sender());
 
-    m_activeSurfaces.removeOne(surface);
+    m_activeSurfaces.remove(surface);
     if (surface == m_activeSurface) {
-        foreach (Seat *seat, m_activeSeats) {
+        for (Seat *seat: m_activeSeats) {
             m_activeSurface->deactivated(seat);
         }
         m_activeSurface = nullptr;
 
-        if (m_activeSurfaces.isEmpty()) {
+        if (m_activeSurfaces.empty()) {
             return;
         }
 
         int mask = 0;
-        foreach (Output *out, m_shell->compositor()->outputs()) {
+        for (Output *out: m_shell->compositor()->outputs()) {
             mask |= out->currentWorkspace()->mask();
         }
         for (Surface *surf: m_activeSurfaces) {
@@ -129,15 +129,15 @@ void FocusScope::deactivateSurface()
 
 void FocusScope::activated(Seat *s)
 {
-    if (m_activeSeats.contains(s)) {
+    if (std::find(m_activeSeats.begin(), m_activeSeats.end(), s) != m_activeSeats.end()) {
         return;
     }
-    m_activeSeats << s;
+    m_activeSeats.push_back(s);
 }
 
 void FocusScope::deactivated(Seat *s)
 {
-    m_activeSeats.removeOne(s);
+    m_activeSeats.remove(s);
 }
 
 }

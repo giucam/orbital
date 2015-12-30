@@ -21,6 +21,7 @@
 #define ORBITAL_DESKTOP_SHELL_H
 
 #include <functional>
+#include <unordered_map>
 
 #include <QPointer>
 #include <QTimer>
@@ -93,7 +94,7 @@ private:
     uint32_t m_loadSerial;
     bool m_loaded;
     bool m_loadedOnce;
-    QHash<Pointer *, PointerCursor> m_grabCursor;
+    std::unordered_map<Pointer *, PointerCursor> m_grabCursor;
     bool m_lockRequested;
 };
 

@@ -63,7 +63,7 @@ public:
     void done()
     {
         parent->m_splashes.remove(this);
-        if (parent->m_splashes.isEmpty()) {
+        if (parent->m_splashes.empty()) {
             desktop_shell_splash_send_done(parent->m_resource);
         }
         delete this;
@@ -103,7 +103,7 @@ DesktopShellSplash::~DesktopShellSplash()
 
 void DesktopShellSplash::hide()
 {
-    foreach (Splash *s, m_splashes) {
+    for (Splash *s: m_splashes) {
         s->fadeOut();
     }
 }
@@ -142,7 +142,7 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
 
     Splash *splash = new Splash(this, view);
     surf->setRoleHandler(splash);
-    m_splashes.insert(splash);
+    m_splashes.push_back(splash);
     connect(out, &QObject::destroyed, splash, &Splash::outputDestroyed);
 }
 

@@ -79,7 +79,7 @@ Shell::Shell(Compositor *c)
     new DesktopGrid(this);
     new Dashboard(this);
 
-    foreach (Seat *s, m_compositor->seats()) {
+    for (Seat *s: m_compositor->seats()) {
         s->activate(m_appsScope);
     }
 
@@ -102,7 +102,7 @@ Shell::Shell(Compositor *c)
 Shell::~Shell()
 {
     qDeleteAll(m_surfaces);
-    foreach (Workspace *w, m_workspaces) {
+    for (Workspace *w: m_workspaces) {
         delete w;
     }
     delete m_pager;
@@ -292,10 +292,10 @@ Pager *Shell::pager() const
 
 Workspace *Shell::createWorkspace()
 {
-    Workspace *ws = new Workspace(this, m_workspaces.count());
+    Workspace *ws = new Workspace(this, m_workspaces.size());
     ws->addInterface(new DesktopShellWorkspace(this, ws));
     m_pager->addWorkspace(ws);
-    m_workspaces << ws;
+    m_workspaces.push_back(ws);
     return ws;
 }
 
@@ -303,17 +303,22 @@ ShellSurface *Shell::createShellSurface(Surface *s)
 {
     ShellSurface *surf = new ShellSurface(this, s);
     surf->addInterface(new DesktopShellWindow(findInterface<DesktopShell>()));
-    m_surfaces << surf;
-    connect(surf, &QObject::destroyed, [this](QObject *o) { m_surfaces.removeOne(static_cast<ShellSurface *>(o)); });
+    m_surfaces.push_back(surf);
+    connect(surf, &QObject::destroyed, [this](QObject *o) {
+        auto it = std::find(m_surfaces.begin(), m_surfaces.end(), static_cast<ShellSurface *>(o));
+        if (it != m_surfaces.end()) {
+            m_surfaces.erase(it);
+        }
+    });
     return surf;
 }
 
-QList<Workspace *> Shell::workspaces() const
+const std::vector<Workspace *> &Shell::workspaces() const
 {
     return m_workspaces;
 }
 
-QList<ShellSurface *> Shell::surfaces() const
+const std::vector<ShellSurface *> &Shell::surfaces() const
 {
     return m_surfaces;
 }
@@ -338,35 +343,34 @@ Output *Shell::selectPrimaryOutput(Seat *seat)
         Output *output;
         int vote;
     };
-    QList<Out> candidates;
+    std::vector<Out> candidates;
 
-    foreach (Output *o, compositor()->outputs()) {
-        candidates.append({ o, 0 });
+    for (Output *o: compositor()->outputs()) {
+        candidates.push_back({ o, 0 });
     }
 
     Output *output = nullptr;
-    if (candidates.isEmpty()) {
+    if (candidates.empty()) {
         return nullptr;
     } else if (candidates.size() == 1) {
-        output = candidates.first().output;
+        output = candidates.front().output;
     } else {
-        QList<Seat *> seats;
-        if (seat) {
-            seats << seat;
-        } else {
-            seats = compositor()->seats();
-        }
-        for (int i = 0; i < candidates.count(); ++i) {
-            Out &o = candidates[i];
-            foreach (Seat *s, seats) {
+        std::vector<Seat *> seats = [this, seat]() {
+            if (seat) {
+                return std::vector<Seat *>{ seat };
+            } else {
+                return compositor()->seats();
+            }
+        }();
+        for (Out &o: candidates) {
+            for (Seat *s: seats) {
                 if (o.output->geometry().contains(s->pointer()->x(), s->pointer()->y())) {
                     o.vote++;
                 }
             }
         }
         Out *out = nullptr;
-        for (int i = 0; i < candidates.count(); ++i) {
-            Out &o = candidates[i];
+        for (Out &o: candidates) {
             if (!out || out->vote < o.vote) {
                 out = &o;
             }
@@ -383,13 +387,13 @@ void Shell::lock(const LockCallback &callback)
     }
 
     emit aboutToLock();
-    if (m_compositor->outputs().isEmpty()) {
+    if (m_compositor->outputs().empty()) {
         m_locked = true;
         emit locked();
     } else {
         int *numOuts = new int;
-        *numOuts = m_compositor->outputs().count();
-        foreach (Output *o, m_compositor->outputs()) {
+        *numOuts = m_compositor->outputs().size();
+        for (Output *o: m_compositor->outputs()) {
             o->lock([this, numOuts, callback]() {
                 if (--*numOuts == 0) {
                     m_locked = true;
@@ -402,7 +406,7 @@ void Shell::lock(const LockCallback &callback)
             });
         }
     }
-    foreach (Seat *s, m_compositor->seats()) {
+    for (Seat *s: m_compositor->seats()) {
         s->activate(m_lockScope);
     }
 }
@@ -410,10 +414,10 @@ void Shell::lock(const LockCallback &callback)
 void Shell::unlock()
 {
     m_locked = false;
-    foreach (Output *o, m_compositor->outputs()) {
+    for (Output *o: m_compositor->outputs()) {
         o->unlock();
     }
-    foreach (Seat *s, m_compositor->seats()) {
+    for (Seat *s: m_compositor->seats()) {
         s->activate(m_appsScope);
     }
 }
@@ -504,7 +508,7 @@ void Shell::giveFocus(Seat *seat)
         }
 
         if (shsurf) {
-            foreach (Output *o, compositor()->outputs()) {
+            for (Output *o: compositor()->outputs()) {
                 ShellView *view = shsurf->viewForOutput(o);
                 view->layer()->raiseOnTop(view);
             }
@@ -529,7 +533,7 @@ void Shell::raise(Seat *seat)
     }
 
     if (shsurf) {
-        foreach (Output *o, compositor()->outputs()) {
+        for (Output *o: compositor()->outputs()) {
             ShellView *view = shsurf->viewForOutput(o);
             if (view->layer()->topView() == view) {
                 view->layer()->lower(view);
@@ -616,8 +620,8 @@ void Shell::setAlpha(Seat *seat, uint32_t time, PointerAxis axis, double value)
 
 void Shell::addAction(StringView name, const Action &action)
 {
-    m_actions.append({ name.toStdString(), action });
-    emit actionAdded(name, &m_actions.last().second);
+    m_actions.emplace_back(name.toStdString(), action);
+    emit actionAdded(name, &m_actions.back().second);
 }
 
 

@@ -66,7 +66,7 @@ public:
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;
-    inline QList<View *> views() const { return m_views; }
+    inline const std::vector<View *> &views() const { return m_views; }
     Surface *mainSurface() const;
 
     void repaint();
@@ -113,7 +113,7 @@ private:
     RoleHandler *m_roleHandler;
     Listener *m_listener;
     bool m_activable;
-    QList<View *> m_views;
+    std::vector<View *> m_views;
     int m_workspaceMask;
     std::string m_label;
     FocusScope *m_focusScope;

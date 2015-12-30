@@ -63,12 +63,12 @@ View::View(Surface *s, weston_view *view)
     m_listener->view = this;
     wl_signal_add(&m_view->destroy_signal, &m_listener->listener);
 
-    s->m_views << this;
+    s->m_views.push_back(this);
 }
 
 View::~View()
 {
-    m_surface->m_views.removeOne(this);
+    m_surface->m_views.erase(std::find(m_surface->m_views.begin(), m_surface->m_views.end(), this));
     if (m_view) {
         wl_list_remove(&m_listener->listener.link);
         weston_view_destroy(m_view);

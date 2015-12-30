@@ -68,14 +68,14 @@ Dashboard::Dashboard(Shell *shell)
 
 AbstractWorkspace::View *Dashboard::viewForOutput(Output *o)
 {
-    if (!m_views.contains(o->id())) {
+    if (m_views.find(o->id()) == m_views.end()) {
         View *view = new View(m_shell->compositor(), o);
-        m_views.insert(o->id(), view);
+        m_views[o->id()] = view;
         view->setTransformParent(o->rootView());
         return view;
     }
 
-    return m_views.value(o->id());
+    return m_views[o->id()];
 }
 
 void Dashboard::activate(Output *o)

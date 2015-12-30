@@ -20,8 +20,10 @@
 #ifndef ORBITAL_PAGER_H
 #define ORBITAL_PAGER_H
 
+#include <unordered_map>
+#include <vector>
+
 #include <QObject>
-#include <QHash>
 
 #include "workspace.h"
 
@@ -56,8 +58,8 @@ private:
     class Root;
 
     Compositor *m_compositor;
-    QHash<int, Root *> m_roots;
-    QList<Workspace *> m_workspaces;
+    std::unordered_map<int, Root *> m_roots;
+    std::vector<Workspace *> m_workspaces;
 };
 
 }

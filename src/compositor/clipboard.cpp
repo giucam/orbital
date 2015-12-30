@@ -34,7 +34,7 @@ ClipboardManager::ClipboardManager(Shell *shell)
                 , Global(shell->compositor(), &orbital_clipboard_manager_interface, 1)
 {
     Compositor *c = shell->compositor();
-    foreach (Seat *s, c->seats()) {
+    for (Seat *s: c->seats()) {
         connect(s, &Seat::selection, this, &ClipboardManager::selection);
     }
     connect(c, &Compositor::seatCreated, [this](Seat *s) {
@@ -54,9 +54,13 @@ void ClipboardManager::bind(wl_client *client, uint32_t version, uint32_t id)
 
     wl_resource *resource = wl_resource_create(client, &orbital_clipboard_manager_interface, version, id);
     wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *r) {
-        static_cast<ClipboardManager *>(wl_resource_get_user_data(r))->m_resources.removeOne(r);
+        auto *_this = static_cast<ClipboardManager *>(wl_resource_get_user_data(r));
+        auto it = std::find(_this->m_resources.begin(), _this->m_resources.end(), r);
+        if (it != _this->m_resources.end()) {
+            _this->m_resources.erase(it);
+        }
     });
-    m_resources << resource;
+    m_resources.push_back(resource);
 }
 
 void ClipboardManager::destroy(wl_client *client, wl_resource *res)
@@ -66,7 +70,7 @@ void ClipboardManager::destroy(wl_client *client, wl_resource *res)
 
 void ClipboardManager::selection(Seat *seat)
 {
-    foreach (wl_resource *r, m_resources) {
+    for (wl_resource *r: m_resources) {
         seat->sendSelection(wl_resource_get_client(r));
     }
 }

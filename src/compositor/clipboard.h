@@ -20,6 +20,8 @@
 #ifndef CLIPBOARD_H
 #define CLIPBOARD_H
 
+#include <vector>
+
 #include <wayland-server.h>
 
 #include "interface.h"
@@ -40,7 +42,7 @@ private:
     void destroy(wl_client *client, wl_resource *resource);
     void selection(Seat *seat);
 
-    QVector<wl_resource *> m_resources;
+    std::vector<wl_resource *> m_resources;
 };
 
 }

@@ -58,7 +58,7 @@ void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
 
 void DesktopShellWorkspace::sendActivatedState()
 {
-    foreach (Output *out, m_active) {
+    for (Output *out: m_active) {
         wl_resource *res = out->resource(wl_resource_get_client(m_resource));
         desktop_shell_workspace_send_activated(m_resource, res);
     }
@@ -79,7 +79,7 @@ DesktopShellWorkspace *DesktopShellWorkspace::fromResource(wl_resource *res)
 void DesktopShellWorkspace::workspaceActivated(Workspace *w, Output *out)
 {
     if (w == m_workspace) {
-        m_active.insert(out);
+        m_active.push_back(out);
 
         if (m_resource) {
             wl_resource *res = out->resource(wl_resource_get_client(m_resource));
@@ -87,7 +87,7 @@ void DesktopShellWorkspace::workspaceActivated(Workspace *w, Output *out)
                 desktop_shell_workspace_send_activated(m_resource, res);
             }
         }
-    } else if (m_active.contains(out)) {
+    } else if (std::find(m_active.begin(), m_active.end(), out) != m_active.end()) {
         m_active.remove(out);
 
         if (m_resource) {

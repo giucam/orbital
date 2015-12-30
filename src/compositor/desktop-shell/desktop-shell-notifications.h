@@ -21,6 +21,7 @@
 #define ORBITAL_DESKTOP_SHELL_NOTIFICATIONS_H
 
 #include <wayland-server.h>
+#include <list>
 
 #include "../interface.h"
 
@@ -44,7 +45,7 @@ private:
     void relayout();
 
     Shell *m_shell;
-    QList<NotificationSurface *> m_notifications;
+    std::list<NotificationSurface *> m_notifications;
 };
 
 }

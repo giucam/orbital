@@ -217,7 +217,7 @@ void DesktopShellWindow::setState(wl_client *client, wl_resource *resource, wl_r
     if (state & DESKTOP_SHELL_WINDOW_STATE_ACTIVE && !(state & DESKTOP_SHELL_WINDOW_STATE_MINIMIZED)) {
         s->workspace()->activate(Output::fromResource(output));
         scope->activate(s->surface());
-        foreach (Output *o, m_desktopShell->compositor()->outputs()) {
+        for (Output *o: m_desktopShell->compositor()->outputs()) {
             ShellView *view = s->viewForOutput(o);
             if (Layer *layer = view->layer()) {
                 layer->raiseOnTop(view);

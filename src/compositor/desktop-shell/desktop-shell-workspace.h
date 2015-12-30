@@ -20,7 +20,7 @@
 #ifndef ORBITAL_DESKTOP_SHELL_WORKSPACE_H
 #define ORBITAL_DESKTOP_SHELL_WORKSPACE_H
 
-#include <QSet>
+#include <list>
 
 #include "../interface.h"
 
@@ -55,7 +55,7 @@ private:
     Shell *m_shell;
     Workspace *m_workspace;
     wl_resource *m_resource;
-    QSet<Output *> m_active;
+    std::list<Output *> m_active;
 };
 
 }

@@ -21,11 +21,10 @@
 #define ORBITAL_SEAT_H
 
 #include <functional>
+#include <unordered_set>
 
 #include <QObject>
 #include <QPointF>
-#include <QLinkedList>
-#include <QSet>
 
 struct wl_resource;
 struct wl_client;
@@ -170,7 +169,7 @@ private:
     Output *m_currentOutput;
     Listener *m_listener;
     struct {
-        QSet<Output *> outputs;
+        std::unordered_set<Output *> outputs;
     } m_defaultGrab;
     struct {
         uint32_t lastTime;

@@ -52,8 +52,8 @@ public:
 Pager::Pager(Compositor *c)
      : m_compositor(c)
 {
-    foreach (Output *o, c->outputs()) {
-        m_roots.insert(o->id(), new Root(o, c));
+    for (Output *o: c->outputs()) {
+        m_roots[o->id()] = new Root(o, c);
     }
     connect(c, &Compositor::outputCreated, this, &Pager::outputCreated);
     connect(c, &Compositor::outputRemoved, this, &Pager::outputRemoved);
@@ -61,13 +61,13 @@ Pager::Pager(Compositor *c)
 
 void Pager::addWorkspace(Workspace *ws)
 {
-    m_workspaces << ws;
+    m_workspaces.push_back(ws);
 
     int n = ws->id();
     int rows = n > 2 ? 2 : 1;
     int cols = ceil((double)(n + 1) / (double)rows);
     int x = 0, y = 0;
-    foreach (Workspace *w, m_workspaces) {
+    for (Workspace *w: m_workspaces) {
         w->setPos(x, y);
         if (++x >= cols) {
             x = 0;
@@ -95,35 +95,42 @@ void Pager::activatePrevWorkspace(Output *output)
 
 void Pager::changeWorkspace(Output *output, int d)
 {
-    if (m_workspaces.isEmpty()) {
+    if (m_workspaces.empty()) {
         return;
     }
 
     Workspace *workspace = output->currentWorkspace();
-    int index = m_workspaces.indexOf(workspace) + d;
+    int index = d;
+    int size = m_workspaces.size();
+    for (int i = 0; i < size; ++i) {
+        if (m_workspaces[i] == workspace) {
+            index += i;
+            break;
+        }
+    }
     while (index < 0) {
-        index += m_workspaces.count();
+        index += size;
     }
-    while (index >= m_workspaces.count()) {
-        index -= m_workspaces.count();
+    while (index >= size) {
+        index -= size;
     }
-    activate(m_workspaces.at(index), output);
+    activate(m_workspaces[index], output);
 }
 
 bool Pager::isWorkspaceActive(AbstractWorkspace *ws, Output *output) const
 {
-    Root *root = m_roots.value(output->id());
+    const Root *root = m_roots.at(output->id());
     return root->active && root->active->workspace() == ws;
 }
 
 void Pager::activate(Workspace::View *wsv, Output *output, bool animate)
 {
-    Root *root = m_roots.value(output->id());
+    Root *root = m_roots[output->id()];
     QPoint p = wsv->pos();
     double dx = p.x();
     double dy = p.y();
 
-    foreach (Workspace *ws, m_workspaces) {
+    for (Workspace *ws: m_workspaces) {
         Workspace::View *wsv = workspaceViewForOutput(ws, output);
         Transform tr;
         tr.translate(-dx, -dy);
@@ -138,23 +145,24 @@ void Pager::activate(Workspace::View *wsv, Output *output, bool animate)
 
 void Pager::updateWorkspacesPosition(Output *output)
 {
-    Root *root = m_roots.value(output->id());
+    Root *root = m_roots[output->id()];
     activate(root->active, output, false);
 }
 
 void Pager::outputCreated(Output *o)
 {
     Root *root = new Root(o, m_compositor);
-    m_roots.insert(o->id(), root);
+    m_roots[o->id()] = root;
 
-    Workspace *ws = m_compositor->shell()->workspaces().first();
+    Workspace *ws = m_compositor->shell()->workspaces().front();
     activate(workspaceViewForOutput(ws, o), o, false);
     emit workspaceActivated(ws, o);
 }
 
 void Pager::outputRemoved(Output *o)
 {
-    Root *root = m_roots.take(o->id());
+    Root *root = m_roots[o->id()];
+    m_roots.erase(o->id());
     delete root;
 }
 

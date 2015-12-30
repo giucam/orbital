@@ -59,9 +59,10 @@ Layer::Layer(Layer *parent)
 Layer::~Layer()
 {
     if (m_parent) {
-        m_parent->m_children.removeOne(this);
+        auto it = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this);
+        m_parent->m_children.erase(it);
     }
-    foreach (Layer *c, m_children) {
+    for (Layer *c: m_children) {
         c->m_parent = nullptr;
         wl_list_remove(&c->m_layer->layer.link);
         wl_list_init(&c->m_layer->layer.link);
@@ -71,11 +72,11 @@ Layer::~Layer()
 
 void Layer::addChild(Layer *l)
 {
-    int n = m_children.count();
-    Layer *p = n ? m_children.at(n - 1) : this;
+    int n = m_children.size();
+    Layer *p = n ? m_children[n - 1] : this;
 
     wl_list_insert(&p->m_layer->layer.link, &l->m_layer->layer.link);
-    m_children << l;
+    m_children.push_back(l);
 }
 
 void Layer::addView(View *view)

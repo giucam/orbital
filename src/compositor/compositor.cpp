@@ -379,7 +379,7 @@ bool Compositor::init(StringView socketName)
         return false;
 
     for (int i = 0; i <= (int)Layer::Minimized; ++i) {
-        m_layers << new Orbital::Layer(&m_compositor->cursor_layer);
+        m_layers.emplace_back(new Orbital::Layer(&m_compositor->cursor_layer));
     }
     layer(Layer::Minimized)->setMask(0, 0, 0, 0);
 
@@ -467,7 +467,7 @@ bool Compositor::init(StringView socketName)
     m_authorizer = new Authorizer(this);
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
-    foreach (Output *o, m_outputs) {
+    for (Output *o: m_outputs) {
         m_shell->pager()->activate(ws, o);
     }
 
@@ -504,7 +504,7 @@ void Compositor::newOutput(weston_output *output)
 
     Output *o = new Output(output);
     connect(o, &QObject::destroyed, this, &Compositor::outputDestroyed);
-    m_outputs << o;
+    m_outputs.push_back(o);
 
     emit outputCreated(o);
 }
@@ -545,20 +545,20 @@ Shell *Compositor::shell() const
 
 Orbital::Layer *Compositor::layer(Layer l) const
 {
-    return m_layers.at((int)Layer::Minimized - (int)l);
+    return m_layers[(int)Layer::Minimized - (int)l];
 }
 
-QList<Output *> Compositor::outputs() const
+const std::vector<Output *> &Compositor::outputs() const
 {
     return m_outputs;
 }
 
-QList<Seat *> Compositor::seats() const
+std::vector<Seat *> Compositor::seats() const
 {
-    QList<Seat *> seats;
+    std::vector<Seat *> seats;
     weston_seat *seat;
     wl_list_for_each(seat, &m_compositor->seat_list, link) {
-        seats << Seat::fromSeat(seat);
+        seats.push_back(Seat::fromSeat(seat));
     }
     return seats;
 }
@@ -629,15 +629,16 @@ HotSpotBinding *Compositor::createHotSpotBinding(PointerHotSpot hs)
 {
     HotSpotBinding *b = new HotSpotBinding(hs);
     m_bindingsCleanupHandler->add(b);
-    m_hotSpotBindings.insert((int)hs, b);
+    m_hotSpotBindings.emplace(std::make_pair((int)hs, b));
     return b;
 }
 
 void Compositor::handleHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs)
 {
-    for (auto i = m_hotSpotBindings.find((int)hs); i != m_hotSpotBindings.end() && i.key() == (int)hs; ++i) {
-        emit (*i)->triggered(seat, time, hs);
-    }
+    auto range = m_hotSpotBindings.equal_range((int)hs);
+    std::for_each(range.first, range.second, [seat, time, hs](const std::pair<int, HotSpotBinding *> &pair) {
+        pair.second->triggered(seat, time, hs);
+    });
 }
 
 Compositor *Compositor::fromCompositor(weston_compositor *c)
@@ -650,7 +651,10 @@ Compositor *Compositor::fromCompositor(weston_compositor *c)
 void Compositor::outputDestroyed()
 {
     Output *o = static_cast<Output *>(sender());
-    m_outputs.removeOne(o);
+    auto i = std::find(m_outputs.begin(), m_outputs.end(), o);
+    if (i != m_outputs.end()) {
+        m_outputs.erase(i);
+    }
     emit outputRemoved(o);
 }
 

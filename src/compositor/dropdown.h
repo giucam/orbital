@@ -20,8 +20,6 @@
 #ifndef ORBITAL_SCROLLDOWN_H
 #define ORBITAL_SCROLLDOWN_H
 
-#include <QList>
-
 #include <wayland-server.h>
 
 #include "interface.h"

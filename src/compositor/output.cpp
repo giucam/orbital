@@ -85,9 +85,10 @@ Output::Output(weston_output *out)
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
     m_listener->frameListener.notify = [](wl_listener *l, void *data) {
         Output *o = container_of(l, Listener, frameListener)->output;
-        while (!o->m_callbacks.isEmpty()) {
-            o->m_callbacks.takeFirst()();
+        for (auto &cb: o->m_callbacks) {
+            cb();
         }
+        o->m_callbacks.clear();
     };
     wl_signal_add(&out->frame_signal, &m_listener->frameListener);
 
@@ -173,7 +174,7 @@ void Output::setBackground(Surface *surface)
     surface->setRoleHandler(handler);
     surface->setActivable(false);
 
-    foreach (Workspace *ws, m_compositor->shell()->workspaces()) {
+    for (Workspace *ws: m_compositor->shell()->workspaces()) {
         Workspace::View *wsv = workspaceViewForOutput(ws, this);
         wsv->setBackground(surface);
     }
@@ -224,10 +225,10 @@ void Output::setPanel(Surface *surface, int pos)
     m_panelsLayer->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
     connect(s->view, &QObject::destroyed, [this, s]() {
-        m_panels.removeOne(s->view);
+        m_panels.erase(std::find(m_panels.begin(), m_panels.end(), s->view));
         delete s;
     });
-    m_panels << s->view;
+    m_panels.push_back(s->view);
 }
 
 void Output::setOverlay(Surface *surface)
@@ -237,8 +238,11 @@ void Output::setOverlay(Surface *surface)
     OutputSurface *s = new OutputSurface(surface, this);
     m_compositor->layer(Compositor::Layer::Overlay)->addView(s->view);
     s->view->setTransformParent(m_transformRoot->view);
-    connect(s->view, &QObject::destroyed, [this, s]() { m_overlays.removeOne(s->view); delete s; });
-    m_overlays << s->view;
+    connect(s->view, &QObject::destroyed, [this, s]() {
+        m_overlays.erase(std::find(m_overlays.begin(), m_overlays.end(), s->view));
+        delete s;
+    });
+    m_overlays.push_back(s->view);
 }
 
 void Output::setLockSurface(Surface *surface)
@@ -276,7 +280,7 @@ void Output::repaint(const std::function<void ()> &done)
 {
     weston_output_schedule_repaint(m_output);
     if (done) {
-        m_callbacks << done;
+        m_callbacks.push_back(done);
     }
 }
 
@@ -396,10 +400,10 @@ void Output::onMoved()
         m_lockLayer->setMask(x(), y(), width(), height());
     }
 
-    foreach (View *view, m_panels) {
+    for (View *view: m_panels) {
         view->setPos(0, 0);
     }
-    foreach (View *view, m_overlays) {
+    for (View *view: m_overlays) {
         view->setPos(0, 0);
     }
     if (Shell *shell = m_compositor->shell()) {
