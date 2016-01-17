@@ -12,6 +12,7 @@ class TstStringView : public QObject
 private slots:
     void testSplit();
     void testCompare();
+    void testContains();
 };
 
 void TstStringView::testSplit()
@@ -85,6 +86,15 @@ void TstStringView::testCompare()
 
     const char *cStr = "foobar@ł€¶ŧ←←↓→øþłµ¢“ñ“æ";
     QVERIFY(StringView(cStr) == cStr);
+}
+
+void TstStringView::testContains()
+{
+    StringView view("foo↑bar");
+    QVERIFY(view.contains('r'));
+    QVERIFY(!view.contains('p'));
+    QVERIFY(view.contains(L'↑'));
+    QVERIFY(!view.contains(L'→'));
 }
 
 QTEST_MAIN(TstStringView)

@@ -40,6 +40,7 @@ public:
     inline bool isNull() const { return string == nullptr; }
     inline bool isEmpty() const { return string && size() == 0; }
     inline size_t size() const { return end - string; }
+    bool contains(int c) const;
 
     std::string toStdString() const;
     QString toQString() const;

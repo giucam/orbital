@@ -22,6 +22,9 @@
 #include <linux/input.h>
 #include <sys/resource.h>
 
+#include <fstream>
+#include <sstream>
+
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
@@ -52,6 +55,7 @@
 #include "desktop-shell/desktop-shell-window.h"
 #include "effects/zoomeffect.h"
 #include "effects/desktopgrid.h"
+#include "format.h"
 
 namespace Orbital {
 
@@ -133,88 +137,110 @@ void Shell::initEnvironment()
     setenv("DBUS_SESSION_BUS_PID", qPrintable(QString::number(pid)), 1);
 }
 
-static bool shouldAutoStart(const QSettings &settings)
+static bool shouldAutoStart(const std::unordered_map<std::string, std::string> &settings)
 {
-    bool hidden = settings.value(QStringLiteral("Hidden")).toBool();
+    bool hidden = settings.count("Hidden") && settings.at("Hidden") == "true";
+
     if (hidden) {
         return false;
     }
-    if (settings.contains(QStringLiteral("OnlyShowIn"))) {
-        QString onlyShowIn = settings.value(QStringLiteral("OnlyShowIn")).toString();
-        foreach (const QStringRef &s, onlyShowIn.splitRef(QLatin1Char(';'))) {
-            if (s == QLatin1String("Orbital")) {
+    if (settings.count("OnlyShowIn")) {
+        bool show = false;
+
+fmt::print(stderr, "showin {}\n",settings.at("OnlyShowIn"));
+
+        StringView(settings.at("OnlyShowIn")).split(';', [&show](StringView s) {
+            if (s == "Orbital") {
+                show = true;
                 return true;
             }
-        }
-        return false;
-    } else if (settings.contains(QStringLiteral("NotShowIn"))) {
-        QString notShowIn = settings.value(QStringLiteral("NotShowIn")).toString();
-        foreach (const QStringRef &s, notShowIn.splitRef(QLatin1Char(';'))) {
-            if (s == QStringLiteral("Orbital")) {
-                return false;
+            return false;
+        });
+        return show;
+    } else if (settings.count("NotShowIn")) {
+        bool show = true;
+        StringView(settings.at("NotShowIn")).split(';', [&show](StringView s) {
+            if (s == "Orbital") {
+                show = false;
+                return true;
             }
+            return false;
+        });
+        if (!show) {
+            return false;
         }
     }
     return true;
 }
 
-static void populateAutostartList(QStringList &files, const QString &autostartDir)
+static void populateAutostartList(std::vector<std::string> &files, StringView autostartDir)
 {
-    QDir dir(autostartDir);
+
+fmt::print(stderr, "populate {}\n",autostartDir);
+
+    QDir dir(autostartDir.toQString());
     if (dir.exists()) {
         QFileInfoList infos = dir.entryInfoList({ QStringLiteral("*.desktop") }, QDir::Files);
         foreach (const QFileInfo &fi, infos) {
             QString path = fi.absoluteFilePath();
-            QString filename = fi.fileName();
+            std::string filename = fi.fileName().toStdString();
             bool add = true;
             if (!fi.isReadable()) {
                 continue;
             }
 
-            foreach (const QString &p, files) {
-                if (QFileInfo(p).fileName() == filename) {
+            for (const std::string &p: files) {
+                if (p.find(filename) != std::string::npos) {
                     add = false;
                     break;
                 }
             }
             if (add) {
-                files << path;
+                files.push_back(path.toStdString());
             }
         }
     }
 }
 
-static bool readDesktopFile(QIODevice &device, QSettings::SettingsMap &map)
+static bool readDesktopFile(std::ifstream &stream, std::unordered_map<std::string, std::string> &map)
 {
-    QByteArray currentGroup;
+    if (!stream.good()) {
+        return false;
+    }
 
-    while (!device.atEnd()) {
-        const QByteArray line = device.readLine();
-        int length = line.length();
-        if (line.contains('\n')) {
+    std::string currentGroup;
+
+    while (!stream.eof()) {
+        std::stringbuf lineBuf;
+        stream.get(lineBuf);
+        stream.ignore(1); //discard the'\n'
+        std::string line = lineBuf.str();
+
+        int length = line.size();
+        if (line.find_first_of('\n') != std::string::npos) {
             --length;
         }
         if (length == 0) {
             continue;
         }
 
-        if (line.indexOf('[') == 0) {
-            int idx = line.indexOf(']');
+        if (line.find_first_of('[') == 0) {
+            int idx = line.find_first_of(']');
             if (idx == -1 || idx != length - 1) {
                 return false;
             }
-            currentGroup = line.mid(1, length - 2);
+            currentGroup = line.substr(1, length - 2);
             continue;
         }
 
-        int idx = line.indexOf('=');
+        int idx = line.find_first_of('=');
         if (idx < 1) {
             return false;
         }
-        QByteArray key = line.left(idx);
-        QByteArray value = line.mid(idx + 1, length - idx - 1);
+        std::string key = line.substr(0, idx);
+        std::string value = line.substr(idx + 1, length - idx - 1);
 
-        map[QString::fromUtf8(currentGroup + '/' + key)] = value;
+        map[currentGroup + '/' + key] = value;
     }
 
     return true;
@@ -222,46 +248,49 @@ static bool readDesktopFile(QIODevice &device, QSettings::SettingsMap &map)
 
 void Shell::autostartClients()
 {
-    QStringList files;
-
-    QByteArray xdgConfigHome = qgetenv("XDG_CONFIG_HOME");
-    if (!xdgConfigHome.isEmpty()) {
-        populateAutostartList(files, QStringLiteral("%1/autostart").arg(QString::fromUtf8(xdgConfigHome)));
+qDebug()<<"AUTO";
+    std::vector<std::string> files;
+fmt::print(stderr, "autostart!!\n");
+    StringView xdgConfigHome = getenv("XDG_CONFIG_HOME");
+    if (!xdgConfigHome.isEmpty() && !xdgConfigHome.isNull()) {
+        populateAutostartList(files, fmt::format("{}/autostart", xdgConfigHome));
     } else {
-        populateAutostartList(files, QStringLiteral("%1/.config/autostart").arg(QDir::homePath()));
+        populateAutostartList(files, fmt::format("{}/.config/autostart", getenv("HOME")));
     }
 
-    QByteArray xdgConfigDirs = qgetenv("XDG_CONFIG_DIRS");
-    if (!xdgConfigDirs.isEmpty()) {
-        // meh, no QStringRef overload for QString::arg()
-        foreach (const QString &d, QString::fromUtf8(xdgConfigDirs).split(QLatin1Char(';'))) {
-            populateAutostartList(files, QStringLiteral("%1/autostart").arg(d));
-        }
+    StringView xdgConfigDirs = getenv("XDG_CONFIG_DIRS");
+    if (!xdgConfigDirs.isEmpty() && !xdgConfigDirs.isNull()) {
+        xdgConfigDirs.split(';', [&files](StringView substr) {
+            populateAutostartList(files, fmt::format("{}/autostart", substr));
+            return false;
+        });
     } else {
-        populateAutostartList(files, QStringLiteral("/etc/xdg/autostart"));
+        populateAutostartList(files, "/etc/xdg/autostart");
     }
-
+fmt::print(stderr, "{} {}\n",xdgConfigHome,xdgConfigDirs);
     QDir outputDir = QDir::temp();
     QString dirName = QStringLiteral("orbital-%1").arg(getpid());
     outputDir.mkdir(dirName);
     outputDir.cd(dirName);
 
-    static QSettings::Format desktopFormat = QSettings::registerFormat(QStringLiteral("desktop"), readDesktopFile, nullptr);
-
-    foreach (const QString &fi, files) {
-        QSettings settings(fi, desktopFormat);
-        settings.beginGroup(QStringLiteral("Desktop Entry"));
-        if (!shouldAutoStart(settings)) {
+    for (const std::string &fi: files) {
+        std::ifstream ifs(fi, std::ifstream::in);
+        std::unordered_map<std::string, std::string> settingsMap;
+        if (!readDesktopFile(ifs, settingsMap)) {
             continue;
         }
 
-        QString exec;
-        if (settings.contains(QStringLiteral("TryExec"))) {
-            exec = settings.value(QStringLiteral("TryExec")).toString();
-        } else {
-            exec = settings.value(QStringLiteral("Exec")).toString();
+        if (!shouldAutoStart(settingsMap)) {
+            continue;
         }
-        qDebug("Autostarting '%s'", qPrintable(exec));
+
+        std::string exec;
+//        if (settingsMap.count("TryExec")) {
+//            exec = settingsMap["TryExec"];
+//        } else {
+            exec = settingsMap["Exec"];
+//        }
+        fmt::print("Autostarting '{}'\n", exec);
 
         class Process : public QProcess
         {
@@ -271,12 +300,14 @@ void Shell::autostartClients()
         };
 
         QProcess *proc = new Process(this);
-        QString bin = exec.split(QLatin1Char(' ')).first(); // no QStringRef for QDir::filePath() either
+        QString bin;
+        StringView(exec).split(' ', [&bin](StringView substr) {
+            bin = substr.toQString();
+            return true;
+        });
         proc->setStandardOutputFile(outputDir.filePath(bin));
         proc->setStandardErrorFile(outputDir.filePath(bin));
-        proc->start(exec);
-
-        settings.endGroup();
+        proc->start(StringView(exec).toQString());
     }
 }
 

@@ -48,6 +48,11 @@ StringView::StringView(const QByteArray &str)
 {
 }
 
+bool StringView::contains(int c) const
+{
+    return memchr(string, c, end - string);
+}
+
 std::string StringView::toStdString() const
 {
     return std::string(string, size());

@@ -271,6 +271,9 @@ Compositor::Compositor(Backend *backend)
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
     m_config = doc.object();
+
+    alarm(WATCHDOG_TIMEOUT);
+    m_watchdogTimer.start(10000, [this]() {        alarm(WATCHDOG_TIMEOUT);        alarmFired = 0;    });
 }
 
 Compositor::~Compositor()
@@ -477,12 +480,6 @@ bool Compositor::init(StringView socketName)
         } else {
             m_fakeRepaintLoopTimer.stop();
         }
-    });
-
-    alarm(WATCHDOG_TIMEOUT);
-    m_watchdogTimer.start(10000, [this]() {
-        alarm(WATCHDOG_TIMEOUT);
-        alarmFired = 0;
     });
 
     return true;
