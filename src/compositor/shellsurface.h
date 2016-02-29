@@ -104,6 +104,7 @@ public:
     void setTitle(StringView title);
     void setAppId(StringView appid);
     void setGeometry(int x, int y, int w, int h);
+    void setId(StringView id);
     void setPid(pid_t pid);
 
     Type type() const { return m_type; }
@@ -159,6 +160,7 @@ private:
     std::string m_title;
     std::string m_appId;
     bool m_forceMap;
+    std::string m_id;
     pid_t m_pid;
     PointerGrab *m_currentGrab;
 

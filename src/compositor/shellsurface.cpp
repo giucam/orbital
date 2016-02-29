@@ -418,6 +418,11 @@ void ShellSurface::setGeometry(int x, int y, int w, int h)
     m_nextGeometry = QRect(x, y, w, h);
 }
 
+void ShellSurface::setId(StringView id)
+{
+    m_id = id.toStdString();
+}
+
 void ShellSurface::setPid(pid_t pid)
 {
     m_pid = pid;
@@ -453,7 +458,7 @@ StringView ShellSurface::appId() const
 
 inline std::string ShellSurface::cacheId() const
 {
-    return fmt::format("{}+{}", m_appId, m_title);
+    return fmt::format("{}+{}", m_appId, m_id.empty() ? m_title : m_id);
 }
 
 Maybe<QPoint> ShellSurface::cachedPos() const

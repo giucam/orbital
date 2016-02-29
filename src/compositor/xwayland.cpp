@@ -108,17 +108,23 @@ public:
     {
         connect(ss->surface(), &Surface::pointerFocusEnter, this, &XWlSurface::enter);
         connect(ss->surface(), &Surface::pointerFocusLeave, this, &XWlSurface::leave);
-        leave();
+        connect(ss->surface(), &Surface::unmapped, this, &XWlSurface::unmapped);
     }
 
-    void enter()
+    void enter(Pointer *, View *view)
     {
-        client->send_position(shsurf->surface()->surface(), 0, 0);
+        client->send_position(shsurf->surface()->surface(), view->x(), view->y());
     }
 
-    void leave()
+    void leave(Pointer *, View *view)
     {
-        client->send_position(shsurf->surface()->surface(), 10000, 10000);
+        client->send_position(shsurf->surface()->surface(), view->x(), view->y());
+    }
+
+    void unmapped()
+    {
+	if (weston_surface *s = shsurf->surface()->surface())
+            client->send_position(s, 10000, 10000);
     }
 
     const weston_shell_client *client;
@@ -192,6 +198,8 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.set_maximized = [](shell_surface *shsurf) { _this->setMaximized(); };
     compositor->shell_interface.set_pid = [](shell_surface *shsurf, pid_t pid) { _this->setPid(pid); };
 //     compositor->shell_interface.get_output_work_area = [](void *shell, weston_output *output, pixman_rectangle32_t *area) {}
+    compositor->shell_interface.set_class = [](shell_surface *shsurf, const char *classId) { _this->setAppId(classId); };
+    compositor->shell_interface.set_id = [](shell_surface *shsurf, const char *id) { _this->setId(id); };
 #undef _this
 }
 

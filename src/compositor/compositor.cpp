@@ -401,6 +401,7 @@ bool Compositor::init(StringView socketName)
     m_compositor->kb_repeat_delay = 400;
     m_compositor->exit = terminate;
     m_compositor->vt_switching = true;
+    m_compositor->repaint_msec = 100;
 
     m_listener->compositor = this;
     m_listener->listener.notify = compositorDestroyed;
