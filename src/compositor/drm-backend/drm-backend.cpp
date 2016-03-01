@@ -83,8 +83,10 @@ static bool parseModeline(const QString &s, drmModeModeInfo *mode)
 
 static void output_data(const char *name, struct drm_output_parameters *data)
 {
+    data->scale = 1;
     if (outputs.contains(QLatin1String(name))) {
-        QString mode = outputs[QLatin1String(name)].toObject()[QStringLiteral("mode")].toString();
+        QJsonObject outputObj = outputs[QLatin1String(name)].toObject();
+        QString mode = outputObj[QStringLiteral("mode")].toString();
         if (mode == QStringLiteral("off")) {
             data->mode.config = DRM_OUTPUT_CONFIG_OFF;
         } else if (mode == QStringLiteral("preferred")) {
@@ -99,11 +101,17 @@ static void output_data(const char *name, struct drm_output_parameters *data)
             qWarning("Invalid mode '%s' for output '%s'.", qPrintable(mode), name);
             data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
         }
+
+        int s = outputObj[QStringLiteral("scale")].toInt();
+        if (s > 0) {
+            data->scale = s;
+        } else {
+            qWarning("Invalid scale %d for output '%s'.", s, name);
+        }
     } else {
         data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
     }
 
-    data->scale = 1;
     data->transform = WL_OUTPUT_TRANSFORM_NORMAL;
 }
 
