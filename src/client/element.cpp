@@ -58,9 +58,7 @@ Element::Element(Element *parent)
 
 Element::~Element()
 {
-    if (m_parent) {
-        m_parent->m_children.removeOne(this);
-    }
+    setParentElement(nullptr);
     foreach (Element *elm, m_children) {
         elm->m_parent = nullptr;
     }
