@@ -59,7 +59,9 @@ Surface::~Surface()
 {
     emit unmapped();
 
-    qDeleteAll(m_views);
+    while (!m_views.empty()) {
+        delete m_views.front();
+    }
     wl_list_remove(&m_listener->listener.link);
     if (m_surface) {
         weston_surface_destroy(m_surface);

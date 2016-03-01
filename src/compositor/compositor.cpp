@@ -715,6 +715,7 @@ void ChildProcess::start()
         Process(int fd) : QProcess(), socket(fd) {}
         void setupChildProcess() override
         {
+            // 'socket' has SOCK_CLOEXEC, so it will be closed on exec. dup it to carry it on
             int fd = dup(socket);
             setenv("WAYLAND_SOCKET", qPrintable(QString::number(fd)), 1);
             setpriority(PRIO_PROCESS, getpid(), 0);
@@ -729,7 +730,7 @@ void ChildProcess::start()
     });
     process->setProcessChannelMode(QProcess::ForwardedChannels);
     process->start(QString::fromStdString(m_program));
-    connect(process, &QProcess::started, [sv]() { close(sv[1]); });
+    close(sv[1]);
     connect(process, (void (QProcess::*)(int))&QProcess::finished, process, &QObject::deleteLater);
 
     m_client = wl_client_create(m_display, sv[0]);
