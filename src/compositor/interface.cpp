@@ -32,7 +32,9 @@ Object::Object(QObject *p)
 
 Object::~Object()
 {
-    std::for_each(m_ifaces.begin(), m_ifaces.end(), [](Interface *i) { delete i; });
+    while (!m_ifaces.empty()) {
+        delete m_ifaces.front();
+    }
 }
 
 void Object::addInterface(Interface *iface)
