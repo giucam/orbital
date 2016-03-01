@@ -58,16 +58,18 @@ class Keymap
 {
 public:
     Keymap() {}
-    Keymap(const Maybe<StringView> &layout, const Maybe<StringView> &options);
+    Keymap(const Maybe<StringView> &layout, const Maybe<StringView> &options, const Maybe<StringView> &variant);
 
     const Maybe<std::string> &layout() const { return m_layout; }
     const Maybe<std::string> &options() const { return m_options; }
+    const Maybe<std::string> &variant() const { return m_variant; }
 
     void fill(const Keymap &other);
 
 private:
     Maybe<std::string> m_layout;
     Maybe<std::string> m_options;
+    Maybe<std::string> m_variant;
 };
 
 

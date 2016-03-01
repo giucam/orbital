@@ -369,13 +369,15 @@ bool Compositor::init(StringView socketName)
     QJsonObject kbdConfig = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Keyboard")].toObject();
     const QByteArray keylayout = kbdConfig[QStringLiteral("Layout")].toString().toUtf8();
     const QByteArray keyoptions = kbdConfig[QStringLiteral("Options")].toString().toUtf8();
+    const QByteArray keyvariant = kbdConfig[QStringLiteral("Variant")].toString().toUtf8();
 
     m_defaultKeymap = Keymap(keylayout.isEmpty() ? Maybe<StringView>() : StringView(keylayout),
-                             keyoptions.isEmpty() ? Maybe<StringView>() : StringView(keyoptions));
+                             keyoptions.isEmpty() ? Maybe<StringView>() : StringView(keyoptions),
+                             keyvariant.isEmpty() ? Maybe<StringView>() : StringView(keyvariant));
 
     xkb_rule_names xkb = { nullptr, nullptr,
                            keylayout.isEmpty() ? nullptr : strdup(keylayout.data()),
-                           nullptr,
+                           keyvariant.isEmpty() ? nullptr : strdup(keyvariant.data()),
                            keyoptions.isEmpty() ? nullptr : strdup(keyoptions.data()) };
 
     if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)

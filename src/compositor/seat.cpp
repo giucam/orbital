@@ -37,9 +37,10 @@
 namespace Orbital {
 
 
-Keymap::Keymap(const Maybe<StringView> &layout, const Maybe<StringView> &options)
+Keymap::Keymap(const Maybe<StringView> &layout, const Maybe<StringView> &options, const Maybe<StringView> &variant)
       : m_layout(layout ? Maybe<std::string>(layout.value().toStdString()) : Maybe<std::string>())
       , m_options(options ? Maybe<std::string>(options.value().toStdString()) : Maybe<std::string>())
+      , m_variant(variant ? Maybe<std::string>(variant.value().toStdString()) : Maybe<std::string>())
 {
 }
 
@@ -163,7 +164,7 @@ void Seat::setKeymap(const Keymap &keymap)
 
     xkb_rule_names names = { nullptr, nullptr,
                              km.layout() ? km.layout().value().data() : nullptr,
-                             nullptr,
+                             km.variant() ? km.variant().value().data() : nullptr,
                              km.options() ? km.options().value().data() : nullptr };
 
     xkb_keymap *xkb = xkb_keymap_new_from_names(m_seat->compositor->xkb_context, &names, (xkb_keymap_compile_flags)0);
