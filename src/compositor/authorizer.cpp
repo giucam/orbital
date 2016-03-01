@@ -55,9 +55,13 @@ public:
             return;
         }
         m_resource = res;
+
+        for (auto &req: m_pendingRequests) {
+            sendAuthRequest(req.interface, req.pid, req.cb);
+        }
     }
 
-    void authRequested(const char *interface, pid_t pid, const std::function<void (int32_t)> &cb)
+    void sendAuthRequest(const char *interface, pid_t pid, const std::function<void (int32_t)> &cb)
     {
         class Request {
         public:
@@ -82,14 +86,30 @@ public:
         };
 
         wl_resource *res = wl_resource_create(m_client->client(), &orbital_authorizer_helper_result_interface,
-                                            wl_resource_get_version(m_resource), 0);
+                                              wl_resource_get_version(m_resource), 0);
         orbital_authorizer_helper_send_authorization_requested(m_resource, res, interface, pid);
         new Request(res, cb);
+    }
+
+    void authRequested(const char *interface, pid_t pid, const std::function<void (int32_t)> &cb)
+    {
+        if (m_resource) {
+            sendAuthRequest(interface, pid, cb);
+        } else {
+            m_pendingRequests.emplace_back(interface, pid, cb);
+        }
     }
 
     Authorizer *m_auth;
     ChildProcess *m_client;
     wl_resource *m_resource;
+    struct PendingRequest {
+        PendingRequest(const char *iface, pid_t p, const std::function<void (int32_t)> &c) : interface(iface), pid(p), cb(c) {}
+        const char *interface;
+        pid_t pid;
+        std::function<void (int32_t)> cb;
+    };
+    std::vector<PendingRequest> m_pendingRequests;
 };
 
 
