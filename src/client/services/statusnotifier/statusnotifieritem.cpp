@@ -68,17 +68,20 @@ const QDBusArgument &operator>>(const QDBusArgument &argument, DBusToolTipStruct
     return argument;
 }
 
-static void getProperty(const QString service, const QString property, std::function<void (const QVariant &)> func)
+static void getProperty(const QString service, const QString property, std::function<void (const QVariant &)> func, const std::function<void ()> &errorFunc = nullptr)
 {
     DBusInterface iface(service, PATH, QStringLiteral("org.freedesktop.DBus.Properties"), QDBusConnection::sessionBus());
 
     QDBusPendingCall call = iface.asyncCall(QStringLiteral("Get"), INTERFACE, property);
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
-    watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [func, property](QDBusPendingCallWatcher *watcher) {
+    watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [func, property, errorFunc](QDBusPendingCallWatcher *watcher) {
         watcher->deleteLater();
         QDBusPendingReply<QVariant> reply = *watcher;
         if (reply.isError()) {
             qDebug() << "Error retrieving" << property << reply.error().message();
+            if (errorFunc) {
+                errorFunc();
+            }
         } else {
             func(reply.value());
         }
@@ -216,32 +219,40 @@ void StatusNotifierItem::getTitle()
 
 void StatusNotifierItem::getIcon()
 {
+    auto decreaseUpdatePending = [this]() {
+        if (--m_icon.updatePending == 0)
+            emit iconChanged();
+    };
+
     m_icon.updatePending += 2;
-    getProperty(m_service, QStringLiteral("IconName"), [this](const QVariant &v) {
+    getProperty(m_service, QStringLiteral("IconName"), [=](const QVariant &v) {
         m_icon.name = v.toString();
-        if (--m_icon.updatePending == 0)
-            emit iconChanged();
-    });
-    getProperty(m_service, QStringLiteral("IconPixmap"), [this](const QVariant &v) {
+        decreaseUpdatePending();
+    }, decreaseUpdatePending);
+    getProperty(m_service, QStringLiteral("IconPixmap"), [=](const QVariant &v) {
         v.value<QDBusArgument>() >> m_icon.pixmap;
-        if (--m_icon.updatePending == 0)
-            emit iconChanged();
-    });
+        decreaseUpdatePending();
+    }, decreaseUpdatePending);
 }
 
 void StatusNotifierItem::getAttentionIcon()
 {
+    auto decreaseUpdatePending = [this]() {
+        if (--m_attentionIcon.updatePending == 0)
+            emit attentionIconChanged();
+    };
+
     m_attentionIcon.updatePending += 2;
-    getProperty(m_service, QStringLiteral("AttentionIconName"), [this](const QVariant &v) {
+    getProperty(m_service, QStringLiteral("AttentionIconName"), [=](const QVariant &v) {
         m_attentionIcon.name = v.toString();
         if (--m_attentionIcon.updatePending)
             emit attentionIconChanged();
-    });
-    getProperty(m_service, QStringLiteral("AttentionIconPixmap"), [this](const QVariant &v) {
+    }, decreaseUpdatePending);
+    getProperty(m_service, QStringLiteral("AttentionIconPixmap"), [=](const QVariant &v) {
         v.value<QDBusArgument>() >> m_attentionIcon.pixmap;
         if (--m_attentionIcon.updatePending)
             emit attentionIconChanged();
-    });
+    }, decreaseUpdatePending);
 }
 
 void StatusNotifierItem::getTooltip()

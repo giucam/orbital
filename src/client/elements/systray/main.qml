@@ -79,7 +79,7 @@ Element {
             Binding {
                 target: ttip
                 property: "text"
-                value: modelData.tooltipTitle
+                value: modelData.tooltipTitle || modelData.title
                 when: containsMouse
             }
             onWheel: modelData.scroll(wheel.angleDelta)
