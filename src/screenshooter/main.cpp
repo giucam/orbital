@@ -50,8 +50,8 @@ class Screenshot
 public:
     static Screenshot *create(Screenshooter *p, wl_shm *shm, QScreen *screen)
     {
-        int width = screen->size().width();
-        int height = screen->size().height();
+        int width = screen->size().width() * screen->devicePixelRatio();
+        int height = screen->size().height() * screen->devicePixelRatio();
         int stride = width * 4;
         int size = stride * height;
 
@@ -202,12 +202,13 @@ public:
         int minX, minY;
         minX = minY = INT_MAX;
         foreach (Screenshot *s, m_screenshots) {
+            qreal ratio = s->screen->devicePixelRatio();
             QRect geom = s->screen->geometry();
-            minX = qMin(minX, geom.x());
-            minY = qMin(minY, geom.y());
-            width += geom.width();
-            if (geom.height() > height) {
-                height = geom.height();
+            minX = qMin(minX, int(geom.x() * ratio));
+            minY = qMin(minY, int(geom.y() * ratio));
+            width += geom.width() * ratio;
+            if (geom.height() * ratio > height) {
+                height = geom.height() * ratio;
             }
         }
         int stride = width * 4;
@@ -215,18 +216,19 @@ public:
         memset(data, 0, stride * height);
 
         foreach (Screenshot *ss, m_screenshots) {
+            qreal ratio = ss->screen->devicePixelRatio();
             QRect geom = ss->screen->geometry();
-            int output_stride = geom.width() * 4;
+            int output_stride = geom.width() * ratio * 4;
             uchar *s = ss->data;
-            uchar *d = data + (geom.y() - minY) * stride + (geom.x() - minX) * 4;
+            uchar *d = data + (int(geom.y() * ratio) - minY) * stride + (int(geom.x() * ratio) - minX) * 4;
 
-            for (int i = 0; i < geom.height(); i++) {
+            for (int i = 0; i < geom.height() * ratio; i++) {
                 memcpy(d, s, output_stride);
                 d += stride;
                 s += output_stride;
             }
             // fill the remaining lines with solid black
-            for (int i = geom.height(); i < height; ++i) {
+            for (int i = geom.height() * ratio; i < height; ++i) {
                 for (uchar *line = d + 3; line < d + output_stride; line += 4) {
                     *line = 0xff;
                 }
