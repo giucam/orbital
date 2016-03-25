@@ -12,6 +12,8 @@
     <interface name="orbital_screenshot" version="1">
         <event name="done">
         </event>
+        <event name="failed">
+        </event>
     </interface>
 
 </protocol>

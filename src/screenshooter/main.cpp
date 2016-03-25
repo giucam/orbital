@@ -349,6 +349,10 @@ const orbital_screenshot_listener Screenshot::s_listener = {
     [](void *data, orbital_screenshot *s) {
         Screenshot *ss = static_cast<Screenshot *>(data);
         qApp->postEvent(ss->parent, new ScreenshotEvent(ss));
+    },
+    [](void *data, orbital_screenshot *s) {
+        Screenshot *ss = static_cast<Screenshot *>(data);
+        qApp->postEvent(ss->parent, new ScreenshotEvent(ss));
     }
 };
 

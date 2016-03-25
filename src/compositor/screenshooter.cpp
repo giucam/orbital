@@ -68,7 +68,8 @@ void Screenshooter::shoot(wl_client *client, wl_resource *resource, uint32_t id,
                 case WESTON_SCREENSHOOTER_NO_MEMORY:
                     wl_resource_post_no_memory(ss->resource);
                     break;
-                default:
+                case WESTON_SCREENSHOOTER_BAD_BUFFER:
+                    orbital_screenshot_send_failed(ss->resource);
                     break;
             }
 
@@ -81,6 +82,10 @@ void Screenshooter::shoot(wl_client *client, wl_resource *resource, uint32_t id,
 
     Screenshot *ss = new Screenshot;
     ss->resource = wl_resource_create(client, &orbital_screenshot_interface, 1, id);
+    if (!ss->resource) {
+        wl_resource_post_no_memory(resource);
+        return;
+    }
 
     weston_screenshooter_shoot(output, buffer, Screenshot::done, ss);
 }
