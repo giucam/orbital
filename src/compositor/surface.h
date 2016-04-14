@@ -69,6 +69,9 @@ public:
     inline const std::vector<View *> &views() const { return m_views; }
     Surface *mainSurface() const;
 
+    QSize contentSize() const;
+    size_t copyContent(void *data, size_t size, const QRect &rect);
+
     void repaint();
     void damage();
 

@@ -65,6 +65,13 @@ Item {
             onClicked: Screenshooter.takeShot()
         }
         Button {
+            text: "New surface shot"
+            height: 30
+            width: 100
+
+            onClicked: Screenshooter.takeSurfaceShot()
+        }
+        Button {
             text: "Save as"
             height: 30
             width: 100

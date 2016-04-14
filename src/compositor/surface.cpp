@@ -210,4 +210,16 @@ void Surface::setFocusScope(FocusScope *focusScope)
     m_focusScope = focusScope;
 }
 
+QSize Surface::contentSize() const
+{
+    int w, h;
+    weston_surface_get_content_size(m_surface, &w, &h);
+    return QSize(w, h);
+}
+
+size_t Surface::copyContent(void *data, size_t size, const QRect &rect)
+{
+    return weston_surface_copy_content(m_surface, data, size, rect.x(), rect.y(), rect.width(), rect.height());
+}
+
 }

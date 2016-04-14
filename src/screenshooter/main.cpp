@@ -48,11 +48,8 @@ class Screenshooter;
 class Screenshot
 {
 public:
-    static Screenshot *create(Screenshooter *p, wl_shm *shm, QScreen *screen)
+    static Screenshot *create(Screenshooter *p, QScreen *screen, wl_shm *shm, int width, int height, int stride)
     {
-        int width = screen->size().width() * screen->devicePixelRatio();
-        int height = screen->size().height() * screen->devicePixelRatio();
-        int stride = width * 4;
         int size = stride * height;
 
         char filename[] = "/tmp/orbital-screenshooter-shm-XXXXXX";
@@ -86,6 +83,9 @@ public:
         shot->buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_ARGB8888);
         wl_shm_pool_destroy(pool);
         shot->data = data;
+        shot->width = width;
+        shot->height = height;
+        shot->stride = stride;
         shot->screen = screen;
         close(fd);
         return shot;
@@ -94,6 +94,7 @@ public:
     Screenshooter *parent;
     QScreen *screen;
     wl_buffer *buffer;
+    int width, height, stride;
     uchar *data;
     orbital_screenshot *screenshot;
 
@@ -129,6 +130,48 @@ public:
     QImage m_image;
 };
 
+
+class SurfaceScreenshot : public QObject
+{
+    Q_OBJECT
+public:
+    SurfaceScreenshot(orbital_screenshooter *shooter, wl_shm *shm)
+        : m_shm(shm)
+    {
+        m_screenshot = orbital_screenshooter_shoot_surface(shooter);
+        static const orbital_surface_screenshot_listener listener = {
+            wrapInterface(&SurfaceScreenshot::setup),
+            wrapInterface(&SurfaceScreenshot::done),
+            wrapInterface(&SurfaceScreenshot::failed),
+        };
+        orbital_surface_screenshot_add_listener(m_screenshot, &listener, this);
+    }
+
+    void setup(orbital_surface_screenshot *, int32_t width, int32_t height, int32_t stride, int32_t format)
+    {
+        m_ss = Screenshot::create(nullptr, nullptr, m_shm, width, height, stride);
+        orbital_surface_screenshot_shoot(m_screenshot, m_ss->buffer);
+    }
+
+    void done(orbital_surface_screenshot *)
+    {
+        emit taken(QImage(m_ss->data, m_ss->width, m_ss->height, m_ss->stride, QImage::Format_ARGB32));
+    }
+
+    void failed(orbital_surface_screenshot *)
+    {
+        emit taken(QImage());
+    }
+
+signals:
+    void taken(const QImage &image);
+
+private:
+    wl_shm *m_shm;
+    orbital_surface_screenshot *m_screenshot;
+    Screenshot *m_ss;
+};
+
 class Screenshooter : public QObject
 {
     Q_OBJECT
@@ -156,7 +199,10 @@ public:
         }
 
         foreach (QScreen *screen, QGuiApplication::screens()) {
-            Screenshot *screenshot = Screenshot::create(this, m_shm, screen);
+            int width = screen->size().width() * screen->devicePixelRatio();
+            int height = screen->size().height() * screen->devicePixelRatio();
+            int stride = width * 4;
+            Screenshot *screenshot = Screenshot::create(this, screen, m_shm, width, height, stride);
             if (!screenshot) {
                 exit(1);
             }
@@ -251,6 +297,29 @@ public slots:
             ss->screenshot = orbital_screenshooter_shoot(m_shooter, output, ss->buffer);
             orbital_screenshot_add_listener(ss->screenshot, &Screenshot::s_listener, ss);
         }
+    }
+    void takeSurfaceShot()
+    {
+        m_window->hide();
+        auto *ss = new SurfaceScreenshot(m_shooter, m_shm);
+        connect(ss, &SurfaceScreenshot::taken, this, [this, ss](const QImage &img)
+        {
+            QImage image(img.size(), QImage::Format_ARGB32);
+            for (int i = 0; i < img.height(); ++i) {
+                uchar *dst = image.scanLine(i);
+                const uchar *src = img.scanLine(i);
+                for (int j = 0; j < img.bytesPerLine(); j += 4) {
+                    dst[j + 0] = src[j + 2];
+                    dst[j + 1] = src[j + 1];
+                    dst[j + 2] = src[j + 0];
+                    dst[j + 3] = src[j + 3];
+                }
+            }
+            m_imageProvider->m_image = image;
+            m_window->show();
+            emit newShot();
+            delete ss;
+        });
     }
     void save(const QString &path)
     {

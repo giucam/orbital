@@ -27,6 +27,7 @@
 namespace Orbital {
 
 class Shell;
+class Compositor;
 
 class Screenshooter : public Interface, public RestrictedGlobal
 {
@@ -36,6 +37,9 @@ public:
 private:
     void bind(wl_client *client, uint32_t version, uint32_t id) override;
     void shoot(wl_client *client, wl_resource *resource, uint32_t id, wl_resource *outputResource, wl_resource *bufferResource);
+    void shootSurface(wl_client *client, wl_resource *resource, uint32_t id);
+
+    Compositor *m_compositor;
 };
 
 }
