@@ -1,11 +1,9 @@
 #!/bin/sh
 
-# API Key provided by Alan@imgur.com
-apikey="b3625162d3418ac51a9ee805b1840452"
+client_id="134daa45c8e5e61"
 file="$1"
 
-response=$(curl -F "key=$apikey" -H "Expect: " -F "image=@$file" \
-        http://imgur.com/api/upload.xml 2>/dev/null)
+response=$(curl -H "Authorization: Client-ID ${client_id}" -H "Expect: " -F "image=@$file" https://api.imgur.com/3/image.xml 2>/dev/null)
 # the "Expect: " header is to get around a problem when using this through
 # the Squid proxy. Not sure if it's a Squid bug or what.
 if [ $? -ne 0 ]; then
@@ -18,7 +16,7 @@ elif [ $(echo $response | grep -c "<error_msg>") -gt 0 ]; then
 fi
 
 # parse the response and output our stuff
-url=$(echo $response | sed -r 's/.*<original_image>(.*)<\/original_image>.*/\1/')
-deleteurl=$(echo $response | sed -r 's/.*<delete_page>(.*)<\/delete_page>.*/\1/')
-printf $url
-printf "Delete page: $deleteurl" >&2
+id=$(echo $response | sed -r 's/.*<id>(.*)<\/id>.*/\1/')
+deletehash=$(echo $response | sed -r 's/.*<deletehash>(.*)<\/deletehash>.*/\1/')
+printf "https://imgur.com/$id.jpg"
+printf "Delete page: https://imgur.com/delete/$deletehash" >&2
