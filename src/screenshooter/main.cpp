@@ -355,6 +355,7 @@ const orbital_screenshot_listener Screenshot::s_listener = {
 int main(int argc, char *argv[])
 {
     setenv("QT_QPA_PLATFORM", "wayland", 1);
+    setenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT", "1", 1);
 
     QApplication app(argc, argv);
     Screenshooter shooter;

@@ -108,6 +108,8 @@ public:
 
     Q_INVOKABLE void create()
     {
+        setenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT", "1", 1);
+
         QQuickWindow::setDefaultAlphaBuffer(true);
         m_matcher = new MatcherModel;
         m_window = new QQuickView;
@@ -126,6 +128,8 @@ public:
         m_matcher->setCommandPrefix(QStringLiteral(":"));
         m_matcher->addCommand(QStringLiteral("km"));
         m_commands.insert(QStringLiteral("km"), new KeymapCommand(this));
+
+        unsetenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT");
     }
 
     bool event(QEvent *e) override

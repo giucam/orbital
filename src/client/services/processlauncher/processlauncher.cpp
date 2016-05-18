@@ -36,7 +36,9 @@ ProcessLauncher::ProcessLauncher(QObject *p)
 
 void ProcessLauncher::launch(const QString &process)
 {
+    unsetenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT");
     QProcess::startDetached(process);
+    setenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT", "1", 1);
 }
 
 
@@ -56,6 +58,10 @@ Process::Process(QObject *p)
 void Process::start(const QString &command)
 {
     if (m_process.state() == QProcess::NotRunning) {
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        env.remove(QLatin1String("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT"));
+
+        m_process.setProcessEnvironment(env);
         m_process.start(command);
     }
 }

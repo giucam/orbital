@@ -25,6 +25,8 @@
 
 int main(int argc, char *argv[])
 {
+    setenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT", "1", 1);
+
     QApplication app(argc, argv);
     Client client;
 

@@ -121,6 +121,8 @@ const desktop_shell_splash_listener Splash::s_splashListener = {
 
 int main(int argc, char *argv[])
 {
+    setenv("QT_WAYLAND_USE_BYPASSWINDOWMANAGERHINT", "1", 1);
+
     QGuiApplication app(argc, argv);
     Splash splash;
 
