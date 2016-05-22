@@ -210,7 +210,7 @@ static bool readDesktopFile(std::ifstream &stream, std::unordered_map<std::strin
 
     std::string currentGroup;
 
-    while (!stream.eof()) {
+    while (stream.good()) {
         std::stringbuf lineBuf;
         stream.get(lineBuf);
         stream.ignore(1); //discard the'\n'
@@ -285,12 +285,16 @@ fmt::print(stderr, "{} {}\n",xdgConfigHome,xdgConfigDirs);
         }
 
         std::string exec;
-//        if (settingsMap.count("TryExec")) {
-//            exec = settingsMap["TryExec"];
-//        } else {
-            exec = settingsMap["Exec"];
-//        }
-        fmt::print("Autostarting '{}'\n", exec);
+        if (settingsMap.count("Desktop Entry/TryExec")) {
+           exec = settingsMap["Desktop Entry/TryExec"];
+        } else {
+            exec = settingsMap["Desktop Entry/Exec"];
+        }
+        fmt::print(stderr, "Autostarting {}: '{}'\n", fi, exec);
+
+        if (exec.empty()) {
+            continue;
+        }
 
         class Process : public QProcess
         {
@@ -300,11 +304,12 @@ fmt::print(stderr, "{} {}\n",xdgConfigHome,xdgConfigDirs);
         };
 
         QProcess *proc = new Process(this);
-        QString bin;
-        StringView(exec).split(' ', [&bin](StringView substr) {
-            bin = substr.toQString();
+        StringView binView(exec);
+        StringView(exec).split(' ', [&binView](StringView substr) {
+            binView = substr;
             return true;
         });
+        QString bin = binView.toQString();
         proc->setStandardOutputFile(outputDir.filePath(bin));
         proc->setStandardErrorFile(outputDir.filePath(bin));
         proc->start(StringView(exec).toQString());
