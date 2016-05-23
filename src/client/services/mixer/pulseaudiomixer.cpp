@@ -61,9 +61,13 @@ PulseAudioMixer *PulseAudioMixer::create(Mixer *mixer)
     // pluseaudio tries to connect to X if DISPLAY is set. the problem is that if we have
     // xwayland running it will try to connect to it, and we don't want that.
     char *dpy = getenv("DISPLAY");
-    setenv("DISPLAY", "", 1);
+    if (dpy) {
+        setenv("DISPLAY", "", 1);
+    }
     pulse->m_context = pa_context_new(pulse->m_mainloopApi, nullptr);
-    setenv("DISPLAY", dpy, 1);
+    if (dpy) {
+        setenv("DISPLAY", dpy, 1);
+    }
     if (!pulse->m_context) {
         qWarning("pa_context_new() failed.");
         delete pulse;
