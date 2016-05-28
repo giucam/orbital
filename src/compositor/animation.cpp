@@ -33,7 +33,7 @@ Animation::Animation(QObject *p)
     m_animation.parent = this;
     wl_list_init(&m_animation.ani.link);
     m_animation.ani.frame = [](weston_animation *base, weston_output *output, uint32_t msecs) {
-        AnimWrapper *animation = container_of(base, AnimWrapper, ani);
+        AnimWrapper *animation = wl_container_of(base, (AnimWrapper *)nullptr, ani);
         animation->parent->tick(output, msecs);
     };
 }

@@ -22,7 +22,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 namespace Orbital {
 

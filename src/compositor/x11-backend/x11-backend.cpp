@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston-1/compositor-x11.h>
+#include <compositor-x11.h>
 
 #include "x11-backend.h"
 
@@ -30,48 +30,31 @@ X11Backend::X11Backend()
 
 bool X11Backend::init(weston_compositor *c)
 {
-//     struct x11_compositor *compositor;
-//     struct weston_compositor *base;
-//     struct weston_output *output;
-//     struct weston_config_section *section = NULL;
-//     const char *section_name;
-//     int i, x = 0, output_count = 0;
-//     int width, height, scale, count;
-//     char *name, *t, *mode;
-//     uint32_t transform;
-//     int fullscreen = 0;
-//     int no_input = 0;
-//     int use_pixman = 0;
-//
-//     const struct weston_option x11_options[] = {
-//         { WESTON_OPTION_INTEGER, "width", 0, &option_width },
-//         { WESTON_OPTION_INTEGER, "height", 0, &option_height },
-//         { WESTON_OPTION_INTEGER, "scale", 0, &option_scale },
-//         { WESTON_OPTION_BOOLEAN, "fullscreen", 'f', &fullscreen },
-//         { WESTON_OPTION_INTEGER, "output-count", 0, &option_count },
-//         { WESTON_OPTION_BOOLEAN, "no-input", 0, &no_input },
-//         { WESTON_OPTION_BOOLEAN, "use-pixman", 0, &use_pixman },
-//     };
-//
-//     parse_options(x11_options, ARRAY_LENGTH(x11_options), argc, argv);
-//
-    int fullscreen = 0;
-    int no_input = 0;
-    int use_pixman = 0;
+    weston_x11_backend_config config;
+    config.base.struct_version = WESTON_X11_BACKEND_CONFIG_VERSION;
+    config.base.struct_size = sizeof(config);
+    config.use_pixman = false;
+    config.fullscreen = false;
+    config.no_input = false;
 
-    x11_backend *b = x11_backend_create(c,
-                     fullscreen,
-                     no_input,
-                     use_pixman);
+    weston_x11_backend_output_config outputs[] = {
+        {   800, 400, "X1", 0, 1 },
+    };
+    config.num_outputs = sizeof(outputs) / sizeof(weston_x11_backend_output_config);
+    config.outputs = outputs;
 
-    x11_backend_create_output(b, 0, 0, 500,500,
-                              fullscreen, no_input, "X1",
-                              WL_OUTPUT_TRANSFORM_NORMAL, 1);
-    x11_backend_create_output(b, 500, 0, 600,500,
-                            fullscreen, no_input, "X2",
-                            WL_OUTPUT_TRANSFORM_NORMAL, 1);
 
-    return b;
+    int (*backend_init)(struct weston_compositor *c,
+                        int *argc, char *argv[],
+                        struct weston_config *config,
+                        struct weston_backend_config *config_base);
+
+    backend_init = reinterpret_cast<decltype(backend_init)>(weston_load_module("x11-backend.so", "backend_init"));
+    if (!backend_init) {
+        return false;
+    }
+
+    return backend_init(c, NULL, NULL, NULL, &config.base) == 0;
 }
 
 }

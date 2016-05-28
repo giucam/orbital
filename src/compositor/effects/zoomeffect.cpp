@@ -56,7 +56,7 @@ void ZoomEffect::run(Seat *seat, uint32_t time, PointerAxis axis, double value)
             else if (output->zoom.level > output->zoom.max_level)
                 output->zoom.level = output->zoom.max_level;
             else if (!output->zoom.active) {
-                weston_output_activate_zoom(output);
+                weston_output_activate_zoom(output, seat->westonSeat());
             }
 
             output->zoom.spring_z.target = output->zoom.level;

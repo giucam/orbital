@@ -24,7 +24,7 @@
 
 #include <QSize>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "interface.h"
 #include "stringview.h"

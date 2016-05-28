@@ -31,7 +31,7 @@
 #include <QProcessEnvironment>
 #include <QDebug>
 
-#include <weston-1/xwayland.h>
+#include <xwayland.h>
 
 #include "xwayland.h"
 #include "shell.h"
@@ -159,15 +159,15 @@ XWayland::XWayland(Shell *shell)
     compositor->shell_interface.set_fullscreen = [](shell_surface *shsurf, uint32_t method, uint32_t framerate, weston_output *output) {
         _this->setFullscreen();
     };
-    compositor->shell_interface.resize = [](shell_surface *shsurf, weston_seat *ws, uint32_t edges) {
-        if (ws) {
-            _this->resize(Seat::fromSeat(ws), (ShellSurface::Edges)edges);
+    compositor->shell_interface.resize = [](shell_surface *shsurf, weston_pointer *p, uint32_t edges) {
+        if (p) {
+            _this->resize(Seat::fromSeat(p->seat), (ShellSurface::Edges)edges);
         }
         return 0;
     };
-    compositor->shell_interface.move = [](shell_surface *shsurf, weston_seat *ws) {
-        if (ws) {
-            _this->move(Seat::fromSeat(ws));
+    compositor->shell_interface.move = [](shell_surface *shsurf, weston_pointer *p) {
+        if (p) {
+            _this->move(Seat::fromSeat(p->seat));
         }
         return 0;
     };
@@ -182,6 +182,7 @@ XWayland::XWayland(Shell *shell)
     };
     compositor->shell_interface.set_maximized = [](shell_surface *shsurf) { _this->setMaximized(); };
     compositor->shell_interface.set_pid = [](shell_surface *shsurf, pid_t pid) { _this->setPid(pid); };
+//     compositor->shell_interface.get_output_work_area = [](void *shell, weston_output *output, pixman_rectangle32_t *area) {}
 #undef _this
 }
 

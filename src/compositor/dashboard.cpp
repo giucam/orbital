@@ -109,9 +109,9 @@ void Dashboard::toggleSurface(Seat *seat)
     class Grab : public PointerGrab
     {
     public:
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {

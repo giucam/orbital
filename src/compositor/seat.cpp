@@ -21,7 +21,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "seat.h"
 #include "compositor.h"
@@ -77,7 +77,7 @@ Seat::Seat(Compositor *c, weston_seat *s)
     : m_compositor(c)
     , m_seat(s)
     , m_listener(new Listener)
-    , m_pointer(s->pointer ? new Pointer(this, s->pointer) : nullptr)
+    , m_pointer(s->pointer_state ? new Pointer(this, s->pointer_state) : nullptr)
     , m_keyboard(nullptr)
     , m_popupGrab(nullptr)
     , m_activeScope(nullptr)
@@ -85,12 +85,14 @@ Seat::Seat(Compositor *c, weston_seat *s)
     m_listener->seat = this;
     m_listener->listener.notify = seatDestroyed;
     wl_signal_add(&s->destroy_signal, &m_listener->listener);
-    m_listener->capsListener.notify = [](wl_listener *listener, void *) {
-        container_of(listener, Listener, capsListener)->seat->capsUpdated();
+    m_listener->capsListener.notify = [](wl_listener *l, void *) {
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, capsListener);
+        listener->seat->capsUpdated();
     };
     wl_signal_add(&s->updated_caps_signal, &m_listener->capsListener);
     m_listener->selectionListener.notify = [](wl_listener *l, void *) {
-        Seat *s = container_of(l, Listener, selectionListener)->seat;
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, selectionListener);
+        Seat *s = listener->seat;
         emit s->selection(s);
     };
     wl_signal_add(&s->selection_signal, &m_listener->selectionListener);
@@ -115,9 +117,9 @@ Pointer *Seat::pointer() const
         return m_pointer;
     }
 
-    if (m_seat->pointer) {
+    if (m_seat->pointer_state) {
         Seat *that = const_cast<Seat *>(this);
-        that->m_pointer = new Pointer(that, m_seat->pointer);
+        that->m_pointer = new Pointer(that, m_seat->pointer_state);
     }
     return m_pointer;
 }
@@ -128,9 +130,9 @@ Keyboard *Seat::keyboard() const
         return m_keyboard;
     }
 
-    if (m_seat->keyboard) {
+    if (m_seat->keyboard_state) {
         Seat *that = const_cast<Seat *>(this);
-        that->m_keyboard = new Keyboard(that, m_seat->keyboard);
+        that->m_keyboard = new Keyboard(that, m_seat->keyboard_state);
     }
     return m_keyboard;
 }
@@ -176,7 +178,7 @@ void Seat::setKeymap(const Keymap &keymap)
 void Seat::capsUpdated()
 {
     // If we now have a keyboard we want to set the focused surface
-    if (m_activeScope && m_seat->keyboard) {
+    if (m_activeScope && m_seat->keyboard_state) {
         Surface *surface = m_activeScope->activeSurface();
         weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
     }
@@ -210,9 +212,9 @@ public:
             pointer()->setFocus(nullptr, 0, 0);
         }
     }
-    void motion(uint32_t time, double x, double y) override
+    void motion(uint32_t time, Pointer::MotionEvent evt) override
     {
-        pointer()->move(x, y);
+        pointer()->move(evt);
         pointer()->sendMotion(time);
     }
     void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
@@ -407,7 +409,7 @@ void Pointer::updateFocus()
     }
 }
 
-void Pointer::move(double x, double y)
+void Pointer::move(MotionEvent evt)
 {
     double oldX = this->x();
     double oldY = this->y();
@@ -417,6 +419,10 @@ void Pointer::move(double x, double y)
             m_currentOutput = o;
         }
     }
+
+    QPointF pos = motionToAbs(evt);
+    double x = pos.x();
+    double y = pos.y();
 
     if (m_currentOutput) {
         QRect geom = m_currentOutput->geometry();
@@ -454,7 +460,7 @@ void Pointer::move(double x, double y)
         m_pointer->sy = wl_fixed_from_double(pos.y());
     }
 
-    weston_pointer_move(m_pointer, wl_fixed_from_double(x), wl_fixed_from_double(y));
+    weston_pointer_move(m_pointer, evt.m_evt);
 
     weston_view *view;
     wl_list_for_each(view, &m_seat->compositor()->m_compositor->view_list, link) {
@@ -468,22 +474,26 @@ void Pointer::move(double x, double y)
 
 void Pointer::sendMotion(uint32_t time)
 {
-    if (!m_pointer->focus) {
+    if (!m_pointer->focus || !m_pointer->focus_client) {
         return;
     }
 
     wl_resource *resource;
     weston_view_from_global_fixed(m_pointer->focus, m_pointer->x, m_pointer->y, &m_pointer->sx, &m_pointer->sy);
-    wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
+    wl_resource_for_each(resource, &m_pointer->focus_client->pointer_resources) {
         wl_pointer_send_motion(resource, time, m_pointer->sx, m_pointer->sy);
     }
 }
 
 void Pointer::sendButton(uint32_t time, PointerButton button, Pointer::ButtonState state)
 {
+    if (!m_pointer->focus_client) {
+        return;
+    }
+
     wl_resource *resource;
     uint32_t serial = m_seat->compositor()->nextSerial();
-    wl_resource_for_each(resource, &m_pointer->focus_resource_list) {
+    wl_resource_for_each(resource, &m_pointer->focus_client->pointer_resources) {
         wl_pointer_send_button(resource, serial, time, pointerButtonToRaw(button), (uint32_t)state);
     }
 }
@@ -533,6 +543,13 @@ QPointF Pointer::grabPos() const
     return QPointF(wl_fixed_to_double(m_pointer->grab_x), wl_fixed_to_double(m_pointer->grab_y));
 }
 
+QPointF Pointer::motionToAbs(MotionEvent evt) const
+{
+    wl_fixed_t x, y;
+    weston_pointer_motion_to_abs(m_pointer, evt.m_evt, &x, &y);
+    return QPointF(wl_fixed_to_double(x), wl_fixed_to_double(y));
+}
+
 void Pointer::defaultGrabFocus()
 {
     if (buttonCount() > 0) {
@@ -553,7 +570,7 @@ void Pointer::defaultGrabFocus()
         }
     }
 
-    double dx, dy;
+    double dx = -1000000, dy = -1000000;
     View *view = pickView(&dx, &dy, [](View *view) {
         Layer *l = view->layer();
         if (l && !l->acceptInput()) {
@@ -569,14 +586,14 @@ void Pointer::defaultGrabFocus()
     }
 }
 
-void Pointer::defaultGrabMotion(uint32_t time, double x, double y)
+void Pointer::defaultGrabMotion(uint32_t time, MotionEvent evt)
 {
-    move(x, y);
+    move(evt);
     sendMotion(time);
-    handleMotionBinding(time, x, y);
+    handleMotionBinding(time, evt);
 }
 
-void Pointer::handleMotionBinding(uint32_t time, double x, double y)
+void Pointer::handleMotionBinding(uint32_t time, MotionEvent evt)
 {
     if (time - m_hotSpotState.lastTime < 1000) {
         return;
@@ -585,6 +602,10 @@ void Pointer::handleMotionBinding(uint32_t time, double x, double y)
     if (!m_currentOutput) {
         return;
     }
+
+    QPointF pos = motionToAbs(evt);
+    double x = pos.x();
+    double y = pos.y();
 
     const int pushTime = 150;
     PointerHotSpot hs;
@@ -624,6 +645,21 @@ void Pointer::defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state)
     }
 }
 
+void Pointer::defaultGrabAxis(uint32_t time, AxisEvent evt)
+{
+    weston_pointer_send_axis(m_pointer, time, evt.m_evt);
+}
+
+void Pointer::defaultGrabAxisSource(uint32_t source)
+{
+    weston_pointer_send_axis_source(m_pointer, source);
+}
+
+void Pointer::defaultGrabFrame()
+{
+    weston_pointer_send_frame(m_pointer);
+}
+
 // -- PointerGrab
 
 PointerGrab *PointerGrab::fromGrab(weston_pointer_grab *grab)
@@ -641,19 +677,20 @@ PointerGrab::PointerGrab()
            , m_grab(new Grab)
 {
     static const weston_pointer_grab_interface grabInterface = {
-        [](weston_pointer_grab *base)                                                 { fromGrab(base)->focus(); },
-        [](weston_pointer_grab *base, uint32_t time, wl_fixed_t x, wl_fixed_t y)      {
+        [](weston_pointer_grab *base)                                                  { fromGrab(base)->focus(); },
+        [](weston_pointer_grab *base, uint32_t time, weston_pointer_motion_event *evt) {
             PointerGrab *grab = fromGrab(base);
             Pointer *p = grab->pointer();
-            double dx = wl_fixed_to_double(x);
-            double dy = wl_fixed_to_double(y);
-            grab->motion(time, dx, dy);
-            p->handleMotionBinding(time, dx, dy);
+            grab->motion(time, Pointer::MotionEvent(evt));
+            p->handleMotionBinding(time, Pointer::MotionEvent(evt));
         },
-        [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state) {
+        [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)  {
             fromGrab(base)->button(time, rawToPointerButton(button), (Pointer::ButtonState)state);
         },
-        [](weston_pointer_grab *base)                                                 { fromGrab(base)->cancel(); }
+        [](weston_pointer_grab *base, uint32_t time, weston_pointer_axis_event *event) {},
+        [](weston_pointer_grab *base, uint32_t source) {},
+        [](weston_pointer_grab *base) {},
+        [](weston_pointer_grab *base)                                                  { fromGrab(base)->cancel(); }
     };
 
     m_grab->base.interface = &grabInterface;

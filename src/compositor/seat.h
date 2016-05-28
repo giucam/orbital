@@ -32,6 +32,8 @@ struct weston_seat;
 struct weston_pointer;
 struct weston_pointer_grab;
 struct weston_keyboard;
+struct weston_pointer_motion_event;
+struct weston_pointer_axis_event;
 
 namespace Orbital {
 
@@ -71,6 +73,7 @@ public:
     void ungrabPopup(ShellSurface *surf);
 
     wl_resource *resource(wl_client *client) const;
+    weston_seat *westonSeat() const { return m_seat; }
 
     static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
@@ -124,6 +127,22 @@ public:
         Released = 0,
         Pressed = 1
     };
+    class MotionEvent {
+    public:
+        explicit MotionEvent(weston_pointer_motion_event *e) : m_evt(e) {}
+
+    private:
+        weston_pointer_motion_event *m_evt;
+        friend Pointer;
+    };
+    class AxisEvent {
+    public:
+        explicit AxisEvent(weston_pointer_axis_event *e) : m_evt(e) {}
+
+    private:
+        weston_pointer_axis_event *m_evt;
+        friend Pointer;
+    };
 
     explicit Pointer(Seat *seat, weston_pointer *pointer);
     ~Pointer();
@@ -137,7 +156,7 @@ public:
     void setFocus(View *view, double x, double y);
     inline void setFocus(View *view, const QPointF &p) { setFocus(view, p.x(), p.y()); }
     inline View *focus() const { return m_focus; }
-    void move(double x, double y);
+    void move(MotionEvent evt);
     void sendMotion(uint32_t time);
     void sendButton(uint32_t time, PointerButton button, ButtonState state);
     int buttonCount() const;
@@ -153,13 +172,18 @@ public:
     PointerButton grabButton() const;
     QPointF grabPos() const;
 
+    QPointF motionToAbs(MotionEvent evt) const;
+
     void defaultGrabFocus();
-    void defaultGrabMotion(uint32_t time, double x, double y);
+    void defaultGrabMotion(uint32_t time, MotionEvent evt);
     void defaultGrabButton(uint32_t time, uint32_t btn, uint32_t state);
+    void defaultGrabAxis(uint32_t time, AxisEvent evt);
+    void defaultGrabAxisSource(uint32_t source);
+    void defaultGrabFrame();
 
 private:
     void setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y);
-    void handleMotionBinding(uint32_t time, double x, double y);
+    void handleMotionBinding(uint32_t time, MotionEvent evt);
     void updateFocus();
     struct Listener;
 
@@ -195,7 +219,7 @@ public:
 
 protected:
     virtual void focus() {}
-    virtual void motion(uint32_t time, double x, double y) {}
+    virtual void motion(uint32_t time, Pointer::MotionEvent evt) {}
     virtual void button(uint32_t time, PointerButton button, Pointer::ButtonState state) {}
     virtual void cancel() {}
     virtual void ended() {}

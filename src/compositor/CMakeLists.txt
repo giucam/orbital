@@ -1,15 +1,15 @@
 
 pkg_check_modules(WaylandServer wayland-server REQUIRED)
-pkg_check_modules(Weston weston REQUIRED)
+pkg_check_modules(libweston libweston-0 REQUIRED)
 
 find_package(Qt5Core)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${Weston_INCLUDE_DIRS}
+include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${libweston_INCLUDE_DIRS}
 ${CMAKE_CURRENT_BINARY_DIR})
-link_directories(${Weston_LIBRARY_DIRS} ${WaylandServer_LIBRARY_DIRS})
+link_directories(${libweston_LIBRARY_DIRS} ${WaylandServer_LIBRARY_DIRS})
 
 set(SOURCES
     main.cpp
@@ -69,7 +69,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server weston-1 weston-xwayland-1 pixman-1 xkbcommon)
+target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} weston-xwayland pixman-1 xkbcommon)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)
@@ -78,10 +78,10 @@ add_subdirectory(x11-backend)
 add_subdirectory(drm-backend)
 add_subdirectory(wayland-backend)
 
-add_executable(orbital-launch orbital-launch.cpp)
-target_link_libraries(orbital-launch weston-launcher-1)
-set_target_properties(orbital-launch PROPERTIES COMPILE_DEFINITIONS "${defines}")
+# add_executable(orbital-launch orbital-launch.cpp)
+# target_link_libraries(orbital-launch weston-launcher-1)
+# set_target_properties(orbital-launch PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
-install(TARGETS orbital-launch
-        DESTINATION bin
-        PERMISSIONS SETUID OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+# install(TARGETS orbital-launch
+#         DESTINATION bin
+#         PERMISSIONS SETUID OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)

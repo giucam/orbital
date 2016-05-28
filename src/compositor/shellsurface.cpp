@@ -22,7 +22,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "shellsurface.h"
 #include "shell.h"
@@ -204,15 +204,16 @@ void ShellSurface::move(Seat *seat)
     class MoveGrab : public PointerGrab
     {
     public:
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
+            QPointF pos = pointer()->motionToAbs(evt);
 
             Output *out = grabbedView->output();
             QRect surfaceGeometry = shsurf->geometry();
 
-            int moveX = x + dx;
-            int moveY = y + dy;
+            int moveX = pos.x() + dx;
+            int moveY = pos.y() + dy;
 
             QPointF p = QPointF(moveX, moveY);
 
@@ -262,12 +263,13 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     class ResizeGrab : public PointerGrab
     {
     public:
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
+            QPointF pos = pointer()->motionToAbs(evt);
 
             QPointF from = view->mapFromGlobal(pointer()->grabPos());
-            QPointF to = view->mapFromGlobal(QPointF(x, y));
+            QPointF to = view->mapFromGlobal(pos);
             QPointF d = to - from;
 
             int32_t w = width;
@@ -574,7 +576,7 @@ void ShellSurface::configure(int x, int y)
     } else if (m_type == Type::Transient) {
         ShellSurface *parent = ShellSurface::fromSurface(m_parent);
         if (!parent) {
-            View *parentView = View::fromView(container_of(m_parent->surface()->views.next, weston_view, surface_link));
+            View *parentView = View::fromView(wl_container_of(m_parent->surface()->views.next, (weston_view *)nullptr, surface_link));
             ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
         } else {

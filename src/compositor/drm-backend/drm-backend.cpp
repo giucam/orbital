@@ -26,7 +26,7 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 
-#include <weston-1/compositor-drm.h>
+#include <compositor-drm.h>
 
 #include "drm-backend.h"
 
@@ -39,80 +39,35 @@ DrmBackend::DrmBackend()
 
 }
 
-static bool parseModeline(const QString &s, drmModeModeInfo *mode)
+static weston_drm_backend_output_mode configureOutput(weston_compositor *compositor, bool useCurrentMode, const char *name, weston_drm_backend_output_config *config)
 {
-    char hsync[16];
-    char vsync[16];
-    float fclock;
+    weston_drm_backend_output_mode mode = WESTON_DRM_BACKEND_OUTPUT_PREFERRED;
+    config->base.scale = 1;
+    config->base.transform = WL_OUTPUT_TRANSFORM_NORMAL;
+    config->gbm_format = nullptr;
+    config->seat = nullptr;
+    config->modeline = nullptr;
 
-    mode->type = DRM_MODE_TYPE_USERDEF;
-    mode->hskew = 0;
-    mode->vscan = 0;
-    mode->vrefresh = 0;
-    mode->flags = 0;
-
-    if (sscanf(qPrintable(s), "%f %hd %hd %hd %hd %hd %hd %hd %hd %15s %15s",
-           &fclock,
-           &mode->hdisplay,
-           &mode->hsync_start,
-           &mode->hsync_end,
-           &mode->htotal,
-           &mode->vdisplay,
-           &mode->vsync_start,
-           &mode->vsync_end,
-           &mode->vtotal, hsync, vsync) != 11)
-        return false;
-
-    mode->clock = fclock * 1000;
-    if (strcmp(hsync, "+hsync") == 0)
-        mode->flags |= DRM_MODE_FLAG_PHSYNC;
-    else if (strcmp(hsync, "-hsync") == 0)
-        mode->flags |= DRM_MODE_FLAG_NHSYNC;
-    else
-        return false;
-
-    if (strcmp(vsync, "+vsync") == 0)
-        mode->flags |= DRM_MODE_FLAG_PVSYNC;
-    else if (strcmp(vsync, "-vsync") == 0)
-        mode->flags |= DRM_MODE_FLAG_NVSYNC;
-    else
-        return false;
-
-    return true;
-}
-
-static void output_data(const char *name, struct drm_output_parameters *data)
-{
-    data->scale = 1;
     if (outputs.contains(QLatin1String(name))) {
         QJsonObject outputObj = outputs[QLatin1String(name)].toObject();
         QString mode = outputObj[QStringLiteral("mode")].toString();
         if (mode == QStringLiteral("off")) {
-            data->mode.config = DRM_OUTPUT_CONFIG_OFF;
-        } else if (mode == QStringLiteral("preferred")) {
-            data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+            mode = WESTON_DRM_BACKEND_OUTPUT_OFF;
         } else if (mode == QStringLiteral("current")) {
-            data->mode.config = DRM_OUTPUT_CONFIG_CURRENT;
-        } else if (sscanf(qPrintable(mode), "%dx%d", &data->mode.width, &data->mode.height) == 2) {
-            data->mode.config = DRM_OUTPUT_CONFIG_MODE;
-        } else if (parseModeline(mode, &data->mode.modeline)) {
-            data->mode.config = DRM_OUTPUT_CONFIG_MODELINE;
-        } else {
-            qWarning("Invalid mode '%s' for output '%s'.", qPrintable(mode), name);
-            data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
+            mode = WESTON_DRM_BACKEND_OUTPUT_CURRENT;
+        } else if (mode != QStringLiteral("preferred")) {
+            config->modeline = strdup(qPrintable(mode));
         }
 
-        int s = outputObj[QStringLiteral("scale")].toInt();
-        if (s > 0) {
-            data->scale = s;
+        int scale = outputObj[QStringLiteral("scale")].toInt();
+        if (scale > 0) {
+            config->base.scale = scale;
         } else {
-            qWarning("Invalid scale %d for output '%s'.", s, name);
+            qWarning("Invalid scale %d for output '%s'.", scale, name);
         }
-    } else {
-        data->mode.config = DRM_OUTPUT_CONFIG_PREFERRED;
     }
 
-    data->transform = WL_OUTPUT_TRANSFORM_NORMAL;
+    return mode;
 }
 
 static void configureDevice(struct weston_compositor *compositor, struct libinput_device *device)
@@ -138,9 +93,6 @@ static void configureDevice(struct weston_compositor *compositor, struct libinpu
 
 bool DrmBackend::init(weston_compositor *c)
 {
-    struct drm_backend_parameters param;
-    memset(&param, 0, sizeof param);
-
     QString path = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation);
     QString configFile = path + QLatin1String("/orbital/orbital.conf");
 
@@ -154,36 +106,29 @@ bool DrmBackend::init(weston_compositor *c)
     QJsonDocument doc = QJsonDocument::fromJson(data);
     outputs = doc.object()[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
 
-    param.tty = 0;
-    param.format = GBM_FORMAT_XRGB8888;
-    param.get_output_parameters = output_data;
-    param.configure_device = configureDevice;
-    param.seat_id = "seat0";
-//     char *format;
+    weston_drm_backend_config config;
+    config.base.struct_version = WESTON_DRM_BACKEND_CONFIG_VERSION;
+    config.base.struct_size = sizeof(config);
+    config.connector = 0;
+    config.tty = 0;
+    config.use_pixman = false;
+    config.seat_id = nullptr;
+    config.gbm_format = nullptr;
+    config.use_current_mode = false;
+    config.configure_output = configureOutput;
+    config.configure_device = configureDevice;
 
-//     backend_config = config;
-//
-//     const struct weston_option drm_options[] = {
-//         { WESTON_OPTION_INTEGER, "connector", 0, &param.connector },
-//         { WESTON_OPTION_STRING, "seat", 0, &param.seat_id },
-//         { WESTON_OPTION_INTEGER, "tty", 0, &param.tty },
-//         { WESTON_OPTION_BOOLEAN, "current-mode", 0, &option_current_mode },
-//         { WESTON_OPTION_BOOLEAN, "use-pixman", 0, &param.use_pixman },
-//     };
-//
-//     section = weston_config_get_section(config, "core", NULL, NULL);
-//     weston_config_section_get_string(section,
-//                      "gbm-format", &format, NULL);
-//
-//
-//     param.seat_id = NULL;
-//
-//     parse_options(drm_options, ARRAY_LENGTH(drm_options), argc, argv);
+    int (*backend_init)(struct weston_compositor *c,
+                        int *argc, char *argv[],
+                        struct weston_config *config,
+                        struct weston_backend_config *config_base);
 
-    drm_backend *b = drm_backend_create(c, &param);
-//     free(format);
+    backend_init = reinterpret_cast<decltype(backend_init)>(weston_load_module("drm-backend.so", "backend_init"));
+    if (!backend_init) {
+        return false;
+    }
 
-    return b;
+    return backend_init(c, NULL, NULL, NULL, &config.base) == 0;
 }
 
 }

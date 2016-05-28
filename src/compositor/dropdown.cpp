@@ -170,11 +170,12 @@ public:
         class MoveGrab : public PointerGrab
         {
         public:
-            void motion(uint32_t time, double x, double y) override
+            void motion(uint32_t time, Pointer::MotionEvent evt) override
             {
-                pointer()->move(x, y);
+                pointer()->move(evt);
 
-                int moveX = x + dx;
+                QPointF pos = pointer()->motionToAbs(evt);
+                int moveX = pos.x() + dx;
                 surface->view->setPos(moveX, surface->view->y());
             }
             void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override

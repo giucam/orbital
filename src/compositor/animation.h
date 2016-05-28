@@ -22,7 +22,7 @@
 
 #include <QObject>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "utils.h"
 

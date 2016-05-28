@@ -19,7 +19,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "layer.h"
 #include "view.h"
@@ -100,7 +100,7 @@ void Layer::lower(View *view)
     if (wl_list_empty(&view->m_view->layer_link.link)) {
         next = &m_layer->layer.view_list;
     } else {
-        next = container_of(view->m_view->layer_link.link.next, weston_layer_entry, link);
+        next = wl_container_of(view->m_view->layer_link.link.next, (weston_layer_entry *)nullptr, link);
     }
     weston_layer_entry_remove(&view->m_view->layer_link);
 
@@ -114,7 +114,7 @@ View *Layer::topView() const
         return nullptr;
     }
 
-    weston_view *v = container_of(m_layer->layer.view_list.link.next, weston_view, layer_link.link);
+    weston_view *v = wl_container_of(m_layer->layer.view_list.link.next, (weston_view *)nullptr, layer_link.link);
     return View::fromView(v);
 }
 

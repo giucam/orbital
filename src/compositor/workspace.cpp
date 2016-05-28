@@ -19,7 +19,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "workspace.h"
 #include "shell.h"

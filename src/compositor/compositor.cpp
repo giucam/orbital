@@ -31,7 +31,7 @@
 #include <QStandardPaths>
 #include <QFile>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "compositor.h"
 #include "backend.h"
@@ -182,7 +182,7 @@ static void terminate(weston_compositor *c)
     Compositor::fromCompositor(c)->quit();
 }
 
-static void terminate_binding(weston_seat *seat, uint32_t time, uint32_t key, void *data)
+static void terminate_binding(weston_keyboard *keyb, uint32_t time, uint32_t key, void *data)
 {
     Compositor *c = static_cast<Compositor *>(data);
     c->quit();
@@ -343,13 +343,25 @@ static const weston_pointer_grab_interface defaultPointerGrab = {
         weston_pointer *p = grab->pointer;
         Seat::fromSeat(p->seat)->pointer()->defaultGrabFocus();
     },
-    [](weston_pointer_grab *grab, uint32_t time, wl_fixed_t x, wl_fixed_t y) {
+    [](weston_pointer_grab *grab, uint32_t time, weston_pointer_motion_event *event) {
         Seat *seat = Seat::fromSeat(grab->pointer->seat);
-        seat->pointer()->defaultGrabMotion(time, wl_fixed_to_double(x), wl_fixed_to_double(y));
+        seat->pointer()->defaultGrabMotion(time, Pointer::MotionEvent(event));
     },
     [](weston_pointer_grab *grab, uint32_t time, uint32_t btn, uint32_t state) {
         Seat *seat = Seat::fromSeat(grab->pointer->seat);
         seat->pointer()->defaultGrabButton(time, btn, state);
+    },
+    [](weston_pointer_grab *grab, uint32_t time, weston_pointer_axis_event *event) {
+        Seat *seat = Seat::fromSeat(grab->pointer->seat);
+        seat->pointer()->defaultGrabAxis(time, Pointer::AxisEvent(event));
+    },
+    [](weston_pointer_grab *grab, uint32_t source) {
+        Seat *seat = Seat::fromSeat(grab->pointer->seat);
+        seat->pointer()->defaultGrabAxisSource(source);
+    },
+    [](weston_pointer_grab *grab) {
+        Seat *seat = Seat::fromSeat(grab->pointer->seat);
+        seat->pointer()->defaultGrabFrame();
     },
     [](weston_pointer_grab *grab) {}
 };
@@ -360,10 +372,7 @@ bool Compositor::init(StringView socketName)
 
     verify_xdg_runtime_dir();
 
-    m_compositor = static_cast<weston_compositor *>(malloc(sizeof *m_compositor));
-    memset(m_compositor, 0, sizeof(*m_compositor));
-
-    m_compositor->wl_display = m_display;
+    m_compositor = weston_compositor_create(m_display, this);
     m_compositor->idle_time = 300;
 
     QJsonObject kbdConfig = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Keyboard")].toObject();
@@ -380,7 +389,7 @@ bool Compositor::init(StringView socketName)
                            keyvariant.isEmpty() ? nullptr : strdup(keyvariant.data()),
                            keyoptions.isEmpty() ? nullptr : strdup(keyoptions.data()) };
 
-    if (weston_compositor_init(m_compositor) < 0 || weston_compositor_xkb_init(m_compositor, &xkb) < 0)
+    if (weston_compositor_xkb_init(m_compositor, &xkb) < 0)
         return false;
 
     for (int i = 0; i <= (int)Layer::Minimized; ++i) {
@@ -390,7 +399,8 @@ bool Compositor::init(StringView socketName)
 
     m_compositor->kb_repeat_rate = 40;
     m_compositor->kb_repeat_delay = 400;
-    m_compositor->terminate = terminate;
+    m_compositor->exit = terminate;
+    m_compositor->vt_switching = true;
 
     m_listener->compositor = this;
     m_listener->listener.notify = compositorDestroyed;
@@ -402,18 +412,18 @@ bool Compositor::init(StringView socketName)
     };
     wl_signal_add(&m_compositor->output_moved_signal, &m_listener->outputMovedSignal);
     m_listener->outputCreatedSignal.notify = [](wl_listener *l, void *data) {
-        Listener *listener = container_of(l, Listener, outputCreatedSignal);
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, outputCreatedSignal);
         listener->compositor->newOutput(static_cast<weston_output *>(data));
     };
     wl_signal_add(&m_compositor->output_created_signal, &m_listener->outputCreatedSignal);
     m_listener->sessionSignal.notify = [](wl_listener *l, void *data) {
-        Listener *listener = container_of(l, Listener, sessionSignal);
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, sessionSignal);
         emit listener->compositor->sessionActivated(listener->compositor->m_compositor->session_active);
     };
     wl_signal_add(&m_compositor->session_signal, &m_listener->sessionSignal);
     m_listener->seatCreatedSignal.notify = [](wl_listener *l, void *data)
     {
-        Listener *listener = container_of(l, Listener, seatCreatedSignal);
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, seatCreatedSignal);
         weston_seat *s = static_cast<weston_seat *>(data);
         emit listener->compositor->seatCreated(Seat::fromSeat(s));
     };
@@ -421,7 +431,6 @@ bool Compositor::init(StringView socketName)
 //     text_backend_init(m_compositor, "");
 
     if (!m_backend->init(m_compositor)) {
-        weston_compositor_shutdown(m_compositor);
         return false;
     }
 
@@ -446,17 +455,17 @@ bool Compositor::init(StringView socketName)
         socket = socketStr.data();
 
         if (wl_display_add_socket(m_display, socket)) {
-            weston_log("fatal: failed to add socket: %m\n");
+            fmt::print("fatal: failed to add socket: {}\n", strerror(errno));
             return false;
         }
     } else {
         socket = wl_display_add_socket_auto(m_display);
         if (!socket) {
-            weston_log("fatal: failed to add socket: %m\n");
+            fmt::print("fatal: failed to add socket: {}\n", strerror(errno));
             return false;
         }
     }
-    weston_log("Using '%s'\n", socket);
+    fmt::print("Using '{}'\n", socket);
 
     setenv("WAYLAND_DISPLAY", socket, 1);
 

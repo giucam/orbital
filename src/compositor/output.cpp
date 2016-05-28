@@ -19,7 +19,7 @@
 
 #include <QDebug>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "output.h"
 #include "workspace.h"
@@ -84,7 +84,8 @@ Output::Output(weston_output *out)
     m_listener->listener.notify = outputDestroyed;
     wl_signal_add(&out->destroy_signal, &m_listener->listener);
     m_listener->frameListener.notify = [](wl_listener *l, void *data) {
-        Output *o = container_of(l, Listener, frameListener)->output;
+        Listener *listener = wl_container_of(l, (Listener *)nullptr, frameListener);
+        Output *o = listener->output;
         for (auto &cb: o->m_callbacks) {
             cb();
         }

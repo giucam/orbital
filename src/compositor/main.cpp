@@ -20,7 +20,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "backend.h"
 #include "compositor.h"

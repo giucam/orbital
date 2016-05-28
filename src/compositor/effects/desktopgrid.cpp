@@ -62,13 +62,14 @@ public:
         }
         end();
     }
-    void motion(uint32_t time, double x, double y) override
+    void motion(uint32_t time, Pointer::MotionEvent evt) override
     {
-        pointer()->move(x, y);
+        pointer()->move(evt);
+        QPointF pos = pointer()->motionToAbs(evt);
 
         if (moving) {
             if (!moved) {
-                moved = QPointF(origMousePos - QPointF(x, y)).manhattanLength() > 2;
+                moved = QPointF(origMousePos - pos).manhattanLength() > 2;
                 if (moved) {
                     shell->compositor()->layer(Compositor::Layer::Apps)->addView(moving);
                 }
@@ -78,7 +79,7 @@ public:
                 AbstractWorkspace *w = shsurf->workspace();
                 Output *out = moving->output();
                 AbstractWorkspace::View *wsv = workspaceViewForOutput(w, out);
-                QPointF p = wsv->map(x, y) + QPointF(dx, dy);
+                QPointF p = wsv->map(pos.x(), pos.y()) + QPointF(dx, dy);
                 QRect surfaceGeometry = shsurf->geometry();
 
                 QPointF br = p + surfaceGeometry.bottomRight();

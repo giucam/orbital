@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "binding.h"
 #include "seat.h"
@@ -42,8 +42,8 @@ Binding::~Binding()
 ButtonBinding::ButtonBinding(weston_compositor *c, PointerButton b, KeyboardModifiers modifiers, QObject *p)
              : Binding(p)
 {
-    auto handler = [](weston_seat *s, uint32_t time, uint32_t button, void *data) {
-        Seat *seat = Seat::fromSeat(s);
+    auto handler = [](weston_pointer *p, uint32_t time, uint32_t button, void *data) {
+        Seat *seat = Seat::fromSeat(p->seat);
         emit static_cast<ButtonBinding *>(data)->triggered(seat, time, rawToPointerButton(button));
     };
     m_binding = weston_compositor_add_button_binding(c, pointerButtonToRaw(b), (weston_keyboard_modifier)modifiers, handler, this);
@@ -54,8 +54,8 @@ ButtonBinding::ButtonBinding(weston_compositor *c, PointerButton b, KeyboardModi
 KeyBinding::KeyBinding(weston_compositor *c, uint32_t key, KeyboardModifiers modifiers, QObject *p)
           : Binding(p)
 {
-    auto handler = [](weston_seat *s, uint32_t time, uint32_t key, void *data) {
-        Seat *seat = Seat::fromSeat(s);
+    auto handler = [](weston_keyboard *k, uint32_t time, uint32_t key, void *data) {
+        Seat *seat = Seat::fromSeat(k->seat);
         emit static_cast<KeyBinding *>(data)->triggered(seat, time, key);
     };
     m_binding = weston_compositor_add_key_binding(c, key, (weston_keyboard_modifier)modifiers, handler, this);
@@ -66,9 +66,9 @@ KeyBinding::KeyBinding(weston_compositor *c, uint32_t key, KeyboardModifiers mod
 AxisBinding::AxisBinding(weston_compositor *c, PointerAxis axis, KeyboardModifiers modifiers, QObject *p)
            : Binding(p)
 {
-    auto handler = [](weston_seat *s, uint32_t time, uint32_t axis, wl_fixed_t value, void *data) {
-        Seat *seat = Seat::fromSeat(s);
-        emit static_cast<AxisBinding *>(data)->triggered(seat, time, (PointerAxis)axis, wl_fixed_to_double(value));
+    auto handler = [](weston_pointer *p, uint32_t time, weston_pointer_axis_event *evt, void *data) {
+        Seat *seat = Seat::fromSeat(p->seat);
+        emit static_cast<AxisBinding *>(data)->triggered(seat, time, (PointerAxis)evt->axis, evt->value);
     };
     m_binding = weston_compositor_add_axis_binding(c, (uint32_t)axis, (weston_keyboard_modifier)modifiers, handler, this);
 }

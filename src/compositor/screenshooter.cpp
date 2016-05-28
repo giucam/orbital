@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston-1/compositor.h>
+#include <compositor.h>
 
 #include "screenshooter.h"
 #include "compositor.h"
@@ -149,9 +149,9 @@ void Screenshooter::shootSurface(wl_client *client, wl_resource *resource, uint3
             delete this;
         }
 
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
         {

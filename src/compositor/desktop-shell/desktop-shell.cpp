@@ -388,9 +388,9 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
                 pointer()->setFocus(nullptr);
             }
         }
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
             pointer()->sendMotion(time);
         }
         void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
@@ -531,9 +531,9 @@ void DesktopShell::createGrab(uint32_t id)
                                               wl_fixed_from_double(sx), wl_fixed_from_double(sy));
             }
         }
-        void motion(uint32_t time, double x, double y) override
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
         {
-            pointer()->move(x, y);
+            pointer()->move(evt);
 
             QPointF p(pointer()->x(), pointer()->y());
             if (currentFocus) {

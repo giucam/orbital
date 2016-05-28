@@ -17,7 +17,7 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <weston-1/compositor-wayland.h>
+#include <compositor-wayland.h>
 
 #include "wayland-backend.h"
 
@@ -30,20 +30,34 @@ WaylandBackend::WaylandBackend()
 
 bool WaylandBackend::init(weston_compositor *c)
 {
-    const char *display_name = NULL;
-    int use_pixman = 0;
-    int sprawl = 0;
+    weston_wayland_backend_config config;
+    config.base.struct_version = WESTON_WAYLAND_BACKEND_CONFIG_VERSION;
+    config.base.struct_size = sizeof(config);
+    config.use_pixman = false;
+    config.sprawl = false;
+    config.display_name = nullptr;
+    config.fullscreen = false;
+    config.cursor_theme = nullptr;
+    config.cursor_size = 32;
 
-    wayland_backend *b = wayland_backend_create(c, use_pixman, display_name, NULL, 32, sprawl);
-    if (!b)
+    weston_wayland_backend_output_config outputs[] = {
+        {   800, 400, "WL1", 0, 1 },
+    };
+    config.num_outputs = sizeof(outputs) / sizeof(weston_wayland_backend_output_config);
+    config.outputs = outputs;
+
+
+    int (*backend_init)(struct weston_compositor *c,
+                        int *argc, char *argv[],
+                        struct weston_config *config,
+                        struct weston_backend_config *config_base);
+
+    backend_init = reinterpret_cast<decltype(backend_init)>(weston_load_module("wayland-backend.so", "backend_init"));
+    if (!backend_init) {
         return false;
-
-    if (!sprawl) {
-        wayland_output *output = wayland_output_create(b, 0, 0, 800, 400, "WL1", 0, 0, 1);
-        wayland_output_set_windowed(output);
     }
 
-    return true;
+    return backend_init(c, NULL, NULL, NULL, &config.base) == 0;
 }
 
 }
