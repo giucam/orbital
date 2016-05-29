@@ -64,7 +64,6 @@ public:
     }
     void motion(uint32_t time, Pointer::MotionEvent evt) override
     {
-        pointer()->move(evt);
         QPointF pos = pointer()->motionToAbs(evt);
 
         if (moving) {
@@ -95,6 +94,8 @@ public:
                 shsurf->moveViews(int(p.x()), int(p.y()));
             }
         }
+
+        pointer()->move(evt);
     }
     void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
     {

@@ -23,6 +23,8 @@
 #include <functional>
 #include <unordered_set>
 
+#include <compositor.h>
+
 #include <QObject>
 #include <QPointF>
 
@@ -227,12 +229,12 @@ protected:
 //     void unsetCursor();
 
 private:
-    struct Grab;
-
     static PointerGrab *fromGrab(weston_pointer_grab *grab);
 
     Seat *m_seat;
-    Grab *m_grab;
+    struct Grab : public weston_pointer_grab {
+        PointerGrab *parent;
+    } m_grab;
 
 //
 //     static const weston_pointer_grab_interface s_shellGrabInterface;

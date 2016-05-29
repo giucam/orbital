@@ -21,8 +21,6 @@
 
 #include <QDebug>
 
-#include <compositor.h>
-
 #include "seat.h"
 #include "compositor.h"
 #include "shellsurface.h"
@@ -55,11 +53,6 @@ void Keymap::fill(const Keymap &other)
 }
 
 
-
-struct PointerGrab::Grab {
-    weston_pointer_grab base;
-    PointerGrab *parent;
-};
 
 struct Seat::Listener {
     wl_listener listener;
@@ -294,6 +287,11 @@ Seat *Seat::fromResource(wl_resource *res)
 
 // -- Pointer
 
+inline QPointF nullPointerPos()
+{
+    return QPointF(-1000000, -1000000);
+}
+
 struct Pointer::Listener {
     wl_listener focusListener;
     Pointer *pointer;
@@ -375,7 +373,7 @@ View *Pointer::pickActivableView(double *vx, double *vy) const
 
 void Pointer::setFocus(View *view)
 {
-    setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : QPointF());
+    setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : nullPointerPos());
 }
 
 void Pointer::setFocus(View *view, double x, double y)
@@ -570,7 +568,8 @@ void Pointer::defaultGrabFocus()
         }
     }
 
-    double dx = -1000000, dy = -1000000;
+    QPointF nullPos = nullPointerPos();
+    double dx = nullPos.x(), dy = nullPos.y();
     View *view = pickView(&dx, &dy, [](View *view) {
         Layer *l = view->layer();
         if (l && !l->acceptInput()) {
@@ -674,7 +673,6 @@ PointerGrab *PointerGrab::fromGrab(weston_pointer_grab *grab)
 
 PointerGrab::PointerGrab()
            : m_seat(nullptr)
-           , m_grab(new Grab)
 {
     static const weston_pointer_grab_interface grabInterface = {
         [](weston_pointer_grab *base)                                                  { fromGrab(base)->focus(); },
@@ -693,8 +691,8 @@ PointerGrab::PointerGrab()
         [](weston_pointer_grab *base)                                                  { fromGrab(base)->cancel(); }
     };
 
-    m_grab->base.interface = &grabInterface;
-    m_grab->parent = this;
+    m_grab.interface = &grabInterface;
+    m_grab.parent = this;
 }
 
 PointerGrab::~PointerGrab()
@@ -710,7 +708,7 @@ void PointerGrab::start(Seat *seat)
     }
 
     m_seat = seat;
-    weston_pointer_start_grab(m_seat->pointer()->m_pointer, &m_grab->base);
+    weston_pointer_start_grab(m_seat->pointer()->m_pointer, &m_grab);
 }
 
 void PointerGrab::start(Seat *seat, PointerCursor cursor)
