@@ -137,19 +137,104 @@ void Shell::initEnvironment()
     setenv("DBUS_SESSION_BUS_PID", qPrintable(QString::number(pid)), 1);
 }
 
-static bool shouldAutoStart(const std::unordered_map<std::string, std::string> &settings)
+class IniFile
 {
-    bool hidden = settings.count("Hidden") && settings.at("Hidden") == "true";
+public:
+    IniFile(StringView file)
+        : m_valid(false)
+    {
+        std::ifstream stream(file.toStdString(), std::ifstream::in);
+        if (!stream.good()) {
+            return;
+        }
+
+        std::string currentGroup;
+
+        while (stream.good()) {
+            std::stringbuf lineBuf;
+            stream.get(lineBuf);
+            stream.ignore(1); //discard the'\n'
+            std::string line = lineBuf.str();
+
+            int length = line.size();
+            if (line.find_first_of('\n') != std::string::npos) {
+                --length;
+            }
+            if (length == 0) {
+                continue;
+            }
+
+            if (line.find_first_of('[') == 0) {
+                int idx = line.find_first_of(']');
+                if (idx == -1 || idx != length - 1) {
+                    return;
+                }
+                currentGroup = line.substr(1, length - 2);
+                continue;
+            }
+
+            int idx = line.find_first_of('=');
+            if (idx < 1) {
+                return;
+            }
+            std::string key = line.substr(0, idx);
+            std::string value = line.substr(idx + 1, length - idx - 1);
+
+            m_data[currentGroup + '/' + key] = value;
+        }
+
+        m_valid = true;
+    }
+
+    bool isValid() const
+    {
+        return m_valid;
+    }
+
+    void beginGroup(StringView name)
+    {
+        m_group = name.toStdString();
+    }
+
+    void endGroup()
+    {
+        m_group.clear();
+    }
+
+    bool hasValue(StringView key) const
+    {
+        if (m_group.empty()) {
+            return m_data.count(key.toStdString());
+        }
+
+        return m_data.count(m_group + "/" + key.toStdString());
+    }
+
+    StringView value(StringView key) const
+    {
+        if (m_group.empty()) {
+            return m_data.at(key.toStdString());
+        }
+        return m_data.at(m_group + "/" + key.toStdString());
+    }
+
+    bool m_valid;
+    std::unordered_map<std::string, std::string> m_data;
+    std::string m_group;
+};
+
+static bool shouldAutoStart(const IniFile &settings)
+{
+    bool hidden = settings.hasValue("Hidden") && settings.value("Hidden") == "true";
 
     if (hidden) {
         return false;
     }
-    if (settings.count("OnlyShowIn")) {
+
+    if (settings.hasValue("OnlyShowIn")) {
         bool show = false;
 
-fmt::print(stderr, "showin {}\n",settings.at("OnlyShowIn"));
-
-        StringView(settings.at("OnlyShowIn")).split(';', [&show](StringView s) {
+        settings.value("OnlyShowIn").split(';', [&show](StringView s) {
             if (s == "Orbital") {
                 show = true;
                 return true;
@@ -157,9 +242,9 @@ fmt::print(stderr, "showin {}\n",settings.at("OnlyShowIn"));
             return false;
         });
         return show;
-    } else if (settings.count("NotShowIn")) {
+    } else if (settings.hasValue("NotShowIn")) {
         bool show = true;
-        StringView(settings.at("NotShowIn")).split(';', [&show](StringView s) {
+        settings.value("NotShowIn").split(';', [&show](StringView s) {
             if (s == "Orbital") {
                 show = false;
                 return true;
@@ -202,53 +287,8 @@ fmt::print(stderr, "populate {}\n",autostartDir);
     }
 }
 
-static bool readDesktopFile(std::ifstream &stream, std::unordered_map<std::string, std::string> &map)
-{
-    if (!stream.good()) {
-        return false;
-    }
-
-    std::string currentGroup;
-
-    while (stream.good()) {
-        std::stringbuf lineBuf;
-        stream.get(lineBuf);
-        stream.ignore(1); //discard the'\n'
-        std::string line = lineBuf.str();
-
-        int length = line.size();
-        if (line.find_first_of('\n') != std::string::npos) {
-            --length;
-        }
-        if (length == 0) {
-            continue;
-        }
-
-        if (line.find_first_of('[') == 0) {
-            int idx = line.find_first_of(']');
-            if (idx == -1 || idx != length - 1) {
-                return false;
-            }
-            currentGroup = line.substr(1, length - 2);
-            continue;
-        }
-
-        int idx = line.find_first_of('=');
-        if (idx < 1) {
-            return false;
-        }
-        std::string key = line.substr(0, idx);
-        std::string value = line.substr(idx + 1, length - idx - 1);
-
-        map[currentGroup + '/' + key] = value;
-    }
-
-    return true;
-}
-
 void Shell::autostartClients()
 {
-qDebug()<<"AUTO";
     std::vector<std::string> files;
 fmt::print(stderr, "autostart!!\n");
     StringView xdgConfigHome = getenv("XDG_CONFIG_HOME");
@@ -267,32 +307,32 @@ fmt::print(stderr, "autostart!!\n");
     } else {
         populateAutostartList(files, "/etc/xdg/autostart");
     }
-fmt::print(stderr, "{} {}\n",xdgConfigHome,xdgConfigDirs);
+
     QDir outputDir = QDir::temp();
     QString dirName = QStringLiteral("orbital-%1").arg(getpid());
     outputDir.mkdir(dirName);
     outputDir.cd(dirName);
 
     for (const std::string &fi: files) {
-        std::ifstream ifs(fi, std::ifstream::in);
-        std::unordered_map<std::string, std::string> settingsMap;
-        if (!readDesktopFile(ifs, settingsMap)) {
+        IniFile file(fi);
+        if (!file.isValid()) {
             continue;
         }
 
-        if (!shouldAutoStart(settingsMap)) {
+        file.beginGroup("Desktop Entry");
+        if (!shouldAutoStart(file)) {
             continue;
         }
 
-        std::string exec;
-        if (settingsMap.count("Desktop Entry/TryExec")) {
-           exec = settingsMap["Desktop Entry/TryExec"];
-        } else {
-            exec = settingsMap["Desktop Entry/Exec"];
+        StringView exec;
+        if (file.hasValue("TryExec")) {
+            exec = file.value("TryExec");
+        } else if (file.hasValue("Exec")) {
+            exec = file.value("Exec");
         }
         fmt::print(stderr, "Autostarting {}: '{}'\n", fi, exec);
 
-        if (exec.empty()) {
+        if (exec.isEmpty()) {
             continue;
         }
 
@@ -312,7 +352,7 @@ fmt::print(stderr, "{} {}\n",xdgConfigHome,xdgConfigDirs);
         QString bin = binView.toQString();
         proc->setStandardOutputFile(outputDir.filePath(bin));
         proc->setStandardErrorFile(outputDir.filePath(bin));
-        proc->start(StringView(exec).toQString());
+        proc->start(exec.toQString());
     }
 }
 
