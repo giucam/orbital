@@ -51,11 +51,16 @@ void ZoomEffect::run(Seat *seat, uint32_t time, PointerAxis axis, double value)
 
             output->zoom.level += increment;
 
-            if (output->zoom.level < 0.f)
+            if (output->zoom.level < 0.f) {
                 output->zoom.level = 0.f;
-            else if (output->zoom.level > output->zoom.max_level)
+            } else if (output->zoom.level > output->zoom.max_level) {
                 output->zoom.level = output->zoom.max_level;
-            else if (!output->zoom.active) {
+            }
+
+            if (!output->zoom.active) {
+                if (output->zoom.level <= 0.0) {
+                    continue;
+                }
                 weston_output_activate_zoom(output, seat->westonSeat());
             }
 
