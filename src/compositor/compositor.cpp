@@ -389,7 +389,7 @@ bool Compositor::init(StringView socketName)
                            keyvariant.isEmpty() ? nullptr : strdup(keyvariant.data()),
                            keyoptions.isEmpty() ? nullptr : strdup(keyoptions.data()) };
 
-    if (weston_compositor_xkb_init(m_compositor, &xkb) < 0)
+    if (weston_compositor_set_xkb_rule_names(m_compositor, &xkb) < 0)
         return false;
 
     for (int i = 0; i <= (int)Layer::Minimized; ++i) {
