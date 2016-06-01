@@ -287,11 +287,6 @@ Seat *Seat::fromResource(wl_resource *res)
 
 // -- Pointer
 
-inline QPointF nullPointerPos()
-{
-    return QPointF(-1000000, -1000000);
-}
-
 struct Pointer::Listener {
     wl_listener focusListener;
     Pointer *pointer;
@@ -373,19 +368,23 @@ View *Pointer::pickActivableView(double *vx, double *vy) const
 
 void Pointer::setFocus(View *view)
 {
-    setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : nullPointerPos());
+    setFocus(view, view ? view->mapFromGlobal(QPointF(x(), y())) : QPointF());
 }
 
 void Pointer::setFocus(View *view, double x, double y)
 {
     wl_fixed_t fx = wl_fixed_from_double(x);
     wl_fixed_t fy = wl_fixed_from_double(y);
-    weston_pointer_set_focus(m_pointer, view ? view->m_view : nullptr, fx, fy);
+    setFocusFixed(view, fx, fy);
 }
 
 void Pointer::setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y)
 {
-    weston_pointer_set_focus(m_pointer, view ? view->m_view : nullptr, x, y);
+    if (view) {
+        weston_pointer_set_focus(m_pointer, view->m_view, x, y);
+    } else {
+        weston_pointer_clear_focus(m_pointer);
+    }
 }
 
 void Pointer::updateFocus()
@@ -568,8 +567,7 @@ void Pointer::defaultGrabFocus()
         }
     }
 
-    QPointF nullPos = nullPointerPos();
-    double dx = nullPos.x(), dy = nullPos.y();
+    double dx, dy;
     View *view = pickView(&dx, &dy, [](View *view) {
         Layer *l = view->layer();
         if (l && !l->acceptInput()) {
