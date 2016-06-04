@@ -434,19 +434,12 @@ bool Compositor::init(StringView socketName)
         return false;
     }
 
-    if (m_compositor->launcher) {
-        for (int i = KEY_F1; i < KEY_F12; ++i) {
-            KeyBinding *b = createKeyBinding(i, KeyboardModifiers::Ctrl | KeyboardModifiers::Alt);
-            connect(b, &KeyBinding::triggered, [this, i]() {
-                int vt = i - KEY_F1 + 1;
-                if (weston_launcher_get_vt(m_compositor->launcher) != vt) {
-                    m_shell->lock([this, vt]() {
-                        weston_launcher_activate_vt(m_compositor->launcher, vt);
-                    });
-                }
-            });
-        }
-    }
+    weston_compositor_set_vt_switcher(m_compositor, [](weston_compositor *compositor, int vt) {
+        Compositor *c = Compositor::fromCompositor(compositor);
+        c->m_shell->lock([compositor, vt]() {
+            weston_compositor_activate_vt(compositor, vt);
+        });
+    });
 
     const char *socket = nullptr;
     std::string socketStr;
