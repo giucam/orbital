@@ -20,8 +20,11 @@
 #ifndef ORBITAL_XWAYLAND_H
 #define ORBITAL_XWAYLAND_H
 
+#include <xwayland-api.h>
+
 #include "interface.h"
 
+struct wl_event_source;
 struct weston_xserver;
 
 namespace Orbital {
@@ -35,8 +38,16 @@ public:
     ~XWayland();
 
 private:
+    static pid_t spawnXserver(void *ud, const char *xdpy, int abstractFd, int unixFd);
+    class Process;
+
     Shell *m_shell;
-    weston_xserver *m_xwayland;
+    const weston_xwayland_api *m_api;
+    weston_xwayland *m_xwayland;
+    Process *m_process;
+    wl_client *m_client;
+    int m_wmFd;
+    wl_event_source *m_sigusr1Source;
 };
 
 }

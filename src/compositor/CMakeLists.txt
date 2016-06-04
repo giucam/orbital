@@ -69,7 +69,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} weston-xwayland pixman-1 xkbcommon)
+target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} pixman-1 xkbcommon)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)

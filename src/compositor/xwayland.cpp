@@ -31,8 +31,6 @@
 #include <QProcessEnvironment>
 #include <QDebug>
 
-#include <xwayland.h>
-
 #include "xwayland.h"
 #include "shell.h"
 #include "compositor.h"
@@ -42,7 +40,7 @@
 
 namespace Orbital {
 
-class Process : public QProcess
+class XWayland::Process : public QProcess
 {
 public:
     void setupChildProcess()
@@ -51,11 +49,10 @@ public:
     }
 };
 
-static Process *s_process = nullptr;
-
-static pid_t
-spawn_xserver(struct weston_xserver *wxs)
+pid_t XWayland::spawnXserver(void *ud, const char *xdpy, int abstractFd, int unixFd)
 {
+    XWayland *_this = static_cast<XWayland *>(ud);
+
     int sv[2], wm[2];
 
     if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sv) < 0) {
@@ -71,37 +68,36 @@ spawn_xserver(struct weston_xserver *wxs)
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert(QStringLiteral("WAYLAND_SOCKET"), QString::number(dup(sv[1])));
 
-    QString display = QStringLiteral(":%1").arg(wxs->display);
-    QString abstract_fd = QString::number(dup(wxs->abstract_fd));
-    QString unix_fd = QString::number(dup(wxs->unix_fd));
-    QString wm_fd = QString::number(dup(wm[1]));
+    QString abstract_fd_str = QString::number(dup(abstractFd));
+    QString unix_fd_str = QString::number(dup(unixFd));
+    QString wm_fd_str = QString::number(dup(wm[1]));
 
-    s_process = new Process;
-    s_process->setProcessChannelMode(QProcess::ForwardedChannels);
-    s_process->setProcessEnvironment(env);
+    _this->m_process = new Process;
+    _this->m_process->setProcessChannelMode(QProcess::ForwardedChannels);
+    _this->m_process->setProcessEnvironment(env);
 
-    s_process->connect(s_process, (void (QProcess::*)(int))&QProcess::finished, [wxs](int exitCode) {
-        weston_xserver_exited(wxs, exitCode);
-        if (s_process) {
-            delete s_process;
-            s_process = nullptr;
+    _this->m_process->connect(_this->m_process, (void (QProcess::*)(int))&QProcess::finished, [_this](int exitCode) {
+        _this->m_api->xserver_exited(_this->m_xwayland, exitCode);
+        if (_this->m_process) {
+            delete _this->m_process;
+            _this->m_process = nullptr;
         }
     });
-    s_process->start(QStringLiteral("Xwayland"), {
-              display,
-              QStringLiteral("-rootless"),
-              QStringLiteral("-listen"), abstract_fd,
-              QStringLiteral("-listen"), unix_fd,
-              QStringLiteral("-wm"), wm_fd,
-              QStringLiteral("-terminate") });
+    _this->m_process->start(QStringLiteral("Xwayland"), {
+                            QLatin1String(xdpy),
+                            QStringLiteral("-rootless"),
+                            QStringLiteral("-listen"), abstract_fd_str,
+                            QStringLiteral("-listen"), unix_fd_str,
+                            QStringLiteral("-wm"), wm_fd_str,
+                            QStringLiteral("-terminate") });
 
     close(sv[1]);
-    wxs->client = wl_client_create(wxs->wl_display, sv[0]);
+    _this->m_client = wl_client_create(_this->m_shell->compositor()->display(), sv[0]);
 
     close(wm[1]);
-    wxs->wm_fd = wm[0];
+    _this->m_wmFd = wm[0];
 
-    return s_process->processId();
+    return _this->m_process->processId();
 }
 
 class XWlSurface : public Interface {
@@ -132,10 +128,23 @@ public:
 XWayland::XWayland(Shell *shell)
         : Interface(shell)
         , m_shell(shell)
+        , m_process(nullptr)
 {
     weston_compositor *compositor = shell->compositor()->m_compositor;
-    m_xwayland = weston_xserver_create(compositor);
-    m_xwayland->spawn_xserver = spawn_xserver;
+
+    weston_compositor_load_xwayland(compositor);
+    m_api = weston_xwayland_get_api(compositor);
+    m_xwayland = m_api->get(compositor);
+
+    m_api->listen(m_xwayland, this, spawnXserver);
+
+    wl_event_loop *loop = wl_display_get_event_loop(compositor->wl_display);
+    m_sigusr1Source = wl_event_loop_add_signal(loop, SIGUSR1, [](int, void *ud) {
+        XWayland *_this = static_cast<XWayland *>(ud);
+        _this->m_api->xserver_loaded(_this->m_xwayland, _this->m_client, _this->m_wmFd);
+        wl_event_source_remove(_this->m_sigusr1Source);
+        return 1;
+    }, this);
 
     compositor->shell_interface.shell = this;
     compositor->shell_interface.create_shell_surface = [](void *shell, weston_surface *surface, const weston_shell_client *client) {
@@ -188,13 +197,10 @@ XWayland::XWayland(Shell *shell)
 
 XWayland::~XWayland()
 {
-    if (s_process) {
-        Process *proc = s_process;
-        s_process = nullptr;
-
-        proc->kill();
-        proc->waitForFinished();
-        delete proc;
+    if (m_process) {
+        m_process->kill();
+        m_process->waitForFinished();
+        delete m_process;
     }
 }
 
