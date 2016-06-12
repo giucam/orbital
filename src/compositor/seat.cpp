@@ -554,10 +554,17 @@ void Pointer::defaultGrabFocus()
     }
 
     QPoint p(x(), y());
-    for (Output *out: m_defaultGrab.outputs) {
-        if (!out->geometry().contains(p)) {
-            emit out->pointerLeave(this);
-            m_defaultGrab.outputs.erase(out);
+
+    {
+        auto it = m_defaultGrab.outputs.begin();
+        while (it != m_defaultGrab.outputs.end()) {
+            Output *out = *it;
+            if (!out->geometry().contains(p)) {
+                emit out->pointerLeave(this);
+                it = m_defaultGrab.outputs.erase(it);
+            } else {
+                ++it;
+            }
         }
     }
     for (Output *out: m_seat->compositor()->outputs()) {
