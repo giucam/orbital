@@ -434,6 +434,13 @@ bool Compositor::init(StringView socketName)
         return false;
     }
 
+    weston_compositor_set_vt_switcher(m_compositor, [](weston_compositor *compositor, int vt) {
+        Compositor *c = Compositor::fromCompositor(compositor);
+        c->m_shell->lock([compositor, vt]() {
+            weston_compositor_activate_vt(compositor, vt);
+        });
+    });
+
     const char *socket = nullptr;
     std::string socketStr;
     if (!socketName.isEmpty()) {
