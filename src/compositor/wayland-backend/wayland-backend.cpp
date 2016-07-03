@@ -46,18 +46,8 @@ bool WaylandBackend::init(weston_compositor *c)
     config.num_outputs = sizeof(outputs) / sizeof(weston_wayland_backend_output_config);
     config.outputs = outputs;
 
-
-    int (*backend_init)(struct weston_compositor *c,
-                        int *argc, char *argv[],
-                        struct weston_config *config,
-                        struct weston_backend_config *config_base);
-
-    backend_init = reinterpret_cast<decltype(backend_init)>(weston_load_module("wayland-backend.so", "backend_init"));
-    if (!backend_init) {
-        return false;
-    }
-
-    return backend_init(c, NULL, NULL, NULL, &config.base) == 0;
+    int ret = weston_compositor_load_backend(c, WESTON_BACKEND_WAYLAND, &config.base);
+    return ret == 0;
 }
 
 }

@@ -65,7 +65,7 @@ Surface *FocusScope::activate(Surface *surface)
 
     if (surface || isNull) {
         for (Seat *seat: m_activeSeats) {
-            weston_surface_activate(surface ? surface->surface() : nullptr, seat->m_seat);
+            weston_seat_set_keyboard_focus(seat->m_seat, surface ? surface->surface() : nullptr);
         }
     }
 

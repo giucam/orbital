@@ -143,7 +143,7 @@ void Seat::activate(FocusScope *scope)
     if (m_activeScope) {
         m_activeScope->activated(this);
         Surface *surface = m_activeScope->activeSurface();
-        weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
+        weston_seat_set_keyboard_focus(m_seat, surface ? surface->surface() : nullptr);
     }
 }
 
@@ -173,7 +173,7 @@ void Seat::capsUpdated()
     // If we now have a keyboard we want to set the focused surface
     if (m_activeScope && m_seat->keyboard_state) {
         Surface *surface = m_activeScope->activeSurface();
-        weston_surface_activate(surface ? surface->surface() : nullptr, m_seat);
+        weston_seat_set_keyboard_focus(m_seat, surface ? surface->surface() : nullptr);
     }
 }
 
