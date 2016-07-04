@@ -96,7 +96,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital-client ${SOURCES} ${RESOURCES} ${QM_FILES})
 qt5_use_modules(orbital-client Widgets Qml Quick)
-target_link_libraries(orbital-client wayland-client)
+target_link_libraries(orbital-client ${WaylandClient_LIBRARIES})
 set_target_properties(orbital-client PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital-client DESTINATION libexec)
