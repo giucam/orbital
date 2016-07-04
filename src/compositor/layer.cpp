@@ -85,6 +85,7 @@ void Layer::addView(View *view)
         weston_layer_entry_remove(&view->m_view->layer_link);
     }
     weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
+    view->map();
 }
 
 void Layer::raiseOnTop(View *view)
