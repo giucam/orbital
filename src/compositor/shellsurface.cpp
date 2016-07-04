@@ -504,6 +504,7 @@ void ShellSurface::configure(int x, int y)
 
         m_type = Type::None;
         m_workspace = nullptr;
+        m_surface->unmap();
         emit contentLost();
         emit m_surface->unmapped();
         return;
@@ -593,6 +594,7 @@ void ShellSurface::configure(int x, int y)
         }
     }
     m_surface->damage();
+    m_surface->map();
 
     if (!wasMapped && m_surface->isMapped()) {
         emit mapped();

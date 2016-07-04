@@ -156,6 +156,7 @@ void ShellView::configureToplevel(bool map, bool maximized, bool fullscreen, int
             wsv->configure(this);
         }
         setOutput(m_designedOutput);
+        this->map();
     }
     update();
 }
@@ -167,6 +168,7 @@ void ShellView::configurePopup(View *parent, int x, int y)
         setTransformParent(parent);
         setOutput(m_designedOutput);
         setPos(x, y);
+        map();
     }
     update();
 }
@@ -178,6 +180,7 @@ void ShellView::configureTransient(View *parent, int x, int y)
         wsv->configure(this);
         setOutput(m_designedOutput);
         setPos(parent->x() + x, parent->y() + y);
+        map();
     }
     update();
 }
@@ -188,6 +191,7 @@ void ShellView::configureXWayland(int x, int y)
         AbstractWorkspace::View *wsv = workspaceViewForOutput(m_surface->workspace(), m_designedOutput);
         wsv->configure(this);
         setPos(x, y);
+        map();
     }
     update();
 }

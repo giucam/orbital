@@ -64,6 +64,7 @@ public:
     View *mainView() const;
 
     void update();
+    void map() { m_view->is_mapped = true; }
     void unmap();
 
     Output *output() const;

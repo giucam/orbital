@@ -63,6 +63,8 @@ public:
     inline int width() const { return m_surface->width; }
     inline int height() const { return m_surface->height; }
     inline QSize size() const { return QSize(width(), height()); }
+    void map() { m_surface->is_mapped = true; }
+    void unmap() { weston_surface_unmap(m_surface); }
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;
