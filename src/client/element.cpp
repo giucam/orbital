@@ -425,9 +425,8 @@ Element *Element::create(ShellUI *shell, UiScreen *screen, QQmlEngine *engine, c
 
 void Element::loadElementsList()
 {
-    QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
-    foreach (const QString &path, dirs) {
-        QDir dir(QUrl(QStringLiteral("%1/../orbital/elements").arg(path)).toString(QUrl::NormalizePathSegments));
+    auto checkPath = [](const QString &path) {
+        QDir dir(QUrl(path).toString(QUrl::NormalizePathSegments));
         const QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &subdir: subdirs) {
             dir.cd(subdir);
@@ -438,6 +437,13 @@ void Element::loadElementsList()
             }
             dir.cdUp();
         }
+    };
+
+    checkPath(QLatin1String(DATA_PATH "/elements"));
+
+    QStringList dirs = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
+    foreach (const QString &path, dirs) {
+        checkPath(QStringLiteral("%1/../orbital/elements").arg(path));
     }
 }
 
