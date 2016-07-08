@@ -110,9 +110,12 @@ void UiScreen::loadConfig(QJsonObject &config)
                 case ElementInfo::Type::Panel:
                     m_client->setPanel(window, m_screen, (int)elm->location());
                     break;
-                case ElementInfo::Type::Overlay:
+                case ElementInfo::Type::Overlay: {
                     m_client->addOverlay(window, m_screen);
+                    connect(elm, SIGNAL(showContent()), window, SLOT(show()));
+                    connect(elm, SIGNAL(hideContent()), window, SLOT(hide()));
                     break;
+                }
                 case ElementInfo::Type::LockScreen:
                     m_client->setLockScreen(window, m_screen);
                     break;

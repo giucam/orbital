@@ -24,10 +24,23 @@ import Orbital 1.0
 Element {
     width: Screen.width
     height: Screen.height
+    objectName: "overlay"
+
+    readonly property bool hasContent: volume.visible || leave.visible
+    signal showContent()
+    signal hideContent()
+
+    onHasContentChanged: {
+        if (hasContent) {
+            showContent();
+        } else {
+            hideContent();
+        }
+    }
 
     contentItem: Item {
         anchors.fill: parent
-        Volume {}
-        Leave {}
+        Volume { id: volume }
+        Leave { id: leave}
     }
 }
