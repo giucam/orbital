@@ -53,21 +53,37 @@ Layer::Layer(Layer *parent)
     weston_layer_init(&m_layer->layer, nullptr);
     wl_list_init(&m_layer->layer.link);
 
-    parent->addChild(this);
+    if (parent) {
+        parent->addChild(this);
+    }
 }
 
 Layer::~Layer()
 {
     if (m_parent) {
-        auto it = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), this);
-        m_parent->m_children.erase(it);
+        m_parent->removeChild(this);
     }
+
     for (Layer *c: m_children) {
         c->m_parent = nullptr;
         wl_list_remove(&c->m_layer->layer.link);
         wl_list_init(&c->m_layer->layer.link);
     }
     wl_list_remove(&m_layer->layer.link);
+}
+
+void Layer::setParent(Layer *parent)
+{
+    if (m_parent) {
+        m_parent->removeChild(this);
+    }
+    wl_list_remove(&m_layer->layer.link);
+
+    wl_list_init(&m_layer->layer.link);
+    m_parent = parent;
+    if (m_parent) {
+        m_parent->addChild(this);
+    }
 }
 
 void Layer::addChild(Layer *l)
@@ -77,6 +93,12 @@ void Layer::addChild(Layer *l)
 
     wl_list_insert(&p->m_layer->layer.link, &l->m_layer->layer.link);
     m_children.push_back(l);
+}
+
+void Layer::removeChild(Layer *l)
+{
+    auto it = std::find(m_children.begin(), m_children.end(), l);
+    m_children.erase(it);
 }
 
 void Layer::addView(View *view)

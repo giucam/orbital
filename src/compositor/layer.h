@@ -36,8 +36,10 @@ class Layer : public QObject
     Q_OBJECT
 public:
     explicit Layer(weston_layer *layer);
-    explicit Layer(Layer *parent);
+    explicit Layer(Layer *parent = nullptr);
     ~Layer();
+
+    void setParent(Layer *parent);
 
     void addView(View *view);
     void raiseOnTop(View *view);
@@ -53,6 +55,7 @@ public:
 
 private:
     void addChild(Layer *l);
+    void removeChild(Layer *l);
 
     Wrapper *m_layer;
     Layer *m_parent;

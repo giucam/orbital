@@ -64,7 +64,7 @@ Output::Output(weston_output *out)
       , m_output(out)
       , m_listener(new Listener)
       , m_panelsLayer(new Layer(m_compositor->layer(Compositor::Layer::Panels)))
-      , m_lockLayer(new Layer(m_compositor->layer(Compositor::Layer::Lock)))
+      , m_lockLayer(new Layer(m_compositor->layer(Compositor::Layer::Minimized)))
       , m_transformRoot(new Root(m_compositor, out->width, out->height))
       , m_background(nullptr)
       , m_currentWs(nullptr)
@@ -78,7 +78,6 @@ Output::Output(weston_output *out)
     m_compositor->layer(Compositor::Layer::BaseBackground)->addView(m_transformRoot->view);
     m_lockLayer->addView(m_lockBackgroundSurface->view);
     m_lockBackgroundSurface->view->setTransformParent(m_transformRoot->view);
-    m_lockLayer->setMask(0, 0, 0, 0);
 
     m_listener->output = this;
     m_listener->listener.notify = outputDestroyed;
@@ -263,14 +262,14 @@ Surface *Output::lockSurface() const
 void Output::lock(const std::function<void ()> &done)
 {
     m_locked = true;
-    m_lockLayer->setMask(x(), y(), width(), height());
+    m_lockLayer->setParent(m_compositor->layer(Compositor::Layer::Lock));
     repaint(done);
 }
 
 void Output::unlock()
 {
     m_locked = false;
-    m_lockLayer->setMask(0, 0, 0, 0);
+    m_lockLayer->setParent(m_compositor->layer(Compositor::Layer::Minimized));
     repaint();
 }
 
@@ -394,9 +393,6 @@ void Output::onMoved()
     // when an output is removed weston rearranges the remaimining ones and the views, so be sure
     // to move them back where they should be
     m_transformRoot->view->setPos(x(), y());
-    if (m_locked) {
-        m_lockLayer->setMask(x(), y(), width(), height());
-    }
 
     for (View *view: m_panels) {
         view->setPos(0, 0);
