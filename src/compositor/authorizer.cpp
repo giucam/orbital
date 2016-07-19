@@ -57,8 +57,9 @@ public:
         m_resource = res;
 
         for (auto &req: m_pendingRequests) {
-            sendAuthRequest(req.interface, req.pid, req.cb);
+            sendAuthRequest(req.interface.c_str(), req.pid, req.cb);
         }
+        m_pendingRequests.clear();
     }
 
     void sendAuthRequest(const char *interface, pid_t pid, const std::function<void (int32_t)> &cb)
@@ -105,7 +106,7 @@ public:
     wl_resource *m_resource;
     struct PendingRequest {
         PendingRequest(const char *iface, pid_t p, const std::function<void (int32_t)> &c) : interface(iface), pid(p), cb(c) {}
-        const char *interface;
+        std::string interface;
         pid_t pid;
         std::function<void (int32_t)> cb;
     };
