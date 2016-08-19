@@ -1,6 +1,6 @@
 
 pkg_check_modules(WaylandServer wayland-server REQUIRED)
-pkg_check_modules(libweston libweston-0 REQUIRED)
+pkg_check_modules(libweston libweston-1 REQUIRED)
 
 find_package(Qt5Core)
 
@@ -29,7 +29,7 @@ set(SOURCES
     animation.cpp
     transform.cpp
     binding.cpp
-    xwayland.cpp
+#     xwayland.cpp
     pager.cpp
     surface.cpp
     dropdown.cpp

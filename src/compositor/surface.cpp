@@ -101,8 +101,8 @@ Surface *Surface::mainSurface() const
 bool Surface::setRole(const char *roleName, wl_resource *errorResource, uint32_t errorCode)
 {
     if (weston_surface_set_role(m_surface, roleName, errorResource, errorCode) == 0) {
-        m_surface->configure_private = this;
-        m_surface->configure = configure;
+        m_surface->committed_private = this;
+        m_surface->committed = configure;
         return true;
     }
     return false;
@@ -111,8 +111,8 @@ bool Surface::setRole(const char *roleName, wl_resource *errorResource, uint32_t
 void Surface::setRole(const char *roleName)
 {
     m_surface->role_name = roleName;
-    m_surface->configure_private = this;
-    m_surface->configure = configure;
+    m_surface->committed_private = this;
+    m_surface->committed = configure;
 }
 
 void Surface::setRoleHandler(RoleHandler *handler)
@@ -168,15 +168,15 @@ Surface *Surface::activate()
 
 void Surface::move(Seat *seat)
 {
-    if (m_surface->configure == configure && m_roleHandler) {
+    if (m_surface->committed == configure && m_roleHandler) {
         m_roleHandler->move(seat);
     }
 }
 
 Surface *Surface::fromSurface(weston_surface *surf)
 {
-    if (surf->configure == configure) {
-        return static_cast<Surface *>(surf->configure_private);
+    if (surf->committed == configure) {
+        return static_cast<Surface *>(surf->committed_private);
     } else if (wl_listener *listener = wl_signal_get(&surf->destroy_signal, destroy)) {
         return reinterpret_cast<Listener *>(listener)->surface;
     }
@@ -192,7 +192,7 @@ Surface *Surface::fromResource(wl_resource *res)
 
 void Surface::configure(weston_surface *s, int32_t x, int32_t y)
 {
-    Surface *surf = static_cast<Surface *>(s->configure_private);
+    Surface *surf = static_cast<Surface *>(s->committed_private);
     if (surf->m_roleHandler) {
         surf->m_roleHandler->configure(x, y);
     }

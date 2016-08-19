@@ -40,7 +40,7 @@
 #include "view.h"
 #include "shellview.h"
 #include "output.h"
-#include "xwayland.h"
+// #include "xwayland.h"
 #include "global.h"
 #include "pager.h"
 #include "dropdown.h"
@@ -71,7 +71,7 @@ Shell::Shell(Compositor *c)
 {
     initEnvironment();
 
-    addInterface(new XWayland(this));
+//     addInterface(new XWayland(this));
     addInterface(new WlShell(this, m_compositor));
     addInterface(new DesktopShell(this));
     addInterface(new Dropdown(this));
