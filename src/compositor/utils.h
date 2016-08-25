@@ -24,30 +24,28 @@
 
 namespace Orbital {
 
+template<class F>
+struct InterfaceWrapper {};
+
 template<class R, class T, class... Args>
-struct InterfaceWrapper {
-    template<R (T::*F)(wl_client *, wl_resource *, Args...)>
-    static void forward(wl_client *client, wl_resource *resource, Args... args) {
-        (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(client, resource, args...);
-    }
+struct InterfaceWrapper<R (T::*)(Args...)> {
     template<R (T::*F)(Args...)>
-    static void forward(wl_client *client, wl_resource *resource, Args... args) {
-        (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(args...);
+    static constexpr void forward(wl_client *, wl_resource *resource, Args... args) {
+        (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(std::forward<Args>(args)...);
     }
 };
 
 template<class R, class T, class... Args>
-constexpr static auto createWrapper(R (T::*func)(wl_client *client, wl_resource *resource, Args...)) -> InterfaceWrapper<R, T, Args...> {
-    return InterfaceWrapper<R, T, Args...>();
-}
+struct InterfaceWrapper<R (T::*)(wl_client *, wl_resource *, Args...)> {
+    template<R (T::*F)(wl_client *, wl_resource *, Args...)>
+    static constexpr void forward(wl_client *client, wl_resource *resource, Args... args) {
+        (static_cast<T *>(wl_resource_get_user_data(resource))->*F)(client, resource, std::forward<Args>(args)...);
+    }
+};
 
-template<class R, class T, class... Args>
-constexpr static auto createWrapper(R (T::*func)(Args...)) -> InterfaceWrapper<R, T, Args...> {
-    return InterfaceWrapper<R, T, Args...>();
-}
-
-
-#define wrapInterface(method) createWrapper(method).forward<method>
+#define wrapExtInterface(method) InterfaceWrapper<decltype(method)>::forward<method>
+#define wrapInterface(method) \
+InterfaceWrapper<decltype(&std::remove_pointer_t<decltype(this)>::method)>::forward<&std::remove_pointer_t<decltype(this)>::method>
 
 template<class T>
 class Maybe

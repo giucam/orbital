@@ -55,8 +55,8 @@ void DesktopShellSettings::bind(wl_client *client, uint32_t version, uint32_t id
 //     }
 
     static const struct orbital_settings_interface implementation = {
-        wrapInterface(&DesktopShellSettings::destroy),
-        wrapInterface(&DesktopShellSettings::setKeymap),
+        wrapInterface(destroy),
+        wrapInterface(setKeymap),
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);

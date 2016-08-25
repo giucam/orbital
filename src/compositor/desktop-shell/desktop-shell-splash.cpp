@@ -117,7 +117,7 @@ void DesktopShellSplash::bind(wl_client *client, uint32_t version, uint32_t id)
     }
 
     static const struct desktop_shell_splash_interface implementation = {
-        wrapInterface(&DesktopShellSplash::setSplashSurface)
+        wrapInterface(setSplashSurface)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);

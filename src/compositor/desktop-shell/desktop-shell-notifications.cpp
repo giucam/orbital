@@ -193,7 +193,7 @@ void DesktopShellNotifications::bind(wl_client *client, uint32_t version, uint32
     wl_resource *resource = wl_resource_create(client, &notifications_manager_interface, version, id);
 
     static const struct notifications_manager_interface implementation = {
-        wrapInterface(&DesktopShellNotifications::pushNotification)
+        wrapInterface(pushNotification)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);

@@ -41,8 +41,8 @@ GammaControlManager::~GammaControlManager()
 void GammaControlManager::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     static const struct gamma_control_manager_interface implementation = {
-        wrapInterface(&GammaControlManager::destroy),
-        wrapInterface(&GammaControlManager::getGammaControl)
+        wrapInterface(destroy),
+        wrapInterface(getGammaControl)
     };
 
     wl_resource *resource = wl_resource_create(client, &gamma_control_manager_interface, version, id);
@@ -90,9 +90,9 @@ void GammaControlManager::getGammaControl(wl_client *client, wl_resource *res, u
     };
 
     static const struct gamma_control_interface implementation = {
-        wrapInterface(&GammaControl::destroy),
-        wrapInterface(&GammaControl::setGamma),
-        wrapInterface(&GammaControl::resetGamma)
+        wrapExtInterface(&GammaControl::destroy),
+        wrapExtInterface(&GammaControl::setGamma),
+        wrapExtInterface(&GammaControl::resetGamma)
     };
     GammaControl *gc = new GammaControl(output);
 

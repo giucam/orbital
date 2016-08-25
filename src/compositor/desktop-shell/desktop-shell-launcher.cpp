@@ -53,7 +53,7 @@ public:
         , m_layer(m_shell->compositor()->layer(Compositor::Layer::Overlay))
     {
         static const struct orbital_launcher_surface_interface implementation = {
-            wrapInterface(&LauncherSurface::done)
+            wrapInterface(done)
         };
         wl_resource_set_implementation(res, &implementation, this, [](wl_resource *res) {
             delete static_cast<LauncherSurface *>(wl_resource_get_user_data(res));
@@ -167,7 +167,7 @@ void DesktopShellLauncher::bind(wl_client *client, uint32_t version, uint32_t id
     wl_resource *resource = wl_resource_create(client, &orbital_launcher_interface, version, id);
 
     static const struct orbital_launcher_interface implementation = {
-        wrapInterface(&DesktopShellLauncher::getLauncherSurface)
+        wrapInterface(getLauncherSurface)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);

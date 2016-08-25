@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(orbital)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -g -std=c++11 -Werror=return-type")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -g -Werror=return-type")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 include(Wayland)
 find_package(PkgConfig "0.22" REQUIRED)

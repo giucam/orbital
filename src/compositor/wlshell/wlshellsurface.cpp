@@ -33,16 +33,16 @@ WlShellSurface::WlShellSurface(WlShell *shell, ShellSurface *shsurf, wl_client *
               , m_wlShell(shell)
 {
     static const struct wl_shell_surface_interface implementation = {
-        wrapInterface(&WlShellSurface::pong),
-        wrapInterface(&WlShellSurface::move),
-        wrapInterface(&WlShellSurface::resize),
-        wrapInterface(&WlShellSurface::setToplevel),
-        wrapInterface(&WlShellSurface::setTransient),
-        wrapInterface(&WlShellSurface::setFullscreen),
-        wrapInterface(&WlShellSurface::setPopup),
-        wrapInterface(&WlShellSurface::setMaximized),
-        wrapInterface(&WlShellSurface::setTitle),
-        wrapInterface(&WlShellSurface::setClass)
+        wrapInterface(pong),
+        wrapInterface(move),
+        wrapInterface(resize),
+        wrapInterface(setToplevel),
+        wrapInterface(setTransient),
+        wrapInterface(setFullscreen),
+        wrapInterface(setPopup),
+        wrapInterface(setMaximized),
+        wrapInterface(setTitle),
+        wrapInterface(setClass)
     };
 
     m_resource = wl_resource_create(client, &wl_shell_surface_interface, 1, id);

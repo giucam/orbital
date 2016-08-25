@@ -43,8 +43,8 @@ void Screenshooter::bind(wl_client *client, uint32_t version, uint32_t id)
     wl_resource *resource = wl_resource_create(client, &orbital_screenshooter_interface, version, id);
 
     static const struct orbital_screenshooter_interface implementation = {
-        wrapInterface(&Screenshooter::shoot),
-        wrapInterface(&Screenshooter::shootSurface),
+        wrapInterface(shoot),
+        wrapInterface(shootSurface),
     };
 
     wl_resource_set_implementation(resource, &implementation, this, nullptr);
@@ -107,7 +107,7 @@ void Screenshooter::shootSurface(wl_client *client, wl_resource *resource, uint3
             , m_surface(nullptr)
         {
             static const struct orbital_surface_screenshot_interface implementation = {
-                wrapInterface(&SurfaceScreenshot::shoot),
+                wrapInterface(shoot),
             };
             wl_resource_set_implementation(m_resource, &implementation, this, nullptr);
         }

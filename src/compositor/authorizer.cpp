@@ -71,7 +71,7 @@ public:
                 , callback(cb)
             {
                 static const struct orbital_authorizer_helper_result_interface impl = {
-                    wrapInterface(&Request::result)
+                    wrapInterface(result)
                 };
                 wl_resource_set_implementation(res, &impl, this, nullptr);
             }
@@ -198,8 +198,8 @@ bool Authorizer::isClientTrusted(StringView interface, wl_client *c) const
 void Authorizer::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     static const struct orbital_authorizer_interface implementation = {
-        wrapInterface(&Authorizer::destroy),
-        wrapInterface(&Authorizer::authorize)
+        wrapInterface(destroy),
+        wrapInterface(authorize)
     };
 
     wl_resource *resource = wl_resource_create(client, &orbital_authorizer_interface, version, id);

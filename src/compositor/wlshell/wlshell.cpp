@@ -95,7 +95,7 @@ void WlShell::getShellSurface(wl_client *client, wl_resource *resource, uint32_t
 // };
 //
 const struct wl_shell_interface WlShell::shell_implementation = {
-    wrapInterface(&WlShell::getShellSurface)
+    wrapExtInterface(&WlShell::getShellSurface)
 };
 
 }

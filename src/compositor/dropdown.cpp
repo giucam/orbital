@@ -254,7 +254,7 @@ Dropdown::~Dropdown()
 void Dropdown::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     static const struct orbital_dropdown_interface implementation = {
-        wrapInterface(&Dropdown::getDropdownSurface)
+        wrapInterface(getDropdownSurface)
     };
 
     wl_resource *resource = wl_resource_create(client, &orbital_dropdown_interface, version, id);

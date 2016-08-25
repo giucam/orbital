@@ -49,7 +49,7 @@ ClipboardManager::~ClipboardManager()
 void ClipboardManager::bind(wl_client *client, uint32_t version, uint32_t id)
 {
     static const struct orbital_clipboard_manager_interface implementation = {
-        wrapInterface(&ClipboardManager::destroy)
+        wrapInterface(destroy)
     };
 
     wl_resource *resource = wl_resource_create(client, &orbital_clipboard_manager_interface, version, id);

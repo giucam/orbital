@@ -126,10 +126,10 @@ void DesktopShellWindow::create()
     }
 
     static const struct desktop_shell_window_interface implementation = {
-        wrapInterface(&DesktopShellWindow::setState),
-        wrapInterface(&DesktopShellWindow::close),
-        wrapInterface(&DesktopShellWindow::preview),
-        wrapInterface(&DesktopShellWindow::endPreview),
+        wrapInterface(setState),
+        wrapInterface(close),
+        wrapInterface(preview),
+        wrapInterface(endPreview),
     };
 
     m_resource = wl_resource_create(m_desktopShell->client(), &desktop_shell_window_interface, 1, 0);

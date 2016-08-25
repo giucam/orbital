@@ -107,25 +107,25 @@ void DesktopShell::bind(wl_client *client, uint32_t version, uint32_t id)
     }
 
     static const struct desktop_shell_interface implementation = {
-        wrapInterface(&DesktopShell::setBackground),
-        wrapInterface(&DesktopShell::setPanel),
-        wrapInterface(&DesktopShell::setLockSurface),
-        wrapInterface(&DesktopShell::setPopup),
-        wrapInterface(&DesktopShell::lock),
-        wrapInterface(&DesktopShell::unlock),
-        wrapInterface(&DesktopShell::setGrabSurface),
-        wrapInterface(&DesktopShell::addKeyBinding),
-        wrapInterface(&DesktopShell::addOverlay),
-        wrapInterface(&DesktopShell::minimizeWindows),
-        wrapInterface(&DesktopShell::restoreWindows),
-        wrapInterface(&DesktopShell::createGrab),
-        wrapInterface(&DesktopShell::addWorkspace),
-        wrapInterface(&DesktopShell::selectWorkspace),
-        wrapInterface(&DesktopShell::quit),
-        wrapInterface(&DesktopShell::pong),
-        wrapInterface(&DesktopShell::outputLoaded),
-        wrapInterface(&DesktopShell::createActiveRegion),
-        wrapInterface(&DesktopShell::outputBound)
+        wrapInterface(setBackground),
+        wrapInterface(setPanel),
+        wrapInterface(setLockSurface),
+        wrapInterface(setPopup),
+        wrapInterface(lock),
+        wrapInterface(unlock),
+        wrapInterface(setGrabSurface),
+        wrapInterface(addKeyBinding),
+        wrapInterface(addOverlay),
+        wrapInterface(minimizeWindows),
+        wrapInterface(restoreWindows),
+        wrapInterface(createGrab),
+        wrapInterface(addWorkspace),
+        wrapInterface(selectWorkspace),
+        wrapInterface(quit),
+        wrapInterface(pong),
+        wrapInterface(outputLoaded),
+        wrapInterface(createActiveRegion),
+        wrapInterface(outputBound)
     };
 
     wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *res) {
@@ -239,8 +239,8 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
 //             , m_grab(nullptr)
         {
             struct desktop_shell_panel_interface implementation = {
-                wrapInterface(&Panel::move),
-                wrapInterface(&Panel::setPosition)
+                wrapInterface(move),
+                wrapInterface(setPosition)
             };
 
             wl_resource_set_implementation(m_resource, &implementation, this, panelDestroyed);
@@ -575,7 +575,7 @@ void DesktopShell::createGrab(uint32_t id)
     };
 
     static const struct desktop_shell_grab_interface desktop_shell_grab_implementation = {
-        wrapInterface(&ClientGrab::terminate)
+        wrapExtInterface(&ClientGrab::terminate)
     };
 
 
@@ -683,8 +683,8 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
             }
 
             static const struct active_region_interface implementation = {
-                wrapInterface(&ActiveRegion::destroy),
-                wrapInterface(&ActiveRegion::setGeometry)
+                wrapInterface(destroy),
+                wrapInterface(setGeometry)
             };
             wl_resource_set_implementation(resource, &implementation, this, [](wl_resource *r) {
                 ActiveRegion *region = static_cast<ActiveRegion *>(wl_resource_get_user_data(r));

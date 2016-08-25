@@ -46,7 +46,7 @@ DesktopShellWorkspace::DesktopShellWorkspace(Shell *shell, Workspace *ws)
 void DesktopShellWorkspace::init(wl_client *client, uint32_t id)
 {
     const struct desktop_shell_workspace_interface implementation = {
-        wrapInterface(&DesktopShellWorkspace::removed)
+        wrapInterface(removed)
     };
 
     m_resource = wl_resource_create(client, &desktop_shell_workspace_interface, 1, id);
