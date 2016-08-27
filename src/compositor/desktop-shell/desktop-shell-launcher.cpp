@@ -138,8 +138,6 @@ public:
         }
     }
 
-    void move(Seat *seat) override {}
-
     Shell *m_shell;
     Surface *m_surface;
     wl_resource *m_resource;

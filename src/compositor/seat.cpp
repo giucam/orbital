@@ -31,6 +31,7 @@
 #include "output.h"
 #include "focusscope.h"
 #include "layer.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -72,7 +73,6 @@ Seat::Seat(Compositor *c, weston_seat *s)
     , m_listener(new Listener)
     , m_pointer(s->pointer_state ? new Pointer(this, s->pointer_state) : nullptr)
     , m_keyboard(nullptr)
-    , m_popupGrab(nullptr)
     , m_activeScope(nullptr)
 {
     m_listener->seat = this;
@@ -177,85 +177,6 @@ void Seat::capsUpdated()
     if (m_activeScope && m_seat->keyboard_state) {
         Surface *surface = m_activeScope->activeSurface();
         weston_seat_set_keyboard_focus(m_seat, surface ? surface->surface() : nullptr);
-    }
-}
-
-class Seat::PopupGrab : public PointerGrab
-{
-public:
-    PopupGrab(Seat *s, wl_client *c)
-        : seat(s)
-        , client(c)
-        , initialUp(false)
-    {
-        start(s);
-
-        /* We must make sure here that this popup was opened after
-         * a mouse press, and not just by moving around with other
-         * popups already open. */
-        if (pointer()->buttonCount() == 0) {
-            initialUp = true;
-        }
-    }
-    void focus() override
-    {
-        double sx, sy;
-        View *view = pointer()->pickView(&sx, &sy);
-
-        if (view && view->client() == client) {
-            pointer()->setFocus(view, sx, sy);
-        } else {
-            pointer()->setFocus(nullptr, 0, 0);
-        }
-    }
-    void motion(uint32_t time, Pointer::MotionEvent evt) override
-    {
-        pointer()->move(evt);
-        pointer()->sendMotion(time);
-    }
-    void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
-    {
-        if (pointer()->focus()) {
-            pointer()->sendButton(time, button, state);
-        } else if (state == Pointer::ButtonState::Released && (initialUp || time - pointer()->grabTime() > 500)) {
-            end();
-            return;
-        }
-
-        if (state == Pointer::ButtonState::Released) {
-            initialUp = true;
-        }
-    }
-    void ended() override
-    {
-        for (ShellSurface *shsurf: surfaces) {
-            shsurf->sendPopupDone();
-        }
-        seat->m_popupGrab = nullptr;
-        delete this;
-    }
-
-    Seat *seat;
-    wl_client *client;
-    QSet<ShellSurface *> surfaces;
-    bool initialUp;
-};
-
-void Seat::grabPopup(ShellSurface *surf)
-{
-    if (!m_popupGrab) {
-        m_popupGrab = new PopupGrab(this, surf->surface()->client());
-    }
-    m_popupGrab->surfaces.insert(surf);
-}
-
-void Seat::ungrabPopup(ShellSurface *shsurf)
-{
-    if (m_popupGrab) {
-        m_popupGrab->surfaces.remove(shsurf);
-        if (m_popupGrab->surfaces.isEmpty()) {
-            m_popupGrab->end();
-        }
     }
 }
 
@@ -388,6 +309,7 @@ void Pointer::setFocusFixed(View *view, wl_fixed_t x, wl_fixed_t y)
     } else {
         weston_pointer_clear_focus(m_pointer);
     }
+    emit m_seat->pointerFocus(this);
 }
 
 void Pointer::updateFocus()

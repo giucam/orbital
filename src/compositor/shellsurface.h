@@ -28,7 +28,6 @@
 
 #include "interface.h"
 #include "utils.h"
-#include "surface.h"
 #include "stringview.h"
 
 struct wl_client;
@@ -47,8 +46,10 @@ class Compositor;
 class Workspace;
 class PointerGrab;
 struct Listener;
+class Surface;
+class Pointer;
 
-class ShellSurface : public Object, public Surface::RoleHandler
+class ShellSurface : public Object
 {
     Q_OBJECT
 public:
@@ -59,9 +60,7 @@ public:
     enum class Type {
         None = 0,
         Toplevel = 1,
-        Popup = 2,
         Transient = 3,
-        XWayland = 4
     };
     enum class Edges {
         None = 0,
@@ -83,15 +82,12 @@ public:
 
     void setConfigureSender(ConfigureSender sender);
     void setToplevel();
-    void setTransient(Surface *parent, int x, int y, bool inactive);
-    void setPopup(Surface *parent, Seat *seat, int x, int y);
+    void setParent(Surface *parent, int x, int y, bool inactive);
     void setMaximized();
     void setFullscreen();
-    void setXWayland(int x, int y, bool inactive);
-    void move(Seat *seat) override;
+    void move(Seat *seat);
     void resize(Seat *seat, Edges edges);
     void unmap();
-    void sendPopupDone();
     void minimize();
     void restore();
     void close();
@@ -106,6 +102,10 @@ public:
     void setGeometry(int x, int y, int w, int h);
     void setPid(pid_t pid);
 
+    void setIsResponsive(bool responsive);
+    bool isResponsive() const { return m_isResponsive; }
+    void setBusyCursor(Pointer *pointer);
+
     Type type() const { return m_type; }
     bool isFullscreen() const;
     bool isInactive() const;
@@ -115,17 +115,13 @@ public:
     Maybe<QPoint> cachedPos() const;
     pid_t pid() const { return m_pid; }
 
-    static ShellSurface *fromSurface(Surface *s);
-
-protected:
-    void configure(int x, int y) override;
+    void committed(int x, int y);
 
 signals:
     void mapped();
     void contentLost();
     void titleChanged();
     void appIdChanged();
-    void popupDone();
     void minimized();
     void restored();
 
@@ -161,17 +157,13 @@ private:
     bool m_forceMap;
     pid_t m_pid;
     PointerGrab *m_currentGrab;
+    bool m_isResponsive;
 
     Type m_type;
     Type m_nextType;
 
     Surface *m_parent;
     std::vector<QMetaObject::Connection> m_parentConnections;
-    struct {
-        int x;
-        int y;
-        Seat *seat;
-    } m_popup;
     struct {
         bool maximized;
         bool fullscreen;

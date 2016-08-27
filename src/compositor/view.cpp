@@ -45,17 +45,19 @@ void View::viewDestroyed(wl_listener *listener, void *data)
 }
 
 View::View(Surface *s)
-    : View(s, weston_view_create(s->surface()))
+    : View(s, s->viewCreator() ? s->viewCreator()->create(s) : weston_view_create(s->surface()))
 {
 }
 
 View::View(Surface *s, weston_view *view)
     : m_view(view)
+    , m_creator(s->viewCreator())
     , m_surface(s)
     , m_listener(new Listener)
     , m_output(nullptr)
     , m_transform(new Transform)
     , m_pointerState({ false, nullptr })
+    , m_layer(nullptr)
 {
     m_transform->setView(m_view);
 
@@ -71,7 +73,11 @@ View::~View()
     m_surface->m_views.erase(std::find(m_surface->m_views.begin(), m_surface->m_views.end(), this));
     if (m_view) {
         wl_list_remove(&m_listener->listener.link);
-        weston_view_destroy(m_view);
+        if (m_creator) {
+            m_creator->destroy(this, m_view);
+        } else {
+            weston_view_destroy(m_view);
+        }
     }
     delete m_listener;
     delete m_transform;
@@ -175,6 +181,7 @@ View *View::mainView() const
 
 void View::update()
 {
+    weston_view_geometry_dirty(m_view);
     weston_view_update_transform(m_view);
 }
 
@@ -188,15 +195,6 @@ void View::unmap()
 wl_client *View::client() const
 {
     return m_view->surface->resource ? wl_resource_get_client(m_view->surface->resource) : nullptr;
-}
-
-Layer *View::layer() const
-{
-    weston_layer *layer = m_view->layer_link.layer;
-    if (layer) {
-        return Layer::fromLayer(layer);
-    }
-    return nullptr;
 }
 
 Output *View::output() const

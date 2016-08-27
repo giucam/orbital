@@ -37,6 +37,7 @@
 #include "shellsurface.h"
 #include "shellview.h"
 #include "seat.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -101,8 +102,8 @@ pid_t XWayland::spawnXserver(void *ud, const char *xdpy, int abstractFd, int uni
 
 class XWlSurface : public Interface {
 public:
-    XWlSurface(const weston_shell_client *c, ShellSurface *ss)
-        : client(c)
+    XWlSurface(const weston_xwayland_surface_api *a, ShellSurface *ss)
+        : api(a)
         , shsurf(ss)
     {
         connect(ss->surface(), &Surface::pointerFocusEnter, this, &XWlSurface::enter);
@@ -112,15 +113,15 @@ public:
 
     void enter()
     {
-        client->send_position(shsurf->surface()->surface(), 0, 0);
+        api->send_position(shsurf->surface()->surface(), 0, 0);
     }
 
     void leave()
     {
-        client->send_position(shsurf->surface()->surface(), 10000, 10000);
+        api->send_position(shsurf->surface()->surface(), 10000, 10000);
     }
 
-    const weston_shell_client *client;
+    const weston_xwayland_surface_api *api;
     ShellSurface *shsurf;
 };
 
@@ -145,53 +146,17 @@ XWayland::XWayland(Shell *shell)
         return 1;
     }, this);
 
-    compositor->shell_interface.shell = this;
-    compositor->shell_interface.create_shell_surface = [](void *shell, weston_surface *surface, const weston_shell_client *client) {
-        XWayland *xwl = static_cast<XWayland *>(shell);
-        Surface *surf = Surface::fromSurface(surface);
-        surf->setRole("xwayland_surface");
-        ShellSurface *shsurf = xwl->m_shell->createShellSurface(surf);
-        shsurf->setConfigureSender([client, surface](int w, int h) {
-            client->send_configure(surface, w, h);
+    auto surfaceApi = weston_xwayland_surface_get_api(compositor);
+    if (surfaceApi) {
+        connect(shell, &Shell::shellSurfaceCreated, this, [this, surfaceApi](ShellSurface *shsurf) {
+            if (surfaceApi->is_xwayland_surface(shsurf->surface()->surface())) {
+                XWlSurface *xs = new XWlSurface(surfaceApi, shsurf);
+                shsurf->addInterface(xs);
+            }
         });
-        XWlSurface *xs = new XWlSurface(client, shsurf);
-        shsurf->addInterface(xs);
-        return (shell_surface *)xs;
-    };
+    }
 
-#define _this reinterpret_cast<XWlSurface *>(shsurf)->shsurf
-    compositor->shell_interface.set_toplevel = [](shell_surface *shsurf) { _this->setToplevel(); };
-    compositor->shell_interface.set_transient = [](shell_surface *shsurf, weston_surface *parent, int x, int y, uint32_t flags) {
-        _this->setTransient(Surface::fromSurface(parent), x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
-    };
-    compositor->shell_interface.set_fullscreen = [](shell_surface *shsurf, uint32_t method, uint32_t framerate, weston_output *output) {
-        _this->setFullscreen();
-    };
-    compositor->shell_interface.resize = [](shell_surface *shsurf, weston_pointer *p, uint32_t edges) {
-        if (p) {
-            _this->resize(Seat::fromSeat(p->seat), (ShellSurface::Edges)edges);
-        }
-        return 0;
-    };
-    compositor->shell_interface.move = [](shell_surface *shsurf, weston_pointer *p) {
-        if (p) {
-            _this->move(Seat::fromSeat(p->seat));
-        }
-        return 0;
-    };
-    compositor->shell_interface.set_xwayland = [](shell_surface *shsurf, int x, int y, uint32_t flags) {
-        _this->setXWayland(x, y, flags & WL_SHELL_SURFACE_TRANSIENT_INACTIVE);
-    };
-    compositor->shell_interface.set_title = [](shell_surface *shsurf, const char *t) {
-        _this->setTitle(t);
-    };
-    compositor->shell_interface.set_window_geometry = [](shell_surface *shsurf, int32_t x, int32_t y, int32_t w, int32_t h) {
-        _this->setGeometry(x, y, w, h);
-    };
-    compositor->shell_interface.set_maximized = [](shell_surface *shsurf) { _this->setMaximized(); };
-    compositor->shell_interface.set_pid = [](shell_surface *shsurf, pid_t pid) { _this->setPid(pid); };
-//     compositor->shell_interface.get_output_work_area = [](void *shell, weston_output *output, pixman_rectangle32_t *area) {}
-#undef _this
+    compositor->shell_interface.shell = this;
 }
 
 XWayland::~XWayland()

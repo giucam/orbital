@@ -27,6 +27,8 @@
 #include "interface.h"
 #include "stringview.h"
 
+struct weston_desktop;
+
 namespace Orbital {
 
 class Compositor;
@@ -112,6 +114,7 @@ public:
     ActionList actions() { return ActionList(this); }
 
 signals:
+    void shellSurfaceCreated(ShellSurface *surface);
     void aboutToLock();
     void locked();
     void actionAdded(StringView name, Action *action);
@@ -128,6 +131,7 @@ private:
     void autostartClients();
 
     Compositor *m_compositor;
+    weston_desktop *m_wdesktop;
     std::vector<Workspace *> m_workspaces;
     std::vector<ShellSurface *> m_surfaces;
     GrabCursorSetter m_grabCursorSetter;

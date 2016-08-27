@@ -1,6 +1,7 @@
 
 pkg_check_modules(WaylandServer wayland-server REQUIRED)
 pkg_check_modules(libweston libweston-1 REQUIRED)
+pkg_check_modules(libweston-desktop libweston-desktop-1 REQUIRED)
 
 find_package(Qt5Core)
 
@@ -8,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${libweston_INCLUDE_DIRS}
-${CMAKE_CURRENT_BINARY_DIR})
+${libweston-desktop_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
 link_directories(${libweston_LIBRARY_DIRS} ${WaylandServer_LIBRARY_DIRS})
 
 set(SOURCES
@@ -29,7 +30,7 @@ set(SOURCES
     animation.cpp
     transform.cpp
     binding.cpp
-#     xwayland.cpp
+    xwayland.cpp
     pager.cpp
     surface.cpp
     dropdown.cpp
@@ -42,8 +43,7 @@ set(SOURCES
     effect.cpp
     effects/zoomeffect.cpp
     effects/desktopgrid.cpp
-    wlshell/wlshell.cpp
-    wlshell/wlshellsurface.cpp
+    weston-desktop/wdesktop.cpp
     desktop-shell/desktop-shell.cpp
     desktop-shell/desktop-shell-splash.cpp
     desktop-shell/desktop-shell-window.cpp
@@ -69,7 +69,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} pixman-1 xkbcommon)
+target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} ${libweston-desktop_LIBRARIES} pixman-1 xkbcommon)
 set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)

@@ -34,6 +34,7 @@
 #include "pager.h"
 #include "layer.h"
 #include "format.h"
+#include "surface.h"
 
 namespace Orbital
 {
@@ -50,14 +51,14 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
             , m_currentGrab(nullptr)
+            , m_isResponsive(true)
             , m_type(Type::None)
             , m_nextType(Type::None)
-            , m_popup({ 0, 0, nullptr })
             , m_toplevel({ false, false, nullptr })
             , m_transient({ 0, 0, false })
             , m_state({ QSize(), false, false })
 {
-    surface->setRoleHandler(this);
+    surface->setMoveHandler([this](Seat *seat) { move(seat); });
 
     for (Output *o: shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this);
@@ -67,7 +68,6 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
-    connect(surface, &QObject::destroyed, [this]() { m_views.clear(); delete m_currentGrab; delete this; });
     connect(shell->pager(), &Pager::workspaceActivated, this, &ShellSurface::workspaceActivated);
 
     wl_client_get_credentials(surface->client(), &m_pid, NULL, NULL);
@@ -75,9 +75,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface)
 
 ShellSurface::~ShellSurface()
 {
-    if (m_popup.seat) {
-        m_popup.seat->ungrabPopup(this);
-    }
+    delete m_currentGrab;
     for (auto &i: m_views) {
         delete i.second;
     }
@@ -93,7 +91,7 @@ void ShellSurface::setWorkspace(AbstractWorkspace *ws)
     m_workspace = ws;
     m_surface->setWorkspaceMask(ws->mask());
     m_forceMap = true;
-    configure(0, 0);
+    committed(0, 0);
 }
 
 Compositor *ShellSurface::compositor() const
@@ -119,7 +117,7 @@ void ShellSurface::setToplevel()
     disconnectParent();
 }
 
-void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
+void ShellSurface::setParent(Surface *parent, int x, int y, bool inactive)
 {
     m_parent = parent;
     m_transient.x = x;
@@ -129,17 +127,6 @@ void ShellSurface::setTransient(Surface *parent, int x, int y, bool inactive)
     disconnectParent();
     m_parentConnections.push_back(connect(m_parent, &QObject::destroyed, this, &ShellSurface::parentSurfaceDestroyed));
     m_nextType = Type::Transient;
-}
-
-void ShellSurface::setPopup(Surface *parent, Seat *seat, int x, int y)
-{
-    m_parent = parent;
-    m_popup.x = x;
-    m_popup.y = y;
-    m_popup.seat = seat;
-
-    connectParent();
-    m_nextType = Type::Popup;
 }
 
 void ShellSurface::connectParent()
@@ -181,18 +168,6 @@ void ShellSurface::setFullscreen()
     QRect rect = output->geometry();
     qDebug() << "Fullscrening surface on output" << output << "with rect" << rect;
     sendConfigure(rect.width(), rect.height());
-}
-
-void ShellSurface::setXWayland(int x, int y, bool inactive)
-{
-    // reuse the transient fields for XWayland
-    m_parent = nullptr;
-    m_transient.x = x;
-    m_transient.y = y;
-    m_transient.inactive = inactive;
-
-    disconnectParent();
-    m_nextType = Type::XWayland;
 }
 
 void ShellSurface::move(Seat *seat)
@@ -326,19 +301,48 @@ void ShellSurface::resize(Seat *seat, Edges edges)
     m_currentGrab = grab;
 }
 
+void ShellSurface::setBusyCursor(Pointer *pointer)
+{
+    class BusyGrab : public PointerGrab
+    {
+    public:
+        void focus() override
+        {
+            View *view = pointer()->pickView();
+            if (view->surface() != shsurf->surface()) {
+                end();
+            }
+        }
+        void motion(uint32_t time, Pointer::MotionEvent evt) override
+        {
+            pointer()->move(evt);
+        }
+        void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
+        {
+        }
+        void ended() override
+        {
+            shsurf->m_currentGrab = nullptr;
+            delete this;
+        }
+
+        ShellSurface *shsurf;
+    };
+
+    BusyGrab *grab = new BusyGrab;
+
+    grab->shsurf = this;
+
+    grab->start(pointer->seat(), PointerCursor::Busy);
+    m_currentGrab = grab;
+}
+
 void ShellSurface::unmap()
 {
     for (auto &i: m_views) {
         i.second->cleanupAndUnmap();
     }
     emit m_surface->unmapped();
-}
-
-void ShellSurface::sendPopupDone()
-{
-    m_nextType = Type::None;
-    m_popup.seat = nullptr;
-    emit popupDone();
 }
 
 void ShellSurface::minimize()
@@ -350,7 +354,7 @@ void ShellSurface::minimize()
 void ShellSurface::restore()
 {
     m_forceMap = true;
-    configure(0, 0);
+    committed(0, 0);
     emit restored();
 }
 
@@ -423,6 +427,19 @@ void ShellSurface::setPid(pid_t pid)
     m_pid = pid;
 }
 
+void ShellSurface::setIsResponsive(bool responsive)
+{
+    if (responsive == m_isResponsive) {
+        return;
+    }
+
+    m_isResponsive = responsive;
+    // end the busy grab
+    if (responsive) {
+        m_currentGrab->end();
+    }
+}
+
 bool ShellSurface::isFullscreen() const
 {
     return m_type == Type::Toplevel && m_toplevel.fullscreen;
@@ -430,7 +447,7 @@ bool ShellSurface::isFullscreen() const
 
 bool ShellSurface::isInactive() const
 {
-    return (m_type == Type::Transient || m_type == Type::XWayland) && m_transient.inactive;
+    return m_type == Type::Transient && m_transient.inactive;
 }
 
 QRect ShellSurface::geometry() const
@@ -495,13 +512,9 @@ QRect ShellSurface::surfaceTreeBoundingBox() const
     return rect;
 }
 
-void ShellSurface::configure(int x, int y)
+void ShellSurface::committed(int x, int y)
 {
     if (m_surface->width() == 0) {
-        if (m_popup.seat) {
-            m_popup.seat->ungrabPopup(this);
-        }
-
         m_type = Type::None;
         m_workspace = nullptr;
         m_surface->unmap();
@@ -556,45 +569,26 @@ void ShellSurface::configure(int x, int y)
         for (auto &i: m_views) {
             i.second->configureToplevel(map || !i.second->layer(), m_toplevel.maximized, m_toplevel.fullscreen, dx, dy);
         }
-    } else if (m_type == Type::Popup && typeChanged) {
-        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
-        if (!parent) {
-            for (View *view: m_parent->views()) {
-                ShellView *v = new ShellView(this);
-                v->setDesignedOutput(view->output());
-                v->configurePopup(view, m_popup.x, m_popup.y);
-                m_extraViews.push_back(v);
-            }
-        } else {
-            for (Output *o: m_shell->compositor()->outputs()) {
-                ShellView *view = viewForOutput(o);
-                ShellView *parentView = parent->viewForOutput(o);
-
-                view->configurePopup(parentView, m_popup.x, m_popup.y);
-            }
-        }
-        m_popup.seat->grabPopup(this);
     } else if (m_type == Type::Transient) {
-        ShellSurface *parent = ShellSurface::fromSurface(m_parent);
-        if (!parent) {
+        if (!m_parent->shellSurface()) {
             View *parentView = View::fromView(wl_container_of(m_parent->surface()->views.next, (weston_view *)nullptr, surface_link));
             ShellView *view = viewForOutput(parentView->output());
             view->configureTransient(parentView, m_transient.x, m_transient.y);
         } else {
             for (Output *o: m_shell->compositor()->outputs()) {
                 ShellView *view = viewForOutput(o);
-                ShellView *parentView = parent->viewForOutput(o);
+                ShellView *parentView = m_parent->shellSurface()->viewForOutput(o);
 
                 view->configureTransient(parentView, m_transient.x, m_transient.y);
             }
         }
-    } else if (m_type == Type::XWayland) {
-        for (auto &i: m_views) {
-            i.second->configureXWayland(m_transient.x, m_transient.y);
-        }
     }
     m_surface->damage();
     m_surface->map();
+
+    for (auto pair: m_views) {
+        pair.second->update();
+    }
 
     if (!wasMapped && m_surface->isMapped()) {
         emit mapped();
@@ -662,7 +656,7 @@ void ShellSurface::outputCreated(Output *o)
 
     m_views[o->id()] = view;
     m_forceMap = true;
-    configure(0, 0);
+    committed(0, 0);
 }
 
 void ShellSurface::outputRemoved(Output *o)
@@ -698,14 +692,6 @@ void ShellSurface::workspaceActivated(Workspace *w, Output *o)
     if (m_toplevel.output->currentWorkspace() != w) {
         setMaximized();
     }
-}
-
-ShellSurface *ShellSurface::fromSurface(Surface *surface)
-{
-    if (ShellSurface *ss = dynamic_cast<ShellSurface *>(surface->roleHandler())) {
-        return ss;
-    }
-    return nullptr;
 }
 
 }

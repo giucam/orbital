@@ -358,7 +358,6 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
             }
             v->setPos(x_, y_);
         }
-        void move(Seat *) override {}
 
         Surface *surface;
         Surface *parent;

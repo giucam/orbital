@@ -35,6 +35,7 @@
 #include "../pager.h"
 #include "../focusscope.h"
 #include "../format.h"
+#include "../surface.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 

@@ -71,9 +71,6 @@ public:
 
     void setKeymap(const Keymap &keymap);
 
-    void grabPopup(ShellSurface *surf);
-    void ungrabPopup(ShellSurface *surf);
-
     wl_resource *resource(wl_client *client) const;
     weston_seat *westonSeat() const { return m_seat; }
 
@@ -81,19 +78,18 @@ public:
     static Seat *fromResource(wl_resource *res);
 
 signals:
+    void pointerFocus(Pointer *pointer);
     void pointerMotion(Pointer *pointer);
     void selection(Seat *seat);
 
 private:
     void capsUpdated();
-    class PopupGrab;
 
     Compositor *m_compositor;
     weston_seat *m_seat;
     Listener *m_listener;
     Pointer *m_pointer;
     Keyboard *m_keyboard;
-    PopupGrab *m_popupGrab;
     FocusScope *m_activeScope;
 
     friend FocusScope;

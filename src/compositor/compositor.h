@@ -109,6 +109,8 @@ public:
 
     void handleHotSpot(Seat *seat, uint32_t time, PointerHotSpot hs);
 
+    inline weston_compositor *compositor() const { return m_compositor; }
+
     static Compositor *fromCompositor(weston_compositor *c);
 
 signals:

@@ -85,6 +85,7 @@ void Layer::addView(View *view)
         weston_layer_entry_remove(&view->m_view->layer_link);
     }
     weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
+    view->m_layer = this;
     view->map();
 }
 
@@ -93,6 +94,7 @@ void Layer::raiseOnTop(View *view)
     weston_layer_entry_remove(&view->m_view->layer_link);
     weston_layer_entry_insert(&m_layer->layer.view_list, &view->m_view->layer_link);
     weston_view_damage_below(view->m_view);
+    view->m_layer = this;
 }
 
 void Layer::lower(View *view)
@@ -107,6 +109,7 @@ void Layer::lower(View *view)
 
     weston_layer_entry_insert(next, &view->m_view->layer_link);
     weston_view_damage_below(view->m_view);
+    view->m_layer = this;
 }
 
 View *Layer::topView() const

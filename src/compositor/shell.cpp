@@ -30,6 +30,8 @@
 #include <QProcess>
 #include <QSettings>
 
+#include <libweston-desktop.h>
+
 #include "shell.h"
 #include "compositor.h"
 #include "layer.h"
@@ -40,7 +42,7 @@
 #include "view.h"
 #include "shellview.h"
 #include "output.h"
-// #include "xwayland.h"
+#include "xwayland.h"
 #include "global.h"
 #include "pager.h"
 #include "dropdown.h"
@@ -49,13 +51,14 @@
 #include "clipboard.h"
 #include "dashboard.h"
 #include "gammacontrol.h"
-#include "wlshell/wlshell.h"
+#include "weston-desktop/wdesktop.h"
 #include "desktop-shell/desktop-shell.h"
 #include "desktop-shell/desktop-shell-workspace.h"
 #include "desktop-shell/desktop-shell-window.h"
 #include "effects/zoomeffect.h"
 #include "effects/desktopgrid.h"
 #include "format.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -71,8 +74,8 @@ Shell::Shell(Compositor *c)
 {
     initEnvironment();
 
-//     addInterface(new XWayland(this));
-    addInterface(new WlShell(this, m_compositor));
+    addInterface(new XWayland(this));
+    addInterface(new WDesktop(this, m_compositor));
     addInterface(new DesktopShell(this));
     addInterface(new Dropdown(this));
     addInterface(new Screenshooter(this));
@@ -386,6 +389,7 @@ ShellSurface *Shell::createShellSurface(Surface *s)
             m_surfaces.erase(it);
         }
     });
+    emit shellSurfaceCreated(surf);
     return surf;
 }
 
@@ -578,7 +582,7 @@ void Shell::giveFocus(Seat *seat)
     // TODO: make this a proper config option
     static bool useSeparateRaise = qEnvironmentVariableIntValue("ORBITAL_SEPARATE_RAISE");
     if (!useSeparateRaise) {
-        ShellSurface *shsurf = ShellSurface::fromSurface(surf);
+        ShellSurface *shsurf = surf->shellSurface();
         if (shsurf && shsurf->isFullscreen()) {
             return;
         }
@@ -603,7 +607,7 @@ void Shell::raise(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface()->mainSurface());
+    ShellSurface *shsurf = focus->surface()->mainSurface()->shellSurface();
     if (shsurf && shsurf->isFullscreen()) {
         return;
     }

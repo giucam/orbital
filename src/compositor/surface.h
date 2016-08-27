@@ -35,10 +35,12 @@ struct weston_surface;
 namespace Orbital {
 
 class View;
+class ViewCreator;
 class Seat;
 class Pointer;
 struct Listener;
 class FocusScope;
+class ShellSurface;
 
 class Surface : public Object
 {
@@ -50,7 +52,6 @@ public:
         virtual ~RoleHandler();
     protected:
         virtual void configure(int x, int y) = 0;
-        virtual void move(Seat *seat) = 0;
 
     private:
         Surface *surface;
@@ -71,6 +72,9 @@ public:
     inline const std::vector<View *> &views() const { return m_views; }
     Surface *mainSurface() const;
 
+    void setShellSurface(ShellSurface *shsurf) { m_shsurf = shsurf; }
+    ShellSurface *shellSurface() const { return m_shsurf; }
+
     QSize contentSize() const;
     size_t copyContent(void *data, size_t size, const QRect &rect);
 
@@ -82,6 +86,8 @@ public:
     void setRoleHandler(RoleHandler *handler);
     const char *role() const;
     RoleHandler *roleHandler() const;
+
+    void setMoveHandler(const std::function<void (Seat *seat)> &handler);
 
     void setFocusScope(FocusScope *FocusScope);
     FocusScope *focusScope() const { return m_focusScope; }
@@ -99,6 +105,9 @@ public:
 
     virtual Surface *activate();
     void move(Seat *seat);
+
+    void setViewCreator(ViewCreator *creator);
+    ViewCreator *viewCreator() const { return m_viewCreator; }
 
     static Surface *fromSurface(weston_surface *s);
     static Surface *fromResource(wl_resource *resource);
@@ -122,6 +131,9 @@ private:
     int m_workspaceMask;
     std::string m_label;
     FocusScope *m_focusScope;
+    ViewCreator *m_viewCreator;
+    ShellSurface *m_shsurf;
+    std::function<void (Seat *seat)> m_moveHandler;
 
     friend View;
     friend RoleHandler;

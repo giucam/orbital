@@ -163,7 +163,6 @@ public:
             manager->relayout();
         }
     }
-    void move(Seat *seat) override {}
 
     wl_resource *resource;
     Surface *m_surface;

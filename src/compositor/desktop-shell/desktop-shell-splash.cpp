@@ -80,8 +80,6 @@ public:
         view->output()->repaint();
     }
 
-    void move(Seat *seat) override {}
-
 private:
     DesktopShellSplash *parent;
     View *view;

@@ -25,6 +25,7 @@
 #include "shellsurface.h"
 #include "view.h"
 #include "layer.h"
+#include "surface.h"
 
 namespace Orbital {
 
@@ -93,8 +94,8 @@ void Dashboard::toggleSurface(Seat *seat)
         return;
     }
 
-    ShellSurface *shsurf = ShellSurface::fromSurface(focus->surface());
-    if (!shsurf || shsurf->type() == ShellSurface::Type::Popup) {
+    ShellSurface *shsurf = focus->surface()->shellSurface();
+    if (!shsurf) {
         return;
     }
 

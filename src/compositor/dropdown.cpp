@@ -56,6 +56,7 @@ public:
 
         view = new View(s);
         s->setRoleHandler(this);
+        s->setMoveHandler([this](Seat *s) { move(s); });
 
         m_output = dd->m_shell->selectPrimaryOutput();
         connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
@@ -165,7 +166,7 @@ public:
         m_animation.setTarget(1);
         m_animation.run(m_output, (m_start - m_end).manhattanLength() * 0.5);
     }
-    void move(Seat *seat) override
+    void move(Seat *seat)
     {
         class MoveGrab : public PointerGrab
         {

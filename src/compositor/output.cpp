@@ -139,7 +139,6 @@ public:
     {
         output->repaint();
     }
-    void move(Seat *) override {}
 
     Surface *surface;
     View *view;
@@ -155,7 +154,6 @@ void Output::setBackground(Surface *surface)
         {
             weston_output_schedule_repaint(m_output);
         }
-        void move(Seat *) override {}
 
         weston_output *m_output;
     };
@@ -213,7 +211,6 @@ void Output::setPanel(Surface *surface, int pos)
                 emit output->availableGeometryChanged();
             }
         }
-        void move(Seat *) override {}
 
         Surface *surface;
         View *view;

@@ -44,6 +44,8 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_activable(true)
        , m_workspaceMask(-1)
        , m_focusScope(nullptr)
+       , m_viewCreator(nullptr)
+       , m_shsurf(nullptr)
 {
     m_listener->listener.notify = destroy;
     m_listener->surface = this;
@@ -136,6 +138,11 @@ Surface::RoleHandler *Surface::roleHandler() const
     return m_roleHandler;
 }
 
+void Surface::setMoveHandler(const std::function<void (Seat *seat)> &handler)
+{
+    m_moveHandler = handler;
+}
+
 void Surface::setWorkspaceMask(int mask)
 {
     m_workspaceMask = mask;
@@ -168,8 +175,8 @@ Surface *Surface::activate()
 
 void Surface::move(Seat *seat)
 {
-    if (m_surface->committed == configure && m_roleHandler) {
-        m_roleHandler->move(seat);
+    if (m_moveHandler) {
+        m_moveHandler(seat);
     }
 }
 
@@ -220,6 +227,11 @@ QSize Surface::contentSize() const
 size_t Surface::copyContent(void *data, size_t size, const QRect &rect)
 {
     return weston_surface_copy_content(m_surface, data, size, rect.x(), rect.y(), rect.width(), rect.height());
+}
+
+void Surface::setViewCreator(ViewCreator *creator)
+{
+    m_viewCreator = creator;
 }
 
 }

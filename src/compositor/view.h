@@ -39,6 +39,15 @@ class Transform;
 class Surface;
 struct Listener;
 
+class View;
+
+class ViewCreator
+{
+public:
+    virtual weston_view *create(Surface *surface) = 0;
+    virtual void destroy(View *view, weston_view *wv) = 0;
+};
+
 class View : public QObject
 {
 public:
@@ -68,7 +77,7 @@ public:
     void unmap();
 
     Output *output() const;
-    Layer *layer() const;
+    Layer *layer() const { return m_layer; }
     wl_client *client() const;
     Surface *surface() const;
 
@@ -89,6 +98,7 @@ private:
     static void viewDestroyed(wl_listener *listener, void *data);
 
     weston_view *m_view;
+    ViewCreator *m_creator;
     Surface *m_surface;
     Listener *m_listener;
     Output *m_output;
@@ -97,6 +107,7 @@ private:
         bool inside;
         View *target;
     } m_pointerState;
+    Layer *m_layer;
 
     friend Layer;
     friend Pointer;

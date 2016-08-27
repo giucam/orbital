@@ -35,6 +35,7 @@
 #include "../animationcurve.h"
 #include "../shellsurface.h"
 #include "../layer.h"
+#include "../surface.h"
 #include "desktopgrid.h"
 
 namespace Orbital {
@@ -74,7 +75,7 @@ public:
                 }
             }
             if (moved) {
-                ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
+                ShellSurface *shsurf = moving->surface()->shellSurface();
                 AbstractWorkspace *w = shsurf->workspace();
                 Output *out = moving->output();
                 AbstractWorkspace::View *wsv = workspaceViewForOutput(w, out);
@@ -101,7 +102,7 @@ public:
     {
         View *view = pointer()->pickView();
         if (state == Pointer::ButtonState::Pressed) {
-            if (ShellSurface::fromSurface(view->surface())) {
+            if (view->surface()->shellSurface()) {
                 moving = view;
                 moved = false;
                 QPointF pp(pointer()->x(), pointer()->y());
@@ -115,7 +116,7 @@ public:
         } else if (moving && moved) {
             QPointF pp(pointer()->x(), pointer()->y());
             Workspace::View *wsv = workspace(moving->output(), pp.x(), pp.y());
-            ShellSurface *shsurf = ShellSurface::fromSurface(moving->surface());
+            ShellSurface *shsurf = moving->surface()->shellSurface();
             if (wsv) {
                 QPointF p = moving->mapToGlobal(QPointF(0,0));
                 p = wsv->map(p.x(), p.y());
