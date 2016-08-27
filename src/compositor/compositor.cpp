@@ -70,6 +70,10 @@ Timer::Timer()
 
 Timer::~Timer()
 {
+    if (!s_event_loop) {
+        return;
+    }
+
     if (m_timerSource) {
         wl_event_source_remove(m_timerSource);
     }
@@ -278,6 +282,9 @@ Compositor::Compositor(Backend *backend)
 
 Compositor::~Compositor()
 {
+    for (auto seat: seats()) {
+        delete seat;
+    }
     delete m_shell;
     delete m_authorizer;
     qDeleteAll(m_outputs);
@@ -289,6 +296,9 @@ Compositor::~Compositor()
     delete m_listener;
     delete m_backend;
 
+    // we reset s_event_loop so that ~Timer() won't delete the event sources, since they are automatically
+    // freed when the display is destroyed
+    s_event_loop = nullptr;
     wl_display_destroy(m_display);
 }
 

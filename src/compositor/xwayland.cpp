@@ -72,16 +72,15 @@ pid_t XWayland::spawnXserver(void *ud, const char *xdpy, int abstractFd, int uni
     QString unix_fd_str = QString::number(dup(unixFd));
     QString wm_fd_str = QString::number(dup(wm[1]));
 
+    delete _this->m_process;
     _this->m_process = new Process;
     _this->m_process->setProcessChannelMode(QProcess::ForwardedChannels);
     _this->m_process->setProcessEnvironment(env);
 
     _this->m_process->connect(_this->m_process, (void (QProcess::*)(int))&QProcess::finished, [_this](int exitCode) {
         _this->m_api->xserver_exited(_this->m_xwayland, exitCode);
-        if (_this->m_process) {
-            delete _this->m_process;
-            _this->m_process = nullptr;
-        }
+        // The process should now be freed but QProcess doesn't like to be delete'd here directly,
+        // so we keep it alive and delete it when we quit or when we create a new process
     });
     _this->m_process->start(QStringLiteral("Xwayland"), {
                             QLatin1String(xdpy),

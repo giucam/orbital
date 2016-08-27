@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 
 #include "interface.h"
 #include "stringview.h"
@@ -64,8 +65,8 @@ public:
     const std::vector<ShellSurface *> &surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);
 
-    FocusScope *lockFocusScope() const { return m_lockScope; }
-    FocusScope *appsFocusScope() const { return m_appsScope; }
+    FocusScope *lockFocusScope() const { return m_lockScope.get(); }
+    FocusScope *appsFocusScope() const { return m_appsScope.get(); }
 
     void lock(const LockCallback &callback = nullptr);
     void unlock();
@@ -138,8 +139,8 @@ private:
     AxisBinding *m_alphaBinding;
     Pager *m_pager;
     bool m_locked;
-    FocusScope *m_lockScope;
-    FocusScope *m_appsScope;
+    std::unique_ptr<FocusScope> m_lockScope;
+    std::unique_ptr<FocusScope> m_appsScope;
     std::vector<std::pair<std::string, Action>> m_actions;
 };
 

@@ -93,6 +93,9 @@ Seat::Seat(Compositor *c, weston_seat *s)
 
 Seat::~Seat()
 {
+    wl_list_remove(&m_listener->listener.link);
+    wl_list_remove(&m_listener->capsListener.link);
+    wl_list_remove(&m_listener->selectionListener.link);
     delete m_listener;
     if (m_activeScope) {
         m_activeScope->deactivated(this);

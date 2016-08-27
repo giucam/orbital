@@ -66,8 +66,8 @@ Shell::Shell(Compositor *c)
      , m_grabCursorUnsetter(nullptr)
      , m_pager(new Pager(c))
      , m_locked(false)
-     , m_lockScope(new FocusScope(this))
-     , m_appsScope(new FocusScope(this))
+     , m_lockScope(std::make_unique<FocusScope>(this))
+     , m_appsScope(std::make_unique<FocusScope>(this))
 {
     initEnvironment();
 
@@ -84,7 +84,7 @@ Shell::Shell(Compositor *c)
     new Dashboard(this);
 
     for (Seat *s: m_compositor->seats()) {
-        s->activate(m_appsScope);
+        s->activate(m_appsScope.get());
     }
 
     m_focusBinding = c->createButtonBinding(PointerButton::Left, KeyboardModifiers::None);
@@ -483,7 +483,7 @@ void Shell::lock(const LockCallback &callback)
         }
     }
     for (Seat *s: m_compositor->seats()) {
-        s->activate(m_lockScope);
+        s->activate(m_lockScope.get());
     }
 }
 
@@ -494,7 +494,7 @@ void Shell::unlock()
         o->unlock();
     }
     for (Seat *s: m_compositor->seats()) {
-        s->activate(m_appsScope);
+        s->activate(m_appsScope.get());
     }
 }
 
@@ -573,7 +573,7 @@ void Shell::giveFocus(Seat *seat)
 
     Surface *surf = focus->surface()->mainSurface();
     FocusScope *scope = surf->focusScope();
-    (scope ? scope : m_appsScope)->activate(surf);
+    (scope ? scope : m_appsScope.get())->activate(surf);
 
     // TODO: make this a proper config option
     static bool useSeparateRaise = qEnvironmentVariableIntValue("ORBITAL_SEPARATE_RAISE");
