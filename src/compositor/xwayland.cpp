@@ -155,8 +155,6 @@ XWayland::XWayland(Shell *shell)
             }
         });
     }
-
-    compositor->shell_interface.shell = this;
 }
 
 XWayland::~XWayland()
