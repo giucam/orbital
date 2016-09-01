@@ -77,6 +77,16 @@ void TstStringView::testSplit()
         });
         QCOMPARE(result, QLatin1String("a|"));
     }
+    {
+        StringView view("a↑b³b↑cc²");
+        QString result;
+        view.split(L'↑', [&result](StringView substr) {
+            result += substr.toQString();
+            result += QLatin1String("|");
+            return false;
+        });
+        QCOMPARE(result, QString::fromUtf8("a|b³b|cc²|"));
+    }
 }
 
 void TstStringView::testCompare()

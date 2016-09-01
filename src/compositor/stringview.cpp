@@ -70,19 +70,43 @@ void StringView::split(char c, const std::function<bool (StringView substr)> &fu
     }
 
     const char *substr = string;
-    const char *p = string;
     do {
-        if (*p == c || p == end) {
-            if (p == end && substr == string) { //there was no 'c' in the string, bail out
-                break;
+        const char *p = (const char *)memchr(substr, c, end - substr);
+        if (p) {
+            // if *p is a multibyte char memchr returns a pointer to the last byte of the character.
+            // so here we go back until we find the first one
+            int wide = (*p >> 7) & 0x1;
+            while (wide && p > substr) {
+                wide = (*--p >> 7) & 0x1;
+                if (!wide) {
+                    ++p;
+                }
             }
-            int l = p - substr;
-            if (l && func(StringView(substr, l))) {
+        } else {
+            if (substr == string) { //there was no 'c' in the string, bail out
                 break;
+            } else { // we found an occurence of 'c' before, so just run through to the end
+                p = end;
             }
-            substr = p + 1;
         }
-        p++;
+
+        size_t l = p - substr;
+        if (l && func(StringView(substr, l))) {
+            break;
+        }
+
+        substr = p + 1;
+        int wide = (*p >> 7) & 0x1;
+
+        int i = 0;
+        if (wide) {
+            while (wide && i < 4) {
+                //we need to advance to the next character, so we need to account for multibyte chars.
+                //count the number of bytes of this char and advance by that
+                wide = (*p >> (7 - ++i)) & 0x1;
+            }
+            substr += i-1;
+        }
     } while (substr <= end);
 }
 
