@@ -78,14 +78,14 @@ void TstStringView::testSplit()
         QCOMPARE(result, QLatin1String("a|"));
     }
     {
-        StringView view("a↑b³b↑cc²");
+        StringView view("a↑b³b¼↑¹cc²");
         QString result;
         view.split(L'↑', [&result](StringView substr) {
             result += substr.toQString();
             result += QLatin1String("|");
             return false;
         });
-        QCOMPARE(result, QString::fromUtf8("a|b³b|cc²|"));
+        QCOMPARE(result, QString::fromUtf8("a|b³b¼|¹cc²|"));
     }
 }
 

@@ -77,9 +77,9 @@ void StringView::split(char c, const std::function<bool (StringView substr)> &fu
             // so here we go back until we find the first one
             int wide = (*p >> 7) & 0x1;
             while (wide && p > substr) {
-                wide = (*--p >> 7) & 0x1;
-                if (!wide) {
-                    ++p;
+                bool isStart = (*--p >> 7) & 0x1 && (*p >> 6) & 0x1;
+                if (isStart) {
+                    break;
                 }
             }
         } else {
