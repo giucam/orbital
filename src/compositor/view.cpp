@@ -192,6 +192,11 @@ void View::unmap()
     c->layer(Compositor::Layer::Minimized)->addView(this);
 }
 
+void View::damageBelow()
+{
+    weston_view_damage_below(m_view);
+}
+
 wl_client *View::client() const
 {
     return m_view->surface->resource ? wl_resource_get_client(m_view->surface->resource) : nullptr;

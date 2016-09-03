@@ -277,6 +277,7 @@ void Output::lock(const std::function<void ()> &done)
 void Output::unlock()
 {
     m_locked = false;
+    m_lockBackgroundSurface->view->damageBelow();
     m_lockLayer->setParent(m_compositor->layer(Compositor::Layer::Minimized));
     repaint();
 }

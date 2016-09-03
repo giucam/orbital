@@ -75,6 +75,7 @@ public:
     void update();
     void map() { m_view->is_mapped = true; }
     void unmap();
+    void damageBelow();
 
     Output *output() const;
     Layer *layer() const { return m_layer; }
