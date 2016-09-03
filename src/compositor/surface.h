@@ -23,6 +23,7 @@
 #include <functional>
 
 #include <QSize>
+#include <QRect>
 
 #include <compositor.h>
 
@@ -56,6 +57,24 @@ public:
     private:
         Surface *surface;
         friend Surface;
+    };
+
+    class ActiveRegion
+    {
+    public:
+        ActiveRegion() : m_surface(nullptr) {}
+        ActiveRegion(const ActiveRegion &) = delete;
+        ActiveRegion(ActiveRegion &&) = default;
+        ~ActiveRegion() { m_surface->m_activeRegions.erase(m_it); }
+
+        void set(const QRect &rect) { *m_it = rect; }
+
+    private:
+        ActiveRegion(Surface *surface, std::list<QRect>::iterator it) : m_surface(surface), m_it(it) {}
+
+        Surface *m_surface;
+        std::list<QRect>::iterator m_it;
+        friend class Surface;
     };
 
     Surface(weston_surface *s, QObject *parent = nullptr);
@@ -98,12 +117,14 @@ public:
     void setActivable(bool activable);
     inline bool isActivable() const { return m_activable; }
 
+    ActiveRegion addActiveRegion(const QRect &rect);
+    bool isActiveAt(int x, int y) const;
+
     void setLabel(StringView label);
 
     void ref();
     void deref();
 
-    virtual Surface *activate();
     void move(Seat *seat);
 
     void setViewCreator(ViewCreator *creator);
@@ -134,9 +155,11 @@ private:
     ViewCreator *m_viewCreator;
     ShellSurface *m_shsurf;
     std::function<void (Seat *seat)> m_moveHandler;
+    std::list<QRect> m_activeRegions;
 
     friend View;
     friend RoleHandler;
+    friend ActiveRegion;
 };
 
 }

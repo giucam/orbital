@@ -264,7 +264,7 @@ View *Pointer::pickView(double *vx, double *vy, const std::function<bool (View *
     return nullptr;
 }
 
-View *Pointer::pickActivableView(double *vx, double *vy) const
+View *Pointer::pickActivableView(double *dvx, double *dvy) const
 {
     int ix = wl_fixed_to_int(m_pointer->x);
     int iy = wl_fixed_to_int(m_pointer->y);
@@ -280,9 +280,11 @@ View *Pointer::pickActivableView(double *vx, double *vy) const
         if (pixman_region32_contains_point(&v->m_view->transform.boundingbox, ix, iy, NULL)) {
             wl_fixed_t fvx, fvy;
             weston_view_from_global_fixed(v->m_view, m_pointer->x, m_pointer->y, &fvx, &fvy);
-            if (pixman_region32_contains_point(&v->m_view->surface->input, wl_fixed_to_int(fvx), wl_fixed_to_int(fvy), NULL)) {
-                if (vx) *vx = wl_fixed_to_double(fvx);
-                if (vy) *vy = wl_fixed_to_double(fvy);
+            int vx = wl_fixed_to_int(fvx);
+            int vy = wl_fixed_to_int(fvy);
+            if (pixman_region32_contains_point(&v->m_view->surface->input, vx, vy, NULL) && v->surface()->isActiveAt(vx, vy)) {
+                if (dvx) *dvx = wl_fixed_to_double(fvx);
+                if (dvy) *dvy = wl_fixed_to_double(fvy);
                 return v;
             }
         }

@@ -48,7 +48,7 @@ Surface *FocusScope::activate(Surface *surface)
 {
     bool isNull = !surface;
     if (surface) {
-        surface = surface->isActivable() ? surface->activate() : nullptr;
+        surface = surface->isActivable() ? surface : nullptr;
     }
 
     if (surface) {

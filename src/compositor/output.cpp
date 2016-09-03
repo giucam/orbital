@@ -47,8 +47,9 @@ static void outputDestroyed(wl_listener *listener, void *data)
 class Root : public DummySurface
 {
 public:
-    Root(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)) { }
+    Root(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)), actRegion(addActiveRegion(QRect())) { }
     View *view;
+    Surface::ActiveRegion actRegion;
 };
 
 class LockSurface : public DummySurface
@@ -131,7 +132,6 @@ public:
         , output(o)
     {
         s->setRoleHandler(this);
-        s->setActivable(false);
         view->setOutput(o);
     }
     void configure(int x, int y) override
@@ -149,28 +149,30 @@ void Output::setBackground(Surface *surface)
     class Background : public Surface::RoleHandler
     {
     public:
+        Background(Surface *s)
+            : m_actRegion(s->addActiveRegion(QRect()))
+        {}
+
         void configure(int x, int y) override
         {
             weston_output_schedule_repaint(m_output);
         }
 
         weston_output *m_output;
+        Surface::ActiveRegion m_actRegion;
     };
 
-    Surface::RoleHandler *handler = nullptr;
     if (m_backgroundSurface) {
-        handler = m_backgroundSurface->roleHandler();
+        Surface::RoleHandler *handler = m_backgroundSurface->roleHandler();
         m_backgroundSurface->setRoleHandler(nullptr);
+        delete handler;
     }
 
-    if (!handler) {
-        handler = new Background;
-        static_cast<Background *>(handler)->m_output = m_output;
-    }
+    Background *handler = new Background(surface);
+    handler->m_output = m_output;
 
     m_backgroundSurface = surface;
     surface->setRoleHandler(handler);
-    surface->setActivable(false);
 
     for (Workspace *ws: m_compositor->shell()->workspaces()) {
         Workspace::View *wsv = workspaceViewForOutput(ws, this);
@@ -191,7 +193,6 @@ void Output::setPanel(Surface *surface, int pos)
             , output(o)
         {
             s->setRoleHandler(this);
-            s->setActivable(false);
             view->setOutput(o);
             pixman_region32_init_rect(&inputRegion, 0, 0, 0, 0);
         }
@@ -247,7 +248,6 @@ void Output::setLockSurface(Surface *surface)
     delete m_lockSurfaceView;
 
     OutputSurface *s = new OutputSurface(surface, this);
-    surface->setActivable(true);
     m_lockLayer->addView(s->view);
     m_lockSurfaceView = s->view;
     s->view->setTransformParent(m_transformRoot->view);

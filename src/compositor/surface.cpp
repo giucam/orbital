@@ -153,6 +153,26 @@ void Surface::setActivable(bool activable)
     m_activable = activable;
 }
 
+Surface::ActiveRegion Surface::addActiveRegion(const QRect &region)
+{
+    auto it = m_activeRegions.emplace(m_activeRegions.begin(), region);
+    return ActiveRegion(this, it);
+}
+
+bool Surface::isActiveAt(int x, int y) const
+{
+    if (m_activeRegions.empty()) {
+        return true;
+    }
+
+    for (auto &r: m_activeRegions) {
+        if (r.contains(x, y)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Surface::setLabel(StringView label)
 {
     m_label = label.toStdString();
@@ -166,11 +186,6 @@ void Surface::ref()
 void Surface::deref()
 {
     weston_surface_destroy(m_surface);
-}
-
-Surface *Surface::activate()
-{
-    return this;
 }
 
 void Surface::move(Seat *seat)

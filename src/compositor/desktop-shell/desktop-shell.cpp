@@ -236,6 +236,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
             : m_resource(res)
             , m_surface(s)
             , m_output(o)
+            , m_nullActRegion(s->addActiveRegion(QRect()))
 //             , m_grab(nullptr)
         {
             struct desktop_shell_panel_interface implementation = {
@@ -272,6 +273,7 @@ void DesktopShell::setPanel(uint32_t id, wl_resource *outputResource, wl_resourc
         Surface *m_surface;
         Output *m_output;
         int m_pos;
+        Surface::ActiveRegion m_nullActRegion;
 //         PanelGrab *m_grab;
     };
 
@@ -646,41 +648,14 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
 {
     wl_resource *res = wl_resource_create(m_client->client(), &active_region_interface, 1, id);
 
-    class ActiveRegion : public DummySurface
+    class ActiveRegion
     {
     public:
-        class ActiveView : public View
-        {
-        public:
-            ActiveView(Surface *s, View *p)
-                : View(s), parent(p)
-            {
-                connect(p, &QObject::destroyed, this, &ActiveView::destroy);
-            }
-            View *pointerEnter(const Pointer *pointer) override
-            {
-                return parent;
-            }
-            void destroy()
-            {
-                delete this;
-            }
-            View *parent;
-        };
-
         ActiveRegion(Compositor *c, wl_resource *resource, Surface *parent, int x, int y, int w, int h)
-            : DummySurface(c, w, h)
-            , m_resource(resource)
+            : m_resource(resource)
             , m_parent(parent)
+            , m_region(parent->addActiveRegion(QRect(x, y, w, h)))
         {
-            for (View *view: parent->views()) {
-                ActiveView *v = new ActiveView(this, view);
-                v->setAlpha(0.);
-                v->setTransformParent(view);
-                v->setPos(x, y);
-                view->layer()->addView(v);
-            }
-
             static const struct active_region_interface implementation = {
                 wrapInterface(destroy),
                 wrapInterface(setGeometry)
@@ -699,18 +674,12 @@ void DesktopShell::createActiveRegion(uint32_t id, wl_resource *parentResource, 
         }
         void setGeometry(int32_t x, int32_t y, int32_t w, int32_t h)
         {
-            setSize(w, h);
-            for (View *v: views()) {
-                v->setPos(x, y);
-            }
-        }
-        Surface *activate() override
-        {
-            return m_parent;
+            m_region.set(QRect(x, y, w, h));
         }
 
         wl_resource *m_resource;
         Surface *m_parent;
+        Surface::ActiveRegion m_region;
     };
 
     new ActiveRegion(m_shell->compositor(), res, Surface::fromResource(parentResource), x, y, width, height);
