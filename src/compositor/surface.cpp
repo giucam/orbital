@@ -50,11 +50,6 @@ Surface::Surface(weston_surface *surface, QObject *p)
     m_listener->listener.notify = destroy;
     m_listener->surface = this;
     wl_signal_add(&surface->destroy_signal, &m_listener->listener);
-
-    weston_surface_set_label_func(surface, [](weston_surface *surf, char *buf, size_t len) {
-        Surface *s = Surface::fromSurface(surf);
-        return snprintf(buf, len, "%s", s->m_label.data());
-    });
 }
 
 Surface::~Surface()
@@ -175,7 +170,20 @@ bool Surface::isActiveAt(int x, int y) const
 
 void Surface::setLabel(StringView label)
 {
+    weston_surface_set_label_func(m_surface, [](weston_surface *surf, char *buf, size_t len) {
+        Surface *s = Surface::fromSurface(surf);
+        return snprintf(buf, len, "%s", s->m_label.data());
+    });
     m_label = label.toStdString();
+}
+
+std::string Surface::label() const
+{
+    char str[512];
+    str[0] = '\0';
+    if (m_surface->get_label)
+        m_surface->get_label(m_surface, str, sizeof(str));
+    return str;
 }
 
 void Surface::ref()

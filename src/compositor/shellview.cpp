@@ -55,6 +55,7 @@ public:
     BlackSurface(Compositor *c, ShellView *p, int w, int h)
         : DummySurface(c, w, h)
     {
+        setLabel("black_surface");
         view = new BlackView(this, p);
     }
 

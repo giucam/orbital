@@ -121,6 +121,7 @@ public:
     bool isActiveAt(int x, int y) const;
 
     void setLabel(StringView label);
+    std::string label() const;
 
     void ref();
     void deref();

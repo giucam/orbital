@@ -57,6 +57,7 @@ public:
         view = new View(s);
         s->setRoleHandler(this);
         s->setMoveHandler([this](Seat *s) { move(s); });
+        s->setLabel("dropdown");
 
         m_output = dd->m_shell->selectPrimaryOutput();
         connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);

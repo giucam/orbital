@@ -103,6 +103,7 @@ public:
             c->layer(Compositor::Layer::Overlay)->addView(v);
         }
 
+        s->setLabel("notification");
         s->setRoleHandler(this);
         connect(c, &Compositor::outputCreated, this, &NotificationSurface::outputCreated);
         connect(c, &Compositor::outputRemoved, this, &NotificationSurface::outputRemoved);

@@ -450,6 +450,7 @@ void DesktopShell::setGrabSurface(wl_resource *surfaceResource)
 {
     Surface *surface = Surface::fromResource(surfaceResource);
 
+    surface->setLabel("grab_surface");
     if (!surface->setRole("desktop_shell_grab_surface", m_resource, DESKTOP_SHELL_ERROR_ROLE)) {
         return;
     }

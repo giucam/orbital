@@ -31,6 +31,7 @@ DummySurface::DummySurface(Compositor *c, int w, int h)
     weston_surface *s = surface();
     weston_surface_set_color(s, 0.0, 0.0, 0.0, 1);
     setSize(w, h);
+    setLabel("dummy");
 }
 
 DummySurface::~DummySurface()

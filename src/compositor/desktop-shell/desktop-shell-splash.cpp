@@ -137,6 +137,7 @@ void DesktopShellSplash::setSplashSurface(wl_resource *outputResource, wl_resour
     m_shell->compositor()->layer(Compositor::Layer::Lock)->addView(view);
     view->setOutput(out);
     view->update();
+    surf->setLabel("splash");
 
     Splash *splash = new Splash(this, view);
     surf->setRoleHandler(splash);

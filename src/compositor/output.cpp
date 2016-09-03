@@ -47,7 +47,11 @@ static void outputDestroyed(wl_listener *listener, void *data)
 class Root : public DummySurface
 {
 public:
-    Root(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)), actRegion(addActiveRegion(QRect())) { }
+    Root(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)), actRegion(addActiveRegion(QRect()))
+    {
+        setLabel("output_root_dummy");
+    }
+
     View *view;
     Surface::ActiveRegion actRegion;
 };
@@ -55,7 +59,11 @@ public:
 class LockSurface : public DummySurface
 {
 public:
-    LockSurface(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this)) {}
+    LockSurface(Compositor *c, int w, int h) : DummySurface(c, w, h), view(new View(this))
+    {
+        setLabel("output_lock_dummy");
+    }
+
     View *view;
 };
 

@@ -38,7 +38,7 @@ namespace Orbital {
 class Root : public DummySurface
 {
 public:
-    Root(Compositor *c) : DummySurface(c), view(new View(this)) { }
+    Root(Compositor *c) : DummySurface(c), view(new View(this)) { setLabel("workspace_root"); }
     View *view;
 };
 
