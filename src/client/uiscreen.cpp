@@ -112,6 +112,7 @@ void UiScreen::loadConfig(QJsonObject &config)
                     break;
                 case ElementInfo::Type::Overlay: {
                     m_client->addOverlay(window, m_screen);
+                    window->hide();
                     connect(elm, SIGNAL(showContent()), window, SLOT(show()));
                     connect(elm, SIGNAL(hideContent()), window, SLOT(hide()));
                     break;
