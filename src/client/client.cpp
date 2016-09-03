@@ -246,6 +246,12 @@ void Client::setBackground(QQuickWindow *window, QScreen *screen)
 {
     wl_surface *wlSurface = static_cast<struct wl_surface *>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", window));
     wl_output *output = static_cast<wl_output *>(QGuiApplication::platformNativeInterface()->nativeResourceForScreen("output", screen));
+    wl_compositor *compositor = static_cast<wl_compositor *>(QGuiApplication::platformNativeInterface()->nativeResourceForIntegration("compositor"));
+
+    wl_region *region = wl_compositor_create_region(compositor);
+    wl_region_add(region, 0, 0, window->width(), window->height());
+    wl_surface_set_opaque_region(wlSurface, region);
+    wl_region_destroy(region);
 
     desktop_shell_set_background(m_shell, output, wlSurface);
 }
