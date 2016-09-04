@@ -84,7 +84,9 @@ class DesktopSurface
 public:
     ShellSurface *shsurf;
     std::vector<QMetaObject::Connection> connections;
+    bool maximized, fullscreen;
 
+    DesktopSurface() : maximized(false), fullscreen(false) {}
     static DesktopSurface *get(weston_desktop_surface *wds)
     {
         return static_cast<DesktopSurface *>(weston_desktop_surface_get_user_data(wds));
@@ -189,13 +191,23 @@ void WDesktop::surfaceRemoved(weston_desktop_surface *surface)
 
 void WDesktop::committed(weston_desktop_surface *surface, int32_t sx, int32_t sy)
 {
-    auto shsurf = DesktopSurface::getShSurf(surface);
+    auto ds = DesktopSurface::get(surface);
 
-    shsurf->setTitle(weston_desktop_surface_get_title(surface));
-    shsurf->setAppId(weston_desktop_surface_get_app_id(surface));
-    shsurf->setPid(weston_desktop_surface_get_pid(surface));
+    bool maximized = weston_desktop_surface_get_maximized(surface);
+    bool fullscreen = weston_desktop_surface_get_fullscreen(surface);
 
-    shsurf->committed(sx, sy);
+    if ((!maximized && ds->maximized) || (!fullscreen && ds->fullscreen)) {
+        ds->shsurf->setToplevel();
+    }
+
+    ds->maximized = maximized;
+    ds->fullscreen = fullscreen;
+
+    ds->shsurf->setTitle(weston_desktop_surface_get_title(surface));
+    ds->shsurf->setAppId(weston_desktop_surface_get_app_id(surface));
+    ds->shsurf->setPid(weston_desktop_surface_get_pid(surface));
+
+    ds->shsurf->committed(sx, sy);
 }
 
 void WDesktop::showWindowMenu(weston_desktop_surface *surface, weston_seat *seat, int32_t x, int32_t y)
@@ -247,8 +259,6 @@ void WDesktop::fullscreenRequested(weston_desktop_surface *surface, bool fullscr
 
     if (fullscreen) {
         shsurf->setFullscreen();
-    } else {
-        shsurf->setToplevel();
     }
     weston_desktop_surface_set_fullscreen(surface, fullscreen);
 }
@@ -262,8 +272,6 @@ void WDesktop::maximizedRequested(weston_desktop_surface *surface, bool maximize
 
     if (maximized) {
         shsurf->setMaximized();
-    } else {
-        shsurf->setToplevel();
     }
     weston_desktop_surface_set_maximized(surface, maximized);
 }
