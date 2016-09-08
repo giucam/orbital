@@ -41,11 +41,11 @@ namespace Orbital
 
 std::unordered_map<std::string, QPoint> ShellSurface::s_posCache;
 
-ShellSurface::ShellSurface(Shell *shell, Surface *surface)
+ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
             : Object()
             , m_shell(shell)
             , m_surface(surface)
-            , m_configureSender(nullptr)
+            , m_handler(std::move(h))
             , m_workspace(nullptr)
             , m_previewView(nullptr)
             , m_resizeEdges(Edges::None)
@@ -102,11 +102,6 @@ Compositor *ShellSurface::compositor() const
 AbstractWorkspace *ShellSurface::workspace() const
 {
     return m_workspace;
-}
-
-void ShellSurface::setConfigureSender(ConfigureSender sender)
-{
-    m_configureSender = sender;
 }
 
 void ShellSurface::setToplevel()
@@ -417,11 +412,6 @@ void ShellSurface::setAppId(StringView id)
     }
 }
 
-void ShellSurface::setGeometry(int x, int y, int w, int h)
-{
-    m_nextGeometry = QRect(x, y, w, h);
-}
-
 void ShellSurface::setPid(pid_t pid)
 {
     m_pid = pid;
@@ -452,10 +442,7 @@ bool ShellSurface::isInactive() const
 
 QRect ShellSurface::geometry() const
 {
-    if (m_geometry.isValid()) {
-        return m_geometry;
-    }
-    return surfaceTreeBoundingBox();
+    return m_handler.geometry();
 }
 
 StringView ShellSurface::title() const
@@ -484,32 +471,6 @@ void ShellSurface::parentSurfaceDestroyed()
 {
     m_parent = nullptr;
     m_nextType = Type::None;
-}
-
-/*
- * Returns the bounding box of a surface and all its sub-surfaces,
- * in the surface coordinates system. */
-QRect ShellSurface::surfaceTreeBoundingBox() const
-{
-    pixman_region32_t region;
-    pixman_box32_t *box;
-    weston_subsurface *subsurface;
-
-    pixman_region32_init_rect(&region, 0, 0, m_surface->width(), m_surface->height());
-
-    wl_list_for_each(subsurface, &surface()->surface()->subsurface_list, parent_link) {
-        pixman_region32_union_rect(&region, &region,
-                                   subsurface->position.x,
-                                   subsurface->position.y,
-                                   subsurface->surface->width,
-                                   subsurface->surface->height);
-    }
-
-    box = pixman_region32_extents(&region);
-    QRect rect(box->x1, box->y1, box->x2 - box->x1, box->y2 - box->y1);
-    pixman_region32_fini(&region);
-
-    return rect;
 }
 
 void ShellSurface::committed(int x, int y)
@@ -603,9 +564,7 @@ void ShellSurface::updateState()
 
 void ShellSurface::sendConfigure(int w, int h)
 {
-    if (m_configureSender) {
-        m_configureSender(w, h);
-    }
+    m_handler.setSize(w, h);
 }
 
 Output *ShellSurface::selectOutput()

@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <unordered_map>
+#include <memory>
 
 #include <QObject>
 #include <QRect>
@@ -53,10 +54,37 @@ class ShellSurface : public Object
 {
     Q_OBJECT
 public:
-    ShellSurface(Shell *shell, Surface *surface);
+    class Handler {
+    public:
+        template<class T>
+        Handler(T &t)
+            : m_if(std::make_unique<If<T>>(t))
+        {}
+
+        inline void setSize(int w, int h) { m_if->setSize(w, h); }
+        inline QRect geometry() const { return m_if->geometry(); }
+
+    private:
+        struct AbstractIf
+        {
+            virtual ~AbstractIf() = default;
+            virtual void setSize(int w, int h) = 0;
+            virtual QRect geometry() const = 0;
+        };
+        template<class T>
+        struct If : AbstractIf
+        {
+            If(T &t) : data(t) {}
+            void setSize(int w, int h) override { data.setSize(w, h); }
+            QRect geometry() const override { return data.geometry(); }
+            T data;
+        };
+        std::unique_ptr<AbstractIf> m_if;
+    };
+
+    ShellSurface(Shell *shell, Surface *surface, Handler hnd);
     ~ShellSurface();
 
-    typedef std::function<void (int, int)> ConfigureSender;
     enum class Type {
         None = 0,
         Toplevel = 1,
@@ -80,7 +108,6 @@ public:
     Compositor *compositor() const;
     AbstractWorkspace *workspace() const;
 
-    void setConfigureSender(ConfigureSender sender);
     void setToplevel();
     void setParent(Surface *parent, int x, int y, bool inactive);
     void setMaximized();
@@ -99,7 +126,6 @@ public:
 
     void setTitle(StringView title);
     void setAppId(StringView appid);
-    void setGeometry(int x, int y, int w, int h);
     void setPid(pid_t pid);
 
     void setIsResponsive(bool responsive);
@@ -142,7 +168,7 @@ private:
 
     Shell *m_shell;
     Surface *m_surface;
-    ConfigureSender m_configureSender;
+    Handler m_handler;
     AbstractWorkspace *m_workspace;
     std::unordered_map<int, ShellView *> m_views;
     std::vector<ShellView *> m_extraViews;

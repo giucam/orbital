@@ -378,9 +378,9 @@ Workspace *Shell::createWorkspace()
     return ws;
 }
 
-ShellSurface *Shell::createShellSurface(Surface *s)
+ShellSurface *Shell::createShellSurface(Surface *s, ShellSurface::Handler h)
 {
-    ShellSurface *surf = new ShellSurface(this, s);
+    ShellSurface *surf = new ShellSurface(this, s, std::move(h));
     surf->addInterface(new DesktopShellWindow(findInterface<DesktopShell>()));
     m_surfaces.push_back(surf);
     connect(surf, &QObject::destroyed, [this](QObject *o) {

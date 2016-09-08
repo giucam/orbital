@@ -26,6 +26,7 @@
 
 #include "interface.h"
 #include "stringview.h"
+#include "shellsurface.h"
 
 struct weston_desktop;
 
@@ -62,7 +63,7 @@ public:
     Compositor *compositor() const;
     Pager *pager() const;
     Workspace *createWorkspace();
-    ShellSurface *createShellSurface(Surface *surface);
+    ShellSurface *createShellSurface(Surface *surface, ShellSurface::Handler handler);
     const std::vector<Workspace *> &workspaces() const;
     const std::vector<ShellSurface *> &surfaces() const;
     Output *selectPrimaryOutput(Seat *seat = nullptr);

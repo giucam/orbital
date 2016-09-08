@@ -82,11 +82,23 @@ WDesktop::~WDesktop()
 class DesktopSurface
 {
 public:
+    weston_desktop_surface *m_wds;
     ShellSurface *shsurf;
     std::vector<QMetaObject::Connection> connections;
     bool maximized, fullscreen;
 
     DesktopSurface() : maximized(false), fullscreen(false) {}
+
+    void setSize(int w, int h)
+    {
+        weston_desktop_surface_set_size(m_wds, w, h);
+    }
+    QRect geometry() const
+    {
+        auto geom = weston_desktop_surface_get_geometry(m_wds);
+        return QRect(geom.x, geom.y, geom.width, geom.height);
+    }
+
     static DesktopSurface *get(weston_desktop_surface *wds)
     {
         return static_cast<DesktopSurface *>(weston_desktop_surface_get_user_data(wds));
@@ -160,12 +172,10 @@ void WDesktop::surfaceAdded(weston_desktop_surface *wds)
 
     surface->setViewCreator(&creator);
     auto *ds = new DesktopSurface;
-    ds->shsurf = m_shell->createShellSurface(surface);
+    ds->m_wds = wds;
+    ds->shsurf = m_shell->createShellSurface(surface, *ds);
 
     ds->shsurf->setToplevel();
-    ds->shsurf->setConfigureSender([wds](int w, int h) {
-        weston_desktop_surface_set_size(wds, w, h);
-    });
 
     weston_desktop_surface_set_user_data(wds, ds);
 
