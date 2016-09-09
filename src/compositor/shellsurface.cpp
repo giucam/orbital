@@ -59,6 +59,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
             , m_state({ QSize(), false, false })
 {
     surface->setMoveHandler([this](Seat *seat) { move(seat); });
+    surface->setShellSurface(this);
 
     for (Output *o: shell->compositor()->outputs()) {
         ShellView *view = new ShellView(this);
