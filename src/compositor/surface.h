@@ -47,6 +47,14 @@ class Surface : public Object
 {
     Q_OBJECT
 public:
+    class ActiveRegion;
+private:
+    struct AR {
+        QRect rect;
+        ActiveRegion *region;
+    };
+
+public:
     class RoleHandler {
     public:
         RoleHandler() : surface(nullptr) {}
@@ -64,16 +72,26 @@ public:
     public:
         ActiveRegion() : m_surface(nullptr) {}
         ActiveRegion(const ActiveRegion &) = delete;
-        ActiveRegion(ActiveRegion &&) = default;
-        ~ActiveRegion() { m_surface->m_activeRegions.erase(m_it); }
+        ActiveRegion(ActiveRegion &&r)
+        {
+            m_surface = r.m_surface;
+            if (m_surface) {
+                m_it = r.m_it;
+                m_it->region = this;
+            }
+        }
+        ~ActiveRegion() { if (m_surface) m_surface->m_activeRegions.erase(m_it); }
 
-        void set(const QRect &rect) { *m_it = rect; }
+        void set(const QRect &rect) { if (m_surface) m_it->rect = rect; }
 
     private:
-        ActiveRegion(Surface *surface, std::list<QRect>::iterator it) : m_surface(surface), m_it(it) {}
+        ActiveRegion(Surface *surface, std::list<AR>::iterator it) : m_surface(surface), m_it(it)
+        {
+            it->region = this;
+        }
 
         Surface *m_surface;
-        std::list<QRect>::iterator m_it;
+        std::list<Surface::AR>::iterator m_it;
         friend class Surface;
     };
 
@@ -156,7 +174,7 @@ private:
     ViewCreator *m_viewCreator;
     ShellSurface *m_shsurf;
     std::function<void (Seat *seat)> m_moveHandler;
-    std::list<QRect> m_activeRegions;
+    std::list<AR> m_activeRegions;
 
     friend View;
     friend RoleHandler;

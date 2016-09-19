@@ -63,6 +63,10 @@ Surface::~Surface()
     if (m_surface) {
         weston_surface_destroy(m_surface);
     }
+
+    for (auto &r: m_activeRegions) {
+        r.region->m_surface = nullptr;
+    }
 }
 
 wl_client *Surface::client() const
@@ -150,7 +154,7 @@ void Surface::setActivable(bool activable)
 
 Surface::ActiveRegion Surface::addActiveRegion(const QRect &region)
 {
-    auto it = m_activeRegions.emplace(m_activeRegions.begin(), region);
+    auto it = m_activeRegions.emplace(m_activeRegions.begin(), AR{ region, nullptr });
     return ActiveRegion(this, it);
 }
 
@@ -161,7 +165,7 @@ bool Surface::isActiveAt(int x, int y) const
     }
 
     for (auto &r: m_activeRegions) {
-        if (r.contains(x, y)) {
+        if (r.rect.contains(x, y)) {
             return true;
         }
     }
