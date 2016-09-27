@@ -65,7 +65,7 @@ void TstStringView::testSplit()
             result += QLatin1String("|");
             return false;
         });
-        QCOMPARE(result, QLatin1String(""));
+        QCOMPARE(result, QLatin1String("aaa|"));
     }
     {
         StringView view("::a::");

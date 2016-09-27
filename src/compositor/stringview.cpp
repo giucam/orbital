@@ -83,11 +83,8 @@ void StringView::split(char c, const std::function<bool (StringView substr)> &fu
                 }
             }
         } else {
-            if (substr == string) { //there was no 'c' in the string, bail out
-                break;
-            } else { // we found an occurence of 'c' before, so just run through to the end
-                p = end;
-            }
+            // there is no 'c' in the string, so run through to the end
+            p = end;
         }
 
         size_t l = p - substr;
