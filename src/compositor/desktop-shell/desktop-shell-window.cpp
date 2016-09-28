@@ -36,6 +36,7 @@
 #include "../focusscope.h"
 #include "../format.h"
 #include "../surface.h"
+#include "desktopfile.h"
 
 #include "wayland-desktop-shell-server-protocol.h"
 
@@ -163,10 +164,10 @@ void DesktopShellWindow::create()
         StringView(xdgDataDir).split(':', [&icon, appId](StringView d) {
             std::string path = fmt::format("{}/applications/{}.desktop", d, appId);
             if (QFile::exists(QLatin1String(path.data()))) {
-                QSettings settings(QLatin1String(path.data()), QSettings::IniFormat);
-                settings.beginGroup(QStringLiteral("Desktop Entry"));
-                icon = settings.value(QStringLiteral("Icon")).toString().toStdString();
-                settings.endGroup();
+                DesktopFile df(path);
+
+                df.beginGroup("Desktop Entry");
+                icon = df.value("Icon").toStdString();
                 return true;
             }
             return false;

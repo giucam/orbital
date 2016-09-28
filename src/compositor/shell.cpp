@@ -22,9 +22,6 @@
 #include <linux/input.h>
 #include <sys/resource.h>
 
-#include <fstream>
-#include <sstream>
-
 #include <QDebug>
 #include <QDir>
 #include <QProcess>
@@ -59,6 +56,7 @@
 #include "effects/desktopgrid.h"
 #include "format.h"
 #include "surface.h"
+#include "desktopfile.h"
 
 namespace Orbital {
 
@@ -140,95 +138,9 @@ void Shell::initEnvironment()
     setenv("DBUS_SESSION_BUS_PID", qPrintable(QString::number(pid)), 1);
 }
 
-class IniFile
+static bool shouldAutoStart(const DesktopFile &settings)
 {
-public:
-    IniFile(StringView file)
-        : m_valid(false)
-    {
-        std::ifstream stream(file.toStdString(), std::ifstream::in);
-        if (!stream.good()) {
-            return;
-        }
-
-        std::string currentGroup;
-
-        while (stream.good()) {
-            std::stringbuf lineBuf;
-            stream.get(lineBuf);
-            stream.ignore(1); //discard the'\n'
-            std::string line = lineBuf.str();
-
-            int length = line.size();
-            if (line.find_first_of('\n') != std::string::npos) {
-                --length;
-            }
-            if (length == 0) {
-                continue;
-            }
-
-            if (line.find_first_of('[') == 0) {
-                int idx = line.find_first_of(']');
-                if (idx == -1 || idx != length - 1) {
-                    return;
-                }
-                currentGroup = line.substr(1, length - 2);
-                continue;
-            }
-
-            int idx = line.find_first_of('=');
-            if (idx < 1) {
-                return;
-            }
-            std::string key = line.substr(0, idx);
-            std::string value = line.substr(idx + 1, length - idx - 1);
-
-            m_data[currentGroup + '/' + key] = value;
-        }
-
-        m_valid = true;
-    }
-
-    bool isValid() const
-    {
-        return m_valid;
-    }
-
-    void beginGroup(StringView name)
-    {
-        m_group = name.toStdString();
-    }
-
-    void endGroup()
-    {
-        m_group.clear();
-    }
-
-    bool hasValue(StringView key) const
-    {
-        if (m_group.empty()) {
-            return m_data.count(key.toStdString());
-        }
-
-        return m_data.count(m_group + "/" + key.toStdString());
-    }
-
-    StringView value(StringView key) const
-    {
-        if (m_group.empty()) {
-            return m_data.at(key.toStdString());
-        }
-        return m_data.at(m_group + "/" + key.toStdString());
-    }
-
-    bool m_valid;
-    std::unordered_map<std::string, std::string> m_data;
-    std::string m_group;
-};
-
-static bool shouldAutoStart(const IniFile &settings)
-{
-    bool hidden = settings.hasValue("Hidden") && settings.value("Hidden") == "true";
+    bool hidden = settings.value<bool>("Hidden");
 
     if (hidden) {
         return false;
@@ -263,9 +175,6 @@ static bool shouldAutoStart(const IniFile &settings)
 
 static void populateAutostartList(std::vector<std::string> &files, StringView autostartDir)
 {
-
-fmt::print(stderr, "populate {}\n",autostartDir);
-
     QDir dir(autostartDir.toQString());
     if (dir.exists()) {
         QFileInfoList infos = dir.entryInfoList({ QStringLiteral("*.desktop") }, QDir::Files);
@@ -293,7 +202,7 @@ fmt::print(stderr, "populate {}\n",autostartDir);
 void Shell::autostartClients()
 {
     std::vector<std::string> files;
-fmt::print(stderr, "autostart!!\n");
+
     StringView xdgConfigHome = getenv("XDG_CONFIG_HOME");
     if (!xdgConfigHome.isEmpty() && !xdgConfigHome.isNull()) {
         populateAutostartList(files, fmt::format("{}/autostart", xdgConfigHome));
@@ -317,7 +226,7 @@ fmt::print(stderr, "autostart!!\n");
     outputDir.cd(dirName);
 
     for (const std::string &fi: files) {
-        IniFile file(fi);
+        DesktopFile file(fi);
         if (!file.isValid()) {
             continue;
         }
