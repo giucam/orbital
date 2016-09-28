@@ -10,3 +10,8 @@ add_executable(tst_stringview tst_stringview.cpp ../../src/compositor/stringview
 add_test(tst_stringview tst_stringview)
 add_dependencies(check tst_stringview)
 qt5_use_modules(tst_stringview Core Test)
+
+add_executable(tst_maybe tst_maybe.cpp)
+add_test(tst_maybe tst_maybe)
+add_dependencies(check tst_maybe)
+qt5_use_modules(tst_maybe Core Test)

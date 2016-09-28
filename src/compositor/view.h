@@ -24,6 +24,7 @@
 #include <QRectF>
 
 #include <wayland-server.h>
+#include <compositor.h>
 
 struct wl_client;
 struct wl_listener;

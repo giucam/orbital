@@ -20,7 +20,9 @@
 #ifndef ORBITAL_UTILS_H
 #define ORBITAL_UTILS_H
 
-#include <compositor.h>
+#include <utility>
+
+#include <wayland-server-core.h>
 
 namespace Orbital {
 
@@ -53,11 +55,9 @@ class Maybe
 public:
     inline Maybe() : m_isSet(false) {}
     inline Maybe(T v) : m_value(v), m_isSet(true) {}
-    inline Maybe(const Maybe<T> &m) : m_value(m.m_value), m_isSet(m.m_isSet) {}
 
     inline bool isSet() const { return m_isSet; }
     inline operator bool() const { return m_isSet; }
-    inline Maybe<T> &operator=(const Maybe<T> &m) { m_value = m.m_value; m_isSet = m.m_isSet; return *this; }
 
     inline void set(const T &v) { m_value = v; m_isSet = true; }
     inline void reset() { m_isSet = false; }
