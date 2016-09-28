@@ -96,7 +96,6 @@ public:
     };
 
     Surface(weston_surface *s, QObject *parent = nullptr);
-    ~Surface();
 
     inline int width() const { return m_surface->width; }
     inline int height() const { return m_surface->height; }
@@ -152,6 +151,9 @@ public:
 
     static Surface *fromSurface(weston_surface *s);
     static Surface *fromResource(wl_resource *resource);
+
+protected:
+    ~Surface();
 
 signals:
     void unmapped();
