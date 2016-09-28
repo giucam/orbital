@@ -45,7 +45,7 @@ public:
     std::string toStdString() const;
     QString toQString() const;
 
-    void split(char c, const std::function<bool (StringView substr)> &func) const;
+    void split(int c, const std::function<bool (StringView substr)> &func) const;
 
     bool operator==(StringView v) const;
     inline bool operator!=(StringView v) const { return !(*this ==  v); }

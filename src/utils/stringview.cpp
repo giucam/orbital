@@ -63,7 +63,7 @@ QString StringView::toQString() const
     return QString::fromUtf8(string, size());
 }
 
-void StringView::split(char c, const std::function<bool (StringView substr)> &func) const
+void StringView::split(int c, const std::function<bool (StringView substr)> &func) const
 {
     if (!string || string == end) {
         return;
