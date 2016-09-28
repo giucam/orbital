@@ -82,6 +82,11 @@ ShellSurface::~ShellSurface()
     }
 }
 
+void ShellSurface::setHandler(Handler hnd)
+{
+    m_handler = std::move(hnd);
+}
+
 ShellView *ShellSurface::viewForOutput(Output *o)
 {
     return m_views[o->id()];
@@ -443,7 +448,10 @@ bool ShellSurface::isInactive() const
 
 QRect ShellSurface::geometry() const
 {
-    return m_handler.geometry();
+    if (m_handler) {
+        return m_handler.geometry();
+    }
+    return m_surface->boundingBox();
 }
 
 StringView ShellSurface::title() const
@@ -565,7 +573,9 @@ void ShellSurface::updateState()
 
 void ShellSurface::sendConfigure(int w, int h)
 {
-    m_handler.setSize(w, h);
+    if (m_handler) {
+        m_handler.setSize(w, h);
+    }
 }
 
 Output *ShellSurface::selectOutput()

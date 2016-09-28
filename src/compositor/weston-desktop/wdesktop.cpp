@@ -190,7 +190,8 @@ void WDesktop::surfaceAdded(weston_desktop_surface *wds)
 void WDesktop::surfaceRemoved(weston_desktop_surface *surface)
 {
     auto ds = DesktopSurface::get(surface);
-    delete ds->shsurf;
+    ds->shsurf->setHandler({});
+    ds->shsurf->surface()->setViewCreator(nullptr);
 
     for (auto &conn: ds->connections) {
         disconnect(conn);

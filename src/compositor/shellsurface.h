@@ -56,6 +56,7 @@ class ShellSurface : public Object
 public:
     class Handler {
     public:
+        Handler() {}
         template<class T>
         Handler(T &t)
             : m_if(std::make_unique<If<T>>(t))
@@ -63,6 +64,8 @@ public:
 
         inline void setSize(int w, int h) { m_if->setSize(w, h); }
         inline QRect geometry() const { return m_if->geometry(); }
+
+        inline operator bool() const { return m_if.get(); }
 
     private:
         struct AbstractIf
@@ -84,6 +87,8 @@ public:
 
     ShellSurface(Shell *shell, Surface *surface, Handler hnd);
     ~ShellSurface();
+
+    void setHandler(Handler hnd);
 
     enum class Type {
         None = 0,

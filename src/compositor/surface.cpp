@@ -21,6 +21,7 @@
 
 #include "surface.h"
 #include "view.h"
+#include "shellsurface.h"
 
 namespace Orbital {
 
@@ -56,6 +57,8 @@ Surface::~Surface()
 {
     emit unmapped();
 
+    delete m_shsurf;
+
     while (!m_views.empty()) {
         delete m_views.front();
     }
@@ -67,6 +70,12 @@ Surface::~Surface()
     for (auto &r: m_activeRegions) {
         r.region->m_surface = nullptr;
     }
+}
+
+QRect Surface::boundingBox() const
+{
+    auto geom = weston_surface_get_bounding_box(m_surface);
+    return QRect(geom.x, geom.y, geom.width, geom.height);
 }
 
 wl_client *Surface::client() const
