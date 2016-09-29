@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(${WaylandServer_INCLUDE_DIRS} /usr/include/pixman-1 ${libweston_INCLUDE_DIRS}
-${libweston-desktop_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
+${libweston-desktop_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../utils/)
 link_directories(${libweston_LIBRARY_DIRS} ${WaylandServer_LIBRARY_DIRS})
 
 set(SOURCES
