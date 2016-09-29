@@ -32,7 +32,7 @@ struct Wrapper {
 };
 
 Layer::Layer(weston_layer *l)
-     : m_layer(new Wrapper)
+     : m_layer(std::make_unique<Wrapper>())
      , m_parent(nullptr)
      , m_acceptInput(true)
 {
@@ -44,7 +44,7 @@ Layer::Layer(weston_layer *l)
 }
 
 Layer::Layer(Layer *parent)
-     : m_layer(new Wrapper)
+     : m_layer(std::make_unique<Wrapper>())
      , m_parent(parent)
      , m_acceptInput(true)
 {
@@ -58,6 +58,28 @@ Layer::Layer(Layer *parent)
     }
 }
 
+Layer::Layer(Layer &&l)
+    : m_layer(std::move(l.m_layer))
+    , m_parent(l.m_parent)
+    , m_acceptInput(l.m_acceptInput)
+{
+    m_layer->parent = this;
+
+    if (m_parent) {
+        auto it = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), &l);
+        *it = this;
+    }
+
+    m_children = l.m_children;
+    for (Layer *c: m_children) {
+        c->m_parent = this;
+    }
+
+    l.m_parent = nullptr;
+    l.m_children.clear();
+    l.m_layer = nullptr;
+}
+
 Layer::~Layer()
 {
     if (m_parent) {
@@ -69,7 +91,9 @@ Layer::~Layer()
         wl_list_remove(&c->m_layer->layer.link);
         wl_list_init(&c->m_layer->layer.link);
     }
-    wl_list_remove(&m_layer->layer.link);
+    if (m_layer) {
+        wl_list_remove(&m_layer->layer.link);
+    }
 }
 
 void Layer::setParent(Layer *parent)

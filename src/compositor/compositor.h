@@ -88,7 +88,7 @@ public:
 
     inline wl_display *display() const { return m_display; }
     Shell *shell() const;
-    Orbital::Layer *layer(Layer l) const;
+    Orbital::Layer *layer(Layer l);
     const std::vector<Output *> &outputs() const;
     std::vector<Seat *> seats() const;
     const Keymap &defaultKeymap() const { return m_defaultKeymap; }
@@ -130,7 +130,7 @@ private:
     Listener *m_listener;
     Backend *m_backend;
     Shell *m_shell;
-    std::vector<Orbital::Layer *> m_layers;
+    std::vector<Orbital::Layer> m_layers;
     std::vector<Output *> m_outputs;
     Timer m_fakeRepaintLoopTimer;
     Timer m_watchdogTimer;

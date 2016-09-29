@@ -288,7 +288,6 @@ Compositor::~Compositor()
     delete m_shell;
     delete m_authorizer;
     qDeleteAll(m_outputs);
-    qDeleteAll(m_layers);
     delete m_bindingsCleanupHandler;
 
     if (m_compositor)
@@ -403,7 +402,7 @@ bool Compositor::init(StringView socketName)
         return false;
 
     for (int i = 0; i <= (int)Layer::Minimized; ++i) {
-        m_layers.emplace_back(new Orbital::Layer(&m_compositor->cursor_layer));
+        m_layers.emplace_back(&m_compositor->cursor_layer);
     }
     layer(Layer::Minimized)->setMask(0, 0, 0, 0);
 
@@ -547,9 +546,9 @@ Shell *Compositor::shell() const
     return m_shell;
 }
 
-Orbital::Layer *Compositor::layer(Layer l) const
+Orbital::Layer *Compositor::layer(Layer l)
 {
-    return m_layers[(int)Layer::Minimized - (int)l];
+    return &m_layers[(int)Layer::Minimized - (int)l];
 }
 
 const std::vector<Output *> &Compositor::outputs() const

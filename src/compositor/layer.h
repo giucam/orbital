@@ -21,8 +21,7 @@
 #define ORBITAL_LAYER_H
 
 #include <vector>
-
-#include <QObject>
+#include <memory>
 
 struct weston_layer;
 
@@ -31,12 +30,13 @@ namespace Orbital {
 class View;
 struct Wrapper;
 
-class Layer : public QObject
+class Layer
 {
-    Q_OBJECT
 public:
     explicit Layer(weston_layer *layer);
     explicit Layer(Layer *parent = nullptr);
+    Layer(const Layer &) = delete;
+    Layer(Layer &&l);
     ~Layer();
 
     void setParent(Layer *parent);
@@ -53,11 +53,14 @@ public:
 
     static Layer *fromLayer(weston_layer *layer);
 
+    Layer &operator=(const Layer &) = delete;
+    Layer &operator=(Layer &&) = delete;
+
 private:
     void addChild(Layer *l);
     void removeChild(Layer *l);
 
-    Wrapper *m_layer;
+    std::unique_ptr<Wrapper> m_layer;
     Layer *m_parent;
     std::vector<Layer *> m_children;
     bool m_acceptInput;
