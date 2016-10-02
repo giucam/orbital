@@ -232,8 +232,7 @@ private:
         PointerGrab *parent;
     } m_grab;
 
-//
-//     static const weston_pointer_grab_interface s_shellGrabInterface;
+    static const weston_pointer_grab_interface s_grabInterface;
 
     friend Pointer;
 };

@@ -593,37 +593,37 @@ void Pointer::defaultGrabFrame()
 
 // -- PointerGrab
 
+const weston_pointer_grab_interface PointerGrab::s_grabInterface = {
+    [](weston_pointer_grab *base)                                                  { fromGrab(base)->focus(); },
+    [](weston_pointer_grab *base, uint32_t time, weston_pointer_motion_event *evt) {
+        PointerGrab *grab = fromGrab(base);
+        Pointer *p = grab->pointer();
+        grab->motion(time, Pointer::MotionEvent(evt));
+        p->handleMotionBinding(time, Pointer::MotionEvent(evt));
+    },
+    [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)  {
+        fromGrab(base)->button(time, rawToPointerButton(button), (Pointer::ButtonState)state);
+    },
+    [](weston_pointer_grab *base, uint32_t time, weston_pointer_axis_event *event) {},
+    [](weston_pointer_grab *base, uint32_t source) {},
+    [](weston_pointer_grab *base) {},
+    [](weston_pointer_grab *base)                                                  { fromGrab(base)->cancel(); }
+};
+
 PointerGrab *PointerGrab::fromGrab(weston_pointer_grab *grab)
 {
-    if (grab == &grab->pointer->default_grab) {
+    if (grab == &grab->pointer->default_grab || grab->interface != &s_grabInterface) {
         return nullptr;
     }
 
-    PointerGrab::Grab *wrapper = reinterpret_cast<PointerGrab::Grab *>(grab);
+    PointerGrab::Grab *wrapper = static_cast<PointerGrab::Grab *>(grab);
     return wrapper->parent;
 }
 
 PointerGrab::PointerGrab()
            : m_seat(nullptr)
 {
-    static const weston_pointer_grab_interface grabInterface = {
-        [](weston_pointer_grab *base)                                                  { fromGrab(base)->focus(); },
-        [](weston_pointer_grab *base, uint32_t time, weston_pointer_motion_event *evt) {
-            PointerGrab *grab = fromGrab(base);
-            Pointer *p = grab->pointer();
-            grab->motion(time, Pointer::MotionEvent(evt));
-            p->handleMotionBinding(time, Pointer::MotionEvent(evt));
-        },
-        [](weston_pointer_grab *base, uint32_t time, uint32_t button, uint32_t state)  {
-            fromGrab(base)->button(time, rawToPointerButton(button), (Pointer::ButtonState)state);
-        },
-        [](weston_pointer_grab *base, uint32_t time, weston_pointer_axis_event *event) {},
-        [](weston_pointer_grab *base, uint32_t source) {},
-        [](weston_pointer_grab *base) {},
-        [](weston_pointer_grab *base)                                                  { fromGrab(base)->cancel(); }
-    };
-
-    m_grab.interface = &grabInterface;
+    m_grab.interface = &s_grabInterface;
     m_grab.parent = this;
 }
 
