@@ -304,6 +304,10 @@ void ShellSurface::resize(Seat *seat, Edges edges)
 
 void ShellSurface::setBusyCursor(Pointer *pointer)
 {
+    if (m_isResponsive) {
+        return;
+    }
+
     class BusyGrab : public PointerGrab
     {
     public:
@@ -431,7 +435,7 @@ void ShellSurface::setIsResponsive(bool responsive)
 
     m_isResponsive = responsive;
     // end the busy grab
-    if (responsive) {
+    if (responsive && m_currentGrab) {
         m_currentGrab->end();
     }
 }
