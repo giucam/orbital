@@ -89,12 +89,16 @@ bool DesktopFile::hasValue(StringView key) const
     return m_data.count(m_group + "/" + key.toStdString());
 }
 
-StringView DesktopFile::value(StringView key) const
+StringView DesktopFile::value(StringView key, StringView defaultValue) const
 {
     if (m_group.empty()) {
         return m_data.at(key.toStdString());
     }
-    return m_data.at(m_group + "/" + key.toStdString());
+    auto it = m_data.find(m_group + "/" + key.toStdString());
+    if (it == m_data.end()) {
+        return defaultValue;
+    }
+    return it->second;
 }
 
 }

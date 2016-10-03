@@ -40,7 +40,7 @@ public:
     void endGroup();
 
     bool hasValue(StringView key) const;
-    StringView value(StringView key) const;
+    StringView value(StringView key, StringView defaultValue = "") const;
 
     template<class T>
     T value(StringView key) const { T t; desktopEntryValue(*this, key, t); return t; }
