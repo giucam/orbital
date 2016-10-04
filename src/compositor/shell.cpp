@@ -256,14 +256,10 @@ void Shell::autostartClients()
         };
 
         QProcess *proc = new Process(this);
-        StringView binView(exec);
-        StringView(exec).split(' ', [&binView](StringView substr) {
-            binView = substr;
-            return true;
-        });
-        QString bin = binView.toQString();
-        proc->setStandardOutputFile(outputDir.filePath(bin));
-        proc->setStandardErrorFile(outputDir.filePath(bin));
+        QString filename = QFileInfo(QString::fromStdString(fi)).baseName();
+
+        proc->setStandardOutputFile(outputDir.filePath(filename));
+        proc->setStandardErrorFile(outputDir.filePath(filename));
         proc->start(exec.toQString());
     }
 }
