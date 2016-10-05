@@ -179,7 +179,6 @@ private:
     std::vector<ShellView *> m_extraViews;
     ShellView *m_previewView;
     Edges m_resizeEdges;
-    bool m_resizing;
     int m_height, m_width;
     QRect m_geometry;
     QRect m_nextGeometry;

@@ -49,7 +49,6 @@ private:
     void workspaceActivated(Workspace *ws, Output *out);
 
     Shell *m_shell;
-    KeyBinding *m_binding;
     HotSpotBinding *m_hsBinding;
     QSet<Output *> m_activeOutputs;
 };

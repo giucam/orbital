@@ -48,7 +48,6 @@ private:
     void toggle(Seat *seat);
 
     Shell *m_shell;
-    KeyBinding *m_toggleBinding;
     QPointer<LauncherSurface> m_surface;
 };
 
