@@ -679,6 +679,7 @@ ChildProcess::ChildProcess(wl_display *dpy, StringView program)
             , m_client(nullptr)
             , m_autoRestart(false)
             , m_listener(new Listener)
+            , m_startTime(0)
             , m_deathCount(0)
 {
     m_listener->parent = this;

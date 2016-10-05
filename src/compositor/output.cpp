@@ -157,8 +157,9 @@ void Output::setBackground(Surface *surface)
     class Background : public Surface::RoleHandler
     {
     public:
-        Background(Surface *s)
-            : m_actRegion(s->addActiveRegion(QRect()))
+        Background(Surface *s, weston_output *o)
+            : m_output(o)
+            , m_actRegion(s->addActiveRegion(QRect()))
         {}
 
         void configure(int x, int y) override
@@ -176,8 +177,7 @@ void Output::setBackground(Surface *surface)
         delete handler;
     }
 
-    Background *handler = new Background(surface);
-    handler->m_output = m_output;
+    Background *handler = new Background(surface, m_output);
 
     m_backgroundSurface = surface;
     surface->setRoleHandler(handler);

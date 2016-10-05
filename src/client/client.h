@@ -65,6 +65,7 @@ class UiScreen;
 class Binding
 {
 public:
+    Binding() : bind(nullptr) {}
     ~Binding();
 
 private:

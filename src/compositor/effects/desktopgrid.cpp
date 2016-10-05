@@ -43,7 +43,8 @@ namespace Orbital {
 class DesktopGrid::Grab : public PointerGrab
 {
 public:
-    Grab() : moving(nullptr), moved(false) {}
+    Grab(Shell *s, DesktopGrid *dg)
+        : shell(s), desktopgrid(dg), moving(nullptr), moved(false), dx(0), dy(0) {}
     Workspace::View *workspace(Output *out, double x, double y)
     {
         for (Workspace *ws: shell->workspaces()) {
@@ -252,9 +253,7 @@ void DesktopGrid::run(Seat *seat)
             wsv->setTransform(tr, true);
         }
 
-        Grab *grab = new Grab;
-        grab->shell = m_shell;
-        grab->desktopgrid = this;
+        Grab *grab = new Grab(m_shell, this);
         grab->start(seat, PointerCursor::Arrow);
     }
 }
@@ -282,9 +281,7 @@ void DesktopGrid::pointerEnter(Pointer *p)
 {
     Output *out = static_cast<Output *>(sender());
     if (m_activeOutputs.contains(out)) {
-        Grab *grab = new Grab;
-        grab->shell = m_shell;
-        grab->desktopgrid = this;
+        Grab *grab = new Grab(m_shell, this);
         grab->start(p->seat(), PointerCursor::Arrow);
     }
 }

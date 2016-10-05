@@ -59,8 +59,9 @@ public:
             return nullptr;
         }
         int flags = fcntl(fd, F_GETFD);
-        if (flags != -1)
-            fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+        if (flags != -1 && fcntl(fd, F_SETFD, flags | FD_CLOEXEC) == -1) {
+            qFatal("fcntl failed!");
+        }
 
         if (ftruncate(fd, size) < 0) {
             qWarning("ftruncate failed: %s", strerror(errno));

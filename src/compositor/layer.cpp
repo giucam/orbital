@@ -17,6 +17,8 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <assert.h>
+
 #include <QDebug>
 
 #include <compositor.h>
@@ -67,6 +69,7 @@ Layer::Layer(Layer &&l)
 
     if (m_parent) {
         auto it = std::find(m_parent->m_children.begin(), m_parent->m_children.end(), &l);
+        assert(it != m_parent->m_children.end());
         *it = this;
     }
 

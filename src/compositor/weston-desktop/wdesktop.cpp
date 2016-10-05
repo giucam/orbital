@@ -87,7 +87,8 @@ public:
     std::vector<QMetaObject::Connection> connections;
     bool maximized, fullscreen;
 
-    DesktopSurface() : maximized(false), fullscreen(false) {}
+    DesktopSurface(weston_desktop_surface *wds)
+        : m_wds(wds), maximized(false), fullscreen(false) {}
 
     void setSize(int w, int h)
     {
@@ -171,8 +172,7 @@ void WDesktop::surfaceAdded(weston_desktop_surface *wds)
     creator.desktop = this;
 
     surface->setViewCreator(&creator);
-    auto *ds = new DesktopSurface;
-    ds->m_wds = wds;
+    auto *ds = new DesktopSurface(wds);
     ds->shsurf = m_shell->createShellSurface(surface, *ds);
 
     ds->shsurf->setToplevel();

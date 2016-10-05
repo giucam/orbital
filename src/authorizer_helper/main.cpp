@@ -41,9 +41,25 @@ enum class Result {
 class Helper {
 public:
     Helper()
-        : helper(nullptr)
+        : display(wl_display_connect(nullptr))
+        , registry(wl_display_get_registry(display))
+        , helper(nullptr)
     {
+        static const wl_registry_listener registryListener = {
+            wrapInterface(&Helper::global),
+            wrapInterface(&Helper::globalRemove)
+        };
+        wl_registry_add_listener(registry, &registryListener, this);
+
+        wl_display_roundtrip(display);
     }
+    ~Helper()
+    {
+        orbital_authorizer_helper_destroy(helper);
+        wl_registry_destroy(registry);
+        wl_display_disconnect(display);
+    }
+
     void global(wl_registry *registry, uint32_t id, const char *interface, uint32_t version)
     {
 #define registry_bind(type, v) static_cast<type *>(wl_registry_bind(registry, id, &type ## _interface, qMin(version, v)))
@@ -152,17 +168,6 @@ public:
 int main(int argc, char **argv)
 {
     Helper helper;
-
-    helper.display = wl_display_connect(nullptr);
-
-    helper.registry = wl_display_get_registry(helper.display);
-    static const wl_registry_listener registryListener = {
-        wrapInterface(&Helper::global),
-        wrapInterface(&Helper::globalRemove)
-    };
-    wl_registry_add_listener(helper.registry, &registryListener, &helper);
-
-    wl_display_roundtrip(helper.display);
     if (!helper.helper) {
         qWarning("No orbital_authorizer_helper interface.");
         exit(1);

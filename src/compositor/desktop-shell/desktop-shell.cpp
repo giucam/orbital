@@ -307,6 +307,8 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     surface->setLabel("popup");
     wl_resource *resource = wl_resource_create(m_client->client(), &desktop_shell_surface_interface, wl_resource_get_version(m_resource), id);
 
+    class PopupGrab;
+
     class Popup : public Surface::RoleHandler
     {
     public:
@@ -321,7 +323,6 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         }
         ~Popup() {
             qDeleteAll(surface->views());
-            delete grab;
         }
         void configure(int, int) override
         {
@@ -364,12 +365,17 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
         Surface *surface;
         Surface *parent;
         wl_resource *resource;
-        PointerGrab *grab;
+        std::unique_ptr<PopupGrab> grab;
         int x, y;
     };
 
     class PopupGrab : public PointerGrab {
     public:
+        PopupGrab(Popup *pp, uint32_t time)
+            : popup(pp)
+            , creationTime(time)
+        {}
+
         void focus() override
         {
             if (pointer()->buttonCount() > 0) {
@@ -421,11 +427,8 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     });
 
     Seat *seat = m_shell->compositor()->seats().front();
-    PopupGrab *grab = new PopupGrab;
-    popup->grab = grab;
-    grab->popup = popup;
-    grab->creationTime = seat->pointer()->grabTime();
-    grab->start(seat);
+    popup->grab = std::make_unique<PopupGrab>(popup, seat->pointer()->grabTime());
+    popup->grab->start(seat);
 }
 
 void DesktopShell::lock()
