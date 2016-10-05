@@ -282,8 +282,6 @@ void ShellSurface::resize(Seat *seat, Edges edges)
         int32_t width, height;
     };
 
-    ResizeGrab *grab = new ResizeGrab;
-
     int e = (int)edges;
     if (e == 0 || e > 15 || (e & 3) == 3 || (e & 12) == 12) {
         return;
@@ -293,6 +291,7 @@ void ShellSurface::resize(Seat *seat, Edges edges)
 
 
     QRect rect = geometry();
+    ResizeGrab *grab = new ResizeGrab;
     grab->width = m_width = rect.width();
     grab->height = m_height = rect.height();
     grab->shsurf = this;

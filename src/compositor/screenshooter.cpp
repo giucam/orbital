@@ -85,13 +85,13 @@ void Screenshooter::shoot(wl_client *client, wl_resource *resource, uint32_t id,
         wl_resource *resource;
     };
 
-    Screenshot *ss = new Screenshot;
-    ss->resource = wl_resource_create(client, &orbital_screenshot_interface, 1, id);
-    if (!ss->resource) {
+    auto res = wl_resource_create(client, &orbital_screenshot_interface, 1, id);
+    if (!res) {
         wl_resource_post_no_memory(resource);
         return;
     }
 
+    Screenshot *ss = new Screenshot { res };
     weston_screenshooter_shoot(output, buffer, Screenshot::done, ss);
 }
 
