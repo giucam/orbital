@@ -290,6 +290,10 @@ Compositor::~Compositor()
     qDeleteAll(m_outputs);
     delete m_bindingsCleanupHandler;
 
+    // we must destroy the layers before destroying the compositor, otherwise ~Layer() will
+    // call wl_list_remove with an invalid list
+    m_layers.clear();
+
     if (m_compositor)
         weston_compositor_destroy(m_compositor);
     delete m_listener;

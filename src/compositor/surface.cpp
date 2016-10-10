@@ -70,6 +70,9 @@ Surface::~Surface()
     for (auto &r: m_activeRegions) {
         r.region->m_surface = nullptr;
     }
+    if (m_roleHandler) {
+        m_roleHandler->surface = nullptr;
+    }
 }
 
 QRect Surface::boundingBox() const
