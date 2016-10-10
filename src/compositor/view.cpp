@@ -55,11 +55,10 @@ View::View(Surface *s, weston_view *view)
     , m_surface(s)
     , m_listener(new Listener)
     , m_output(nullptr)
-    , m_transform(new Transform)
     , m_pointerState({ false, nullptr })
     , m_layer(nullptr)
 {
-    m_transform->setView(m_view);
+    m_transform.setView(m_view);
 
     m_listener->listener.notify = viewDestroyed;
     m_listener->view = this;
@@ -80,7 +79,6 @@ View::~View()
         }
     }
     delete m_listener;
-    delete m_transform;
 }
 
 bool View::isMapped() const
@@ -140,14 +138,14 @@ void View::setTransformParent(View *p)
 
 void View::setTransform(const Transform &tr)
 {
-    *m_transform = tr;
+    m_transform = tr;
 
     weston_view_geometry_dirty(m_view);
 }
 
 const Transform &View::transform() const
 {
-    return *m_transform;
+    return m_transform;
 }
 
 QPointF View::mapFromGlobal(const QPointF &p)

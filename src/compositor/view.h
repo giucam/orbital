@@ -26,6 +26,8 @@
 #include <wayland-server.h>
 #include <compositor.h>
 
+#include "transform.h"
+
 struct wl_client;
 struct wl_listener;
 struct weston_view;
@@ -104,7 +106,7 @@ private:
     Surface *m_surface;
     Listener *m_listener;
     Output *m_output;
-    Transform *m_transform;
+    Transform m_transform;
     struct {
         bool inside;
         View *target;
