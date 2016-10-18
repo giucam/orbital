@@ -47,7 +47,6 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
             , m_surface(surface)
             , m_handler(std::move(h))
             , m_workspace(nullptr)
-            , m_previewView(nullptr)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
             , m_currentGrab(nullptr)
@@ -63,10 +62,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
     surface->setShellSurface(this);
 
     for (Output *o: shell->compositor()->outputs()) {
-        ShellView *view = new ShellView(this);
-        view->setDesignedOutput(o);
-        m_views[o->id()] = view;
-        connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
+        viewForOutput(o);
     }
     connect(shell->compositor(), &Compositor::outputCreated, this, &ShellSurface::outputCreated);
     connect(shell->compositor(), &Compositor::outputRemoved, this, &ShellSurface::outputRemoved);
@@ -78,8 +74,8 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
 ShellSurface::~ShellSurface()
 {
     delete m_currentGrab;
-    for (auto &i: m_views) {
-        delete i.second;
+    while (!m_views.empty()) {
+        delete m_views.begin()->second;
     }
 }
 
@@ -90,7 +86,18 @@ void ShellSurface::setHandler(Handler hnd)
 
 ShellView *ShellSurface::viewForOutput(Output *o)
 {
-    return m_views[o->id()];
+    auto *view = m_views[o->id()];
+    if (!view) {
+        view = new ShellView(this);
+        view->setDesignedOutput(o);
+        m_views[o->id()] = view;
+        connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
+        connect(view, &QObject::destroyed, this, [this, o] {
+            m_views.erase(o->id());
+        });
+    }
+
+    return view;
 }
 
 void ShellSurface::setWorkspace(AbstractWorkspace *ws)
@@ -378,13 +385,14 @@ void ShellSurface::preview(Output *output)
     ShellView *v = viewForOutput(output);
 
     if (!m_previewView) {
-        m_previewView = new ShellView(this);
+        m_previewView = std::make_unique<ShellView>(this);
+        connect(m_previewView.get(), &QObject::destroyed, this, [this]() { m_previewView = nullptr; });
     }
 
     m_previewView->setDesignedOutput(output);
     m_previewView->setPos(v->x(), v->y());
 
-    m_shell->compositor()->layer(Compositor::Layer::Dashboard)->addView(m_previewView);
+    m_shell->compositor()->layer(Compositor::Layer::Dashboard)->addView(m_previewView.get());
     m_previewView->setTransformParent(output->rootView());
     m_previewView->setAlpha(0.);
     m_previewView->animateAlphaTo(0.8);
@@ -620,15 +628,12 @@ Output *ShellSurface::selectOutput()
 
 void ShellSurface::outputCreated(Output *o)
 {
-    ShellView *view = new ShellView(this);
-    view->setDesignedOutput(o);
-    connect(o, &Output::availableGeometryChanged, this, &ShellSurface::availableGeometryChanged);
+    ShellView *view = viewForOutput(o);
 
     if (View *v = m_views.begin()->second) {
         view->setInitialPos(v->pos());
     }
 
-    m_views[o->id()] = view;
     m_forceMap = true;
     committed(0, 0);
 }
