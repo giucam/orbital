@@ -27,7 +27,7 @@
 
 struct Sink
 {
-    Sink() : muted(false) {}
+    Sink() : index(0), volume{}, muted(false) {}
     uint32_t index;
     pa_cvolume volume;
     bool muted;

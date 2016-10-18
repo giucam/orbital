@@ -373,6 +373,7 @@ void DesktopShell::setPopup(uint32_t id, wl_resource *parentResource, wl_resourc
     public:
         PopupGrab(Popup *pp, uint32_t time)
             : popup(pp)
+            , inside(false)
             , creationTime(time)
         {}
 

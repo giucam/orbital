@@ -37,6 +37,7 @@ ToolTip::ToolTip(QQuickItem *parent)
        , m_content(nullptr)
        , m_showTimer(new QTimer(this))
        , m_hideTimer(new QTimer(this))
+       , m_subsurface(nullptr)
 {
     m_showTimer->setInterval(500);
     m_showTimer->setSingleShot(true);

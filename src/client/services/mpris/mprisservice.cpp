@@ -46,6 +46,7 @@ Mpris::Mpris(QObject *p)
             , m_playbackStatus(PlaybackStatus::Stopped)
             , m_trackLength(0)
             , m_trackPosition(0)
+            , m_rate(1)
 {
     m_posTimer.setInterval(1000);
     connect(&m_posTimer, &QTimer::timeout, this, &Mpris::updatePos);
