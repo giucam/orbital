@@ -191,6 +191,15 @@ wl_resource *Seat::resource(wl_client *client) const
     return nullptr;
 }
 
+wl_client *Seat::selectionClient() const
+{
+    if (!m_seat->selection_data_source) {
+        return nullptr;
+    }
+
+    return wl_resource_get_client(m_seat->selection_data_source->resource);
+}
+
 Seat *Seat::fromSeat(weston_seat *s)
 {
     wl_listener *listener = wl_signal_get(&s->destroy_signal, seatDestroyed);

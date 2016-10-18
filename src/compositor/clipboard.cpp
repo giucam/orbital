@@ -70,8 +70,13 @@ void ClipboardManager::destroy(wl_client *client, wl_resource *res)
 
 void ClipboardManager::selection(Seat *seat)
 {
+    auto selectionClient = seat->selectionClient();
     for (wl_resource *r: m_resources) {
-        seat->sendSelection(wl_resource_get_client(r));
+        auto client = wl_resource_get_client(r);
+        // don't send the selection back to the clipboard client
+        if (selectionClient != client) {
+            seat->sendSelection(client);
+        }
     }
 }
 

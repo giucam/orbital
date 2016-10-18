@@ -74,6 +74,8 @@ public:
     wl_resource *resource(wl_client *client) const;
     weston_seat *westonSeat() const { return m_seat; }
 
+    wl_client *selectionClient() const;
+
     static Seat *fromSeat(weston_seat *seat);
     static Seat *fromResource(wl_resource *res);
 
