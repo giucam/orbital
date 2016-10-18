@@ -386,6 +386,10 @@ bool Compositor::init(StringView socketName)
     verify_xdg_runtime_dir();
 
     m_compositor = weston_compositor_create(m_display, this);
+    if (!m_compositor) {
+        return false;
+    }
+
     m_compositor->idle_time = 300;
 
     QJsonObject kbdConfig = m_config[QStringLiteral("Compositor")].toObject()[QStringLiteral("Keyboard")].toObject();
