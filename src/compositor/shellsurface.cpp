@@ -505,9 +505,7 @@ void ShellSurface::committed(int x, int y)
         return;
     }
 
-    Type oldType = m_type;
     updateState();
-    bool typeChanged = m_type != oldType;
 
     if (m_type == Type::None) {
         return;
@@ -519,11 +517,6 @@ void ShellSurface::committed(int x, int y)
     m_shell->configure(this);
     if (!m_workspace) {
         return;
-    }
-
-    if (typeChanged) {
-        qDeleteAll(m_extraViews);
-        m_extraViews.clear();
     }
 
     if (m_type == Type::Toplevel) {
