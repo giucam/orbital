@@ -193,7 +193,7 @@ wl_resource *Seat::resource(wl_client *client) const
 
 wl_client *Seat::selectionClient() const
 {
-    if (!m_seat->selection_data_source) {
+    if (!m_seat->selection_data_source || !m_seat->selection_data_source->resource) {
         return nullptr;
     }
 
