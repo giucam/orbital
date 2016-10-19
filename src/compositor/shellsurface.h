@@ -176,7 +176,7 @@ private:
     Handler m_handler;
     AbstractWorkspace *m_workspace;
     std::unordered_map<int, ShellView *> m_views;
-    std::unique_ptr<ShellView> m_previewView;
+    ShellView *m_previewView;
     Edges m_resizeEdges;
     int m_height, m_width;
     QRect m_geometry;

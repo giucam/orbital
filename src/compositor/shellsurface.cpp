@@ -47,6 +47,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
             , m_surface(surface)
             , m_handler(std::move(h))
             , m_workspace(nullptr)
+            , m_previewView(nullptr)
             , m_resizeEdges(Edges::None)
             , m_forceMap(false)
             , m_currentGrab(nullptr)
@@ -73,6 +74,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
 
 ShellSurface::~ShellSurface()
 {
+    delete m_previewView;
     delete m_currentGrab;
     while (!m_views.empty()) {
         delete m_views.begin()->second;
@@ -385,14 +387,14 @@ void ShellSurface::preview(Output *output)
     ShellView *v = viewForOutput(output);
 
     if (!m_previewView) {
-        m_previewView = std::make_unique<ShellView>(this);
-        connect(m_previewView.get(), &QObject::destroyed, this, [this]() { m_previewView = nullptr; });
+        m_previewView = new ShellView(this);
+        connect(m_previewView, &QObject::destroyed, this, [this]() { m_previewView = nullptr; });
     }
 
     m_previewView->setDesignedOutput(output);
     m_previewView->setPos(v->x(), v->y());
 
-    m_shell->compositor()->layer(Compositor::Layer::Dashboard)->addView(m_previewView.get());
+    m_shell->compositor()->layer(Compositor::Layer::Dashboard)->addView(m_previewView);
     m_previewView->setTransformParent(output->rootView());
     m_previewView->setAlpha(0.);
     m_previewView->animateAlphaTo(0.8);
