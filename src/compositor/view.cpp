@@ -122,6 +122,7 @@ void View::setAlpha(double a)
 {
     m_view->alpha = a;
     weston_view_damage_below(m_view);
+    weston_view_geometry_dirty(m_view);
 }
 
 void View::setPos(double x, double y)
