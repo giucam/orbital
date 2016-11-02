@@ -480,7 +480,7 @@ void Shell::giveFocus(Seat *seat)
         return;
     }
 
-    Surface *surf = focus->surface()->mainSurface();
+    Surface *surf = focus->surface();
     FocusScope *scope = surf->focusScope();
     (scope ? scope : m_appsScope.get())->activate(surf);
 
