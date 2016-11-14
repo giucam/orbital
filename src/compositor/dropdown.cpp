@@ -66,7 +66,7 @@ public:
         Compositor *c = dd->m_shell->compositor();
         connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
         connect(c, &Compositor::outputRemoved, this, &DropdownSurface::outputRemoved);
-        connect(s, &QObject::destroyed, [this]() { delete this; });
+        connect(s, &QObject::destroyed, this, [this]() { delete this; });
     }
     ~DropdownSurface()
     {
