@@ -389,6 +389,7 @@ void ShellSurface::preview(Output *output)
     if (!m_previewView) {
         m_previewView = new ShellView(this);
         connect(m_previewView, &QObject::destroyed, this, [this]() { m_previewView = nullptr; });
+        m_previewView->setActivatable(false);
     }
 
     m_previewView->setDesignedOutput(output);

@@ -80,6 +80,9 @@ public:
     void unmap();
     void damageBelow();
 
+    void setActivatable(bool activatable) { m_activatable = activatable; }
+    bool isActivatable() const { return m_activatable; }
+
     Output *output() const;
     Layer *layer() const { return m_layer; }
     wl_client *client() const;
@@ -112,6 +115,7 @@ private:
         View *target;
     } m_pointerState;
     Layer *m_layer;
+    bool m_activatable;
 
     friend Layer;
     friend Pointer;

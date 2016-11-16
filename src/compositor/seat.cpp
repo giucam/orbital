@@ -291,7 +291,7 @@ View *Pointer::pickActivableView(double *dvx, double *dvy) const
             weston_view_from_global_fixed(v->m_view, m_pointer->x, m_pointer->y, &fvx, &fvy);
             int vx = wl_fixed_to_int(fvx);
             int vy = wl_fixed_to_int(fvy);
-            if (pixman_region32_contains_point(&v->m_view->surface->input, vx, vy, NULL) && v->surface()->isActiveAt(vx, vy)) {
+            if (pixman_region32_contains_point(&v->m_view->surface->input, vx, vy, NULL) && v->isActivatable() && v->surface()->isActiveAt(vx, vy)) {
                 if (dvx) *dvx = wl_fixed_to_double(fvx);
                 if (dvy) *dvy = wl_fixed_to_double(fvy);
                 return v;

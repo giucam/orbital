@@ -57,6 +57,7 @@ View::View(Surface *s, weston_view *view)
     , m_output(nullptr)
     , m_pointerState({ false, nullptr })
     , m_layer(nullptr)
+    , m_activatable(true)
 {
     m_transform.setView(m_view);
 
