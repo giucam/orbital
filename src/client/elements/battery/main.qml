@@ -61,7 +61,18 @@ Element {
                 if (modelData.chargeState == Battery.Charging) {
                     state = ": charging"
                 } else if (modelData.chargeState == Battery.Discharging) {
-                    state = ": discharging"
+                    var secs = modelData.timeToEmpty;
+                    var hours = Math.floor(secs / 3600);
+                    secs -= hours * 3600;
+                    hours = "" + hours + (hours == 1 ? " hour" : " hours");
+                    var mins = Math.floor(secs / 60);
+                    if (mins == 0) {
+                        mins = "";
+                    } else {
+                        mins = (mins < 10 ? "0" + mins : mins);
+                        mins = " and " + mins + (mins == 1 ? " minute" : " minutes");
+                    }
+                    state = ": discharging. Remaining time to empty: " + hours + mins + ".";
                 }
                 tooltipText = modelData.name + state
             }
@@ -122,8 +133,8 @@ Element {
     }
 
     toolTip: Text {
-        width: 150
-        height: 50
+        width: 200
+        height: 80
         id: ttip
         horizontalAlignment: Qt.AlignHCenter
         verticalAlignment: Qt.AlignVCenter
