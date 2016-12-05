@@ -65,7 +65,7 @@ Battery::Battery(const QString &udi)
        , m_udi(udi)
        , m_chargePercent(0)
        , m_chargeState(ChargeState::Stable)
-       , m_timeToEmpty(0)
+       , m_remainingTime(0)
 {
 }
 
@@ -90,11 +90,11 @@ void Battery::setChargeState(ChargeState cs)
     }
 }
 
-void Battery::setTimeToEmpty(qint64 time)
+void Battery::setRemainingTime(qint64 time)
 {
-    if (m_timeToEmpty != time) {
-        m_timeToEmpty = time;
-        emit timeToEmptyChanged();
+    if (m_remainingTime != time) {
+        m_remainingTime = time;
+        emit remainingTimeChanged();
     }
 }
 

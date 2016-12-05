@@ -54,26 +54,30 @@ Element {
             Connections {
                 target: modelData
                 onChargeStateChanged: battery.updateTooltipText()
+                onRemainingTimeChanged: battery.updateTooltipText()
             }
 
             function updateTooltipText() {
-                var state = ""
-                if (modelData.chargeState == Battery.Charging) {
-                    state = ": charging"
-                } else if (modelData.chargeState == Battery.Discharging) {
-                    var secs = modelData.timeToEmpty;
-                    var hours = Math.floor(secs / 3600);
-                    secs -= hours * 3600;
-                    hours = "" + hours + (hours == 1 ? " hour" : " hours");
-                    var mins = Math.floor(secs / 60);
-                    if (mins == 0) {
-                        mins = "";
-                    } else {
-                        mins = (mins < 10 ? "0" + mins : mins);
-                        mins = " and " + mins + (mins == 1 ? " minute" : " minutes");
-                    }
-                    state = ": discharging. Remaining time to empty: " + hours + mins + ".";
+                if (modelData.chargeState == Battery.Stable) {
+                    tooltipText = modelData.name;
+                    return;
                 }
+
+                var state = modelData.chargeState == Battery.Charging ? ": charging." : ": discharging."
+
+                var secs = modelData.remainingTime;
+                var hours = Math.floor(secs / 3600);
+                secs -= hours * 3600;
+                hours = "" + hours + (hours == 1 ? " hour" : " hours");
+                var mins = Math.floor(secs / 60);
+                if (mins == 0) {
+                    mins = "";
+                } else {
+                    mins = (mins < 10 ? "0" + mins : mins);
+                    mins = " and " + mins + (mins == 1 ? " minute" : " minutes");
+                }
+                state += " Remaining time: " + hours + mins + ".";
+
                 tooltipText = modelData.name + state
             }
 
