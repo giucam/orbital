@@ -84,19 +84,23 @@ class Listener : wl_listener
 {
 public:
     using Notify = std::function<void (Listener *, void *)>;
-    Listener()
+    inline Listener()
     {
-        notify = [](wl_listener *listener, void *data) {
-            auto *l = static_cast<Listener *>(listener);
-            l->m_notify(l, data);
-        };
+        wl_list_init(&link);
+        notify = fire;
     }
+    inline ~Listener() { wl_list_remove(&link); }
 
-    void setNotify(const Notify &n) { m_notify = n; }
+    inline void setNotify(const Notify &n) { m_notify = n; }
 
-    void connect(wl_signal *signal) { wl_signal_add(signal, this); }
+    inline void connect(wl_signal *signal) { wl_signal_add(signal, this); }
 
 private:
+    inline static void fire(wl_listener *listener, void *data) {
+        auto *l = static_cast<Listener *>(listener);
+        l->m_notify(l, data);
+    };
+
     Notify m_notify;
 };
 
