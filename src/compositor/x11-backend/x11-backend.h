@@ -21,6 +21,7 @@
 #define ORBITAL_X11_BACKEND_H
 
 #include "backend.h"
+#include "utils.h"
 
 namespace Orbital {
 
@@ -33,6 +34,9 @@ public:
     X11Backend();
 
     bool init(weston_compositor *c) override;
+
+private:
+    Listener m_pendingListener;
 };
 
 }

@@ -18,6 +18,7 @@
  */
 
 #include <compositor-wayland.h>
+#include <windowed-output-api.h>
 
 #include "wayland-backend.h"
 
@@ -40,14 +41,28 @@ bool WaylandBackend::init(weston_compositor *c)
     config.cursor_theme = nullptr;
     config.cursor_size = 32;
 
-    weston_wayland_backend_output_config outputs[] = {
-        {   800, 400, "WL1", 0, 1 },
-    };
-    config.num_outputs = sizeof(outputs) / sizeof(weston_wayland_backend_output_config);
-    config.outputs = outputs;
+    if (weston_compositor_load_backend(c, WESTON_BACKEND_WAYLAND, &config.base) != 0) {
+        return false;
+    }
 
-    int ret = weston_compositor_load_backend(c, WESTON_BACKEND_WAYLAND, &config.base);
-    return ret == 0;
+    const struct weston_windowed_output_api *api = weston_windowed_output_get_api(c);
+    if (!api) {
+        qWarning("Cannot use weston_windowed_output_api.");
+        return false;
+    }
+
+    m_pendingListener.setNotify([api](Listener *, void *data) {
+        auto output = static_cast<weston_output *>(data);
+
+        weston_output_set_scale(output, 1);
+        weston_output_set_transform(output, WL_OUTPUT_TRANSFORM_NORMAL);
+        api->output_set_size(output, 800, 400);
+        weston_output_enable(output);
+    });
+    m_pendingListener.connect(&c->output_pending_signal);
+
+    api->output_create(c, "WL1");
+    return true;
 }
 
 }

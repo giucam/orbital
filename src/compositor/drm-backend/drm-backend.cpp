@@ -32,42 +32,9 @@
 
 namespace Orbital {
 
-QJsonObject outputs;
-
 DrmBackend::DrmBackend()
 {
 
-}
-
-static weston_drm_backend_output_mode configureOutput(weston_compositor *compositor, bool useCurrentMode, const char *name, weston_drm_backend_output_config *config)
-{
-    weston_drm_backend_output_mode mode = WESTON_DRM_BACKEND_OUTPUT_PREFERRED;
-    config->base.scale = 1;
-    config->base.transform = WL_OUTPUT_TRANSFORM_NORMAL;
-    config->gbm_format = nullptr;
-    config->seat = nullptr;
-    config->modeline = nullptr;
-
-    if (outputs.contains(QLatin1String(name))) {
-        QJsonObject outputObj = outputs[QLatin1String(name)].toObject();
-        QString mode = outputObj[QStringLiteral("mode")].toString();
-        if (mode == QStringLiteral("off")) {
-            mode = WESTON_DRM_BACKEND_OUTPUT_OFF;
-        } else if (mode == QStringLiteral("current")) {
-            mode = WESTON_DRM_BACKEND_OUTPUT_CURRENT;
-        } else if (mode != QStringLiteral("preferred")) {
-            config->modeline = strdup(qPrintable(mode));
-        }
-
-        int scale = outputObj[QStringLiteral("scale")].toInt();
-        if (scale > 0) {
-            config->base.scale = scale;
-        } else {
-            qWarning("Invalid scale %d for output '%s'.", scale, name);
-        }
-    }
-
-    return mode;
 }
 
 static void configureDevice(struct weston_compositor *compositor, struct libinput_device *device)
@@ -104,7 +71,7 @@ bool DrmBackend::init(weston_compositor *c)
     }
 
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    outputs = doc.object()[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
+    auto outputs = doc.object()[QStringLiteral("Compositor")].toObject()[QStringLiteral("Outputs")].toObject();
 
     weston_drm_backend_config config;
     config.base.struct_version = WESTON_DRM_BACKEND_CONFIG_VERSION;
@@ -115,11 +82,61 @@ bool DrmBackend::init(weston_compositor *c)
     config.seat_id = nullptr;
     config.gbm_format = nullptr;
     config.use_current_mode = false;
-    config.configure_output = configureOutput;
     config.configure_device = configureDevice;
 
-    int ret = weston_compositor_load_backend(c, WESTON_BACKEND_DRM, &config.base);
-    return ret == 0;
+    if (weston_compositor_load_backend(c, WESTON_BACKEND_DRM, &config.base) != 0) {
+        return false;
+    }
+
+    const struct weston_drm_output_api *api = weston_drm_output_get_api(c);
+    if (!api) {
+        qWarning("Cannot use weston_drm_output_api.");
+        return false;
+    }
+
+    m_pendingListener.setNotify([api, outputs](Listener *, void *data) {
+        auto output = static_cast<weston_output *>(data);
+
+        int scale = 1;
+        weston_drm_backend_output_mode mode = WESTON_DRM_BACKEND_OUTPUT_PREFERRED;
+        QString modeline;
+
+        QJsonValue configValue = outputs[QLatin1String(output->name)];
+        if (!configValue.isUndefined()) {
+            QJsonObject config = configValue.toObject();
+
+            QString modeString = config[QStringLiteral("mode")].toString();
+            if (modeString == QStringLiteral("off")) {
+                weston_output_disable(output);
+                return;
+            } else if (modeString == QStringLiteral("current")) {
+                mode = WESTON_DRM_BACKEND_OUTPUT_CURRENT;
+            } else if (modeString != QStringLiteral("preferred")) {
+                modeline = modeString;
+            }
+
+            auto scalevalue = config[QStringLiteral("scale")];
+            if (scalevalue.isDouble()) {
+                scale = scalevalue.toInt();
+            }
+        }
+
+        if (api->set_mode(output, mode, qPrintable(modeline)) < 0) {
+            qWarning("Failed to configure DRM output '%s'", output->name);
+            return;
+        }
+
+        weston_output_set_scale(output, scale);
+        weston_output_set_transform(output, WL_OUTPUT_TRANSFORM_NORMAL);
+
+        api->set_gbm_format(output, nullptr);
+        api->set_seat(output, "");
+
+        weston_output_enable(output);
+    });
+    m_pendingListener.connect(&c->output_pending_signal);
+
+    return true;
 }
 
 }

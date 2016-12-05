@@ -21,6 +21,7 @@
 #define ORBITAL_UTILS_H
 
 #include <utility>
+#include <functional>
 
 #include <wayland-server-core.h>
 
@@ -76,5 +77,27 @@ private:
         return (int)a & (int)b; \
     } \
     inline F operator|(F a, F b) { return (F)((int)a | (int)b); }
+
+
+
+class Listener : wl_listener
+{
+public:
+    using Notify = std::function<void (Listener *, void *)>;
+    Listener()
+    {
+        notify = [](wl_listener *listener, void *data) {
+            auto *l = static_cast<Listener *>(listener);
+            l->m_notify(l, data);
+        };
+    }
+
+    void setNotify(const Notify &n) { m_notify = n; }
+
+    void connect(wl_signal *signal) { wl_signal_add(signal, this); }
+
+private:
+    Notify m_notify;
+};
 
 #endif

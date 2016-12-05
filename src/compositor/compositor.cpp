@@ -451,6 +451,8 @@ bool Compositor::init(StringView socketName)
         return false;
     }
 
+    weston_pending_output_coldplug(m_compositor);
+
     const char *socket = nullptr;
     std::string socketStr;
     if (!socketName.isEmpty()) {
