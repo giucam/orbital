@@ -80,7 +80,7 @@ class Battery : public QObject
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(int chargePercent READ chargePercent NOTIFY chargePercentChanged)
     Q_PROPERTY(ChargeState chargeState READ chargeState NOTIFY chargeStateChanged)
-    Q_PROPERTY(qint64 timeToEmpty READ timeToEmpty NOTIFY timeToEmptyChanged)
+    Q_PROPERTY(qint64 remainingTime READ remainingTime NOTIFY remainingTimeChanged)
 public:
     enum class ChargeState {
         Stable,
@@ -94,25 +94,25 @@ public:
     QString name() const { return m_name; }
     int chargePercent() const { return m_chargePercent; }
     ChargeState chargeState() const { return m_chargeState; }
-    qint64 timeToEmpty() const { return m_timeToEmpty; }
+    qint64 remainingTime() const { return m_remainingTime; }
 
 protected:
     void setName(const QString &name);
     void setChargePercent(int charge);
     void setChargeState(ChargeState c);
-    void setTimeToEmpty(qint64 time);
+    void setRemainingTime(qint64 time);
 
 signals:
     void chargePercentChanged();
     void chargeStateChanged();
-    void timeToEmptyChanged();
+    void remainingTimeChanged();
 
 private:
     QString m_udi;
     QString m_name;
     int m_chargePercent;
     ChargeState m_chargeState;
-    qint64 m_timeToEmpty;
+    qint64 m_remainingTime;
 };
 
 class HardwareManager : public QObject

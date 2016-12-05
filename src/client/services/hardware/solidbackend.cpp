@@ -90,15 +90,16 @@ SolidBattery::SolidBattery(Solid::Battery *b, const QString &udi)
     setName(d.description());
     setChargePercent(b->chargePercent());
     setChargeState(fromSolid(b->chargeState()));
-    setTimeToEmpty(b->timeToEmpty());
-    connect(b, &Solid::Battery::chargePercentChanged, [this](int charge, const QString &) {
+    setRemainingTime(b->remainingTime());
+    connect(b, &Solid::Battery::chargePercentChanged, this, [this](int charge, const QString &) {
         setChargePercent(charge);
     });
-    connect(b, &Solid::Battery::chargeStateChanged, [this](int state, const QString &) {
+    connect(b, &Solid::Battery::chargeStateChanged, this, [this, b](int state, const QString &) {
         setChargeState(fromSolid((Solid::Battery::ChargeState)(state)));
+        setRemainingTime(b->remainingTime());
     });
-    connect(b, &Solid::Battery::timeToEmptyChanged, [this](qlonglong time, const QString &) {
-        setTimeToEmpty(time);
+    connect(b, &Solid::Battery::remainingTimeChanged, this, [this](qlonglong time) {
+        setRemainingTime(time);
     });
 }
 
