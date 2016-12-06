@@ -60,6 +60,7 @@ DesktopShell::DesktopShell(Shell *shell)
             , m_loaded(false)
             , m_loadedOnce(false)
             , m_lockRequested(false)
+            , m_minimizedState()
 {
     m_shell->addInterface(new DesktopShellNotifications(shell));
     m_shell->addInterface(new DesktopShellLauncher(shell));
@@ -511,12 +512,24 @@ void DesktopShell::addOverlay(wl_resource *outputResource, wl_resource *surfaceR
 
 void DesktopShell::minimizeWindows()
 {
-
+    m_minimizedState.activeSurface = m_shell->appsFocusScope()->activeSurface();
+    for (auto &&surf: m_shell->surfaces()) {
+        if (!surf->isMinimized()) {
+            surf->minimize();
+            m_minimizedState.surfaces.push_back(surf);
+        }
+    }
 }
 
 void DesktopShell::restoreWindows()
 {
-
+    for (auto &&surf: m_minimizedState.surfaces) {
+        surf->restore();
+    }
+    m_minimizedState.surfaces.clear();
+    if (m_minimizedState.activeSurface) {
+        m_shell->appsFocusScope()->activate(m_minimizedState.activeSurface);
+    }
 }
 
 void DesktopShell::createGrab(uint32_t id)

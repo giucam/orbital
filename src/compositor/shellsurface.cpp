@@ -52,6 +52,7 @@ ShellSurface::ShellSurface(Shell *shell, Surface *surface, Handler h)
             , m_forceMap(false)
             , m_currentGrab(nullptr)
             , m_isResponsive(true)
+            , m_minimized(false)
             , m_type(Type::None)
             , m_nextType(Type::None)
             , m_parent(nullptr)
@@ -361,12 +362,22 @@ void ShellSurface::unmap()
 
 void ShellSurface::minimize()
 {
+    if (m_minimized) {
+        return;
+    }
+
     unmap();
+    m_minimized = true;
     emit minimized();
 }
 
 void ShellSurface::restore()
 {
+    if (!m_minimized) {
+        return;
+    }
+
+    m_minimized = false;
     m_forceMap = true;
     committed(0, 0);
     emit restored();

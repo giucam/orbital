@@ -96,6 +96,10 @@ private:
     bool m_loadedOnce;
     std::unordered_map<Pointer *, PointerCursor> m_grabCursor;
     bool m_lockRequested;
+    struct {
+        std::vector<ShellSurface *> surfaces;
+        Surface *activeSurface;
+    } m_minimizedState;
 };
 
 }

@@ -121,6 +121,7 @@ public:
     void resize(Seat *seat, Edges edges);
     void unmap();
     void minimize();
+    bool isMinimized() const { return m_minimized; }
     void restore();
     void close();
 
@@ -187,6 +188,7 @@ private:
     pid_t m_pid;
     PointerGrab *m_currentGrab;
     bool m_isResponsive;
+    bool m_minimized;
 
     Type m_type;
     Type m_nextType;
