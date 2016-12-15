@@ -29,7 +29,9 @@
 #ifdef HAVE_ALSA
 #include "alsamixer.h"
 #endif
+#ifdef HAVE_PULSEAUDIO
 #include "pulseaudiomixer.h"
+#endif
 
 void MixerPlugin::registerTypes(const char *uri)
 {
@@ -44,7 +46,9 @@ Mixer::Mixer(QObject *p)
             : QObject(p)
             , m_backend(nullptr)
 {
+#ifdef HAVE_PULSEAUDIO
     m_backend = PulseAudioMixer::create(this);
+#endif
     if (!m_backend) {
 #ifdef HAVE_ALSA
         m_backend = AlsaMixer::create(this);
