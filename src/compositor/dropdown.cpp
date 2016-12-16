@@ -17,6 +17,8 @@
 
 #include <linux/input.h>
 
+#include <memory>
+
 #include <QDebug>
 
 #include "dropdown.h"
@@ -48,6 +50,7 @@ public:
         , m_moving(false)
         , m_forceReposition(false)
         , m_firstShow(true)
+        , m_layer(std::make_unique<Layer>(shell->compositor()->layer(Compositor::Layer::Sticky)))
     {
         wl_resource_set_implementation(resource, nullptr, this, [](wl_resource *res) {
             DropdownSurface *ds = static_cast<DropdownSurface *>(wl_resource_get_user_data(res));
@@ -73,11 +76,16 @@ public:
         dropdown->m_surface = nullptr;
         wl_resource_set_destructor(resource, nullptr);
     }
+    void addInOutput(Output *o)
+    {
+        m_layer->setMask(o->x(), o->y(), o->width(), o->height());
+        m_layer->addView(view);
+        view->setTransformParent(o->rootView());
+    }
     void configure(int x, int y) override
     {
         if (!surface->isMapped()) {
-            dropdown->m_layer->addView(view);
-            view->setTransformParent(m_output->rootView());
+            addInOutput(m_output);
         }
         view->update();
         if (m_forceReposition || m_lastSize != surface->size()) {
@@ -117,7 +125,7 @@ public:
         m_output = o;
         if (o) {
             connect(m_output, &Output::availableGeometryChanged, this, &DropdownSurface::updateGeometry);
-            view->setTransformParent(m_output->rootView());
+            addInOutput(m_output);
         }
     }
     QPointF posWhen(bool visible)
@@ -146,7 +154,7 @@ public:
     }
     void snapToPlace(Output *o)
     {
-        view->setTransformParent(o->rootView());
+        addInOutput(o);
 
         view->setPos(view->pos() - o->rootView()->pos());
         m_start = view->pos();
@@ -232,13 +240,13 @@ public:
     bool m_moving;
     bool m_forceReposition;
     bool m_firstShow;
+    std::unique_ptr<Layer> m_layer;
 };
 
 Dropdown::Dropdown(Shell *shell)
         : Interface(shell)
         , Global(shell->compositor(), &orbital_dropdown_interface, 1)
         , m_shell(shell)
-        , m_layer(new Layer(shell->compositor()->layer(Compositor::Layer::Sticky)))
         , m_surface(nullptr)
 {
     shell->addAction("ToggleDropdown", [this](Seat *s) {
