@@ -132,7 +132,7 @@ public:
     {
         QRect geom = m_output->availableGeometry();
         int x = geom.x() + (geom.width() - surface->width()) / 2.f;
-        int y = geom.y() - (!visible) * (surface->height() + geom.y() - m_output->y());
+        int y = geom.y() - (!visible) * (surface->height() + geom.y());
         return QPointF(x, y);
     }
     void updateAnim(double value)
