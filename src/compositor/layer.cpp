@@ -176,6 +176,11 @@ void Layer::setMask(int x, int y, int w, int h)
     weston_layer_set_mask(&m_layer->layer, x, y, w, h);
 }
 
+void Layer::unsetMask()
+{
+    weston_layer_set_mask(&m_layer->layer, -INT32_MAX / 2, - INT32_MAX / 2, INT32_MAX, INT32_MAX);
+}
+
 void Layer::setAcceptInput(bool accept)
 {
     m_acceptInput = accept;
