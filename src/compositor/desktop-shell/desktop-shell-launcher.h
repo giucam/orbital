@@ -31,7 +31,6 @@ namespace Orbital {
 class Shell;
 class KeyBinding;
 class Seat;
-class Animation;
 class LauncherSurface;
 
 class DesktopShellLauncher : public Interface, public Global

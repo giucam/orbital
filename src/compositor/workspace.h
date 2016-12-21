@@ -78,7 +78,7 @@ public:
         Output *m_output;
         struct {
             Transform orig, target;
-            Animation anim;
+            Animation<double> anim;
         } m_transformAnim;
         QRect m_mask;
     };

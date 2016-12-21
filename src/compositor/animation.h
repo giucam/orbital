@@ -20,7 +20,7 @@
 #ifndef ORBITAL_ANIMATION_H
 #define ORBITAL_ANIMATION_H
 
-#include <QObject>
+#include <memory>
 
 #include <compositor.h>
 
@@ -28,55 +28,83 @@
 
 namespace Orbital {
 
-class AnimationCurve;
 class Output;
 
-class Animation : public QObject
+class BaseAnimation
 {
-    Q_OBJECT
 public:
-    enum class Flags {
-        None = 0,
-        SendDone = 1
-    };
-    explicit Animation(QObject *p = nullptr);
-    ~Animation();
+    explicit BaseAnimation();
+    ~BaseAnimation();
     void destroy();
 
-    void setStart(double value);
-    void setTarget(double value);
     void setSpeed(double speed);
-    void run(Output *output, uint32_t duration, Flags flags = Flags::None);
-    void run(Output *output, Flags flags = Flags::None);
+    void run(Output *output, uint32_t duration);
+    void run(Output *output);
     void stop();
     bool isRunning() const;
     template<class T>
-    void setCurve(const T &curve) { delCurve(); m_curve = new T; *static_cast<T *>(m_curve) = curve; }
+    void setCurve(const T &curve) {
+        m_curve = std::make_unique<Curve<T>>(curve);
+    }
 
-signals:
-    void update(double value);
-    void done();
+    Signal<> done;
+
+protected:
+    virtual void updateAnim(double value) = 0;
 
 private:
     void tick(weston_output *output, uint32_t msecs);
-    void delCurve();
+
+    struct AnimationCurve
+    {
+        virtual ~AnimationCurve() {}
+        virtual double value(double f) = 0;
+    };
+    template<class T>
+    struct Curve : public AnimationCurve
+    {
+        Curve(const T &c) : curve(c) {}
+        double value(double f) override { return curve.value(f); }
+        T curve;
+    };
 
     struct AnimWrapper {
         weston_animation ani;
-        Animation *parent;
+        BaseAnimation *parent;
     };
     AnimWrapper m_animation;
-    double m_start;
-    double m_target;
     uint32_t m_duration;
     double m_speed;
     uint32_t m_timestamp;
-    Flags m_runFlags;
-    AnimationCurve *m_curve;
+    std::unique_ptr<AnimationCurve> m_curve;
+};
+
+template<class T>
+class Animation : public BaseAnimation
+{
+public:
+    Animation()
+        : BaseAnimation()
+    {
+    }
+
+    void setStart(const T &start) { m_start = start; }
+    void setTarget(const T &target) { m_target = target; }
+
+    Signal<T> update;
+
+protected:
+    void updateAnim(double v) override
+    {
+        T value = m_start * (1. - v) + m_target * v;
+        update(value);
+    }
+
+private:
+    T m_start;
+    T m_target;
 };
 
 }
-
-DECLARE_OPERATORS_FOR_FLAGS(Orbital::Animation::Flags)
 
 #endif

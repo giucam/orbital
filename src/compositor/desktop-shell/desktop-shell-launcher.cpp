@@ -70,7 +70,7 @@ public:
         m_layer.addView(m_view);
         m_layer.setMask(0, 0, 0, 0);
 
-        connect(&m_showAnimation, &Animation::update, this, &LauncherSurface::updateAnimation);
+        m_showAnimation.update.connect(this, &LauncherSurface::updateAnimation);
         m_showAnimation.setSpeed(0.005);
 
         connect(s, &Surface::activated, [this]() { m_active = true; });
@@ -142,7 +142,7 @@ public:
     Surface *m_surface;
     wl_resource *m_resource;
     View *m_view;
-    Animation m_showAnimation;
+    Animation<double> m_showAnimation;
     bool m_hidden;
     bool m_active;
     bool m_fadeIn;

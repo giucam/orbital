@@ -41,23 +41,21 @@ public:
     Splash(DesktopShellSplash *p, View *v)
         : parent(p)
         , view(v)
-        , fadeAnimation(new Animation)
     {
-        fadeAnimation->connect(fadeAnimation, &Animation::update, [this](double v) { view->setAlpha(v); });
-        fadeAnimation->connect(fadeAnimation, &Animation::done, [this]() { done(); });
+        fadeAnimation.update.connect(view, &View::setAlpha);
+        fadeAnimation.done.connect(this, &Splash::done);
     }
 
     ~Splash()
     {
-        delete fadeAnimation;
         delete view;
     }
 
     void fadeOut()
     {
-        fadeAnimation->setStart(1.f);
-        fadeAnimation->setTarget(0.f);
-        fadeAnimation->run(view->output(), 500, Animation::Flags::SendDone);
+        fadeAnimation.setStart(1.f);
+        fadeAnimation.setTarget(0.f);
+        fadeAnimation.run(view->output(), 500);
     }
 
     void done()
@@ -83,7 +81,7 @@ public:
 private:
     DesktopShellSplash *parent;
     View *view;
-    Animation *fadeAnimation;
+    Animation<double> fadeAnimation;
 };
 
 DesktopShellSplash::DesktopShellSplash(Shell *shell)

@@ -46,7 +46,9 @@ AbstractWorkspace::View::View(Compositor *c, Output *o)
                  : m_root(new Root(c))
                  , m_output(o)
 {
-    QObject::connect(&m_transformAnim.anim, &Animation::update, [this](float v) { updateAnim(v); });
+    m_transformAnim.anim.setStart(0);
+    m_transformAnim.anim.setTarget(1);
+    m_transformAnim.anim.update.connect(this, &AbstractWorkspace::View::updateAnim);
     resetMask();
 }
 

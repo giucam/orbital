@@ -65,7 +65,7 @@ private:
     QPointF m_savedPos;
     bool m_posSaved;
     BlackSurface *m_blackSurface;
-    Animation m_alphaAnimation;
+    Animation<double> m_alphaAnimation;
     std::function<void ()> m_animDone;
 };
 

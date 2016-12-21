@@ -67,7 +67,7 @@ public:
         updateGeometry();
 
         Compositor *c = dd->m_shell->compositor();
-        connect(&m_animation, &Animation::update, this, &DropdownSurface::updateAnim);
+        m_animation.update.connect(this, &DropdownSurface::updateAnim);
         connect(c, &Compositor::outputRemoved, this, &DropdownSurface::outputRemoved);
         connect(s, &QObject::destroyed, this, [this]() { delete this; });
     }
@@ -135,10 +135,8 @@ public:
         int y = geom.y() - (!visible) * (surface->height() + geom.y());
         return QPointF(x, y);
     }
-    void updateAnim(double value)
+    void updateAnim(const QPointF &pos)
     {
-        QPointF pos = m_start * (1. - value) + m_end * value;
-
         view->setPos(pos);
         view->update();
     }
@@ -171,8 +169,8 @@ public:
         m_start = view->pos();
         m_end = posWhen(m_visible);
 
-        m_animation.setStart(0);
-        m_animation.setTarget(1);
+        m_animation.setStart(m_start);
+        m_animation.setTarget(m_end);
         m_animation.run(m_output, (m_start - m_end).manhattanLength() * 0.5);
     }
     void move(Seat *seat)
@@ -233,7 +231,7 @@ public:
     View *view;
     Shell *shell;
     wl_resource *resource;
-    Animation m_animation;
+    Animation<QPointF> m_animation;
     bool m_visible;
     Output *m_output;
     QSize m_lastSize;

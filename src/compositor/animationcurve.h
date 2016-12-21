@@ -24,17 +24,9 @@
 
 namespace Orbital {
 
-class AnimationCurve {
-public:
-    AnimationCurve() {}
-    virtual ~AnimationCurve() {}
-
-    virtual float value(float progress) = 0;
-};
-
 // These curves are taken from Qt's QEasingCurve.
 // See http://qt-project.org/doc/qt-5.0/qtcore/qeasingcurve.html
-// and http://qt.gitorious.org/qt/qtbase/blobs/stable/src/3rdparty/easing/easing.cpp
+// and http://code.qt.io/cgit/qt/qtbase.git/tree/src/3rdparty/easing/easing.cpp
 
 /*
 Disclaimer for Robert Penner's Easing Equations license:
@@ -70,16 +62,9 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-class InQuadCurve : public AnimationCurve {
+class InOutQuadCurve {
 public:
-    virtual float value(float f) override {
-        return f * f;
-    }
-};
-
-class InOutQuadCurve : public AnimationCurve {
-public:
-    virtual float value(float f) override {
+    float value(float f) {
         f *= 2.f;
         if (f < 1.f) {
             return f * f/ 2.f;
@@ -90,7 +75,7 @@ public:
     }
 };
 
-class BackCurve : public AnimationCurve {
+class BackCurve {
 public:
     BackCurve() : m_overshoot(1.70158f) {}
     void setOvershoot(float overshoot) { m_overshoot = overshoot; }
@@ -102,7 +87,7 @@ protected:
 
 class OutBackCurve : public BackCurve {
 public:
-    virtual float value(float t) override {
+    float value(float t) {
         float s = m_overshoot;
         t -= 1.f;
         return t*t*((s+1)*t+ s) + 1;
@@ -112,7 +97,7 @@ public:
 
 class InOutBackCurve : public BackCurve {
 public:
-    virtual float value(float t) override {
+    float value(float t) {
         float s = m_overshoot;
         t *= 2.0;
         if (t < 1) {
@@ -126,9 +111,9 @@ public:
     }
 };
 
-class OutBounceCurve : public AnimationCurve {
+class OutBounceCurve {
 public:
-    virtual float value(float t) override {
+    float value(float t) {
         float c = 1.f;
         float a = 0.5f;
         if (t < (4/11.0)) {
@@ -146,7 +131,7 @@ public:
     }
 };
 
-class ElasticCurve : public AnimationCurve {
+class ElasticCurve {
 public:
     ElasticCurve() : m_amplitude(0.2f), m_period(0.7f) {}
     void setAmplitide(float a) { m_amplitude = a; }
@@ -159,7 +144,7 @@ protected:
 
 class OutElasticCurve : public ElasticCurve {
 public:
-    virtual float value(float t) override {
+    float value(float t) {
         if (t == 0.f) return 0.f;
         if (t == 1.f) return 1.f;
 
@@ -178,12 +163,12 @@ public:
 
 // This comes instead from http://stereopsis.com/stopping/
 
-class PulseCurve : public AnimationCurve {
+class PulseCurve {
 public:
     PulseCurve() { m_pulseNormalize = 1.f; m_pulseNormalize = 1.f / pulse(1); }
 
     // viscous fluid with a pulse for part and decay for the rest
-    virtual float value(float x) override {
+    float value(float x) {
         if (x >= 1) return 1;
         if (x <= 0) return 0;
 

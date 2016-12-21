@@ -71,8 +71,8 @@ ShellView::ShellView(ShellSurface *surf)
          , m_blackSurface(nullptr)
          , m_animDone(nullptr)
 {
-    connect(&m_alphaAnimation, &Animation::update, this, &View::setAlpha);
-    connect(&m_alphaAnimation, &Animation::done, [this]() {
+    m_alphaAnimation.update.connect(this, &View::setAlpha);
+    m_alphaAnimation.done.connect([this]() {
         if (m_animDone) {
             m_animDone();
         }
@@ -248,7 +248,7 @@ void ShellView::animateAlphaTo(double a, const std::function<void ()> &done)
     m_animDone = done;
     m_alphaAnimation.setStart(alpha());
     m_alphaAnimation.setTarget(a);
-    m_alphaAnimation.run(m_designedOutput, 200, Animation::Flags::SendDone);
+    m_alphaAnimation.run(m_designedOutput, 200);
 }
 
 }

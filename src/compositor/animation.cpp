@@ -23,11 +23,8 @@
 
 namespace Orbital {
 
-Animation::Animation(QObject *p)
-         : QObject(p)
-         , m_start(0.)
-         , m_target(1.)
-         , m_speed(-1.)
+BaseAnimation::BaseAnimation()
+         : m_speed(-1.)
          , m_curve(nullptr)
 {
     m_animation.parent = this;
@@ -38,61 +35,47 @@ Animation::Animation(QObject *p)
     };
 }
 
-Animation::~Animation()
+BaseAnimation::~BaseAnimation()
 {
     stop();
-    delCurve();
 }
 
-void Animation::setStart(double value)
-{
-    m_start = value;
-}
-
-void Animation::setTarget(double value)
-{
-    m_target = value;
-}
-
-void Animation::setSpeed(double speed)
+void BaseAnimation::setSpeed(double speed)
 {
     m_speed = speed;
 }
 
-void Animation::run(Output *output, uint32_t duration, Animation::Flags flags)
+void BaseAnimation::run(Output *output, uint32_t duration)
 {
     stop();
 
     if (!output || duration == 0) {
-        emit update(m_target);
-        if (flags & Flags::SendDone) {
-            emit done();
-        }
+        updateAnim(1.);
+        done();
         return;
     }
 
     m_duration = duration;
-    m_runFlags = flags;
     m_animation.ani.frame_counter = 0;
 
     wl_list_insert(&output->m_output->animation_list, &m_animation.ani.link);
     weston_output_schedule_repaint(output->m_output);
 
-    emit update(m_start);
+    updateAnim(0.);
 }
 
-void Animation::run(Output *output, Animation::Flags flags)
+void BaseAnimation::run(Output *output)
 {
     uint32_t duration;
     if (m_speed < 0.) {
         duration = 250;
     } else {
-        duration = qAbs((m_target - m_start) / m_speed);
+        duration = qAbs(1. / m_speed);
     }
-    run(output, duration, flags);
+    run(output, duration);
 }
 
-void Animation::stop()
+void BaseAnimation::stop()
 {
     if (isRunning()) {
         wl_list_remove(&m_animation.ani.link);
@@ -100,12 +83,12 @@ void Animation::stop()
     }
 }
 
-bool Animation::isRunning() const
+bool BaseAnimation::isRunning() const
 {
     return !wl_list_empty(&m_animation.ani.link);
 }
 
-void Animation::tick(weston_output *output, uint32_t msecs)
+void BaseAnimation::tick(weston_output *output, uint32_t msecs)
 {
     if (m_animation.ani.frame_counter <= 1) {
         m_timestamp = msecs;
@@ -113,12 +96,10 @@ void Animation::tick(weston_output *output, uint32_t msecs)
 
     uint32_t time = msecs - m_timestamp;
     if (time > m_duration) {
-        emit update(m_target);
+        updateAnim(1.);
         stop();
         weston_compositor_schedule_repaint(output->compositor);
-        if (Flags::SendDone & m_runFlags) {
-            emit done();
-        }
+        done();
         return;
     }
 
@@ -126,14 +107,9 @@ void Animation::tick(weston_output *output, uint32_t msecs)
     if (m_curve) {
         f = m_curve->value(f);
     }
-    emit update(m_target * f + m_start * (1.f - f));
+    updateAnim(f);
 
     weston_compositor_schedule_repaint(output->compositor);
-}
-
-void Animation::delCurve()
-{
-    delete m_curve;
 }
 
 }

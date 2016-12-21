@@ -36,7 +36,7 @@ class Workspace;
 class View;
 class Layer;
 class Root;
-class Animation;
+class BaseAnimation;
 class Pager;
 class Surface;
 class LockSurface;
@@ -109,7 +109,7 @@ private:
     std::vector<std::function<void ()>> m_callbacks;
 
     friend View;
-    friend Animation;
+    friend BaseAnimation;
     friend Pager;
 };
 

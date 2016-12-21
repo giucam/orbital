@@ -76,17 +76,11 @@ public:
             alphaAnim.run(output, ANIMATION_DURATION);
             return false;
         }
-        void move(double v)
-        {
-            setPos(startPos * (1 - v) + endPos * v);
-        }
 
         Output *output;
         NotificationSurface *parent;
-        Animation alphaAnim;
-        Animation moveAnim;
-        QPointF startPos;
-        QPointF endPos;
+        Animation<double> alphaAnim;
+        Animation<QPointF> moveAnim;
     };
 
     NotificationSurface(Compositor *c, Surface *s)
@@ -98,8 +92,8 @@ public:
             NSView *v = new NSView(o, this, s);
             m_views.push_back(v);
             v->setTransformParent(o->rootView());
-            connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
-            connect(&v->moveAnim, &Animation::update, v, &NSView::move);
+            v->alphaAnim.update.connect(v, &View::setAlpha);
+            v->moveAnim.update.connect(v, overload<const QPointF &>(&View::setPos));
             c->layer(Compositor::Layer::Overlay)->addView(v);
         }
 
@@ -115,14 +109,13 @@ public:
     void moveTo(int x, int y)
     {
         for (NSView *view: m_views) {
-            view->endPos = QPointF(x + view->output->width() - m_surface->width() - 20, y + 20);
+            auto endPos = QPointF(x + view->output->width() - m_surface->width() - 20, y + 20);
             if (initialMove) {
-                view->startPos = view->pos();
-                view->moveAnim.setStart(0.);
-                view->moveAnim.setTarget(1.0);
+                view->moveAnim.setStart(view->pos());
+                view->moveAnim.setTarget(endPos);
                 view->moveAnim.run(view->output, ANIMATION_DURATION);
             } else {
-                view->move(1.);
+                view->setPos(endPos);
             }
         }
         initialMove = true;
@@ -132,8 +125,8 @@ public:
         NSView *v = new NSView(o, this, m_surface);
         m_views.push_back(v);
         v->setTransformParent(o->rootView());
-        connect(&v->alphaAnim, &Animation::update, v, &View::setAlpha);
-        connect(&v->moveAnim, &Animation::update, v, &NSView::move);
+        v->alphaAnim.update.connect(v, &View::setAlpha);
+        v->moveAnim.update.connect(v, overload<const QPointF &>(&View::setPos));
         m_compositor->layer(Compositor::Layer::Overlay)->addView(v);
         manager->relayout();
     }

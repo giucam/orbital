@@ -22,6 +22,7 @@
 
 #include <utility>
 #include <functional>
+#include <vector>
 
 #include <wayland-server-core.h>
 
@@ -103,5 +104,43 @@ private:
 
     Notify m_notify;
 };
+
+
+template<class... Args>
+class Signal
+{
+public:
+    void connect(const std::function<void (Args...)> &f)
+    {
+        m_slots.push_back(f);
+    }
+    template<class T, class F, class... FArgs>
+    void connect(T *obj, void (F::*func)(FArgs...)) {
+        static_assert(std::is_base_of<F, T>::value);
+        m_slots.push_back([obj, func](const Args &... args) {
+            (obj->*func)(args...);
+        });
+    }
+
+    void operator()(const Args &... args) const
+    {
+        for (auto &&s: m_slots) {
+            s(args...);
+        }
+    }
+
+private:
+    std::vector<std::function<void (Args...)>> m_slots;
+};
+
+template<class... Args>
+struct Overload
+{
+    template<class R, class T>
+    constexpr inline auto operator()(R (T::*f)(Args...)) const -> decltype(f) { return f; }
+};
+
+template<class... Args>
+constexpr Overload<Args...> overload = {};
 
 #endif
