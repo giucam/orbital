@@ -48,6 +48,7 @@ public:
     View *topView() const;
 
     void setMask(int x, int y, int w, int h);
+    void unsetMask();
     void setAcceptInput(bool accept);
     bool acceptInput() const { return m_acceptInput; }
 

@@ -186,7 +186,8 @@ public:
 
                 QPointF pos = pointer()->motionToAbs(evt);
                 int moveX = pos.x() + dx;
-                surface->view->setPos(moveX, surface->view->y());
+                int moveY = pos.y() + dy;
+                surface->view->setPos(moveX, moveY);
             }
             void button(uint32_t time, PointerButton button, Pointer::ButtonState state) override
             {
@@ -206,6 +207,7 @@ public:
         };
 
         view->setTransformParent(nullptr);
+        m_layer->unsetMask();
         view->setPos(view->pos() + m_output->rootView()->pos());
         view->update();
 

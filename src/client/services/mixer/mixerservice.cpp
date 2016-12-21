@@ -29,7 +29,7 @@
 #ifdef HAVE_ALSA
 #include "alsamixer.h"
 #endif
-#ifdef HAVE_PULSEAUDIO
+#ifdef HAVE_PULSE
 #include "pulseaudiomixer.h"
 #endif
 
@@ -46,7 +46,7 @@ Mixer::Mixer(QObject *p)
             : QObject(p)
             , m_backend(nullptr)
 {
-#ifdef HAVE_PULSEAUDIO
+#ifdef HAVE_PULSE
     m_backend = PulseAudioMixer::create(this);
 #endif
     if (!m_backend) {
