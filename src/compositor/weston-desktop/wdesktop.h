@@ -48,6 +48,7 @@ private:
     void fullscreenRequested(weston_desktop_surface *surface, bool fullscreen, weston_output *output);
     void maximizedRequested(weston_desktop_surface *surface, bool maximized);
     void minimizedRequested(weston_desktop_surface *surface);
+    void setXWaylandPosition(weston_desktop_surface *surface, int32_t x, int32_t y);
 
     void pointerFocus(Pointer *pointer);
 

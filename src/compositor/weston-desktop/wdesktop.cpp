@@ -60,6 +60,7 @@ WDesktop::WDesktop(Shell *shell, Compositor *c)
         .fullscreen_requested = API(fullscreenRequested),
         .maximized_requested = API(maximizedRequested),
         .minimized_requested = API(minimizedRequested),
+        .set_xwayland_position = API(setXWaylandPosition),
     };
 #undef API
 
@@ -293,6 +294,10 @@ void WDesktop::minimizedRequested(weston_desktop_surface *surface)
     if (shsurf) {
         shsurf->minimize();
     }
+}
+
+void WDesktop::setXWaylandPosition(weston_desktop_surface *surface, int32_t x, int32_t y)
+{
 }
 
 void WDesktop::pointerFocus(Pointer *pointer)

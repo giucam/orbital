@@ -81,7 +81,6 @@ bool DrmBackend::init(weston_compositor *c)
     config.use_pixman = false;
     config.seat_id = nullptr;
     config.gbm_format = nullptr;
-    config.use_current_mode = false;
     config.configure_device = configureDevice;
 
     if (weston_compositor_load_backend(c, WESTON_BACKEND_DRM, &config.base) != 0) {
