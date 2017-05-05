@@ -113,8 +113,11 @@ void UiScreen::loadConfig(QJsonObject &config)
                 case ElementInfo::Type::Overlay: {
                     m_client->addOverlay(window, m_screen);
                     window->hide();
-                    connect(elm, SIGNAL(showContent()), window, SLOT(show()));
-                    connect(elm, SIGNAL(hideContent()), window, SLOT(hide()));
+                    connect(elm, &Element::showContent, window, [&, window]() {
+                        window->show();
+                        m_client->addOverlay(window, m_screen);
+                    });
+                    connect(elm, &Element::hideContent, window, &QWindow::hide);
                     break;
                 }
                 case ElementInfo::Type::LockScreen:

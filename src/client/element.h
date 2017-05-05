@@ -165,6 +165,9 @@ signals:
     void inputRegionChanged();
     void published();
 
+    void showContent();
+    void hideContent();
+
 protected:
     void setId(int id);
     virtual void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry) override;

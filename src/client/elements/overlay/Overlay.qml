@@ -27,8 +27,6 @@ Element {
     objectName: "overlay"
 
     readonly property bool hasContent: volume.visible || leave.visible
-    signal showContent()
-    signal hideContent()
 
     onHasContentChanged: {
         if (hasContent) {
