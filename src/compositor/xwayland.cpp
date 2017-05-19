@@ -38,6 +38,7 @@
 #include "shellview.h"
 #include "seat.h"
 #include "surface.h"
+#include "format.h"
 
 namespace Orbital {
 
@@ -134,6 +135,11 @@ XWayland::XWayland(Shell *shell)
 
     weston_compositor_load_xwayland(compositor);
     m_api = weston_xwayland_get_api(compositor);
+    if (!m_api) {
+        fmt::print("Cannot load the xwayland module! Compatibility with X apps is disabled.\n");
+        return;
+    }
+
     m_xwayland = m_api->get(compositor);
 
     m_api->listen(m_xwayland, this, spawnXserver);
