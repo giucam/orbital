@@ -46,7 +46,9 @@
 #include "pager.h"
 #include "global.h"
 #include "authorizer.h"
-#include "format.h"
+#include "fmt/format.h"
+#include "fmt/ostream.h"
+#include "debug.h"
 
 namespace Orbital {
 
@@ -480,6 +482,9 @@ bool Compositor::init(StringView socketName)
                           (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
                           terminate_binding, this);
     weston_install_debug_key_binding(m_compositor, MODIFIER_SUPER);
+    weston_compositor_add_debug_binding(m_compositor, KEY_D, [](weston_keyboard *, uint32_t, uint32_t key, void *) {
+        Debug::toggleDebugOutput();
+    }, nullptr);
 
     weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
 

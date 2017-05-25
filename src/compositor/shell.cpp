@@ -54,7 +54,8 @@
 #include "desktop-shell/desktop-shell-window.h"
 #include "effects/zoomeffect.h"
 #include "effects/desktopgrid.h"
-#include "format.h"
+#include "fmt/format.h"
+#include "fmt/ostream.h"
 #include "surface.h"
 #include "desktopfile.h"
 

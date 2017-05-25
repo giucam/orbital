@@ -38,7 +38,7 @@
 #include "shellview.h"
 #include "seat.h"
 #include "surface.h"
-#include "format.h"
+#include "fmt/format.h"
 
 namespace Orbital {
 

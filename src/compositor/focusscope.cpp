@@ -25,6 +25,7 @@
 #include "shell.h"
 #include "compositor.h"
 #include "output.h"
+#include "debug.h"
 
 namespace Orbital {
 
@@ -46,6 +47,7 @@ FocusScope::~FocusScope()
 
 Surface *FocusScope::activate(Surface *surface)
 {
+    Debug::debug("Requested to activate surface {}, isActivable: {}. Current active is {}", surface, (surface ? surface->isActivable() : false), m_activeSurface);
     bool isNull = !surface;
     if (surface) {
         surface = surface->isActivable() ? surface : nullptr;
@@ -75,6 +77,7 @@ Surface *FocusScope::activate(Surface *surface)
         }
     }
     m_activeSurface = surface;
+    Debug::debug("Activate surface {}", surface);
     if (m_activeSurface) {
         for (Seat *seat: m_activeSeats) {
             emit m_activeSurface->activated(seat);
@@ -89,13 +92,16 @@ Surface *FocusScope::activate(Surface *surface)
 
 void FocusScope::activate(Workspace *ws)
 {
+    Debug::debug("Activate workspace {}, id {}. Active surfaces are: [", (void *)ws, ws->id());
     Surface *surface = nullptr;
     for (Surface *s: m_activeSurfaces) {
+        Debug::debug("\t{}", s);
         if (s->workspaceMask() & ws->mask() || s->workspaceMask() == -1) {
             surface = s;
             break;
         }
     }
+    Debug::debug("]");
     activate(surface);
 }
 
