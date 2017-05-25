@@ -38,7 +38,7 @@
 #include "../pager.h"
 #include "../dummysurface.h"
 #include "../focusscope.h"
-#include "../format.h"
+#include "../fmt/format.h"
 #include "desktop-shell-workspace.h"
 #include "desktop-shell-splash.h"
 #include "desktop-shell-window.h"

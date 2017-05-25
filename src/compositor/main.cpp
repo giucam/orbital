@@ -24,6 +24,7 @@
 
 #include "backend.h"
 #include "compositor.h"
+#include "fmt/format.h"
 
 int main(int argc, char **argv)
 {

@@ -33,7 +33,7 @@
 #include "seat.h"
 #include "pager.h"
 #include "layer.h"
-#include "format.h"
+#include "fmt/format.h"
 #include "surface.h"
 
 namespace Orbital

@@ -34,7 +34,8 @@
 #include "../output.h"
 #include "../pager.h"
 #include "../focusscope.h"
-#include "../format.h"
+#include "../fmt/format.h"
+#include "../fmt/ostream.h"
 #include "../surface.h"
 #include "desktopfile.h"
 

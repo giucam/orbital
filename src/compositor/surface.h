@@ -184,6 +184,16 @@ private:
     friend ActiveRegion;
 };
 
+inline std::ostream &operator<<(std::ostream &os, const Surface *surf) {
+    if (surf) {
+        os << "Surface(" << (void *)surf << ", label: \"" << surf->label() << "\", workspace mask: " << surf->workspaceMask() << ")";
+    } else {
+        os << "Surface(nullptr)";
+    }
+    return os;
+}
+
+
 }
 
 #endif

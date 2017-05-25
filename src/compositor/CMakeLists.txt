@@ -39,6 +39,7 @@ set(SOURCES
     dashboard.cpp
     gammacontrol.cpp
     authorizer.cpp
+    debug.cpp
     ../utils/stringview.cpp
     ../utils/desktopfile.cpp
     effect.cpp
@@ -52,7 +53,8 @@ set(SOURCES
     desktop-shell/desktop-shell-launcher.cpp
     desktop-shell/desktop-shell-workspace.cpp
     desktop-shell/desktop-shell-settings.cpp
-    format.cc)
+    fmt/format.cc
+    fmt/ostream.cc)
 
 wayland_add_protocol_server(SOURCES ../../protocol/desktop-shell.xml desktop-shell)
 wayland_add_protocol_server(SOURCES ../../protocol/dropdown.xml dropdown)
