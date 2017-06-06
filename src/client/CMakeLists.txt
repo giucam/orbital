@@ -35,10 +35,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(${WaylandClient_INCLUDE_DIRS})
-
-foreach(dir ${Qt5Widgets_INCLUDE_DIRS})
-    include_directories(${dir}/${Qt5Gui_VERSION_STRING}/QtGui/)
-endforeach(dir)
+include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
 set(SOURCES
     main.cpp
