@@ -17,6 +17,9 @@
  * along with Orbital.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sys/mman.h>
+#include <sched.h>
+
 #include <QCoreApplication>
 #include <QCommandLineParser>
 
@@ -28,6 +31,21 @@
 
 int main(int argc, char **argv)
 {
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) != 0) {
+        fmt::print("Could not lock memory pages.\n");
+    } else {
+        fmt::print(stderr, "Succesfully locked memory pages.\n");
+    }
+
+    sched_param schedParam;
+    memset(&schedParam, 0, sizeof(schedParam));
+    schedParam.sched_priority = 10;
+    if (sched_setscheduler(0, SCHED_FIFO | SCHED_RESET_ON_FORK, &schedParam) != -1) {
+        fmt::print("Succesfully changed the process scheduler to SCHED_FIFO.\n");
+    } else {
+        fmt::print(stderr, "Could not change the process scheduler: {}.\n", strerror(errno));
+    }
+
     setenv("QT_MESSAGE_PATTERN", "[%{if-debug}D%{endif}%{if-warning}W%{endif}%{if-critical}C%{endif}%{if-fatal}F%{endif} %{appname}"
                                  " - %{file}:%{line}] == %{message}", 0);
 
