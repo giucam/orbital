@@ -13,6 +13,7 @@ private slots:
     void testSplit();
     void testCompare();
     void testContains();
+    void testIsNullOrEmpty();
 };
 
 void TstStringView::testSplit()
@@ -105,6 +106,34 @@ void TstStringView::testContains()
     QVERIFY(!view.contains('p'));
     QVERIFY(view.contains(L'↑'));
     QVERIFY(!view.contains(L'→'));
+}
+
+void TstStringView::testIsNullOrEmpty()
+{
+    {
+        StringView view;
+        QVERIFY(view.isNull());
+        QVERIFY(view.isEmpty());
+    }
+
+    {
+        StringView view("default");
+        QVERIFY(!view.isNull());
+        QVERIFY(!view.isEmpty());
+    }
+
+    {
+        StringView view("");
+        QVERIFY(!view.isNull());
+        QVERIFY(view.isEmpty());
+    }
+
+    {
+        std::string src;
+        StringView view(src);
+        QVERIFY(!view.isNull());
+        QVERIFY(view.isEmpty());
+    }
 }
 
 QTEST_MAIN(TstStringView)
