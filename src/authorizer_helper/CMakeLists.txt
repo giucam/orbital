@@ -5,8 +5,6 @@ find_package(Qt5Core)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-include_directories(${WaylandClient_INCLUDE_DIRS})
-
 set(SOURCES main.cpp)
 
 wayland_add_protocol_client(SOURCES ../../protocol/orbital-authorizer-helper.xml authorizer-helper)
