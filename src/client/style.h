@@ -47,53 +47,48 @@ private:
     friend class Style;
 };
 
-#define PROPERTY(type, name) \
-    type name() const { return m_##name; } \
-    void set_##name(type c) { m_##name = c; emit name##Changed(); } \
-    private: \
-        type m_##name; \
-    public:
-
 class Style : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QQmlComponent *panelBackground READ panelBackground WRITE set_panelBackground NOTIFY panelBackgroundChanged)
-    Q_PROPERTY(QQmlComponent *panelBorder READ panelBorder WRITE set_panelBorder NOTIFY panelBorderChanged)
-    Q_PROPERTY(QQmlComponent *taskBarBackground READ taskBarBackground WRITE set_taskBarBackground NOTIFY taskBarBackgroundChanged)
-    Q_PROPERTY(QQmlComponent *taskBarItem READ taskBarItem WRITE set_taskBarItem NOTIFY taskBarItemChanged)
+    Q_PROPERTY(QQmlComponent *panelBackground MEMBER m_panelBackground NOTIFY panelBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *panelBorder MEMBER m_panelBorder NOTIFY panelBorderChanged)
+    Q_PROPERTY(QQmlComponent *taskBarBackground MEMBER m_taskBarBackground NOTIFY taskBarBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *taskBarItem MEMBER m_taskBarItem NOTIFY taskBarItemChanged)
 
-    Q_PROPERTY(QQmlComponent *pagerBackground READ pagerBackground WRITE set_pagerBackground NOTIFY pagerBackgroundChanged)
-    Q_PROPERTY(QQmlComponent *pagerWorkspace READ pagerWorkspace WRITE set_pagerWorkspace NOTIFY pagerWorkspaceChanged)
+    Q_PROPERTY(QQmlComponent *pagerBackground MEMBER m_pagerBackground NOTIFY pagerBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *pagerWorkspace MEMBER m_pagerWorkspace NOTIFY pagerWorkspaceChanged)
 
-    Q_PROPERTY(QQmlComponent *toolTipBackground READ toolTipBackground WRITE set_toolTipBackground NOTIFY toolTipBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *toolTipBackground MEMBER m_toolTipBackground NOTIFY toolTipBackgroundChanged)
 
-    Q_PROPERTY(QQmlComponent *button READ button WRITE set_button NOTIFY buttonChanged)
+    Q_PROPERTY(QQmlComponent *button MEMBER m_button NOTIFY buttonChanged)
 
-    Q_PROPERTY(QQmlComponent *popup READ popup WRITE set_popup NOTIFY popupChanged)
-    Q_PROPERTY(QQmlComponent *popupLauncher READ popupLauncher WRITE set_popupLauncher NOTIFY popupLauncherChanged)
+    Q_PROPERTY(QQmlComponent *popup MEMBER m_popup NOTIFY popupChanged)
+    Q_PROPERTY(QQmlComponent *popupLauncher MEMBER m_popupLauncher NOTIFY popupLauncherChanged)
 
-    Q_PROPERTY(QQmlComponent *notificationBackground READ notificationBackground WRITE set_notificationBackground NOTIFY notificationBackgroundChanged)
+    Q_PROPERTY(QQmlComponent *notificationBackground MEMBER m_notificationBackground NOTIFY notificationBackgroundChanged)
 
-    Q_PROPERTY(QColor textColor READ textColor WRITE set_textColor NOTIFY textColorChanged)
-    Q_PROPERTY(QColor backgroundColor READ backgroundColor WRITE set_backgroundColor NOTIFY backgroundColorChanged)
-    Q_PROPERTY(QColor highlightColor READ highlightColor WRITE set_highlightColor NOTIFY highlightColorChanged)
+    Q_PROPERTY(QColor textColor MEMBER m_textColor NOTIFY textColorChanged)
+    Q_PROPERTY(QColor backgroundColor MEMBER m_backgroundColor NOTIFY backgroundColorChanged)
+    Q_PROPERTY(QColor highlightColor MEMBER m_highlightColor NOTIFY highlightColorChanged)
 public:
     Style(QObject *p = nullptr);
 
-    PROPERTY(QQmlComponent *, panelBackground)
-    PROPERTY(QQmlComponent *, panelBorder)
-    PROPERTY(QQmlComponent *, taskBarBackground)
-    PROPERTY(QQmlComponent *, taskBarItem)
-    PROPERTY(QQmlComponent *, pagerBackground)
-    PROPERTY(QQmlComponent *, pagerWorkspace)
-    PROPERTY(QQmlComponent *, toolTipBackground)
-    PROPERTY(QQmlComponent *, button)
-    PROPERTY(QQmlComponent *, popup)
-    PROPERTY(QQmlComponent *, popupLauncher)
-    PROPERTY(QQmlComponent *, notificationBackground)
-    PROPERTY(QColor, textColor)
-    PROPERTY(QColor, backgroundColor)
-    PROPERTY(QColor, highlightColor)
+private:
+    QQmlComponent *m_panelBackground;
+    QQmlComponent *m_panelBorder;
+    QQmlComponent *m_taskBarBackground;
+    QQmlComponent *m_taskBarItem;
+    QQmlComponent *m_pagerBackground;
+    QQmlComponent *m_pagerWorkspace;
+    QQmlComponent *m_toolTipBackground;
+    QQmlComponent *m_button;
+    QQmlComponent *m_popup;
+    QQmlComponent *m_popupLauncher;
+    QQmlComponent *m_notificationBackground;
+    QColor m_textColor;
+    QColor m_backgroundColor;
+    QColor m_highlightColor;
+public:
 
     static Style *loadStyle(const QString &name, QQmlEngine *engine);
 
@@ -122,7 +117,5 @@ private:
 
     static QMap<QString, StyleInfo *> s_styles;
 };
-
-#undef PROPERTY
 
 #endif
