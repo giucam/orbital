@@ -208,7 +208,9 @@ void WDesktop::committed(weston_desktop_surface *surface, int32_t sx, int32_t sy
     bool maximized = weston_desktop_surface_get_maximized(surface);
     bool fullscreen = weston_desktop_surface_get_fullscreen(surface);
 
-    if ((!maximized && ds->maximized) || (!fullscreen && ds->fullscreen)) {
+    // we reset to the normal state if (it was maximized and it's no more, and it's not fullscreen) or
+    // if (it was fullscreen and it's no more and it's not maximized)
+    if ((!maximized && ds->maximized && !fullscreen) || (!fullscreen && ds->fullscreen && !maximized)) {
         ds->shsurf->setToplevel();
     }
 

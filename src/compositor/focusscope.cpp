@@ -109,6 +109,8 @@ void FocusScope::deactivateSurface()
 {
     Surface *surface = static_cast<Surface *>(sender());
 
+    Debug::debug("Surface {} deactivated", surface);
+
     m_activeSurfaces.remove(surface);
     if (surface == m_activeSurface) {
         for (Seat *seat: m_activeSeats) {

@@ -35,6 +35,7 @@
 #include "layer.h"
 #include "fmt/format.h"
 #include "surface.h"
+#include "debug.h"
 
 namespace Orbital
 {
@@ -126,6 +127,8 @@ void ShellSurface::setToplevel()
     m_nextType = Type::Toplevel;
     m_toplevel.maximized = false;
     m_toplevel.fullscreen = false;
+
+    Debug::debug("Making surface '{}' toplevel", surface());
     disconnectParent();
 }
 
@@ -165,7 +168,7 @@ void ShellSurface::setMaximized()
     m_toplevel.output = selectOutput();
 
     QRect rect = m_toplevel.output->availableGeometry();
-    qDebug() << "Maximizing surface on output" << m_toplevel.output << "with rect" << rect;
+    Debug::debug("Maximizing surface '{}' on output '{}' with rect {}", surface(), m_toplevel.output, rect);
     sendConfigure(rect.width(), rect.height());
 }
 
@@ -178,7 +181,7 @@ void ShellSurface::setFullscreen()
     Output *output = selectOutput();
 
     QRect rect = output->geometry();
-    qDebug() << "Fullscrening surface on output" << output << "with rect" << rect;
+    Debug::debug("Fullscrening surface '{}' on output '{}' with rect {}", surface(), output, rect);
     sendConfigure(rect.width(), rect.height());
 }
 
@@ -354,6 +357,7 @@ void ShellSurface::setBusyCursor(Pointer *pointer)
 
 void ShellSurface::unmap()
 {
+    Debug::debug("Unmapping surface {}", this);
     for (auto &i: m_views) {
         i.second->cleanupAndUnmap();
     }
@@ -366,6 +370,7 @@ void ShellSurface::minimize()
         return;
     }
 
+    Debug::debug("Minimizing surface {}", this);
     unmap();
     m_minimized = true;
     emit minimized();
@@ -511,6 +516,7 @@ void ShellSurface::parentSurfaceDestroyed()
 void ShellSurface::committed(int x, int y)
 {
     if (m_surface->width() == 0) {
+        Debug::debug("Surface comitted with no buffer {}", this);
         m_type = Type::None;
         m_workspace = nullptr;
         m_surface->unmap();

@@ -99,6 +99,7 @@ public:
 
         s->setLabel("notification");
         s->setRoleHandler(this);
+        s->setActivable(false);
         connect(c, &Compositor::outputCreated, this, &NotificationSurface::outputCreated);
         connect(c, &Compositor::outputRemoved, this, &NotificationSurface::outputRemoved);
     }

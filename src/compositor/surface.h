@@ -102,7 +102,7 @@ public:
     inline QSize size() const { return QSize(width(), height()); }
     QRect boundingBox() const;
     void map() { m_surface->is_mapped = true; }
-    void unmap() { weston_surface_unmap(m_surface); }
+    void unmap();
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;
@@ -164,7 +164,8 @@ signals:
 
 private:
     static void configure(weston_surface *s, int32_t x, int32_t y);
-    static void destroy(wl_listener *listener, void *data);
+    static void surfaceDestroyed(wl_listener *listener, void *data);
+    void destroy(bool deleteSurface);
 
     weston_surface *m_surface;
     RoleHandler *m_roleHandler;
