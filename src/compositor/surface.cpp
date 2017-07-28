@@ -30,10 +30,10 @@ struct Listener {
     Surface *surface;
 };
 
-void Surface::destroy(wl_listener *listener, void *data)
+void Surface::surfaceDestroyed(wl_listener *listener, void *data)
 {
     Surface *surface = reinterpret_cast<Listener *>(listener)->surface;
-    surface->m_surface = nullptr;
+    surface->destroy(false);
     delete surface;
 }
 
@@ -48,13 +48,22 @@ Surface::Surface(weston_surface *surface, QObject *p)
        , m_viewCreator(nullptr)
        , m_shsurf(nullptr)
 {
-    m_listener->listener.notify = destroy;
+    m_listener->listener.notify = surfaceDestroyed;
     m_listener->surface = this;
     wl_signal_add(&surface->destroy_signal, &m_listener->listener);
 }
 
 Surface::~Surface()
 {
+    destroy(true);
+}
+
+void Surface::destroy(bool deleteSurface)
+{
+    if (!m_surface) {
+        return;
+    }
+
     emit unmapped();
 
     delete m_shsurf;
@@ -63,7 +72,7 @@ Surface::~Surface()
         delete m_views.front();
     }
     wl_list_remove(&m_listener->listener.link);
-    if (m_surface) {
+    if (deleteSurface) {
         weston_surface_destroy(m_surface);
     }
 
@@ -73,6 +82,7 @@ Surface::~Surface()
     if (m_roleHandler) {
         m_roleHandler->surface = nullptr;
     }
+    m_surface = nullptr;
 }
 
 QRect Surface::boundingBox() const
@@ -223,7 +233,7 @@ Surface *Surface::fromSurface(weston_surface *surf)
 {
     if (surf->committed == configure) {
         return static_cast<Surface *>(surf->committed_private);
-    } else if (wl_listener *listener = wl_signal_get(&surf->destroy_signal, destroy)) {
+    } else if (wl_listener *listener = wl_signal_get(&surf->destroy_signal, surfaceDestroyed)) {
         return reinterpret_cast<Listener *>(listener)->surface;
     }
 

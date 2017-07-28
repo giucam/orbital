@@ -164,7 +164,8 @@ signals:
 
 private:
     static void configure(weston_surface *s, int32_t x, int32_t y);
-    static void destroy(wl_listener *listener, void *data);
+    static void surfaceDestroyed(wl_listener *listener, void *data);
+    void destroy(bool deleteSurface);
 
     weston_surface *m_surface;
     RoleHandler *m_roleHandler;
