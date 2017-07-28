@@ -23,6 +23,8 @@
 #include "fmt/format.h"
 #include "fmt/ostream.h"
 
+#include <QRect>
+
 namespace Orbital {
 
 class Debug
@@ -42,6 +44,11 @@ private:
     static bool s_debugActive;
 };
 
+}
+
+inline std::ostream &operator<<(std::ostream &os, const QRect &rect) {
+    os << "(" << rect.x() << "," << rect.y() << " " << rect.width() << "x" << rect.height() << ")";
+    return os;
 }
 
 #endif

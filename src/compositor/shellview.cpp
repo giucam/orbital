@@ -29,6 +29,7 @@
 #include "compositor.h"
 #include "dummysurface.h"
 #include "layer.h"
+#include "fmt/format.h"
 
 namespace Orbital {
 
@@ -55,7 +56,8 @@ public:
     BlackSurface(Compositor *c, ShellView *p, int w, int h)
         : DummySurface(c, w, h)
     {
-        setLabel("black_surface");
+
+        setLabel(fmt::format("black_surface of '{}'", p->surface()->surface()->label()));
         view = new BlackView(this, p);
     }
 
