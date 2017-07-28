@@ -85,6 +85,12 @@ void Surface::destroy(bool deleteSurface)
     m_surface = nullptr;
 }
 
+void Surface::unmap()
+{
+    weston_surface_unmap(m_surface);
+    emit unmapped();
+}
+
 QRect Surface::boundingBox() const
 {
     auto geom = weston_surface_get_bounding_box(m_surface);

@@ -102,7 +102,7 @@ public:
     inline QSize size() const { return QSize(width(), height()); }
     QRect boundingBox() const;
     void map() { m_surface->is_mapped = true; }
-    void unmap() { weston_surface_unmap(m_surface); }
+    void unmap();
     bool isMapped() const;
     wl_client *client() const;
     weston_surface *surface() const;

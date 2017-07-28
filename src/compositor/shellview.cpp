@@ -202,6 +202,7 @@ void ShellView::configureXWayland(int x, int y)
 void ShellView::cleanupAndUnmap()
 {
     if (m_blackSurface) {
+        m_blackSurface->unmap();
         m_blackSurface->view->unmap();
     }
     unmap();
