@@ -109,9 +109,6 @@ void Mpris::checkConnection()
     }
 
     DBusInterface iface(DBUS_SERVICE, QStringLiteral("/"), DBUS_SERVICE);
-    if (!iface.isValid()) {
-        return;
-    }
     QDBusPendingCall call = iface.asyncCall(QStringLiteral("ListNames"));
     QDBusPendingCallWatcher *watcher = new QDBusPendingCallWatcher(call);
     watcher->connect(watcher, &QDBusPendingCallWatcher::finished, [this](QDBusPendingCallWatcher *watcher) {
