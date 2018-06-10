@@ -15,7 +15,7 @@ qt5_add_resources(RESOURCES resources.qrc)
 
 add_executable(orbital-launcher ${SOURCES} ${RESOURCES} ${QM_FILES})
 qt5_use_modules(orbital-launcher Qml Quick)
-target_link_libraries(orbital-launcher wayland-client)
+target_link_libraries(orbital-launcher wayland-client Qt5::Qml Qt5::Quick)
 set_target_properties(orbital-launcher PROPERTIES COMPILE_DEFINITIONS "DATA_PATH=\"${CMAKE_INSTALL_PREFIX}/share/orbital/launcher\"")
 target_include_directories(orbital-launcher PUBLIC ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 
