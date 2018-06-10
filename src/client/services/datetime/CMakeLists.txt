@@ -9,6 +9,7 @@ include_directories(
 set(SOURCES datetime.cpp)
 
 add_library(datetime SHARED ${SOURCES})
+target_link_libraries(datetime Qt5::Core Qt5::Qml)
 qt5_use_modules(datetime Core Qml)
 
 set(dest lib/orbital/qml/Orbital/DateTimeService)
