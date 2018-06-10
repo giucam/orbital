@@ -23,7 +23,9 @@ if (${pulse_FOUND})
 endif()
 
 add_library(mixerservice SHARED ${SOURCES})
-qt5_use_modules(mixerservice Core Qml)
+
+qt5_use_modules( Core Qml)
+target_link_libraries(mixerservice Qt5::Core Qt5::Qml)
 
 if (${ALSA_FOUND})
     include_directories("${ALSA_INCLUDE_DIR}")
