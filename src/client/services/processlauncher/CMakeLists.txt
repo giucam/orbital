@@ -8,7 +8,7 @@ include_directories(
 set(SOURCES processlauncher.cpp)
 
 add_library(processlauncher SHARED ${SOURCES})
-qt5_use_modules(processlauncher Core Qml)
+target_link_libraries(processlauncher Qt5::Core Qt5::Qml)
 set(dest lib/orbital/qml/Orbital/ProcessLauncherService)
 install(TARGETS processlauncher DESTINATION ${dest})
 install(FILES qmldir DESTINATION ${dest})
