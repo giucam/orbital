@@ -453,8 +453,6 @@ bool Compositor::init(StringView socketName)
         return false;
     }
 
-    weston_pending_output_coldplug(m_compositor);
-
     const char *socket = nullptr;
     std::string socketStr;
     if (!socketName.isEmpty()) {
@@ -477,11 +475,6 @@ bool Compositor::init(StringView socketName)
     setenv("WAYLAND_DISPLAY", socket, 1);
 
     weston_compositor_wake(m_compositor);
-
-    weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,
-                          (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),
-                          terminate_binding, this);
-    weston_install_debug_key_binding(m_compositor, MODIFIER_SUPER);
 
     weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
 
