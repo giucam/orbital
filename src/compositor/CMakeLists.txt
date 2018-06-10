@@ -72,7 +72,7 @@ list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
 target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} ${libweston-desktop_LIBRARIES} pixman-1 xkbcommon  Qt5::Core Qt5::Widgets Qt5::Qml Qt5::Quick orbital Core)
-set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
+set_target_properties(orbital PROPERTIES ENABLE_EXPORTS 1 COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital DESTINATION bin)
 
