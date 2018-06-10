@@ -24,7 +24,6 @@ endif()
 
 add_library(mixerservice SHARED ${SOURCES})
 
-qt5_use_modules( Core Qml)
 target_link_libraries(mixerservice Qt5::Core Qt5::Qml)
 
 if (${ALSA_FOUND})
