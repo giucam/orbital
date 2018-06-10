@@ -18,7 +18,7 @@ if (${use_logind} MATCHES ON)
 endif()
 
 add_library(loginservice SHARED ${SOURCES})
-qt5_use_modules(loginservice Core DBus Qml)
+target_link_libraries(loginservice Qt5::Core Qt5::DBus Qt5::Widgets Qt5::Qml Qt5::Quick)
 set_target_properties(loginservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
 target_link_libraries(loginservice pam)
 set(dest lib/orbital/qml/Orbital/LoginService)
