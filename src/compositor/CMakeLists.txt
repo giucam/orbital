@@ -1,7 +1,7 @@
 
 pkg_check_modules(WaylandServer wayland-server REQUIRED)
-pkg_check_modules(libweston libweston-3 REQUIRED)
-pkg_check_modules(libweston-desktop libweston-desktop-3 REQUIRED)
+pkg_check_modules(libweston libweston-5 REQUIRED)
+pkg_check_modules(libweston-desktop libweston-desktop-5 REQUIRED)
 
 find_package(Qt5Core)
 
@@ -71,9 +71,8 @@ list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
 list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital ${SOURCES})
-qt5_use_modules(orbital Core)
-target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} ${libweston-desktop_LIBRARIES} pixman-1 xkbcommon)
-set_target_properties(orbital PROPERTIES COMPILE_DEFINITIONS "${defines}")
+set_target_properties(orbital PROPERTIES ENABLE_EXPORTS 1 COMPILE_DEFINITIONS "${defines}")
+target_link_libraries(orbital wayland-server ${libweston_LIBRARIES} ${libweston-desktop_LIBRARIES} pixman-1 xkbcommon  Qt5::Core Qt5::Widgets Qt5::Qml Qt5::Quick orbital Core)
 
 install(TARGETS orbital DESTINATION bin)
 

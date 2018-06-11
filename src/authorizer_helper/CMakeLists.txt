@@ -13,8 +13,7 @@ list(APPEND defines "LIBEXEC_PATH=\"${CMAKE_INSTALL_PREFIX}/libexec\"")
 list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital-authorizer-helper ${SOURCES} ${RESOURCES})
-qt5_use_modules(orbital-authorizer-helper Core)
-target_link_libraries(orbital-authorizer-helper wayland-client)
+target_link_libraries(orbital-authorizer-helper wayland-client Qt5::Core)
 set_target_properties(orbital-authorizer-helper PROPERTIES COMPILE_DEFINITIONS "${defines}")
 
 install(TARGETS orbital-authorizer-helper DESTINATION libexec)

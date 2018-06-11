@@ -84,8 +84,7 @@ list(APPEND defines "BIN_PATH=\"${CMAKE_INSTALL_PREFIX}/bin\"")
 list(APPEND defines "QT_MESSAGELOGCONTEXT")
 
 add_executable(orbital-client ${SOURCES} ${RESOURCES} ${QM_FILES})
-qt5_use_modules(orbital-client Widgets Qml Quick)
-target_link_libraries(orbital-client ${WaylandClient_LIBRARIES})
+target_link_libraries(orbital-client ${WaylandClient_LIBRARIES}  Qt5::Core Qt5::Widgets Qt5::Qml Qt5::Quick)
 set_target_properties(orbital-client PROPERTIES COMPILE_DEFINITIONS "${defines}")
 target_include_directories(orbital-client PUBLIC ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 

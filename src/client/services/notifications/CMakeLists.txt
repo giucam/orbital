@@ -9,7 +9,7 @@ include_directories(
 set(SOURCES notificationsservice.cpp notificationsadaptor.cpp notificationsiconprovider.cpp)
 
 add_library(notificationsservice SHARED ${SOURCES})
-qt5_use_modules(notificationsservice Core DBus Quick)
+target_link_libraries(notificationsservice Qt5::Core Qt5::DBus Qt5::Quick)
 set_target_properties(notificationsservice PROPERTIES COMPILE_DEFINITIONS "${defines}")
 set(dest lib/orbital/qml/Orbital/NotificationsService)
 install(TARGETS notificationsservice DESTINATION ${dest})
