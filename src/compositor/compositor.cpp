@@ -452,6 +452,7 @@ bool Compositor::init(StringView socketName)
     if (!m_backend->init(m_compositor)) {
         return false;
     }
+    weston_pending_output_coldplug(m_compositor);	
 
     const char *socket = nullptr;
     std::string socketStr;
@@ -477,7 +478,13 @@ bool Compositor::init(StringView socketName)
     weston_compositor_wake(m_compositor);
 
     weston_compositor_set_default_pointer_grab(m_compositor, &defaultPointerGrab);
-
+    weston_compositor_add_key_binding(m_compositor, KEY_BACKSPACE,	
+                          (weston_keyboard_modifier)(MODIFIER_CTRL | MODIFIER_ALT),	
+                          terminate_binding, this);	
+    weston_install_debug_key_binding(m_compositor, MODIFIER_SUPER);	
+    weston_compositor_add_debug_binding(m_compositor, KEY_D, [](weston_keyboard *, uint32_t, uint32_t key, void *) {	
+        Debug::toggleDebugOutput();	
+    }, nullptr);
     m_authorizer = new Authorizer(this);
     m_shell = new Shell(this);
     Workspace *ws = m_shell->createWorkspace();
